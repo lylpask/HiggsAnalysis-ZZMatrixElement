@@ -40,7 +40,7 @@ public:
   void setMelaHiggsWidth(float myHiggsWidth=-1);
   void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf = TVar::DefaultLeptonInterf);
   void setRemoveLeptonMasses(bool MasslessLeptonSwitch = false);
-  void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ);
+  void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
 
   void computeP(float mZZ, float mZ1, float mZ2, // input kinematics
 		float costhetastar,
@@ -152,6 +152,8 @@ public:
 		float& prob
 		);
 
+  void get_PAux(float& prob){ prob = auxiliaryProb; }; // SuperProb
+
   void computePM4l(float mZZ,
 		TVar::LeptonFlavor flavor,
 		TVar::SuperMelaSyst syst, 
@@ -235,6 +237,8 @@ public:
         float& prob
 		);
 
+  TGraph* jvbf_Pint_par;
+
 private:
 
   // 
@@ -247,12 +251,13 @@ private:
   TVar::Production myProduction_;
   newZZMatrixElement* ZZME;
   
+  float auxiliaryProb;
   
   // 
   // functions 
   // 
-  
 
+  void reset_PAux(){ auxiliaryProb=1.; }; // SuperProb reset
 };
 
 #endif

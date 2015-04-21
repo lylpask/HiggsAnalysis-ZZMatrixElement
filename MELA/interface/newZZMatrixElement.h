@@ -72,7 +72,7 @@ public:
   void set_mHiggs(float myPoleMass);
   void set_wHiggs(float myPoleWidth);
   void set_LeptonInterference(TVar::LeptonInterference myLepInterf);
-  void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ);
+  void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
 
   //compute four-momenta from angles only 
   // Nota bene: angles, not cos(theta)...

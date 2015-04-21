@@ -84,8 +84,8 @@ void newZZMatrixElement::set_wHiggs(float myPoleWidth){
 void newZZMatrixElement::set_LeptonInterference(TVar::LeptonInterference myLepInterf){
 	myLeptonInterference = myLepInterf;
 }
-void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ){
-	Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ);
+void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
+  Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }
 
 

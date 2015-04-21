@@ -110,6 +110,7 @@ float getSuperMELA(Mela& myMela, int lepId[4], float mZZ, TVar::SuperMelaSyst sy
 	return myprob;
 };
 
+
 void testME_FullMELA(int erg_tev=8, float mPOLE=125.6){
 	TVar::VerbosityLevel verbosity = TVar::INFO;
 
@@ -264,6 +265,112 @@ void testME_FullMELA(int erg_tev=8, float mPOLE=125.6){
 
 	tout.close();
 };
+
+void testME_FullMELA_MultipleMELA(int erg_tev=8, float mPOLE=125.6){
+  TVar::VerbosityLevel verbosity = TVar::INFO;
+
+  ofstream tout("./testME_SingleEvent_MultipleMELA.txt");
+
+
+  Mela mela(erg_tev, mPOLE);
+  Mela mela2(erg_tev, mPOLE);
+
+
+  double bkg_VAMCFM, ggzz_VAMCFM, ggZZ_prob_Total, ggHZZ_prob_pure;
+  double bkg_VAMCFM2, ggzz_VAMCFM2, ggZZ_prob_Total2, ggHZZ_prob_pure2;
+  double bkg_VAMCFM3, ggzz_VAMCFM3, ggZZ_prob_Total3, ggHZZ_prob_pure3;
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+
+  int mflavor = 3;
+
+  int lepIdOrdered[4]={ 11, -11, 11, -11 };
+  float angularOrdered[8]={ mzz, m1, m2, hs, h1, h2, phi, phi1 };
+
+  double selfDHvvcoupl[SIZE_HVV][2]={ { 0. } };
+  double ggvvcoupl[2]={ 0, 0 };
+
+  selfDHvvcoupl[0][0]=1;
+
+  mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  bkg_VAMCFM = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
+
+  mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  ggzz_VAMCFM = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ|**2
+
+  mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  ggHZZ_prob_pure = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggHZZ|**2
+
+  mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  ggZZ_prob_Total = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ + ggHZZ|**2
+
+
+  mela2.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.399, 91.1876, 0.23119);
+
+  mela2.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+  mela2.setMelaLeptonInterference(TVar::InterfOn);
+  bkg_VAMCFM2 = getMCFMMELAWeight(mela2, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
+
+  mela2.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+  mela2.setMelaLeptonInterference(TVar::InterfOn);
+  ggzz_VAMCFM2 = getMCFMMELAWeight(mela2, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ|**2
+
+  mela2.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+  mela2.setMelaLeptonInterference(TVar::InterfOn);
+  ggHZZ_prob_pure2 = getMCFMMELAWeight(mela2, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggHZZ|**2
+
+  mela2.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+  mela2.setMelaLeptonInterference(TVar::InterfOn);
+  ggZZ_prob_Total2 = getMCFMMELAWeight(mela2, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ + ggHZZ|**2
+
+
+  mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  bkg_VAMCFM3 = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
+
+  mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  ggzz_VAMCFM3 = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ|**2
+
+  mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  ggHZZ_prob_pure3 = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggHZZ|**2
+
+  mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+  mela.setMelaLeptonInterference(TVar::InterfOn);
+  ggZZ_prob_Total3 = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ + ggHZZ|**2
+
+  tout << "|ggZZ+ggHZZ|**2\t|ggZZ|**2\t|ggHZZ|**2\t|ggHZZ|**2 JHUGEN\tInterf.\t|qqZZ|**2\tPSig_m4l\tPBkg_m4l" << endl;
+  tout << ggZZ_prob_Total << '\t'
+    << ggzz_VAMCFM << '\t'
+    << ggHZZ_prob_pure << '\t'
+    << bkg_VAMCFM << '\t'
+    << endl;
+  tout << ggZZ_prob_Total2 << '\t'
+    << ggzz_VAMCFM2 << '\t'
+    << ggHZZ_prob_pure2 << '\t'
+    << bkg_VAMCFM2 << '\t'
+    << endl;
+  tout << ggZZ_prob_Total3 << '\t'
+    << ggzz_VAMCFM3 << '\t'
+    << ggHZZ_prob_pure3 << '\t'
+    << bkg_VAMCFM3 << '\t'
+    << endl;
+
+  tout.close();
+}
+
 
 
 void testME_FullMELA_MC(){
@@ -778,21 +885,17 @@ void testME_FullMELA_FullMC_LeptonInterf(){
 	int erg_tev=8;
 	float mPOLE=125.6;
 	float wPOLE=4.15e-3;
-	char TREE_NAME[] = "GenTree";
-
-//	TVar::VerbosityLevel verbosity = TVar::INFO;
+	char TREE_NAME[] = "SelectedTree";
 
 	Mela mela(erg_tev,mPOLE);
-//	mela.setProcess(TVar::SelfDefine, TVar::JHUGen, TVar::GG);
-//	mela.setProcess(TVar::HZZ_4l, TVar::MCFM, TVar::GG);
-	TGraph* vaScale_4e = mela.vaScale_4e;
-	TGraph* vaScale_4mu = mela.vaScale_4mu;
-	TGraph* vaScale_2e2mu = mela.vaScale_2e2mu;
-	TGraph* DggZZ_scalefactor = mela.DggZZ_scalefactor;
+
 //	char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/2mu2e/QQZZ/HZZ4l-125_6-8TeV-QQZZ.root";
 //	char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/2mu2e/Sig/HZZ4l-125_6-8TeV-Sig.root";
-	char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/4e/Sig/HZZ4l-125_6-8TeV-Sig.root";
-	char coutput[]="HZZ4l-125_6-8TeV-Sig_TestOnly.root";
+//  char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/4e/Sig/HZZ4l-125_6-8TeV-Sig.root";
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR";
+  if (erg_tev==8) cinput_main.Append("_8TeV");
+  TString cinput = Form("%s/4e/HZZ4lTree_ggTo4e_Contin-MCFM67.root", cinput_main.Data());
+  char coutput[]="HZZ4l-125_6-8TeV-Sig_TestOnly.root";
 	TFile* finput = new TFile(cinput,"read");
 	TFile* foutput = new TFile(coutput,"recreate");
 
@@ -801,6 +904,7 @@ void testME_FullMELA_FullMC_LeptonInterf(){
 	double p0plus_VAJHU_NEW,ggHZZ_prob_pure_NEW,ggHZZ_prob_int_NEW,ggZZ_prob_Total_NEW;
 	double bkg_VAMCFM_NEW,ggzz_VAMCFM_NEW;
 	double bkg_VAMCFM_STU,bkg_VAMCFM_TU,bkg_VAMCFM_S;
+  float Dgg10;
 
 	double p0plus_m4l, p0plus_m4l_ScaleUp, p0plus_m4l_ScaleDown, p0plus_m4l_ResUp, p0plus_m4l_ResDown;
 	double bkg_m4l, bkg_m4l_ScaleUp, bkg_m4l_ScaleDown, bkg_m4l_ResUp, bkg_m4l_ResDown;
@@ -816,32 +920,25 @@ void testME_FullMELA_FullMC_LeptonInterf(){
 	float GenLep1Id,GenLep2Id,GenLep3Id,GenLep4Id;
 
 	TTree* tree = (TTree*) finput->Get(TREE_NAME);
-	tree->SetBranchAddress("GenZZMass", &mzz);
-	tree->SetBranchAddress("GenZ1Mass", &m1);
-	tree->SetBranchAddress("GenZ2Mass", &m2);
-	tree->SetBranchAddress("GenhelcosthetaZ1", &h1);
-	tree->SetBranchAddress("GenhelcosthetaZ2", &h2);
-	tree->SetBranchAddress("Genhelphi", &phi);
-	tree->SetBranchAddress("Gencosthetastar", &hs);
-	tree->SetBranchAddress("GenphistarZ1", &phi1);
-	tree->SetBranchAddress("GenLep1Id", &GenLep1Id);
-	tree->SetBranchAddress("GenLep2Id", &GenLep2Id);
-	tree->SetBranchAddress("GenLep3Id", &GenLep3Id);
-	tree->SetBranchAddress("GenLep4Id", &GenLep4Id);
+	tree->SetBranchAddress("ZZMass", &mzz);
+	tree->SetBranchAddress("Z1Mass", &m1);
+	tree->SetBranchAddress("Z2Mass", &m2);
+	tree->SetBranchAddress("helcosthetaZ1", &h1);
+	tree->SetBranchAddress("helcosthetaZ2", &h2);
+	tree->SetBranchAddress("helphi", &phi);
+	tree->SetBranchAddress("costhetastar", &hs);
+	tree->SetBranchAddress("phistarZ1", &phi1);
+
 
 	TTree* newtree = new TTree("TestTree","");
-	newtree->Branch("GenZZMass", &mzz);
-	newtree->Branch("GenZ1Mass", &m1);
-	newtree->Branch("GenZ2Mass", &m2);
-	newtree->Branch("GenhelcosthetaZ1", &h1);
-	newtree->Branch("GenhelcosthetaZ2", &h2);
-	newtree->Branch("Genhelphi", &phi);
-	newtree->Branch("Gencosthetastar", &hs);
-	newtree->Branch("GenphistarZ1", &phi1);
-	newtree->Branch("GenLep1Id", &GenLep1Id);
-	newtree->Branch("GenLep2Id", &GenLep2Id);
-	newtree->Branch("GenLep3Id", &GenLep3Id);
-	newtree->Branch("GenLep4Id", &GenLep4Id);
+	newtree->Branch("ZZMass", &mzz);
+	newtree->Branch("Z1Mass", &m1);
+	newtree->Branch("Z2Mass", &m2);
+	newtree->Branch("helcosthetaZ1", &h1);
+	newtree->Branch("helcosthetaZ2", &h2);
+	newtree->Branch("helphi", &phi);
+	newtree->Branch("costhetastar", &hs);
+	newtree->Branch("phistarZ1", &phi1);
 
 	newtree->Branch("p0plus_VAJHU",&p0plus_VAJHU);
 	newtree->Branch("bkg_VAMCFM",&bkg_VAMCFM);
@@ -860,22 +957,29 @@ void testME_FullMELA_FullMC_LeptonInterf(){
 	newtree->Branch("bkg_VAMCFM_S",&bkg_VAMCFM_S);
 	newtree->Branch("bkg_VAMCFM_TU",&bkg_VAMCFM_TU);
 
+  newtree->Branch("Dgg10", &Dgg10);
+
 	int nEntries = tree->GetEntries();
 	double selfDHvvcoupl[SIZE_HVV][2] = { { 0. } };
 	double ggvvcoupl[2]={0,0};
 	mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-	for (int ev = 0; ev < nEntries; ev++){
-//	for (int ev = 0; ev < 5; ev++){
-		tree->GetEntry(ev);
-
-		int lepIdOrdered[4] = { GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id };
-//		int lepIdOrdered[4]={ 11,-11,11,-11 };
+//	for (int ev = 0; ev < nEntries; ev++){
+  int ctr=0;
+  int ev = 0;
+  while (ctr<10000){
+    if (ev==tree->GetEntries()) break;
+    tree->GetEntry(ev);
+    ev++;
+    if (mzz>200) ctr++;
+//		int lepIdOrdered[4] = { GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id };
+		int lepIdOrdered[4]={ 11,-11,11,-11 };
 		float angularOrdered[8] = { mzz, m1, m2, hs, h1, h2, phi, phi1 };
 /*
 		mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 		selfDHvvcoupl[0][0]=1;
 		p0plus_VAJHU = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
 */
+
 		mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
 		bkg_VAMCFM = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
 
@@ -898,7 +1002,7 @@ void testME_FullMELA_FullMC_LeptonInterf(){
 		mela.setMelaLeptonInterference(TVar::InterfOn);
 		bkg_VAMCFM_NEW = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
 
-		mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+  	mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
 		mela.setMelaLeptonInterference(TVar::InterfOn);
 		ggzz_VAMCFM_NEW = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ|**2
 
@@ -925,6 +1029,9 @@ void testME_FullMELA_FullMC_LeptonInterf(){
 		selfDHvvcoupl[0][0]=1;
 		p0plus_VAJHU = getJHUGenMELAWeight(mela, lepIdOrderedp, angularOrdered, selfDHvvcoupl)*0.5;
 
+    mela.setProcess(TVar::D_gg10, TVar::MCFM, TVar::ZZGG);
+    mela.computeD_gg(angularOrdered[0], angularOrdered[1], angularOrdered[2], angularOrdered[3],
+      angularOrdered[4], angularOrdered[5], angularOrdered[6], angularOrdered[7], 1, TVar::MCFM, TVar::D_gg10, Dgg10);
 
 		newtree->Fill();
 	};
@@ -1520,7 +1627,10 @@ void testME_FullMELA_MCFMBSMHiggs(int flavor=1){
 	TGraph* vaScale_4mu = mela.vaScale_4mu;
 	TGraph* vaScale_2e2mu = mela.vaScale_2e2mu;
 	TGraph* DggZZ_scalefactor = mela.DggZZ_scalefactor;
-	mela.resetMCFM_EWKParameters(1.16639E-05,7.81751E-03,79.9549392,91.1876);
+//  mela.resetMCFM_EWKParameters(1.16639E-05, 7.81751E-03, 79.9549392, 91.1876);
+//  mela.resetMCFM_EWKParameters(1.16639E-05, 7.8125E-03, 79.9549391901877726, 91.1876);
+//  mela.resetMCFM_EWKParameters(1.16639E-05, 0.007846559134530596, 80.399, 91.1876);
+  mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.399, 91.1876, 0.23119);
 
 	TFile* finput = new TFile("/afs/cern.ch/work/u/usarica/HZZ4l-125p6-FullAnalysis/LHC_8TeV/GenSignal/HZZ4lTree_powheg15jhuGenV3-0PMH125.6_Generated.root","read");
 	TFile* foutput = new TFile(Form("HZZ4l-125_6-8TeV-Sig_%s_JHUMCFMTest.root",(flavor==0 ? "2mu2e" : "4e")),"recreate");
@@ -1800,7 +1910,20 @@ void testME_FullMELA_MCFMBSMHiggs(int flavor=1){
 		p0plus_VAMCFM/=p0plus_VAJHU;
 
 		newtree->Fill();
-	};
+
+    if (ctr==1){
+      cout << ewscheme_.ewscheme << endl;
+      cout
+        << "vsq: " << ewcouple_.vevsq << '\t'
+        << "GF: " << ewcouple_.Gf << '\t'
+        << "xw: " << ewcouple_.xw << '\t'
+        << "gW: " << ewcouple_.gw << '\t'
+        << "mW: " << masses_mcfm_.wmass << '\t'
+        << "mZ: " << masses_mcfm_.zmass << '\t'
+        << "mT: " << masses_mcfm_.mt
+        << endl;
+    }
+	}
 
 
 	foutput->WriteTObject(newtree);
@@ -1822,7 +1945,7 @@ void testME_FullMELA_MCFMBSMHiggs_Ping(int flavor=1){
 	TGraph* vaScale_4mu = mela.vaScale_4mu;
 	TGraph* vaScale_2e2mu = mela.vaScale_2e2mu;
 	TGraph* DggZZ_scalefactor = mela.DggZZ_scalefactor;
-	mela.resetMCFM_EWKParameters(1.16639E-05,7.81751E-03,79.9549392,91.1876);
+	mela.resetMCFM_EWKParameters(1.16639E-05,1./128.,79.9549392,91.1876,0.23119);
 
 	TFile* finput = new TFile("/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/2mu2e/Sig/HZZ4l-125_6-8TeV-Sig.root","read");
 
@@ -2057,7 +2180,7 @@ void testME_FullMELA_MCFMBSMHiggs_SignalReweight(int flavor=0){
 //	TVar::VerbosityLevel verbosity = TVar::INFO;
 
 	Mela mela(erg_tev,mPOLE);
-//	mela.resetMCFM_EWKParameters(1.16639E-05,7.81751E-03,79.9549392,91.1876);
+//	mela.resetMCFM_EWKParameters(1.16639E-05,1./128.,79.9549392,91.1876,0.23119);
 
 	TFile* finput = new TFile(Form("/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/%s/Sig/HZZ4l-125_6-8TeV-Sig.root",(flavor==0 ? "2mu2e" : "4e")),"read");
 	TFile* foutput = new TFile(Form("HZZ4l-125_6-8TeV-Sig_%s_MCFMSignalReweighting.root",(flavor==0 ? "2mu2e" : "4e")),"recreate");
@@ -2600,7 +2723,7 @@ void testME_FullMELA_PingWithFourMomenta(int flavor=0){
 //	TVar::VerbosityLevel verbosity = TVar::INFO;
 
 	Mela mela(erg_tev,mPOLE);
-	mela.resetMCFM_EWKParameters(1.16639E-05,7.81751E-03,79.9549392,91.1876);
+	mela.resetMCFM_EWKParameters(1.16639E-05,1./128.,79.9549392,91.1876,0.23119);
 
 	float pVAJHU;
 	float pVAMCFM;
@@ -3713,3 +3836,140 @@ void testME_FullMELA_FullSimMC_analyticalMELAValidation(int flavor=1){
 	foutput->Close();
 	finput->Close();
 };
+
+
+void testME_FullMELA_FullMC_Parameters(){
+  int erg_tev=8;
+  float mPOLE=125.6;
+  float wPOLE=4.15e-3;
+  char TREE_NAME[] = "SelectedTree";
+
+  Mela mela(erg_tev, mPOLE);
+
+  //	char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/2mu2e/QQZZ/HZZ4l-125_6-8TeV-QQZZ.root";
+  //	char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/2mu2e/Sig/HZZ4l-125_6-8TeV-Sig.root";
+  //  char cinput[]="/afs/cern.ch/work/u/usarica/WidthAnalysis/LHC_8TeV/4e/Sig/HZZ4l-125_6-8TeV-Sig.root";
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR";
+  if (erg_tev==8) cinput_main.Append("_8TeV");
+//  TString cinput = Form("%s/4e/HZZ4lTree_ggTo4e_Contin-MCFM67.root", cinput_main.Data());
+  TString cinput = Form("%s/4e/HZZ4lTree_ggTo4e_SMHContinInterf-MCFM67_H125.6.root", cinput_main.Data());
+  char coutput[]="HZZ4l-125_6-8TeV-Sig_ParametersTest.root";
+  TFile* finput = new TFile(cinput, "read");
+  TFile* foutput = new TFile(coutput, "recreate");
+
+  double p0plus_VAJHU, ggHZZ_prob_pure, ggHZZ_prob_int, ggZZ_prob_Total;
+  double bkg_VAMCFM, ggzz_VAMCFM;
+  double p0plus_VAJHU_NEW, ggHZZ_prob_pure_NEW, ggHZZ_prob_int_NEW, ggZZ_prob_Total_NEW;
+  double bkg_VAMCFM_NEW, ggzz_VAMCFM_NEW;
+  double bkg_VAMCFM_STU, bkg_VAMCFM_TU, bkg_VAMCFM_S;
+  float Dgg10, Dgg10_NEW;
+
+  double p0plus_m4l, p0plus_m4l_ScaleUp, p0plus_m4l_ScaleDown, p0plus_m4l_ResUp, p0plus_m4l_ResDown;
+  double bkg_m4l, bkg_m4l_ScaleUp, bkg_m4l_ScaleDown, bkg_m4l_ResUp, bkg_m4l_ResDown;
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id;
+
+  TTree* tree = (TTree*)finput->Get(TREE_NAME);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+
+
+  TTree* newtree = new TTree("TestTree", "");
+  newtree->Branch("ZZMass", &mzz);
+  newtree->Branch("Z1Mass", &m1);
+  newtree->Branch("Z2Mass", &m2);
+  newtree->Branch("helcosthetaZ1", &h1);
+  newtree->Branch("helcosthetaZ2", &h2);
+  newtree->Branch("helphi", &phi);
+  newtree->Branch("costhetastar", &hs);
+  newtree->Branch("phistarZ1", &phi1);
+
+  newtree->Branch("bkg_VAMCFM", &bkg_VAMCFM);
+  newtree->Branch("ggzz_VAMCFM", &ggzz_VAMCFM);
+  newtree->Branch("ggHZZ_prob_pure", &ggHZZ_prob_pure);
+  newtree->Branch("ggHZZ_prob_int", &ggHZZ_prob_int);
+  newtree->Branch("Dgg10", &Dgg10);
+
+  newtree->Branch("bkg_VAMCFM_NEW", &bkg_VAMCFM_NEW);
+  newtree->Branch("ggzz_VAMCFM_NEW", &ggzz_VAMCFM_NEW);
+  newtree->Branch("ggHZZ_prob_pure_NEW", &ggHZZ_prob_pure_NEW);
+  newtree->Branch("ggHZZ_prob_int_NEW", &ggHZZ_prob_int_NEW);
+  newtree->Branch("Dgg10_NEW", &Dgg10_NEW);
+
+  int nEntries = tree->GetEntries();
+  double selfDHvvcoupl[SIZE_HVV][2] ={ { 0. } };
+  double ggvvcoupl[2]={ 0, 0 };
+  //	for (int ev = 0; ev < nEntries; ev++){
+  int ctr=0;
+  int ev = 0;
+  while (ctr<3000){
+    if (ev==tree->GetEntries()) break;
+    tree->GetEntry(ev);
+    ev++;
+//    if (mzz>200) ctr++;
+    ctr++;
+    int lepIdOrdered[4]={ 11, -11, 11, -11 };
+    float angularOrdered[8] ={ mzz, m1, m2, hs, h1, h2, phi, phi1 };
+
+    mela.resetMCFM_EWKParameters(1.16639E-05, 7.562468901984759e-3, 80.385, 91.1876, 0.2228972225239183);
+
+
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+    bkg_VAMCFM = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
+
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+    ggzz_VAMCFM = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ|**2
+
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    ggHZZ_prob_pure = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggHZZ|**2
+
+    mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    ggZZ_prob_Total = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ + ggHZZ|**2
+    ggHZZ_prob_int = ggZZ_prob_Total - ggHZZ_prob_pure - ggzz_VAMCFM;
+
+    mela.setProcess(TVar::D_gg10, TVar::MCFM, TVar::ZZGG);
+    mela.computeD_gg(angularOrdered[0], angularOrdered[1], angularOrdered[2], angularOrdered[3], angularOrdered[4], angularOrdered[5], angularOrdered[6], angularOrdered[7], 1, TVar::MCFM, TVar::D_gg10, Dgg10);
+
+    mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.398, 91.1876, 0.23119);
+
+
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+    bkg_VAMCFM_NEW = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |qqZZ|**2
+
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+    ggzz_VAMCFM_NEW = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ|**2
+
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    ggHZZ_prob_pure_NEW = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggHZZ|**2
+
+    mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    ggZZ_prob_Total_NEW = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl); // |ggZZ + ggHZZ|**2
+    ggHZZ_prob_int_NEW = ggZZ_prob_Total_NEW - ggHZZ_prob_pure_NEW - ggzz_VAMCFM_NEW;
+
+    mela.setProcess(TVar::D_gg10, TVar::MCFM, TVar::ZZGG);
+    mela.computeD_gg(angularOrdered[0], angularOrdered[1], angularOrdered[2], angularOrdered[3], angularOrdered[4], angularOrdered[5], angularOrdered[6], angularOrdered[7], 1, TVar::MCFM, TVar::D_gg10, Dgg10_NEW);
+
+    newtree->Fill();
+  };
+
+
+  foutput->WriteTObject(newtree);
+  foutput->Close();
+  finput->Close();
+};
+
+

@@ -43,6 +43,7 @@ TEvtProb::~TEvtProb() {
     delete myCSW_;
 }
 
+/*
 void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ){
 	ewinput_.Gf_inp = ext_Gf;
 	ewinput_.aemmz_inp = ext_aemmz;
@@ -51,7 +52,18 @@ void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double e
 	ewinput_.xw_inp = 1.-pow(ext_mW/ext_mZ,2);
 	coupling_();
 }
+*/
 
+void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
+  if (ext_ewscheme<-1 || ext_ewscheme>3) ext_ewscheme=3;
+  ewinput_.Gf_inp = ext_Gf;
+  ewinput_.aemmz_inp = ext_aemmz;
+  ewinput_.wmass_inp = ext_mW;
+  ewinput_.zmass_inp = ext_mZ;
+  ewinput_.xw_inp = ext_xW;
+  ewscheme_.ewscheme = ext_ewscheme;
+  coupling_();
+}
 
 //
 // Directly calculate the ZZ->4l differential cross-section 
