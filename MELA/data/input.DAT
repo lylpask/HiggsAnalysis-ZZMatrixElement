@@ -6,7 +6,7 @@
 .false.		[skipnt]
 .false.		[dswhisto]
 .false.         [creategrid]
-.true.		[writetop]
+.false.		[writetop]
 .false.		[writedat]
 .false.		[writegnu]
 .true.		[writeroot]
@@ -35,8 +35,8 @@
 .true.		[Gflag]
 
 [Heavy quark masses]
-173.07d0		[top mass]
-4.66d0		[bottom mass]
+173.2d0		[top mass]
+4.75d0		[bottom mass]
 1.275d0		[charm mass]
 
 [Pdf selection]

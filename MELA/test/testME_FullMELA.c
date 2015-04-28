@@ -3944,7 +3944,7 @@ void testME_FullMELA_FullMC_Parameters(){
     mela.setProcess(TVar::D_gg10, TVar::MCFM, TVar::ZZGG);
     mela.computeD_gg(angularOrdered[0], angularOrdered[1], angularOrdered[2], angularOrdered[3], angularOrdered[4], angularOrdered[5], angularOrdered[6], angularOrdered[7], 1, TVar::MCFM, TVar::D_gg10, Dgg10);
 
-    mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.398, 91.1876, 0.23119);
+    mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.399, 91.1876, 0.23119);
 
 
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
