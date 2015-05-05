@@ -49,7 +49,6 @@ Mela::Mela(int LHCsqrts, float mh)
   symlink(mcfmInput2.fullPath().c_str(), "process.DAT");
   mkdir("Pdfdata",S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
-  //edm::FileInPath mcfmInput4("ZZMatrixElement/MELA/data/Pdfdata/cteq6l.tbl");  
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
   mzz_rrv = new RooRealVar("mzz","m_{ZZ}",0.,1000.);
