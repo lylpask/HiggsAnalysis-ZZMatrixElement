@@ -235,6 +235,63 @@ void newZZMatrixElement::computeProdXS_JH(TLorentzVector singleJet,
   
   return;
 }
+void newZZMatrixElement::computeProdXS_ttH(TLorentzVector V_tt[8],
+				       TLorentzVector Higgs,
+							 int topDecay, double selfDHvvcoupl[SIZE_ttH][2],
+				       TVar::Process myModel,
+				       TVar::Production myProduction,
+				       float &mevalue){
+
+  double Ptth[13][4]={{0.}};
+	Ptth[0][0]= -EBEAM/100.;
+	Ptth[0][1]= 0; 
+	Ptth[0][2]= 0; 
+	Ptth[0][3]= -EBEAM/100.;
+	Ptth[1][0]= -EBEAM/100.;
+	Ptth[1][1]= 0; 
+	Ptth[1][2]= 0; 
+	Ptth[1][3]= EBEAM/100.;
+
+	Ptth[2][0] = Higgs.E()/100.;
+	Ptth[2][1] = Higgs.Px()/100.;
+	Ptth[2][2] = Higgs.Py()/100.;
+	Ptth[2][3] = Higgs.Pz()/100.;
+
+	for(int i =0; i<8;i++){
+		Ptth[i+3][0] = V_tt[i].E()/100.;
+		Ptth[i+3][1] = V_tt[i].Px()/100.;
+		Ptth[i+3][2] = V_tt[i].Py()/100.;
+		Ptth[i+3][3] = V_tt[i].Pz()/100.;
+	}
+	//double MFerm = 173.2/100.;
+	//if (myProduction != TVar::ttH)
+	//	MFerm = 4.75/100.;
+	//double MReso = mHiggs;
+	//__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
+	if ( myModel== TVar::HSMHiggs){
+		selfDHvvcoupl [0][0] = 1.; selfDHvvcoupl [0][1] = 0;
+		selfDHvvcoupl [1][0] = 0; selfDHvvcoupl [1][1] = 0;
+	}
+	else if (myModel== TVar::H0minus){
+		selfDHvvcoupl [0][0] = 0; selfDHvvcoupl [0][1] = 0;
+		selfDHvvcoupl [1][0] = 1.593; selfDHvvcoupl [1][1] = 0;
+	}
+	else if(myModel== TVar::SelfDefine_spin0){
+		if(selfDHvvcoupl[0][0] ==0 &&selfDHvvcoupl[0][1] ==0 && selfDHvvcoupl[1][0] ==0 && selfDHvvcoupl[1][1] ==0 ){
+			cout<<"ERROR! Zero couplings"<<endl;
+			return;
+		}
+	}
+	int process=2;
+	double Mevalue=0;
+	if(myProduction == TVar::ttH)
+	  __modttbh_MOD_evalxsec_pp_ttbh(Ptth, selfDHvvcoupl,&topDecay, &process, &Mevalue);
+	else if (myProduction ==TVar::bbH)
+    __modttbh_MOD_evalxsec_pp_bbbh(Ptth, selfDHvvcoupl, &process, &Mevalue);
+	mevalue=Mevalue;
+
+  return;
+}
 
 void newZZMatrixElement::computeProdXS_VH(
 					   TLorentzVector V_daughter[2],

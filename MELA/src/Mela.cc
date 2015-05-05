@@ -20,6 +20,7 @@
 #include <vector>
 
 #include <string>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -48,6 +49,7 @@ Mela::Mela(int LHCsqrts, float mh)
   symlink(mcfmInput2.fullPath().c_str(), "process.DAT");
   mkdir("Pdfdata",S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
+  //edm::FileInPath mcfmInput4("ZZMatrixElement/MELA/data/Pdfdata/cteq6l.tbl");  
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
   mzz_rrv = new RooRealVar("mzz","m_{ZZ}",0.,1000.);
@@ -142,6 +144,23 @@ Mela::Mela(int LHCsqrts, float mh)
   jvbf_Pint_par = (TGraph*)finput_jvbfPint->Get("njets1_pjvbf_pars");
   finput_jvbfPint->Close();
   assert(jvbf_Pint_par);
+
+ // int someParam=59;
+	//char path_pdf[60] = "ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid";
+	edm::FileInPath path_pdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
+  const int someParam=path_pdf.fullPath().length()+1;
+	char path_pdf_c[someParam];
+	int someParam_1 = someParam-1;
+//	path_pdf_c= path_pdf.fullPath().c_str();
+	strcpy(path_pdf_c, path_pdf.fullPath().c_str());
+  //int someParam=33;
+	//char path_pdf[34] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
+ 	nnpdfdriver_(path_pdf_c,&someParam_1);
+	someParam_1=0;
+  nninitpdf_(&someParam_1);
+	double MFerm = 173.2/100.;
+	double MReso =mh/100;
+	__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
 }
 
 Mela::~Mela(){ 
@@ -1435,6 +1454,17 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
   prob*=constant;
 }
 
+//void Mela::computeProdP( TLorentzVector V_tt[8],TLorentzVector Higgs,float& prob,int topDecay,double selfDHvvcoupl[SIZE_ttH][2]){
+void Mela::computeProdP( TLorentzVector V_tt[8],TLorentzVector Higgs,float& prob,int topDecay){
+	if( myME_!= TVar::JHUGen){
+		cout << " Error! Only support JHUGen" <<endl;
+		return;
+	}
+	double selfDHvvcoupl[SIZE_ttH][2]={{0}};
+	ZZME->computeProdXS_ttH( V_tt,Higgs,topDecay,selfDHvvcoupl, myModel_, myProduction_, prob);
+
+// 	__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
+}
 void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
 			TLorentzVector Jet2, int Jet2_Id,
 			TLorentzVector Decay1, int Decay1_Id,

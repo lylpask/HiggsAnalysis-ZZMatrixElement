@@ -5,6 +5,8 @@
 #include <TLorentzVector.h>
 #include "ZZMatrixElement/MELA/interface/TVar.hh"
 #include "ZZMatrixElement/MELA/interface/TEvtProb.hh"
+#include "ZZMatrixElement/MELA/interface/TModTTBHMatEl.hh"
+#include "ZZMatrixElement/MELA/interface/TNNPDFDriver.hh"
 
 class  newZZMatrixElement{
 public:
@@ -55,6 +57,12 @@ public:
 			 float &mevalue
 			 );
 
+	void computeProdXS_ttH(TLorentzVector V_tt[8],
+				       TLorentzVector Higgs,
+							 int topDecay, double selfDHvvcoupl[SIZE_ttH][2],
+				       TVar::Process myModel,
+				       TVar::Production myProduction,
+				       float &mevalue);
   void computeProdXS_VH(
 					   TLorentzVector V_daughter[2],
 				       TLorentzVector Higgs_daughter[4],
