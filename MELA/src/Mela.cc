@@ -137,14 +137,6 @@ Mela::Mela(int LHCsqrts, float mh)
     assert(tgtotalbkg[i]);
   }
 
-  //char jvbf_path[500];
-  //sprintf(jvbf_path, "ZZMatrixElement/MELA/data/jvbfMELA_fits_wide_%dTeV.root", superMELA_LHCsqrts); // superMELA_LHCsqrts is correct here.
-  //edm::FileInPath jvbf_file(jvbf_path);
-  //TFile* finput_jvbfPint = TFile::Open(jvbf_file.fullPath().c_str(), "read");
-  //jvbf_Pint_par = (TGraph*)finput_jvbfPint->Get("njets1_pjvbf_pars");
-  //finput_jvbfPint->Close();
-  //assert(jvbf_Pint_par);
-
 	edm::FileInPath path_pdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
   const int someParam=path_pdf.fullPath().length()+1;
 	char path_pdf_c[200];
