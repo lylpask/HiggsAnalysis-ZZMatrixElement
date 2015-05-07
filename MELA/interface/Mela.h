@@ -244,8 +244,6 @@ public:
         float& prob
 		);
 
-  TGraph* jvbf_Pint_par;
-
 private:
 
   // 

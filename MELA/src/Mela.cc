@@ -17,6 +17,7 @@
 #include <TH2F.h>
 #include <TH3F.h>
 #include <TGraph.h>
+#include <TSpline.h>
 #include <vector>
 
 #include <string>
@@ -136,24 +137,19 @@ Mela::Mela(int LHCsqrts, float mh)
     assert(tgtotalbkg[i]);
   }
 
-  char jvbf_path[500];
-  sprintf(jvbf_path, "ZZMatrixElement/MELA/data/jvbfMELA_fits_wide_%dTeV.root", superMELA_LHCsqrts); // superMELA_LHCsqrts is correct here.
-  edm::FileInPath jvbf_file(jvbf_path);
-  TFile* finput_jvbfPint = TFile::Open(jvbf_file.fullPath().c_str(), "read");
-  jvbf_Pint_par = (TGraph*)finput_jvbfPint->Get("njets1_pjvbf_pars");
-  finput_jvbfPint->Close();
-  assert(jvbf_Pint_par);
+  //char jvbf_path[500];
+  //sprintf(jvbf_path, "ZZMatrixElement/MELA/data/jvbfMELA_fits_wide_%dTeV.root", superMELA_LHCsqrts); // superMELA_LHCsqrts is correct here.
+  //edm::FileInPath jvbf_file(jvbf_path);
+  //TFile* finput_jvbfPint = TFile::Open(jvbf_file.fullPath().c_str(), "read");
+  //jvbf_Pint_par = (TGraph*)finput_jvbfPint->Get("njets1_pjvbf_pars");
+  //finput_jvbfPint->Close();
+  //assert(jvbf_Pint_par);
 
- // int someParam=59;
-	//char path_pdf[60] = "ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid";
 	edm::FileInPath path_pdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
   const int someParam=path_pdf.fullPath().length()+1;
-	char path_pdf_c[someParam];
+	char path_pdf_c[200];
 	int someParam_1 = someParam-1;
-//	path_pdf_c= path_pdf.fullPath().c_str();
 	strcpy(path_pdf_c, path_pdf.fullPath().c_str());
-  //int someParam=33;
-	//char path_pdf[34] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
  	nnpdfdriver_(path_pdf_c,&someParam_1);
 	someParam_1=0;
   nninitpdf_(&someParam_1);
@@ -166,7 +162,6 @@ Mela::~Mela(){
   //std::cout << "begin destructor" << std::endl;  
   setRemoveLeptonMasses(false); // Use Run I scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
 
-  if (jvbf_Pint_par!=0) delete jvbf_Pint_par;
   for (int i=0; i<3; i++){
     if (tgtotalbkg[i] != 0) delete tgtotalbkg[i];
   }
@@ -1375,6 +1370,8 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
         double selfDHwwcoupl[SIZE_HWW_VBF][2],
         float& prob){
   reset_PAux();
+  bool isJet2Fake = false;
+
   float constant=1.;
   TLorentzVector nullFourVector(0, 0, 0, 0);
   TLorentzVector jet1massless(0, 0, 0, 0);
@@ -1399,10 +1396,9 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
   if (!(Jet2==nullFourVector) && myProduction_ != TVar::JH){
     mela::computeJetMassless(Jet2, jet2massless);
   }
-  else if(myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) {
+  else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) {
     mela::computeFakeJet(jet1massless, higgs, jet2massless);
-    double* jvbfpar = jvbf_Pint_par->GetY();
-    auxiliaryProb = 1. / ( jvbfpar[0] * TMath::Gaus(fabs(jet2massless.Eta()), jvbfpar[1], jvbfpar[2], false) * ( 1.+jvbfpar[3]*TMath::Gaus(fabs(jet2massless.Eta()), jvbfpar[4], jvbfpar[5], false) ) );
+    isJet2Fake=true;
   }
 /*
   cout << "MELA:"
@@ -1418,24 +1414,219 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
 */
 
 //  if (myProduction_ == TVar::JH) cout << "Massless jet 2 E: " << jet2massless.T() << ", p: " << jet2massless.P() << endl;
+  if (isJet2Fake){
+//    cout << "Jet is fake" << endl;
+//    int n_MEcomp=0;
+
+    int nGrid=11;
+    std::vector<double> etaArray;
+    std::vector<double> pArray;
+    double eta_max = 15;
+    if (jet2massless.Pt()>0) eta_max = max(eta_max, 1.2*fabs(jet2massless.Eta()));
+    double eta_min = -eta_max;
+
+    for (int iter=0; iter<nGrid; iter++){
+      float prob_temp=-1;
+      TLorentzVector higgs_temp;
+      TLorentzVector jet1massless_temp;
+      TLorentzVector jet2massless_temp;
+      higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
+      jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
+
+      double jet2temp_eta = ((double)iter)*(eta_max-eta_min) / (((double)nGrid) - 1.) + eta_min;
+      etaArray.push_back(jet2temp_eta);
+      double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
+      double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
+      jet2massless_temp.SetZ(jet2temp_pz);
+      jet2massless_temp.SetX(jet2massless.X()); jet2massless_temp.SetY(jet2massless.Y()); jet2massless_temp.SetT(jet2massless_temp.P());
+/*
+      cout << "MELA:"
+      << " Higgs Pz: " <<  higgs_temp.Pz()
+      << " Higgs P: " <<  higgs_temp.P()
+      << " Higgs E: " <<  higgs_temp.T()
+      << " Jet 1 Pz: " <<  jet1massless_temp.Pz()
+      << " Jet 1 P: " <<  jet1massless_temp.P()
+      << " Jet 1 E: " <<  jet1massless_temp.T()
+      << " Jet 2 Pz: " <<  jet2massless_temp.Pz()
+      << " Jet 2 P: " <<  jet2massless_temp.P()
+      << " Jet 2 Pt: " <<  jet2massless_temp.Pt()
+      << " Jet 2 E: " <<  jet2massless_temp.T() << endl;
+*/
+      TLorentzVector total_temp=jet1massless_temp+jet2massless_temp+higgs_temp;
+      jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+      jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+      higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+      ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
+        myModel_, myProduction_,
+        selfDHggcoupl,
+        selfDHvvcoupl,
+        selfDHwwcoupl,
+        prob_temp
+        );
+      pArray.push_back((double)prob_temp);
+//      n_MEcomp++;
+    }
+
+    double* xGrid;
+    double* yGrid;
+    const double grid_precision = 0.05;
+    int ctr_iter=0;
+    for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
+      if (pArray[iG]==pArray[iG+1]) continue;
+      if (etaArray[iG]==etaArray[iG+1]) continue;
+
+      ctr_iter++;
+
+      xGrid = new double[nGrid];
+      yGrid = new double[nGrid];
+      for (int iter=0; iter<nGrid; iter++){ // Fill the arrays
+        xGrid[iter] = (double)etaArray[iter];
+        yGrid[iter] = (double)pArray[iter];
+      }
+
+      TGraph* interpolator = new TGraph(nGrid, xGrid, yGrid);
+      double derivative_first = (yGrid[1]-yGrid[0])/(xGrid[1]-xGrid[0]);
+      double derivative_last = (yGrid[nGrid-1]-yGrid[nGrid-2])/(xGrid[nGrid-1]-xGrid[nGrid-2]);
+      TSpline3* spline = new TSpline3("spline", interpolator, "b1e1", derivative_first, derivative_last);
+      double x_middle = (xGrid[iG]+xGrid[iG+1])*0.5;
+      double y_middle = (yGrid[iG]+yGrid[iG+1])*0.5;
+      double y_sp = spline->Eval(x_middle);
+      if (y_sp<0) y_sp = 0;
+
+      std::vector<double>::iterator gridIt;
+
+      if (fabs(y_sp-y_middle)<grid_precision*fabs(y_middle) || fabs(xGrid[iG+1]-xGrid[iG])<1e-3){
+        gridIt = pArray.begin()+iG+1;
+        pArray.insert(gridIt, y_sp);
+        gridIt = etaArray.begin()+iG+1;
+        etaArray.insert(gridIt, x_middle);
+        iG++; // Pass to next bin
+      }
+      else{
+//        cout << "Spline: " << y_sp << "\tmean: " << y_middle << endl;
+//        cout << "Current precision: " << fabs(y_sp-y_middle)/fabs(y_middle) << endl;
+
+        float prob_temp=-1;
+        TLorentzVector higgs_temp;
+        TLorentzVector jet1massless_temp;
+        TLorentzVector jet2massless_temp;
+        higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
+        jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
+
+        double jet2temp_eta = x_middle;
+        gridIt = etaArray.begin()+iG+1;
+        etaArray.insert(gridIt, x_middle);
+        double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
+        double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
+        jet2massless_temp.SetZ(jet2temp_pz);
+        jet2massless_temp.SetX(jet2massless.X()); jet2massless_temp.SetY(jet2massless.Y()); jet2massless_temp.SetT(jet2massless_temp.P());
+
+        TLorentzVector total_temp=jet1massless_temp+jet2massless_temp+higgs_temp;
+        jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+        jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+        higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+        ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
+          myModel_, myProduction_,
+          selfDHggcoupl,
+          selfDHvvcoupl,
+          selfDHwwcoupl,
+          prob_temp
+          );
+//        if (ctr_iter>140 && ctr_iter<165){
+//          cout << iG << '\t' << jet2temp_eta << '\t' << prob_temp << endl;
+//        }
+//        n_MEcomp++;
+        gridIt = pArray.begin()+iG+1;
+        pArray.insert(gridIt, (double)prob_temp);
+        iG--; // Do not pass to next bin, repeat until precision is achieved.
+      }
+      nGrid++;
+
+      delete spline;
+      delete interpolator;
+      delete xGrid;
+      delete yGrid;
+    }
+
+    auxiliaryProb = 0;
+    int iGFirst=0, iGLast=nGrid-1;
+    for (int iG=1; iG<nGrid; iG++){
+      if (pArray[iG]>0 && pArray[iG-1]==0){
+        iGFirst = iG-1;
+        break;
+      }
+    }
+    for (int iG=nGrid-2; iG>=0; iG--){
+      if (pArray[iG]>0 && pArray[iG+1]==0){
+        iGLast = iG+1;
+        break;
+      }
+    }
+
+    double dEtaGrid = etaArray[iGLast] - etaArray[iGFirst];
+    for (int iG=iGFirst; iG<iGLast-1; iG++){
+      double dEta = etaArray[iG+1] - etaArray[iG];
+      double sumProb = pArray[iG]+pArray[iG+1];
+      sumProb *= 0.5;
+      dEta = dEta/dEtaGrid;
+//      if (dEtaGrid<0) cout << "dEtaGrid: " << etaArray[nGrid-1] << " - " << etaArray[0] << " = " << dEtaGrid << endl;
+//      if (dEta<0) cout << "dEta: " << etaArray[iG+1] << " - " << etaArray[iG] << " / " << dEtaGrid << " = " << dEta << endl;
+//      if (sumProb<0) cout << "sumProb: " << pArray[iG] << " + " << pArray[iG+1] << " = " << sumProb << endl;
+      double addProb = sumProb*dEta;
+      auxiliaryProb += (float)addProb;
+    }
+
+/*
+    if (n_MEcomp>=1000){
+    cout << "N>=1000!:\n";
+    for (int iG=0; iG<nGrid; iG++){
+    cout << etaArray[iG] << '\t';
+    }
+    cout << endl;
+    for (int iG=0; iG<nGrid; iG++){
+    cout << pArray[iG] << '\t';
+    }
+    cout << '\n' << endl;
+    }
+    if (auxiliaryProb<=0){
+    cout << "aux: " << auxiliaryProb << endl;
+    for (int iG=0; iG<nGrid; iG++){
+    cout << etaArray[iG] << '\t';
+    }
+    cout << endl;
+    for (int iG=0; iG<nGrid; iG++){
+    cout << pArray[iG] << '\t';
+    }
+    cout << '\n' << endl;
+    }
+*/
+  }
+
+
+
   TLorentzVector total=jet1massless+jet2massless+higgs;
   jet1massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
   jet2massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
   higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-  if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) ZZME->computeProdXS_JJH(jet1massless, jet2massless, higgs,
-    myModel_, myProduction_,
-    selfDHggcoupl,
-    selfDHvvcoupl,
-    selfDHwwcoupl,
-    prob
-    ); // Higgs + 2 jets: SBF or WBF
-  else if (myProduction_ == TVar::JH) ZZME->computeProdXS_JH(
-    jet1massless,
-    higgs,
-    myModel_,
-    myProduction_,
-    prob
-    ); // Higgs + 1 jet; only SM is supported for now.
+  if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
+    ZZME->computeProdXS_JJH(jet1massless, jet2massless, higgs,
+      myModel_, myProduction_,
+      selfDHggcoupl,
+      selfDHvvcoupl,
+      selfDHwwcoupl,
+      prob
+      ); // Higgs + 2 jets: SBF or WBF
+    if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
+  }
+  else if (myProduction_ == TVar::JH){
+    ZZME->computeProdXS_JH(
+      jet1massless,
+      higgs,
+      myModel_,
+      myProduction_,
+      prob
+      ); // Higgs + 1 jet; only SM is supported for now.
+  }
 
   if (myME_==TVar::JHUGen){
     if (myProduction_ == TVar::JJGG){
@@ -1447,7 +1638,7 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
     }
   }
   if (myME_==TVar::ANALYTICAL){
-    //To be added later
+//  To be added later
   }
 
   prob*=constant;
