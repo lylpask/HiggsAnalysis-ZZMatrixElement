@@ -21,6 +21,7 @@
 #include <vector>
 
 #include <string>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -135,6 +136,18 @@ Mela::Mela(int LHCsqrts, float mh)
   for (int i=0; i<3; i++){
     assert(tgtotalbkg[i]);
   }
+
+	edm::FileInPath path_pdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
+  const int someParam=path_pdf.fullPath().length()+1;
+	char path_pdf_c[200];
+	int someParam_1 = someParam-1;
+	strcpy(path_pdf_c, path_pdf.fullPath().c_str());
+ 	nnpdfdriver_(path_pdf_c,&someParam_1);
+	someParam_1=0;
+  nninitpdf_(&someParam_1);
+	double MFerm = 173.2/100.;
+	double MReso =mh/100;
+	__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
 }
 
 Mela::~Mela(){ 
@@ -1623,6 +1636,17 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
   prob*=constant;
 }
 
+//void Mela::computeProdP( TLorentzVector V_tt[8],TLorentzVector Higgs,float& prob,int topDecay,double selfDHvvcoupl[SIZE_ttH][2]){
+void Mela::computeProdP( TLorentzVector V_tt[8],TLorentzVector Higgs,float& prob,int topDecay){
+	if( myME_!= TVar::JHUGen){
+		cout << " Error! Only support JHUGen" <<endl;
+		return;
+	}
+	double selfDHvvcoupl[SIZE_ttH][2]={{0}};
+	ZZME->computeProdXS_ttH( V_tt,Higgs,topDecay,selfDHvvcoupl, myModel_, myProduction_, prob);
+
+// 	__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
+}
 void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
 			TLorentzVector Jet2, int Jet2_Id,
 			TLorentzVector Decay1, int Decay1_Id,

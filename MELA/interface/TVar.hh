@@ -26,6 +26,7 @@
 #define SIZE_GGG 5
 #define SIZE_GVV 10
 #define SIZE_HVV_FREENORM 2
+#define SIZE_ttH 2
 
 
 class TVar{
@@ -51,7 +52,9 @@ public:
     JJVBF = 7, // WBF
     JH = 8, // H + 1 jet
     ZH = 9, // ZH
-    WH = 10 // W(+/-)H
+    WH = 10, // W(+/-)H
+    ttH = 11, // ttH 
+    bbH = 12 // bbH 
 //
   };
   enum LeptonInterference{
