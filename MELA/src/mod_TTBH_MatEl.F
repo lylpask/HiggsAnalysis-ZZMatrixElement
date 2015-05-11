@@ -2,7 +2,7 @@ MODULE modTTBH
 IMPLICIT NONE
 
       
-public ::EvalXSec_PP_TTBH,EvalAmp_GG_TTBH,EvalAmp_QQB_TTBH,InitProcess_TTBH,EvalXSec_PP_BBBH
+public ::EvalXSec_PP_TTBH,EvalAmp_GG_TTBH,EvalAmp_QQB_TTBH,InitProcess_TTBH,ExitProcess_TTBH,EvalXSec_PP_BBBH
 
 private
 
