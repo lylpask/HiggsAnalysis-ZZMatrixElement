@@ -21,7 +21,7 @@
 #include <vector>
 
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -137,21 +137,14 @@ Mela::Mela(int LHCsqrts, float mh)
     assert(tgtotalbkg[i]);
   }
 
-	edm::FileInPath path_pdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
-  const int someParam=path_pdf.fullPath().length()+1;
-	char path_pdf_c[200];
-	int someParam_1 = someParam-1;
-	strcpy(path_pdf_c, path_pdf.fullPath().c_str());
- 	nnpdfdriver_(path_pdf_c,&someParam_1);
-	someParam_1=0;
-  nninitpdf_(&someParam_1);
-	double MFerm = 173.2/100.;
-	double MReso =mh/100;
-	__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
+	edm::FileInPath path_nnpdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
+  char path_nnpdf_c[] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
+  symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
+  ZZME->set_LHAgrid(path_nnpdf_c);
 }
 
-Mela::~Mela(){ 
-  //std::cout << "begin destructor" << std::endl;  
+Mela::~Mela(){
+//  std::cout << "begin destructor" << std::endl;  
   setRemoveLeptonMasses(false); // Use Run I scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
 
   for (int i=0; i<3; i++){
@@ -176,6 +169,8 @@ Mela::~Mela(){
   delete ZZME;
   delete super;
   delete myR;
+
+//  std::cout << "end destructor" << std::endl;
 }
 
 void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Production myProduction)
@@ -1636,17 +1631,7 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
   prob*=constant;
 }
 
-//void Mela::computeProdP( TLorentzVector V_tt[8],TLorentzVector Higgs,float& prob,int topDecay,double selfDHvvcoupl[SIZE_ttH][2]){
-void Mela::computeProdP( TLorentzVector V_tt[8],TLorentzVector Higgs,float& prob,int topDecay){
-	if( myME_!= TVar::JHUGen){
-		cout << " Error! Only support JHUGen" <<endl;
-		return;
-	}
-	double selfDHvvcoupl[SIZE_ttH][2]={{0}};
-	ZZME->computeProdXS_ttH( V_tt,Higgs,topDecay,selfDHvvcoupl, myModel_, myProduction_, prob);
 
-// 	__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
-}
 void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
 			TLorentzVector Jet2, int Jet2_Id,
 			TLorentzVector Decay1, int Decay1_Id,
@@ -1733,6 +1718,66 @@ void Mela::computeProdP(
 	}
 
 	prob*=constant;
+}
+
+void Mela::computeProdP(
+  TLorentzVector vTTH[6],
+  TLorentzVector Higgs,
+  int ttbar_daughters_pdgid[6],
+  double selfDHvvcoupl[SIZE_TTH][2],
+  float& prob,
+  int topDecay,
+  int topProcess
+  ){
+  reset_PAux();
+  float constant = 1;
+  ZZME->computeProdXS_ttH(vTTH, Higgs, ttbar_daughters_pdgid, topDecay, topProcess, myModel_, myME_, myProduction_, selfDHvvcoupl, prob);
+  if (myME_==TVar::JHUGen){
+    if (myModel_ == TVar::H0minus) constant = pow(1.593, 2);
+  }
+  prob *= constant;
+}
+
+void Mela::computeProdP(
+  TLorentzVector vTTH[6],
+  TLorentzVector Higgs,
+  int ttbar_daughters_pdgid[6],
+  float& prob,
+  int topDecay,
+  int topProcess){
+  double selfDHvvcoupl[SIZE_TTH][2]={ { 0 } };
+  computeProdP(vTTH, Higgs, ttbar_daughters_pdgid, selfDHvvcoupl, prob, topDecay, topProcess);
+}
+
+void Mela::computeProdP(
+  TLorentzVector p_first, int id_first,
+  TLorentzVector p_second, int id_second,
+  TLorentzVector Higgs,
+  float& prob){
+
+  TLorentzVector nullFourVector(0, 0, 0, 0);
+
+  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH){
+    int ttbar_daughters_pdgid[6] ={ 0 };
+    TLorentzVector vTTH[6];
+    ttbar_daughters_pdgid[0] = id_first;
+    ttbar_daughters_pdgid[3] = id_second;
+    vTTH[0] = p_first;
+    vTTH[3] = p_second;
+    for (int vv=1; vv<3; vv++) vTTH[vv].SetXYZT(0, 0, 0, 0);
+    for (int vv=4; vv<6; vv++) vTTH[vv].SetXYZT(0, 0, 0, 0);
+    computeProdP(vTTH, Higgs, ttbar_daughters_pdgid, prob, 0, 2);
+  }
+  else if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH){
+    double selfDHvvcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
+    bool includeHiggsDecay = false;
+    int Higgs_daughter_pdgid[4] ={ 25, 0, 0, 0 }; // Pass dummy
+    TLorentzVector Higgs_daughter[4] ={ Higgs, nullFourVector, nullFourVector, nullFourVector }; // These are summed as long as includeHiggsDecay is false.
+    int V_daughter_pdgid[2] ={ id_first, id_second };
+    TLorentzVector V_daughter[2] ={ p_first, p_second };
+    computeProdP( V_daughter, Higgs_daughter, V_daughter_pdgid, Higgs_daughter_pdgid, includeHiggsDecay, selfDHvvcoupl, prob );
+  }
+  else if (myProduction_ == TVar::JH || myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) computeProdP( p_first, id_first, p_second, id_second, Higgs, 25, nullFourVector, 0, prob );
 }
 
 

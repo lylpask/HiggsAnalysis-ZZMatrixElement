@@ -171,8 +171,41 @@ RETURN
 END SUBROUTINE
   
 
-      
+SUBROUTINE ExitProcess_TTBH()
+implicit none
+integer :: iTree,NumTrees
+include "includeVars.F90"
 
+! gg->ttbar+H
+  NumTrees=2
+  do iTree=1,NumTrees
+!      print *,"gg tree: ",iTree
+      call UnlinkTreeParticles( TheTreeAmps_GG_TTBH(iTree) )
+      if( allocated( TheTreeAmps_GG_TTBH(iTree)%NumGlu ) ) deallocate( TheTreeAmps_GG_TTBH(iTree)%NumGlu )
+      if( allocated( TheTreeAmps_GG_TTBH(iTree)%PartRef ) ) deallocate( TheTreeAmps_GG_TTBH(iTree)%PartRef )
+      if( allocated( TheTreeAmps_GG_TTBH(iTree)%PartType ) ) deallocate( TheTreeAmps_GG_TTBH(iTree)%PartType )
+      if( allocated( TheTreeAmps_GG_TTBH(iTree)%Quarks ) ) deallocate( TheTreeAmps_GG_TTBH(iTree)%Quarks )
+      if( allocated( TheTreeAmps_GG_TTBH(iTree)%Gluons ) ) deallocate( TheTreeAmps_GG_TTBH(iTree)%Gluons )
+      if( allocated( TheTreeAmps_GG_TTBH(iTree)%Scalars ) ) deallocate( TheTreeAmps_GG_TTBH(iTree)%Scalars )
+!	  print *,"complete"
+  enddo
+             
+! qqbar->ttbar+H
+  NumTrees=1
+  do iTree=1,NumTrees
+!      print *,"qq tree: ",iTree
+      call UnlinkTreeParticles( TheTreeAmps_QQB_TTBH(iTree) )
+      if( allocated( TheTreeAmps_QQB_TTBH(iTree)%NumGlu ) ) deallocate( TheTreeAmps_QQB_TTBH(iTree)%NumGlu )
+      if( allocated( TheTreeAmps_QQB_TTBH(iTree)%PartRef ) ) deallocate( TheTreeAmps_QQB_TTBH(iTree)%PartRef )
+      if( allocated( TheTreeAmps_QQB_TTBH(iTree)%PartType ) ) deallocate( TheTreeAmps_QQB_TTBH(iTree)%PartType )
+      if( allocated( TheTreeAmps_QQB_TTBH(iTree)%Quarks ) ) deallocate( TheTreeAmps_QQB_TTBH(iTree)%Quarks )
+      if( allocated( TheTreeAmps_QQB_TTBH(iTree)%Gluons ) ) deallocate( TheTreeAmps_QQB_TTBH(iTree)%Gluons )
+      if( allocated( TheTreeAmps_QQB_TTBH(iTree)%Scalars ) ) deallocate( TheTreeAmps_QQB_TTBH(iTree)%Scalars )
+!	  print *,"complete"
+  enddo
+      
+RETURN
+END SUBROUTINE
   
       
 SUBROUTINE EvalXSec_PP_TTBH(Mom,TTBHcoupl,TopDecays,SelectProcess,Res)
@@ -666,6 +699,80 @@ include 'includeVars.F90'
 RETURN
 END SUBROUTINE
 
+
+SUBROUTINE UnlinkTreeParticles(TheTreeAmp)
+implicit none
+type(TreeProcess) :: TheTreeAmp
+integer :: iPart,NPart,NQua,NSca,NGlu,NBos,PartRef,PartType,ig,iq,ib
+include 'includeVars.F90'
+
+  NPart = TheTreeAmp%NumPart
+  NQua = TheTreeAmp%NumQua
+  NSca = TheTreeAmp%NumSca
+  NGlu = TheTreeAmp%NumGlu(0)
+  NBos = NPart - NQua - NSca - NGlu
+!  print *,"Enter UnlinkTreeParticles, npar: ",NPart
+!  print *,"Enter UnlinkTreeParticles, nQ: ",NQua
+!  print *,"Enter UnlinkTreeParticles, nS: ",NSca
+!  print *,"Enter UnlinkTreeParticles, nG: ",NGlu
+!  print *,"Enter UnlinkTreeParticles, nB: ",NBos
+
+
+  ig=0; iq=0; ib=0;
+  do iPart=1,NGlu
+!     print *,"Enter UnlinkTreeParticles loop particle ",iPart
+     PartRef = TheTreeAmp%PartRef(iPart)
+     PartType= TheTreeAmp%Gluons(iPart)%PartType
+!     print *,"UnlinkTreeParticles PartRef",PartRef
+!     print *,"UnlinkTreeParticles PartType",PartType
+!     print *,"Enter UnlinkTreeParticles gluon ",iPart
+     nullify( TheTreeAmp%Gluons(iPart)%PartType )
+     nullify( TheTreeAmp%Gluons(iPart)%ExtRef )
+     nullify( TheTreeAmp%Gluons(iPart)%Mass )
+     nullify( TheTreeAmp%Gluons(iPart)%Mass2 )
+     nullify( TheTreeAmp%Gluons(iPart)%Helicity )
+     nullify( TheTreeAmp%Gluons(iPart)%Mom )
+     nullify( TheTreeAmp%Gluons(iPart)%Pol )
+!     print *,"Exit UnlinkTreeParticles gluon ",iPart
+ enddo
+
+  do iPart=1,NQua
+!     print *,"Enter UnlinkTreeParticles loop particle ",iPart
+     PartRef = TheTreeAmp%PartRef(iPart)
+     PartType= TheTreeAmp%Quarks(iPart)%PartType
+!     print *,"UnlinkTreeParticles PartRef",PartRef
+!     print *,"UnlinkTreeParticles PartType",PartType
+!     print *,"Enter UnlinkTreeParticles quark ",iPart
+     nullify( TheTreeAmp%Quarks(iPart)%PartType )
+     nullify( TheTreeAmp%Quarks(iPart)%ExtRef )
+     nullify( TheTreeAmp%Quarks(iPart)%Mass )
+     nullify( TheTreeAmp%Quarks(iPart)%Mass2 )
+     nullify( TheTreeAmp%Quarks(iPart)%Helicity )
+     nullify( TheTreeAmp%Quarks(iPart)%Mom )
+     nullify( TheTreeAmp%Quarks(iPart)%Pol )
+!     print *,"Exit UnlinkTreeParticles quark ",iPart
+  enddo
+
+  do iPart=1,NBos
+!     print *,"Enter UnlinkTreeParticles loop particle ",iPart
+     PartRef = TheTreeAmp%PartRef(iPart)
+     PartType= TheTreeAmp%Boson%PartType
+!     print *,"UnlinkTreeParticles PartRef",PartRef
+!     print *,"UnlinkTreeParticles PartType",PartType
+!     print *,"Enter UnlinkTreeParticles boson ",iPart
+     nullify( TheTreeAmp%Boson%PartType )
+     nullify( TheTreeAmp%Boson%ExtRef )
+     nullify( TheTreeAmp%Boson%Mass )
+     nullify( TheTreeAmp%Boson%Mass2 )
+     nullify( TheTreeAmp%Boson%Helicity )
+     nullify( TheTreeAmp%Boson%Mom )
+     nullify( TheTreeAmp%Boson%Pol )
+!     print *,"Exit UnlinkTreeParticles boson ",iPart
+  enddo
+
+
+RETURN
+END SUBROUTINE
  
  
  

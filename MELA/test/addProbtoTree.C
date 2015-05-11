@@ -19,7 +19,7 @@
 #include "RooDataSet.h"
 #include "TH2F.h"
 #include "TCanvas.h"
-#include "../../../HiggsAnalysis/CombinedLimit/interface/HZZ4LRooPdfs.h"
+//#include "<HiggsAnalysis/CombinedLimit/interface/HZZ4LRooPdfs.h>"
 #include "../src/computeAngles.h"
 using namespace std;
 using namespace RooFit;
@@ -31,7 +31,7 @@ bool includePathIsSet = true;
 //int main(){
 void addProbtoTree(){ 
 //gROOT->Macro("loadMELA.C");
-TString inputFile= "../../../../../category/CMSSW_5_3_9_patch3/src/ZZMatrixElement/MELA/test/tth126_test";
+TString inputFile= "./tth126_test";
 int flavor=3;
 int max=500; 
 int LHCsqrts=8;
@@ -103,6 +103,17 @@ float  D_JHUGen_CP_T, D_JHUGen_int, D_JHUGen_int_T, D_int;
 float D_lambda1_VAJHU,D_lambda1_mela, D_int_lambda1, D_int_lambda1_VAJHU, D_int_lambda1_mela;
 float p0plus_m4l, bkg_m4l;
 float pgg10;
+
+float pq2_VAJHU, pq2_mela;
+float pq2sm;
+float p0p_ttH, p0m_ttH;
+float p0p_uFlav_ttH, p0m_uFlav_ttH;
+float p0p_bbH, p0m_bbH;
+float p0p_uFlav_bbH, p0m_uFlav_bbH;
+
+float interfWeight;
+
+
   // -------- CJLST TREES ---------------
   sigTree->SetBranchAddress("Z2Mass",&m2);
   sigTree->SetBranchAddress("Z1Mass",&m1);
@@ -180,8 +191,6 @@ float pgg10;
   newTree->Branch("D_int_lambda1_VAJHU_NEW",&D_int_lambda1_VAJHU,"D_int_lambda1_VAJHU_NEW/F");  // p(0+)/p(0+)+p(Q2) 
   newTree->Branch("D_int_lambda1_mela_NEW",&D_int_lambda1_mela,"D_int_lambda1_mela_NEW/F");  // p(0+)/p(0+)+p(Q2) 
 
-float pq2_VAJHU, pq2_mela;
-float pq2sm;
 
   newTree->Branch("pq2_VAJHU_NEW",&pq2_VAJHU,"pq2_VAJHU_NEW/F");  // p(0+)/p(0+)+p(Q2) 
   newTree->Branch("pq2_mela_NEW",&pq2_mela,"pq2_mela_NEW/F");  // p(0+)/p(0+)+p(Q2) 
@@ -229,17 +238,23 @@ float pq2sm;
   newTree->Branch("p0plus_m4l_NEW",&p0plus_m4l,"p0plus_m4l_NEW/F");  // background, vector algebra, MCFM integrating out the production angles
   newTree->Branch("bkg_m4l_NEW",&bkg_m4l,"bkg_m4l_NEW/F");  // background, vector algebra, MCFM integrating out the production angles
 
-  newTree->Branch("pgg10",&pgg10,"pgg10/F");  // background, vector algebra, MCFM integrating out the production angles
-	float p0p_ttH, p0m_ttH;
-  newTree->Branch("p0p_ttH",&p0p_ttH,"p0p_ttH/F");  // background, vector algebra, MCFM integrating out the production angles
-  newTree->Branch("p0m_ttH",&p0m_ttH,"p0m_ttH/F");  // background, vector algebra, MCFM integrating out the production angles
-  
+  newTree->Branch("pgg10",&pgg10,"pgg10/F");  // Dgg
+  newTree->Branch("p0p_ttH", &p0p_ttH, "p0p_ttH/F"); // ttH SM
+  newTree->Branch("p0m_ttH", &p0m_ttH, "p0m_ttH/F"); // ttH PS
+  newTree->Branch("p0p_bbH", &p0p_bbH, "p0p_bbH/F"); // bbH SM
+  newTree->Branch("p0m_bbH", &p0m_bbH, "p0m_bbH/F"); // bbH PS
+  newTree->Branch("p0p_uFlav_ttH", &p0p_uFlav_ttH, "p0p_uFlav_ttH/F"); // ttH SM, unknown t vs tbar order
+  newTree->Branch("p0m_uFlav_ttH", &p0m_uFlav_ttH, "p0m_uFlav_ttH/F"); // ttH PS, unknown t vs tbar order
+  newTree->Branch("p0p_uFlav_bbH", &p0p_uFlav_bbH, "p0p_uFlav_bbH/F"); // bbH SM, unknown b vs bbar order
+  newTree->Branch("p0m_uFlav_bbH", &p0m_uFlav_bbH, "p0m_uFlav_bbH/F"); // bbH PS, unknown b vs bbar order
+
   //interference weight
-  float interfWeight;
   newTree->Branch("interfWeight",&interfWeight,"interfWeight/F"); // weight to be used for interference reweighting
 
   for(int iEvt=0; iEvt<(max<0?sigTree->GetEntries():max); iEvt++){
-    
+//  for (int iEvt=0; iEvt<1; iEvt++){
+
+
     if(iEvt>=sigTree->GetEntries()) break;
     
     // if ( iEvt != 2 ) continue;
@@ -621,18 +636,38 @@ coupling[0]=5.;
 //cout<<pgg10<<endl;
 //ttH
 		TLorentzVector hig;
-		TLorentzVector V_tt[8];
+		TLorentzVector V_tt[2];
 		V_tt[0].SetPtEtaPhiM( GentbPt, GentbEta, GentbPhi, GentbMass);
 		V_tt[1].SetPtEtaPhiM( GentPt, GentEta, GentPhi, GentMass);
-		for(int tl=2; tl<8;tl++){
-			V_tt[tl].SetPtEtaPhiE(0,0,0,0);
-		}
 		hig.SetPtEtaPhiM(GenHPt,GenHEta, GenHPhi, GenHMass);
+
+//    cout << "Known flavors" << endl;
+//    cout << "SM ttH" << endl;
     myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ttH);
-		myMELA.computeProdP(V_tt, hig, p0p_ttH, 0);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0p_ttH);
+//    cout << "PS ttH" << endl;
     myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::ttH);
-		myMELA.computeProdP(V_tt, hig, p0m_ttH, 0);
-    
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0m_ttH);
+//    cout << "SM bbH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0p_bbH);
+//    cout << "PS bbH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0m_bbH);
+//    cout << "Unknown flavors" << endl;
+//    cout << "SM ttH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ttH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0p_uFlav_ttH);
+//    cout << "PS ttH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::ttH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0m_uFlav_ttH);
+//    cout << "SM bbH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0p_uFlav_bbH);
+//    cout << "PS bbH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0m_uFlav_bbH);
+
     newTree->Fill();
     
   }

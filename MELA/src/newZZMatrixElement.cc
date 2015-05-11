@@ -9,6 +9,7 @@ newZZMatrixElement::newZZMatrixElement(const char* pathtoHiggsCSandWidth,
   Xcal2(pathtoHiggsCSandWidth,ebeam),
   hzz4l_event(),
   vh_event(),
+  tth_event(),
   EBEAM(ebeam)
 				       {
 // Set default parameters explicitly
@@ -75,6 +76,9 @@ std::vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx,dou
     return p;
 }
 
+void newZZMatrixElement::set_LHAgrid(const char* path){
+  Xcal2.Set_LHAgrid(path);
+}
 void newZZMatrixElement::set_mHiggs(float myPoleMass){
 	mHiggs = myPoleMass;
 }
@@ -235,77 +239,20 @@ void newZZMatrixElement::computeProdXS_JH(TLorentzVector singleJet,
   
   return;
 }
-void newZZMatrixElement::computeProdXS_ttH(TLorentzVector V_tt[8],
-				       TLorentzVector Higgs,
-							 int topDecay, double selfDHvvcoupl[SIZE_ttH][2],
-				       TVar::Process myModel,
-				       TVar::Production myProduction,
-				       float &mevalue){
-
-  double Ptth[13][4]={{0.}};
-	Ptth[0][0]= -EBEAM/100.;
-	Ptth[0][1]= 0; 
-	Ptth[0][2]= 0; 
-	Ptth[0][3]= -EBEAM/100.;
-	Ptth[1][0]= -EBEAM/100.;
-	Ptth[1][1]= 0; 
-	Ptth[1][2]= 0; 
-	Ptth[1][3]= EBEAM/100.;
-
-	Ptth[2][0] = Higgs.E()/100.;
-	Ptth[2][1] = Higgs.Px()/100.;
-	Ptth[2][2] = Higgs.Py()/100.;
-	Ptth[2][3] = Higgs.Pz()/100.;
-
-	for(int i =0; i<8;i++){
-		Ptth[i+3][0] = V_tt[i].E()/100.;
-		Ptth[i+3][1] = V_tt[i].Px()/100.;
-		Ptth[i+3][2] = V_tt[i].Py()/100.;
-		Ptth[i+3][3] = V_tt[i].Pz()/100.;
-	}
-	//double MFerm = 173.2/100.;
-	//if (myProduction != TVar::ttH)
-	//	MFerm = 4.75/100.;
-	//double MReso = mHiggs;
-	//__modttbh_MOD_initprocess_ttbh(&MReso,&MFerm);
-	if ( myModel== TVar::HSMHiggs){
-		selfDHvvcoupl [0][0] = 1.; selfDHvvcoupl [0][1] = 0;
-		selfDHvvcoupl [1][0] = 0; selfDHvvcoupl [1][1] = 0;
-	}
-	else if (myModel== TVar::H0minus){
-		selfDHvvcoupl [0][0] = 0; selfDHvvcoupl [0][1] = 0;
-		selfDHvvcoupl [1][0] = 1.593; selfDHvvcoupl [1][1] = 0;
-	}
-	else if(myModel== TVar::SelfDefine_spin0){
-		if(selfDHvvcoupl[0][0] ==0 &&selfDHvvcoupl[0][1] ==0 && selfDHvvcoupl[1][0] ==0 && selfDHvvcoupl[1][1] ==0 ){
-			cout<<"ERROR! Zero couplings"<<endl;
-			return;
-		}
-	}
-	int process=2;
-	double Mevalue=0;
-	if(myProduction == TVar::ttH)
-	  __modttbh_MOD_evalxsec_pp_ttbh(Ptth, selfDHvvcoupl,&topDecay, &process, &Mevalue);
-	else if (myProduction ==TVar::bbH)
-    __modttbh_MOD_evalxsec_pp_bbbh(Ptth, selfDHvvcoupl, &process, &Mevalue);
-	mevalue=Mevalue;
-
-  return;
-}
 
 void newZZMatrixElement::computeProdXS_VH(
-					   TLorentzVector V_daughter[2],
-				       TLorentzVector Higgs_daughter[4],
-					   int V_daughter_pdgid[2],
-				       int Higgs_daughter_pdgid[4],
-					   bool includeHiggsDecay,
+              TLorentzVector V_daughter[2],
+              TLorentzVector Higgs_daughter[4],
+              int V_daughter_pdgid[2],
+              int Higgs_daughter_pdgid[4],
+              bool includeHiggsDecay,
 
-					   TVar::Process myModel,
-					   TVar::MatrixElement myME,
-					   TVar::Production myProduction,
+              TVar::Process myModel,
+              TVar::MatrixElement myME,
+              TVar::Production myProduction,
 
-					   double selfDHvvcoupl[SIZE_HVV_VBF][2],
-				       float &mevalue){
+              double selfDHvvcoupl[SIZE_HVV_VBF][2],
+              float &mevalue){
 
 // Dedicated VH function
 
@@ -318,33 +265,91 @@ void newZZMatrixElement::computeProdXS_VH(
   vh_event.PdgCode[1] = V_daughter_pdgid[0];
   vh_event.PdgCode[2] = V_daughter_pdgid[1];
 
-  TLorentzVector nullVector(0,0,0,0);
-  TLorentzVector higgs(0,0,0,0);
+  TLorentzVector nullVector(0, 0, 0, 0);
+  TLorentzVector higgs(0, 0, 0, 0);
   for (int hd = 0; hd < 4; hd++){
-	  higgs = higgs + Higgs_daughter[hd];
-	  if (includeHiggsDecay){
-		  vh_event.pHdecay[hd] = Higgs_daughter[hd];
-		  vh_event.PdgCode_Hdecay[hd] = Higgs_daughter_pdgid[hd];
-	  }
-	  else{
-		  vh_event.pHdecay[hd] = nullVector;
-		  vh_event.PdgCode_Hdecay[hd] = 0;
-	  }
+    higgs = higgs + Higgs_daughter[hd];
+    if (includeHiggsDecay){
+      vh_event.pHdecay[hd] = Higgs_daughter[hd];
+      vh_event.PdgCode_Hdecay[hd] = Higgs_daughter_pdgid[hd];
+    }
+    else{
+      vh_event.pHdecay[hd] = nullVector;
+      vh_event.PdgCode_Hdecay[hd] = 0;
+    }
   }
   vh_event.p[0] = higgs;
   vh_event.PdgCode[0] = 25;
 
-//  Xcal2.SetHiggsMass(higgs.M(),wHiggs);
-  Xcal2.SetHiggsMass(mHiggs,wHiggs);
-  mevalue  = Xcal2.XsecCalc_VX(myModel,myProduction,
-	  vh_event,
-	  verb,
-	  selfDHvvcoupl
-	  );
+  double zzmass = higgs.M();
+  if (myME==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
+  else Xcal2.SetHiggsMass(zzmass, wHiggs);
+  mevalue  = Xcal2.XsecCalc_VX(myModel, myProduction,
+    vh_event,
+    verb,
+    selfDHvvcoupl
+    );
   if (wHiggs>=0){
-	  set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-	  Xcal2.SetHiggsMass(mHiggs,-1);
+    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
+    Xcal2.SetHiggsMass(mHiggs, -1);
   }
-  
+
   return;
 }
+
+void newZZMatrixElement::computeProdXS_ttH(
+  TLorentzVector vTTH[6],
+  TLorentzVector Higgs,
+  int ttbar_daughters_pdgid[6],
+  int topDecay,
+  int topProcess,
+  TVar::Process myModel,
+  TVar::MatrixElement myME,
+  TVar::Production myProduction,
+  double selfDHvvcoupl[SIZE_TTH][2],
+  float &mevalue){
+  // Dedicated ttH function
+
+  Xcal2.SetMatrixElement(myME);
+  Xcal2.SetProduction(myProduction);
+  Xcal2.SetProcess(myModel);
+
+  if (myModel== TVar::SelfDefine_spin0){
+    bool noCoupl=true;
+    for (int iX=0; iX<SIZE_TTH; iX++){
+      for (int iY=0; iY<2; iY++){
+        if (selfDHvvcoupl[iX][iY]!=0) noCoupl=false;
+      }
+    }
+    if (noCoupl){
+      mevalue=0;
+    }
+  }
+
+  tth_event.p[0] = Higgs;
+  for (int vv=0; vv<6; vv++) tth_event.p[vv+1] = vTTH[vv];
+  for (int vv=0; vv<3; vv++) tth_event.PdgCode_tdecay[0][vv] = ttbar_daughters_pdgid[vv];
+  for (int vv=0; vv<3; vv++) tth_event.PdgCode_tdecay[1][vv] = ttbar_daughters_pdgid[vv+3];
+
+  double zzmass = Higgs.M();
+  if (myME==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
+  else Xcal2.SetHiggsMass(zzmass, wHiggs);
+
+  if (myProduction == TVar::ttH || myProduction ==TVar::bbH){
+    mevalue  = Xcal2.XsecCalc_TTX(
+      myModel, myProduction,
+      tth_event,
+      topDecay, topProcess,
+      verb,
+      selfDHvvcoupl
+      );
+  }
+  
+  if (wHiggs>=0){
+      set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
+      Xcal2.SetHiggsMass(mHiggs, -1);
+  }
+
+  return;
+}
+

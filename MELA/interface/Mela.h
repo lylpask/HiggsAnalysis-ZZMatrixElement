@@ -153,12 +153,31 @@ public:
 		);
 
   void computeProdP(
-		TLorentzVector V_tt[8],
-		TLorentzVector Higgs,
-		float& prob,
-		int topDecay =0
-//		double selfDHvvcoupl[SIZE_ttH][2];
-		); // for ttH matrix
+    TLorentzVector vTTH[6],
+    TLorentzVector Higgs,
+    int ttbar_daughters_pdgid[6],
+    double selfDHvvcoupl[SIZE_TTH][2],
+    float& prob,
+    int topDecay=0,
+    int topProcess=2
+    );
+
+  void computeProdP(
+    TLorentzVector vTTH[6],
+    TLorentzVector Higgs,
+    int ttbar_daughters_pdgid[6],
+    float& prob,
+    int topDecay=0,
+    int topProcess=2
+    );
+
+  void computeProdP(
+    TLorentzVector p_first, int id_first,
+    TLorentzVector p_second, int id_second,
+    TLorentzVector Higgs,
+    float& prob
+    );
+
   void get_PAux(float& prob){ prob = auxiliaryProb; }; // SuperProb
 
   void computePM4l(float mZZ,

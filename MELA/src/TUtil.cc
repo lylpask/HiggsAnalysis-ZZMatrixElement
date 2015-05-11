@@ -1067,6 +1067,45 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, TLorentzV
 }
 
 
+double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], double MReso, double GaReso, double MFerm, double GaFerm, double Hvvcoupl[SIZE_TTH][2], int topDecay, int topProcess, TVar::VerbosityLevel verbosity){
+  double sumME=0;
+  double p4[13][4]={ { 0 } };
+
+  MReso /= 100.;
+  MFerm /= 100.;
+  GaReso /= 100.;
+  GaFerm /= 100.;
+
+  for (int i = 0; i < 2; i++){
+    p4[i][0] = -p[i].Energy()/100.;
+    p4[i][1] = -p[i].Px()/100.;
+    p4[i][2] = -p[i].Py()/100.;
+    p4[i][3] = -p[i].Pz()/100.;
+  }
+  for (int i = 2; i < 11; i++){
+    p4[i][0] = p[i].Energy()/100.;
+    p4[i][1] = p[i].Px()/100.;
+    p4[i][2] = p[i].Py()/100.;
+    p4[i][3] = p[i].Pz()/100.;
+  }
+
+  if (verbosity >= TVar::DEBUG){
+    for (int i=0; i<11; i++){
+      std::cout << "p4[" << i << "] = ";
+      for (int jj=0; jj<4; jj++) std::cout << p4[i][jj] << '\t';
+      std::cout << endl;
+    }
+  }
+
+  __modttbh_MOD_initprocess_ttbh(&MReso, &MFerm);
+  if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, Hvvcoupl, &topDecay, &topProcess, &sumME);
+  else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, Hvvcoupl, &topProcess, &sumME);
+  __modttbh_MOD_exitprocess_ttbh();
+
+  return sumME;
+}
+
+
 // Below code sums over all production parton flavors according to PDF 
 double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq],  TVar::VerbosityLevel verbosity, double EBEAM)
 {

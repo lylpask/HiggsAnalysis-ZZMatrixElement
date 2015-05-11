@@ -3114,7 +3114,8 @@ void testME_FullMELA_FullSimMC_VBFValidation (int flavor=1){
 	TGraph* vaScale_2e2mu = mela.vaScale_2e2mu;
 	TGraph* DggZZ_scalefactor = mela.DggZZ_scalefactor;
 
-	TFile* finput = new TFile(Form("/afs/cern.ch/work/u/usarica/HZZ4l-125p6-FullAnalysis/LHC_8TeV/%s/HZZ4lTree_ZZTo%s.root",(flavor==0 ? "2mu2e" : "4e"),(flavor==0 ? "2e2mu" : "4e")),"read");
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor==0 ? "2mu2e" : "4e"), (flavor==0 ? "2e2mu" : "4e")), "read");
 	TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_vbfMELATest.root",(flavor==0 ? "2e2mu" : "4e")),"recreate");
 
 	TLorentzVector nullFourVector(0,0,0,0);
@@ -3302,9 +3303,15 @@ void testME_FullMELA_FullSimMC_VBFValidation (int flavor=1){
 	}
 
 
-	foutput->WriteTObject(newtree);
+  cout << "Writing tree" << endl;
+  foutput->WriteTObject(newtree);
+  cout << "Wrote" << endl;
+  delete newtree;
+  cout << "Delted tree" << endl;
 	foutput->Close();
-	finput->Close();
+  cout << "Output closed" << endl;
+  finput->Close();
+  cout << "Reached end of program" << endl;
 };
 
 void testME_FullMELA_FullSimMC_HJValidation (int flavor=1){
@@ -3835,6 +3842,170 @@ void testME_FullMELA_FullSimMC_analyticalMELAValidation(int flavor=1){
 	foutput->WriteTObject(newtree);
 	foutput->Close();
 	finput->Close();
+};
+
+void testME_FullMELA_FullSimMC_ttHValidation(int flavor=1){
+  int erg_tev=8;
+  float mPOLE=125.6;
+  float wPOLE=4.15e-3;
+  char TREE_NAME[] = "SelectedTree";
+
+  //	TVar::VerbosityLevel verbosity = TVar::INFO;
+
+  Mela mela(erg_tev, mPOLE);
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor==0 ? "2mu2e" : "4e"), (flavor==0 ? "2e2mu" : "4e")), "read");
+  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_tthMELATest.root", (flavor==0 ? "2e2mu" : "4e")), "recreate");
+
+  TLorentzVector nullFourVector(0, 0, 0, 0);
+
+  float ptth_VAJHU;
+
+
+  float jet1Pt, jet2Pt;
+  float jet1px, jet1py, jet1pz, jet1E;
+  float jet2px, jet2py, jet2pz, jet2E;
+  float ZZPx, ZZPy, ZZPz, ZZE, dR;
+  short NJets30;
+  std::vector<double> * JetPt=0;
+  std::vector<double> * JetEta=0;
+  std::vector<double> * JetPhi=0;
+  std::vector<double> * JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  int GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id;
+
+  TTree* tree = (TTree*)finput->Get(TREE_NAME);
+  tree->SetBranchAddress("NJets30", &NJets30);
+  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+
+  TTree* newtree = new TTree("TestTree", "");
+  newtree->Branch("ptth_VAJHU_new", &ptth_VAJHU);
+  newtree->Branch("jet1Pt", &jet1Pt);
+  newtree->Branch("jet2Pt", &jet2Pt);
+  newtree->Branch("JetPt", &myJetPt);
+  newtree->Branch("JetEta", &myJetEta);
+  newtree->Branch("JetPhi", &myJetPhi);
+  newtree->Branch("JetMass", &myJetMass);
+
+  int nEntries = tree->GetEntries();
+  double selfDHttcoupl[SIZE_TTH][2] ={ { 0 } };
+  mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ttH);
+  int recorded=0;
+  for (int ev = 0; ev < nEntries; ev++){
+    if (recorded>=1000) break;
+    tree->GetEntry(ev);
+    if (flavor == 1){
+      GenLep1Id=11;
+      GenLep2Id=-11;
+      GenLep3Id=11;
+      GenLep4Id=-11;
+    }
+    else{
+      GenLep1Id=13;
+      GenLep2Id=-13;
+      GenLep3Id=11;
+      GenLep4Id=-11;
+    }
+
+    myJetPt.clear();
+    myJetEta.clear();
+    myJetPhi.clear();
+    myJetMass.clear();
+    TLorentzVector jet1(0, 0, 1e-3, 1e-3), jet2(0, 0, 1e-3, 1e-3), higgs(0, 0, 0, 0);
+    TLorentzVector p4[3], jets[2];
+    for (int i = 0; i < JetPt->size(); i++){
+      myJetPt.push_back(JetPt->at(i));
+      myJetEta.push_back(JetEta->at(i));
+      myJetPhi.push_back(JetPhi->at(i));
+      myJetMass.push_back(JetMass->at(i));
+    }
+    if (myJetPt.size()>1){
+      int filled = 0;
+      jets[0].SetPxPyPzE(0, 0, 1, 1);
+      jets[1].SetPxPyPzE(0, 0, 1, 1);
+      for (int i = 0; i < myJetPt.size(); i++){
+        jets[filled].SetPtEtaPhiM(myJetPt[i], myJetEta[i], myJetPhi[i], myJetMass[i]);
+        double jetE = jets[filled].Energy();
+        double jetP = jets[filled].P();
+
+        if (filled == 0){
+          if (jets[filled].Pt()>jet1.Pt()){
+            jet1.SetPxPyPzE(jets[filled].Px(), jets[filled].Py(), jets[filled].Pz(), jetE);
+            jet1Pt = jet1.Pt();
+          }
+          if (i == myJetPt.size() - 1){
+            filled++;
+            i = 0;
+          }
+        }
+        else{
+          if (jets[filled].Pt()<jet1.Pt() && jets[filled].Pt()>jet2.Pt()){
+            jet2.SetPxPyPzE(jets[filled].Px(), jets[filled].Py(), jets[filled].Pz(), jetE);
+            jet2Pt = jet2.Pt();
+          }
+          if (i == myJetPt.size() - 1){
+            filled++;
+          }
+        }
+        if (filled == 2) break;
+      }
+      if (filled == 2){
+        vector<TLorentzVector> p = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+        TLorentzVector pZ1 = p[0] + p[1];
+        TLorentzVector pZ2 = p[3] + p[2];
+        higgs = pZ1 + pZ2;
+        mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ttH);
+        mela.computeProdP(jet1, 0, jet2, 0, higgs, ptth_VAJHU);
+
+//        for (int xx = 0; xx < SIZE_HGG; xx++){ for (int yy = 0; yy < 2; yy++) selfDHggcoupl[xx][yy] = 0; }
+//        selfDHggcoupl[0][0]=1;
+//        mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
+//        mela.computeProdP(jet1, 2, jet2, 2, higgs, 25, nullFourVector, 0, selfDHggcoupl, selfDHvvcoupl, selfDHwwcoupl, pvbf_VAJHU_old_NEW_selfD);
+
+        newtree->Fill();
+        recorded++;
+      }
+    }
+  }
+
+
+  cout << "Writing tree" << endl;
+  foutput->WriteTObject(newtree);
+  cout << "Wrote" << endl;
+  delete newtree;
+  cout << "Delted tree" << endl;
+  foutput->Close();
+  cout << "Output closed" << endl;
+  finput->Close();
+  cout << "Reached end of program" << endl;
 };
 
 
