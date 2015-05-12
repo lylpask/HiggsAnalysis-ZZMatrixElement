@@ -33,14 +33,14 @@ class Mela{
 public:
   
   // Mela(){};
-  Mela(int LHCsqrts=8, float mh=126); // higgs mass for supermela
+  Mela(int LHCsqrts=8, float mh=125); // higgs mass for supermela
   ~Mela();
   
   void setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Production myProduction);
   void setMelaHiggsWidth(float myHiggsWidth=-1);
   void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf = TVar::DefaultLeptonInterf);
   void setRemoveLeptonMasses(bool MasslessLeptonSwitch = false);
-  void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ);
+  void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
 
   void computeP(float mZZ, float mZ1, float mZ2, // input kinematics
 		float costhetastar,
@@ -152,6 +152,34 @@ public:
 		float& prob
 		);
 
+  void computeProdP(
+    TLorentzVector vTTH[6],
+    TLorentzVector Higgs,
+    int ttbar_daughters_pdgid[6],
+    double selfDHvvcoupl[SIZE_TTH][2],
+    float& prob,
+    int topDecay=0,
+    int topProcess=2
+    );
+
+  void computeProdP(
+    TLorentzVector vTTH[6],
+    TLorentzVector Higgs,
+    int ttbar_daughters_pdgid[6],
+    float& prob,
+    int topDecay=0,
+    int topProcess=2
+    );
+
+  void computeProdP(
+    TLorentzVector p_first, int id_first,
+    TLorentzVector p_second, int id_second,
+    TLorentzVector Higgs,
+    float& prob
+    );
+
+  void get_PAux(float& prob){ prob = auxiliaryProb; }; // SuperProb
+
   void computePM4l(float mZZ,
 		TVar::LeptonFlavor flavor,
 		TVar::SuperMelaSyst syst, 
@@ -247,12 +275,13 @@ private:
   TVar::Production myProduction_;
   newZZMatrixElement* ZZME;
   
+  float auxiliaryProb;
   
   // 
   // functions 
   // 
-  
 
+  void reset_PAux(){ auxiliaryProb=1.; }; // SuperProb reset
 };
 
 #endif

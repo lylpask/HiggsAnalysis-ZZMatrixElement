@@ -51,6 +51,7 @@ SuperMELA::SuperMELA(double mH,string channel,int LHCsqrts){
   sqrts_=LHCsqrts;
   mHVal_=mH;
   mH_rrv_=new RooRealVar("mH","mH",mHVal_,0.0,sqrts_);
+  m4l_rrv_=0;
   strChan_=channel;
  
 //  pathToCards_="../../../HiggsAnalysis/HZZ4L_CombinationPy/CreateDatacards/SM_inputs_8TeV/";
@@ -76,6 +77,7 @@ SuperMELA::~SuperMELA(){
   delete a12_qqZZ_; delete a13_qqZZ_  ; 
   
   delete mH_rrv_;
+  if (m4l_rrv_!=0) delete m4l_rrv_;
 
 }
 

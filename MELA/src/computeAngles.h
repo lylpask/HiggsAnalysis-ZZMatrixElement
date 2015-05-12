@@ -41,6 +41,10 @@ namespace mela {
 			 float& costheta1, 
 			 float& costheta2, 
 			 float& Phi, 
-			 float& Phi1);	
+			 float& Phi1);
+
+  /// Jets
+  void computeJetMassless(TLorentzVector massiveJet, TLorentzVector& masslessJet); // Input massive -> output massless
+  void computeFakeJet(TLorentzVector realJet, TLorentzVector others, TLorentzVector& fakeJet); // Input massive + higgs -> output massless fake jet
 }
 #endif

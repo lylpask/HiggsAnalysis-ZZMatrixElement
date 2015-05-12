@@ -1,25 +1,48 @@
 ///////////////////////////////
 // Add Probabilities to tree //
 ///////////////////////////////
-
+#include <iostream>
+#include <fstream>
+#include <TSystem.h>
+#include <TROOT.h>
+#include <math.h>
+#include "TMath.h"
+#include "TString.h"
+#include "TChain.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TEventList.h"
+#include "../interface/Mela.h"
+#include "RooRealVar.h"
+//#include "RooPlot.h"
+#include "RooArgSet.h"
+#include "RooDataSet.h"
+#include "TH2F.h"
+#include "TCanvas.h"
+//#include "<HiggsAnalysis/CombinedLimit/interface/HZZ4LRooPdfs.h>"
+#include "../src/computeAngles.h"
+using namespace std;
 using namespace RooFit;
-bool includePathIsSet = false;
-//void addProbtoTree(char* inputFile= ,int flavor, int max, int LHCsqrts=8){
-//void addProbtoTree(char* inputFile= "ggtoHtoZZ4l-PJ-125_6-8TeV-0+m_1_withDisc",int flavor=3, int max=5000, int LHCsqrts=8){
-//void addProbtoTree(char* inputFile= "ggtoHtoZZ4l-PJ-125_6-8TeV-0-_1_withDisc",int flavor=3, int max=5000, int LHCsqrts=8){
-//void addProbtoTree(char* inputFile= "ggtoHtoZZ4l-PJ-125_6-8TeV-0+m0-_1_withDisc",int flavor=3, int max=5000, int LHCsqrts=8){
-  //flavor: 1:4e, 2:4mu, 3:2e2mu
-//void addProbtoTree(char* inputFile= "ggtoHtoZZ4l_VariousKDs_0+h",int flavor=3, int max=5000, int LHCsqrts=8){
+float emass=0.511e-3;
+float mmass=105.66e-3;
+bool includePathIsSet = true;
 
-void addProbtoTree(char* inputFile= "/afs/cern.ch/work/x/xiaomeng/test/myWorkingArea/CMSSW_5_2_5/src/ZZMatrixElement/MELA/test/2mu2e/HZZ4lTree_powheg15jhuGenV3H126_withDisc_new",int flavor=3, int max=500, int LHCsqrts=8){
-//void addProbtoTree(char* inputFile= "ggtoHtoZZ4l_VariousKDs_0+m0+h",int flavor=3, int max=5000, int LHCsqrts=8){
-
+//using namespace RooFit;
+//int main(){
+void addProbtoTree(){ 
+//gROOT->Macro("loadMELA.C");
+TString inputFile= "./tth126_test";
+int flavor=3;
+int max=500; 
+int LHCsqrts=8;
 
 //  gSystem->Load("$CMSSW_BASE/src/ZZMatrixElement/MELA/data/$SCRAM_ARCH/libmcfm.so");
-  gSystem->Load("$CMSSW_BASE/lib/slc5_amd64_gcc462/libZZMatrixElementMELA.so");
+  //gSystem->Load("$CMSSW_BASE/lib/slc5_amd64_gcc462/libZZMatrixElementMELA.so");
+//  gSystem->Load("$CMSSW_BASE/lib/slc6_amd64_gcc481/libZZMatrixElementMELA.so");
 //  gROOT->LoadMacro("$CMSSW_BASE/src/ZZMatrixElement/MELA/interface/Mela.h+");
   // set up path for local cmssw includes
   // as well as roofit
+  //gSystem->Load("$CMSSW_BASE/src/ZZMatrixElement/MELA/data/$SCRAM_ARCH/libmcfm_7p0.so");
   if (!includePathIsSet) {
     TString path = gSystem->GetIncludePath();
     path += "-I$CMSSW_BASE/src/ ";
@@ -32,16 +55,16 @@ void addProbtoTree(char* inputFile= "/afs/cern.ch/work/x/xiaomeng/test/myWorking
     includePathIsSet = true;
   }
 
-  gROOT->LoadMacro("$CMSSW_BASE/src/ZZMatrixElement/MELA/interface/Mela.h+");
-  gROOT->LoadMacro("../src/AngularPdfFactory.h+");
-  Mela myMELA(8,126);
+ // gROOT->LoadMacro("$CMSSW_BASE/src/ZZMatrixElement/MELA/interface/Mela.h+");
+ // gROOT->LoadMacro("../src/AngularPdfFactory.h+");
+  Mela myMELA(LHCsqrts,126);
   
-  RooMsgService::instance().getStream(1).removeTopic(NumIntegration);
+  //RooMsgService::instance().getStream(1).removeTopic(NumIntegration);
 
   char inputFileName[500];
   char outputFileName[500];
-  sprintf(inputFileName,"%s.root",inputFile);
-  sprintf(outputFileName,"%s_withMELA_new_3.root",inputFile);
+  sprintf(inputFileName,"%s.root",inputFile.Data());
+  sprintf(outputFileName,"%s_withMELA_new.root",inputFile.Data());
 
   TFile* sigFile = new TFile(inputFileName);
   TTree* sigTree=0;
@@ -52,7 +75,7 @@ void addProbtoTree(char* inputFile= "/afs/cern.ch/work/x/xiaomeng/test/myWorking
       sigTree = (TTree*) sigFile->Get("data_obs");
       if(!sigTree){
 	cout<<"ERROR could not find the tree!"<<endl;
-	return;
+	return ;
       }
     }
 
@@ -76,10 +99,21 @@ float p0minus_plus_VAJHU;
   float p1_decay_mela, p1plus_decay_mela, p2_decay_mela;
 
 float D_CP, D_JHUGen_CP, D_0m, D_JHUGen_0m;
-float D_JHUGen_CP, D_JHUGen_CP_T, D_JHUGen_int, D_JHUGen_int_T, D_int;
+float  D_JHUGen_CP_T, D_JHUGen_int, D_JHUGen_int_T, D_int;
 float D_lambda1_VAJHU,D_lambda1_mela, D_int_lambda1, D_int_lambda1_VAJHU, D_int_lambda1_mela;
 float p0plus_m4l, bkg_m4l;
 float pgg10;
+
+float pq2_VAJHU, pq2_mela;
+float pq2sm;
+float p0p_ttH, p0m_ttH;
+float p0p_uFlav_ttH, p0m_uFlav_ttH;
+float p0p_bbH, p0m_bbH;
+float p0p_uFlav_bbH, p0m_uFlav_bbH;
+
+float interfWeight;
+
+
   // -------- CJLST TREES ---------------
   sigTree->SetBranchAddress("Z2Mass",&m2);
   sigTree->SetBranchAddress("Z1Mass",&m1);
@@ -90,9 +124,25 @@ float pgg10;
   sigTree->SetBranchAddress("helphi",&phi);
   sigTree->SetBranchAddress("phistarZ1",&phi1);
   //sigTree->SetBranchAddress("ZZLD",&oldD);
-  Y4l=0.0;
-  pt4l=0.0;
+		float GenHMass;	float GentMass;	float GentbMass;
+  	float GenHEta; 	float GentEta; 	float GentbEta;
+  	float GenHPhi; 	float GentPhi; 	float GentbPhi;
+  	float GenHPt;  	float GentPt;  	float GentbPt;
 
+	sigTree->SetBranchAddress("GenHPt",&GenHPt);
+	sigTree->SetBranchAddress("GenHEta",&GenHEta);
+	sigTree->SetBranchAddress("GenHPhi",&GenHPhi);
+	sigTree->SetBranchAddress("GenHMass",&GenHMass);
+
+	sigTree->SetBranchAddress("GentPt",&GentPt);
+	sigTree->SetBranchAddress("GentEta",&GentEta);
+	sigTree->SetBranchAddress("GentPhi",&GentPhi);
+	sigTree->SetBranchAddress("GentMass",&GentMass);
+
+	sigTree->SetBranchAddress("GentbPt",&GentbPt);
+	sigTree->SetBranchAddress("GentbEta",&GentbEta);
+	sigTree->SetBranchAddress("GentbPhi",&GentbPhi);
+	sigTree->SetBranchAddress("GentbMass",&GentbMass);
   float weight;
   sigTree->SetBranchAddress("MC_weight_noxsec",&weight);
   //---------------------------------------*/
@@ -141,8 +191,6 @@ float pgg10;
   newTree->Branch("D_int_lambda1_VAJHU_NEW",&D_int_lambda1_VAJHU,"D_int_lambda1_VAJHU_NEW/F");  // p(0+)/p(0+)+p(Q2) 
   newTree->Branch("D_int_lambda1_mela_NEW",&D_int_lambda1_mela,"D_int_lambda1_mela_NEW/F");  // p(0+)/p(0+)+p(Q2) 
 
-float pq2_VAJHU, pq2_mela;
-float pq2sm;
 
   newTree->Branch("pq2_VAJHU_NEW",&pq2_VAJHU,"pq2_VAJHU_NEW/F");  // p(0+)/p(0+)+p(Q2) 
   newTree->Branch("pq2_mela_NEW",&pq2_mela,"pq2_mela_NEW/F");  // p(0+)/p(0+)+p(Q2) 
@@ -190,14 +238,23 @@ float pq2sm;
   newTree->Branch("p0plus_m4l_NEW",&p0plus_m4l,"p0plus_m4l_NEW/F");  // background, vector algebra, MCFM integrating out the production angles
   newTree->Branch("bkg_m4l_NEW",&bkg_m4l,"bkg_m4l_NEW/F");  // background, vector algebra, MCFM integrating out the production angles
 
-  newTree->Branch("pgg10",&pgg10,"pgg10/F");  // background, vector algebra, MCFM integrating out the production angles
-  
+  newTree->Branch("pgg10",&pgg10,"pgg10/F");  // Dgg
+  newTree->Branch("p0p_ttH", &p0p_ttH, "p0p_ttH/F"); // ttH SM
+  newTree->Branch("p0m_ttH", &p0m_ttH, "p0m_ttH/F"); // ttH PS
+  newTree->Branch("p0p_bbH", &p0p_bbH, "p0p_bbH/F"); // bbH SM
+  newTree->Branch("p0m_bbH", &p0m_bbH, "p0m_bbH/F"); // bbH PS
+  newTree->Branch("p0p_uFlav_ttH", &p0p_uFlav_ttH, "p0p_uFlav_ttH/F"); // ttH SM, unknown t vs tbar order
+  newTree->Branch("p0m_uFlav_ttH", &p0m_uFlav_ttH, "p0m_uFlav_ttH/F"); // ttH PS, unknown t vs tbar order
+  newTree->Branch("p0p_uFlav_bbH", &p0p_uFlav_bbH, "p0p_uFlav_bbH/F"); // bbH SM, unknown b vs bbar order
+  newTree->Branch("p0m_uFlav_bbH", &p0m_uFlav_bbH, "p0m_uFlav_bbH/F"); // bbH PS, unknown b vs bbar order
+
   //interference weight
-  float interfWeight;
   newTree->Branch("interfWeight",&interfWeight,"interfWeight/F"); // weight to be used for interference reweighting
 
   for(int iEvt=0; iEvt<(max<0?sigTree->GetEntries():max); iEvt++){
-    
+//  for (int iEvt=0; iEvt<1; iEvt++){
+
+
     if(iEvt>=sigTree->GetEntries()) break;
     
     // if ( iEvt != 2 ) continue;
@@ -568,14 +625,49 @@ coupling[0]=5.;
 		    hs,h1,h2,phi,phi1,flavor, p2h10minus_VAJHU);
 //		myMELA->setProcess(HJJNONVBF,TVar::JHUGen,MELAprodMap[process]);
 //    myMELA->computeProdP(partP[4],2,partP[5],2,ZZ,25,0.,0,me2process_float);
-	    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
-		myMELA.computePM4l(mzz,flavor,TVar::SMSyst_None,p0plus_m4l);
-	    myMELA.setProcess(TVar::bkgZZ, TVar::JHUGen, TVar::ZZGG);
-		myMELA.computePM4l(mzz,flavor,TVar::SMSyst_None,bkg_m4l);
+
+//	    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
+//		myMELA.computePM4l(mzz,flavor,TVar::SMSyst_None,p0plus_m4l);
+//	    myMELA.setProcess(TVar::bkgZZ, TVar::JHUGen, TVar::ZZGG);
+//		myMELA.computePM4l(mzz,flavor,TVar::SMSyst_None,bkg_m4l);
 
   myMELA.computeD_gg(mzz, m1, m2,
         hs,h1,h2,phi,phi1,flavor, TVar::MCFM, TVar::D_gg10,pgg10);
 //cout<<pgg10<<endl;
+//ttH
+		TLorentzVector hig;
+		TLorentzVector V_tt[2];
+		V_tt[0].SetPtEtaPhiM( GentbPt, GentbEta, GentbPhi, GentbMass);
+		V_tt[1].SetPtEtaPhiM( GentPt, GentEta, GentPhi, GentMass);
+		hig.SetPtEtaPhiM(GenHPt,GenHEta, GenHPhi, GenHMass);
+
+//    cout << "Known flavors" << endl;
+//    cout << "SM ttH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ttH);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0p_ttH);
+//    cout << "PS ttH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::ttH);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0m_ttH);
+//    cout << "SM bbH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0p_bbH);
+//    cout << "PS bbH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], -6, V_tt[1], 6, hig, p0m_bbH);
+//    cout << "Unknown flavors" << endl;
+//    cout << "SM ttH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ttH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0p_uFlav_ttH);
+//    cout << "PS ttH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::ttH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0m_uFlav_ttH);
+//    cout << "SM bbH" << endl;
+    myMELA.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0p_uFlav_bbH);
+//    cout << "PS bbH" << endl;
+    myMELA.setProcess(TVar::H0minus, TVar::JHUGen, TVar::bbH);
+    myMELA.computeProdP(V_tt[0], 0, V_tt[1], 0, hig, p0m_uFlav_bbH);
+
     newTree->Fill();
     
   }

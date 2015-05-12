@@ -17,6 +17,8 @@ namespace mela{
   bool forbidMassiveLeptons = false;
 }
 
+// Leptons
+
 void mela::applyLeptonMassCorrection(bool flag){ mela::forbidMassiveLeptons = flag; }
 
 void mela::constrainedRemoveLeptonMass(TLorentzVector& p1, TLorentzVector& p2){
@@ -165,7 +167,8 @@ void mela::computeAngles(TLorentzVector p4M11, int Z1_lept1Id,
   //// Phi
   TLorentzVector p4Z1_BX = p4M11_BX + p4M12_BX;    
   float tmpSgnPhi = p4Z1_BX.Vect().Dot( normal1_BX.Cross( normal2_BX) );
-  float sgnPhi = tmpSgnPhi/fabs(tmpSgnPhi);
+  float sgnPhi = 0;
+  if (fabs(tmpSgnPhi)>0) sgnPhi = tmpSgnPhi/fabs(tmpSgnPhi);
   Phi = sgnPhi * acos( -1.*normal1_BX.Dot( normal2_BX) );
     
     
@@ -180,7 +183,8 @@ void mela::computeAngles(TLorentzVector p4M11, int Z1_lept1Id,
         
   //// Phi1
   float tmpSgnPhi1 = p4Z1_BX.Vect().Dot( normal1_BX.Cross( normalSC_BX) );
-  float sgnPhi1 = tmpSgnPhi1/fabs(tmpSgnPhi1);    
+  float sgnPhi1 = 0;
+  if (fabs(tmpSgnPhi1)>0) sgnPhi1 = tmpSgnPhi1/fabs(tmpSgnPhi1);
   Phi1 = sgnPhi1 * acos( normal1_BX.Dot( normalSC_BX) );    
 
 
@@ -394,4 +398,22 @@ void mela::computeAnglesCS(TLorentzVector p4M11, int Z1_lept1Id,
   }
 }
 
+// Jets
+
+void mela::computeJetMassless(TLorentzVector massiveJet, TLorentzVector& masslessJet){
+  double energy, p3sq, ratio;
+  energy = massiveJet.T();
+  p3sq = massiveJet.P();
+  ratio = (p3sq>0 ? (energy / p3sq) : 1);
+  masslessJet.SetPxPyPzE(massiveJet.Px()*ratio, massiveJet.Py()*ratio, massiveJet.Pz()*ratio, energy);
+}
+
+void mela::computeFakeJet(TLorentzVector realJet, TLorentzVector others, TLorentzVector& fakeJet){
+  TLorentzVector masslessRealJet(0, 0, 0, 0);
+  mela::computeJetMassless(realJet, masslessRealJet);
+
+  fakeJet = others + masslessRealJet;
+  fakeJet.SetVect(-fakeJet.Vect());
+  fakeJet.SetE(fakeJet.P());
+}
 

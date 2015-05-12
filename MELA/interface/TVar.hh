@@ -26,6 +26,7 @@
 #define SIZE_GGG 5
 #define SIZE_GVV 10
 #define SIZE_HVV_FREENORM 2
+#define SIZE_TTH 2
 
 
 class TVar{
@@ -51,7 +52,9 @@ public:
     JJVBF = 7, // WBF
     JH = 8, // H + 1 jet
     ZH = 9, // ZH
-    WH = 10 // W(+/-)H
+    WH = 10, // W(+/-)H
+    ttH = 11, // ttH 
+    bbH = 12 // bbH 
 //
   };
   enum LeptonInterference{
@@ -73,16 +76,16 @@ public:
     H2_g4             = 6,    //2h+, replacing TZZ_2hplus_4l
     H2_g5             = 7,    //2b+, replacing TZZ_2bplus_4l 
     H2_g1g5           = 8,    //2m+, replacing TZZ_4l 
-		H2_g2					= 9, // 2h2+
-		H2_g3					= 10, // 2h3+
-		H2_g6					= 11, // 2h6+
-		H2_g7					= 12, // 2h7+
-		H2_g9					= 13, // 2h9-
-		H2_g10				= 14, // 2h10-
+    H2_g2					= 9, // 2h2+
+    H2_g3					= 10, // 2h3+
+    H2_g6					= 11, // 2h6+
+    H2_g7					= 12, // 2h7+
+    H2_g9					= 13, // 2h9-
+    H2_g10				= 14, // 2h10-
 
 
     bkgZZ              = 15,    //qq->ZZ, replacing ZZ_2e2m & ZZ_4e, when production is ZZQQB, replacing GGZZ_4l when production is ggZZ, replacing SummedBackgrounds for superMela calculation 
-	bkgZZ_SMHiggs      =16,    //ggZZ+SMHiggs, ggZZ always calculated by MCFM, ME stands for SMHiggs ME, JHUGen: MCFM ggZZ + JHUGen SMHiggs, MCFM: MCFM (ggZZ+ SMHiggs) 
+    bkgZZ_SMHiggs      =16,    //ggZZ+SMHiggs, ggZZ always calculated by MCFM, ME stands for SMHiggs ME, JHUGen: MCFM ggZZ + JHUGen SMHiggs, MCFM: MCFM (ggZZ+ SMHiggs) 
 
     H0_g1prime2       = 17,   //g1=0, g1prime2=-12046.01, replacing H_g1prime2	
 
@@ -97,24 +100,24 @@ public:
     SelfDefine_spin0  = 23,
     SelfDefine_spin1  = 24,
     SelfDefine_spin2  = 25,
-		/**** For width ***/
-		D_gg10						= 26,
-		
-		H0_Zgs 						= 27,
-		H0_gsgs 					= 28,
-		D_zzzg						= 29,
-		D_zzgg						= 30,
+    /**** For width ***/
+    D_gg10						= 26,
 
-		H0_Zgs_PS 					= 31,
-		H0_gsgs_PS 					= 32,
-		D_zzzg_PS						= 33,
-		D_zzgg_PS						= 34,
-		
-		H0_Zgsg1prime2						= 35,
-		D_zzzg_g1prime2						= 36,
-		D_zzzg_g1prime2_pi_2						= 37,
+    H0_Zgs 						= 27,
+    H0_gsgs 					= 28,
+    D_zzzg						= 29,
+    D_zzgg						= 30,
 
-	/*** Are these ones still used? ***/
+    H0_Zgs_PS 					= 31,
+    H0_gsgs_PS 					= 32,
+    D_zzzg_PS						= 33,
+    D_zzgg_PS						= 34,
+
+    H0_Zgsg1prime2						= 35,
+    D_zzzg_g1prime2						= 36,
+    D_zzzg_g1prime2_pi_2						= 37,
+
+    /*** Are these ones still used? ***/
     //  QQB_TZZ_4l = 8,
     //  TZZ_DECAY_4l = 10,
     //  VZZ_DECAY_4l = 11,
@@ -231,6 +234,10 @@ struct vh_event_type{ // ME is 2 -> 3
   TLorentzVector p[3]; // H, V-daughter 1, V-daughter 2
   TLorentzVector pHdecay[4]; // H-daughter 1, H-daughter 2; optional: H-daughter 3, H-daughter 4
   int PdgCode_Hdecay[4];
+};
+struct tth_event_type{ // ME is 2 -> 8
+  int PdgCode_tdecay[2][3];
+  TLorentzVector p[7]; // H, tbar-daughters 1-3, t-daughters 1-3
 };
 struct mcfm_event_type{
   int PdgCode[6];

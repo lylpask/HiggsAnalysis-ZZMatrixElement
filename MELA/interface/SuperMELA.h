@@ -20,7 +20,7 @@
 class SuperMELA {
 
  public:
-  SuperMELA(double mH=120,string channel="4mu",int LHCsqrts=8);
+  SuperMELA(double mH=125,string channel="4mu",int LHCsqrts=8);
   ~SuperMELA();
   void init();
 

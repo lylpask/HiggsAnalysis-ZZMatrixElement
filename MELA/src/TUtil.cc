@@ -9,18 +9,43 @@ using namespace std;
 
 void SetEwkCouplingParameters(){
 
-  ewinput_.Gf_inp=1.16639E-05;
-  ewinput_.aemmz_inp=7.81751E-03;
-  ewinput_.wmass_inp=80.385;
-  ewinput_.zmass_inp=91.1876;
-  ewinput_.xw_inp=0.23116864; // Not used in the compiled MCFM ewcheme
+  ewscheme_.ewscheme = 3; // Switch ewscheme to full control, default is 1
+
 /*
-// SETTINGS TO MATCH JHUGen MEs:
+// Settings used in Run I MC, un-synchronized to JHUGen and Run II generation
+  ewinput_.Gf_inp = 1.16639E-05;
+  ewinput_.wmass_inp = 80.385;
+  ewinput_.zmass_inp = 91.1876;
+//  ewinput_.aemmz_inp = 7.81751e-3; // Not used in the compiled new default MCFM ewcheme=1
+//  ewinput_.xw_inp = 0.23116864; // Not used in the compiled new default MCFM ewcheme=1
+  ewinput_.aemmz_inp = 7.562468901984759e-3;
+  ewinput_.xw_inp = 0.2228972225239183;
+*/
+
+// SETTINGS TO MATCH JHUGen ME/generator:
   ewinput_.Gf_inp=1.16639E-05;
-  ewinput_.aemmz_inp=7.81751E-03;
-  ewinput_.wmass_inp=79.9549392; // Slightly differnt mW to set xW to match JHUGen
+  ewinput_.aemmz_inp=1./128.;
+  ewinput_.wmass_inp=80.399;
   ewinput_.zmass_inp=91.1876;
   ewinput_.xw_inp=0.23119;
+
+/*
+// INPUT SETTINGS in default MCFM generator:
+  ewscheme_.ewscheme = 1;
+  ewinput_.Gf_inp=1.16639E-05;
+  ewinput_.wmass_inp=80.398;
+  ewinput_.zmass_inp=91.1876;
+  ewinput_.aemmz_inp=7.7585538055706e-3;
+  ewinput_.xw_inp=0.2312;
+*/
+/*
+// ACTUAL SETTINGS in default MCFM generator, gives the same values as above but is more explicit:
+  ewscheme_.ewscheme = 3;
+  ewinput_.Gf_inp=1.16639E-05;
+  ewinput_.wmass_inp=80.398;
+  ewinput_.zmass_inp=91.1876;
+  ewinput_.aemmz_inp=7.55638390728736e-3;
+  ewinput_.xw_inp=0.22264585341299625;
 */
 }
 
@@ -1038,6 +1063,45 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, TLorentzV
 	
   
   sumME = SumMEPDF(p[0], p[1], MatElsq, verbosity, EBEAM);
+  return sumME;
+}
+
+
+double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], double MReso, double GaReso, double MFerm, double GaFerm, double Hvvcoupl[SIZE_TTH][2], int topDecay, int topProcess, TVar::VerbosityLevel verbosity){
+  double sumME=0;
+  double p4[13][4]={ { 0 } };
+
+  MReso /= 100.;
+  MFerm /= 100.;
+  GaReso /= 100.;
+  GaFerm /= 100.;
+
+  for (int i = 0; i < 2; i++){
+    p4[i][0] = -p[i].Energy()/100.;
+    p4[i][1] = -p[i].Px()/100.;
+    p4[i][2] = -p[i].Py()/100.;
+    p4[i][3] = -p[i].Pz()/100.;
+  }
+  for (int i = 2; i < 11; i++){
+    p4[i][0] = p[i].Energy()/100.;
+    p4[i][1] = p[i].Px()/100.;
+    p4[i][2] = p[i].Py()/100.;
+    p4[i][3] = p[i].Pz()/100.;
+  }
+
+  if (verbosity >= TVar::DEBUG){
+    for (int i=0; i<11; i++){
+      std::cout << "p4[" << i << "] = ";
+      for (int jj=0; jj<4; jj++) std::cout << p4[i][jj] << '\t';
+      std::cout << endl;
+    }
+  }
+
+  __modttbh_MOD_initprocess_ttbh(&MReso, &MFerm);
+  if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, Hvvcoupl, &topDecay, &topProcess, &sumME);
+  else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, Hvvcoupl, &topProcess, &sumME);
+  __modttbh_MOD_exitprocess_ttbh();
+
   return sumME;
 }
 
