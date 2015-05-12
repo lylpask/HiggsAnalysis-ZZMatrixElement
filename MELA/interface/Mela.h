@@ -33,7 +33,7 @@ class Mela{
 public:
   
   // Mela(){};
-  Mela(int LHCsqrts=8, float mh=126); // higgs mass for supermela
+  Mela(int LHCsqrts=8, float mh=125); // higgs mass for supermela
   ~Mela();
   
   void setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Production myProduction);

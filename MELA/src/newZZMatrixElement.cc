@@ -13,7 +13,7 @@ newZZMatrixElement::newZZMatrixElement(const char* pathtoHiggsCSandWidth,
   EBEAM(ebeam)
 				       {
 // Set default parameters explicitly
-  mHiggs = 125.6;
+  mHiggs = 125.;
   wHiggs = -1;
   myLeptonInterference = TVar::DefaultLeptonInterf;
 
