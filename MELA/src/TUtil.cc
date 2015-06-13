@@ -1100,7 +1100,7 @@ double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], dou
   __modttbh_MOD_initprocess_ttbh(&MReso, &MFerm);
   if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, Hvvcoupl, &topDecay, &topProcess, &sumME);
   else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, Hvvcoupl, &topProcess, &sumME);
-  __modttbh_MOD_exitprocess_ttbh();
+//  __modttbh_MOD_exitprocess_ttbh();
 
   return sumME;
 }
