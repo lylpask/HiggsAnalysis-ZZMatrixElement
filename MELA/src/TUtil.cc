@@ -49,6 +49,7 @@ void SetEwkCouplingParameters(){
 */
 }
 
+
 void SetAlphaS (double Q, int mynloop, int mynflav, string mypartons){
 	if(Q<=1 || mynloop<=0 || mypartons.compare("Default")==0){
 		if(Q<0) cout << "Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
@@ -434,6 +435,8 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
   double fx1[nmsq];
   double fx2[nmsq];
   double msq[nmsq][nmsq];
+  double msqjk=0;
+  double msqgg=0;
   int channeltoggle=0;
   
   
@@ -465,17 +468,16 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
   }
   double invariantP[5] = {0};
   //initialize decayed particles
-  for(int ipar=2;ipar<NPart;ipar++){
-    
+  for (int ipar=2; ipar<NPart; ipar++){
     p4[0][ipar] = mcfm_event->p[ipar].Px();
     p4[1][ipar] = mcfm_event->p[ipar].Py();
     p4[2][ipar] = mcfm_event->p[ipar].Pz();
     p4[3][ipar] = mcfm_event->p[ipar].Energy();
 
-	invariantP[1] += p4[3][ipar];
-	invariantP[2] += p4[0][ipar];
-	invariantP[3] += p4[1][ipar];
-	invariantP[4] += p4[2][ipar];
+    invariantP[1] += p4[3][ipar];
+    invariantP[2] += p4[0][ipar];
+    invariantP[3] += p4[1][ipar];
+    invariantP[4] += p4[2][ipar];
   }
 
   invariantP[0] = pow(invariantP[1],2.0);
@@ -497,94 +499,92 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
     }
   }
   
-  
+  bool passMassCuts=true;
   //remove events has small invariant mass
   // if(My_masscuts(s,process)) return 0.0;
-  if(My_smalls(s,npart_.npart)) return 0.0;
-  
-  double msqjk=0;
-  double msqgg=0;
-  
-  //Calculate Pdf
-  //Always pass address through fortran function
-  fdist_ (&density_.ih1, &xx[0], &scale_.scale, fx1); 
-  fdist_ (&density_.ih2, &xx[1], &scale_.scale, fx2); 
-/*
-  if (process == TVar::bkgZZ && (production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU)){
-	  if (production == TVar::ZZQQB_STU) cout << "STU" << endl;
-	  if (production == TVar::ZZQQB_S) cout << "S" << endl;
-	  if (production == TVar::ZZQQB_TU) cout << "TU" << endl;
-  };
-*/
-  if( (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ)      qqb_zz_(p4[0],msq[0]);
-  if( production == TVar::ZZQQB_STU && process == TVar::bkgZZ){
-	  channeltoggle=0;
-	  qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
-  };
-  if( production == TVar::ZZQQB_S && process == TVar::bkgZZ){
-	  channeltoggle=1;
-	  qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
-  };
-  if( production == TVar::ZZQQB_TU && process == TVar::bkgZZ){
-	  channeltoggle=2;
-	  qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
-  };
-  //if( process==TVar::HZZ_4l)     qqb_hzz_(p4[0],msq[0]);
-  // the subroutine for the calculations including the interfenrence             
-  // ME =  sig + inter (sign, bkg)              
-  // 1161 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6)) [including gg->ZZ intf.]' 'L'  
-  if( process==TVar::bkgZZ_SMHiggs && myME==TVar::JHUGen)     gg_zz_int_freenorm_(p4[0],coupling,msq[0]); // |ggZZ + ggHZZ|**2 MCFM 6.6 version
-  if( process==TVar::bkgZZ_SMHiggs && myME==TVar::MCFM)     gg_zz_all_ (p4[0],msq[0]); // |ggZZ + ggHZZ|**2
-  if( process==TVar::HSMHiggs && production == TVar::ZZGG ) gg_hzz_tb_ (p4[0],msq[0]); // |ggHZZ|**2
-  if( process==TVar::bkgZZ && production==TVar::ZZGG )    gg_zz_  (p4[0],&msqgg); // |ggZZ|**2
+  if (My_smalls(s, npart_.npart)) passMassCuts=false;
 
-  /*
-    // Below code sums over all production parton flavors according to PDF 
+  if (passMassCuts){
+    //Calculate Pdf
+    //Always pass address through fortran function
+    fdist_(&density_.ih1, &xx[0], &scale_.scale, fx1);
+    fdist_(&density_.ih2, &xx[1], &scale_.scale, fx2);
+/*
+    if (process == TVar::bkgZZ && (production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU)){
+      if (production == TVar::ZZQQB_STU) cout << "STU" << endl;
+      if (production == TVar::ZZQQB_S) cout << "S" << endl;
+      if (production == TVar::ZZQQB_TU) cout << "TU" << endl;
+    };
+*/
+    if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ)      qqb_zz_(p4[0], msq[0]);
+    if (production == TVar::ZZQQB_STU && process == TVar::bkgZZ){
+      channeltoggle=0;
+      qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
+    }
+    if (production == TVar::ZZQQB_S && process == TVar::bkgZZ){
+      channeltoggle=1;
+      qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
+    }
+    if (production == TVar::ZZQQB_TU && process == TVar::bkgZZ){
+      channeltoggle=2;
+      qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
+    }
+    //if( process==TVar::HZZ_4l)     qqb_hzz_(p4[0],msq[0]);
+    // the subroutine for the calculations including the interfenrence             
+    // ME =  sig + inter (sign, bkg)              
+    // 1161 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6)) [including gg->ZZ intf.]' 'L'  
+    if (process==TVar::bkgZZ_SMHiggs && myME==TVar::JHUGen)     gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 MCFM 6.6 version
+    if (process==TVar::bkgZZ_SMHiggs && myME==TVar::MCFM)     gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
+    if (process==TVar::HSMHiggs && production == TVar::ZZGG) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
+    if (process==TVar::bkgZZ && production==TVar::ZZGG)    gg_zz_(p4[0], &msqgg); // |ggZZ|**2
+
+/*
+    // Below code sums over all production parton flavors according to PDF
     // This is disabled as we are not using the intial production information
     // the below code is fine for the particle produced by single flavor of incoming partons
 
-  for(int ii=0;ii<nmsq;ii++){
-    for(int jj=0;jj<nmsq;jj++){
-      
-      //2-D matrix is transposed in fortran
-      // msq[ parton2 ] [ parton1 ]
-      //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];
+    for(int ii=0;ii<nmsq;ii++){
+      for(int jj=0;jj<nmsq;jj++){
 
-      flavor_msq[jj][ii] = msq[jj][ii];
-      //cout<<jj<<ii<<"="<<msq[jj][ii]<<"  ";
-      msqjk+=flavor_msq[jj][ii];
-    }//ii
-    //    cout<<"\n";
-  }//jj
-  */
-  // by default assume only gg productions 
-  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
-  //     parton flavor bbar cbar sbar ubar dbar g d u s c b
-  // C++ convention     0     1   2    3    4   5 6 7 8 9 10
-  //
-  msqjk=msq[5][5];
-  if( process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production ==TVar::ZZINDEPENDENT)) msqjk=msq[3][7]+msq[7][3];
+        //2-D matrix is transposed in fortran
+        //msq[ parton2 ] [ parton1 ]
+        //flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];
+
+        flavor_msq[jj][ii] = msq[jj][ii];
+        //cout<<jj<<ii<<"="<<msq[jj][ii]<<"  ";
+        msqjk+=flavor_msq[jj][ii];
+      }//ii
+    //cout<<"\n";
+    }//jj
+      */
+    // by default assume only gg productions 
+    // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
+    //     parton flavor bbar cbar sbar ubar dbar g d u s c b
+    // C++ convention     0     1   2    3    4   5 6 7 8 9 10
+    //
+    msqjk=msq[5][5];
+    if (process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production ==TVar::ZZINDEPENDENT)) msqjk=msq[3][7]+msq[7][3];
 /*
-  if (process == TVar::bkgZZ && (production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU)){
-	  for (int ix = 0; ix < 10; ix++){
-		  for (int iy = 0; iy < 10; iy++) cout << msq[ix][iy] << '\t';
-		  cout << endl;
-	  }
-  }
+      if (process == TVar::bkgZZ && (production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU)){
+        for (int ix = 0; ix < 10; ix++){
+          for (int iy = 0; iy < 10; iy++) cout << msq[ix][iy] << '\t';
+          cout << endl;
+        }
+      }
 */  // special for the GGZZ 
-  if( process==TVar::bkgZZ && production == TVar::ZZGG ) msqjk=msqgg;      
-  
-  (*flux)=fbGeV2/(8*xx[0]*xx[1]*EBEAM*EBEAM);
+    if (process==TVar::bkgZZ && production == TVar::ZZGG) msqjk=msqgg;
 
-  if(msqjk != msqjk || flux!=flux ){
+    (*flux)=fbGeV2/(8*xx[0]*xx[1]*EBEAM*EBEAM);
+  }
+
+  if (msqjk != msqjk || flux!=flux){
     cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << " flux="<< *flux <<endl;
     msqjk=0;
-    flux=0;
+    *flux=0;
   }
 
   SetAlphaS( defaultScale , defaultNloop , defaultNflav , defaultPdflabel); // Protection for other probabilities
   return msqjk;
-  
 }
 
 //
@@ -884,6 +884,7 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, TLorentzV
 	  for (int i = 7; i < 9; i++) pVH[i] = pVH[4] * 0.5; // No Higgs decay is assumed, but conserve momentum in case of any mistake on variables.F90::H_DK=.false.
 //	  for (int i = 7; i < 11; i++) pVH[i] = pVH[4] * 0.25; // No Higgs decay is assumed, but conserve momentum in case of any mistake on variables.F90::H_DK=.false.
   }
+
   // input unit = GeV/100 such that 125GeV is 1.25 in the code
   // this needs to be applied for all the p4
   for (int i = 0; i < 9; i++) {

@@ -908,23 +908,23 @@ double TEvtProb::XsecCalc_TTX(
 // way of setting MCFM parameters through
 // an interface defined in TMCFM.hh
 void TEvtProb::SetHiggsMass(double mass, float wHiggs){
-    masses_mcfm_.hmass=mass;
-    _hmass = mass;
-	if (wHiggs < 0.){
-		masses_mcfm_.hwidth=myCSW_->HiggsWidth(0, min(mass,1000.) );
-		_hwidth = myCSW_->HiggsWidth(0, min(mass,1000.) );
-	}
-	else{
-		masses_mcfm_.hwidth = wHiggs;
-    	_hwidth = wHiggs; 
-	}
+  masses_mcfm_.hmass=mass;
+  _hmass = mass;
+  if (wHiggs < 0.){
+    masses_mcfm_.hwidth=myCSW_->HiggsWidth(0, min(mass, 1000.));
+    _hwidth = myCSW_->HiggsWidth(0, min(mass, 1000.));
+  }
+  else{
+    masses_mcfm_.hwidth = wHiggs;
+    _hwidth = wHiggs;
+  }
 //	cout << "Set JHUGen Higgs mass width to: " << _hmass << ", " << _hwidth << endl;
 //	cout << "Set MCFM Higgs mass width to: " << masses_mcfm_.hmass << ", " << masses_mcfm_.hwidth << endl;
-    /*
-    //
-    // get higgs width for 125 and 250 GeV
-    // 
-    std::cout << "H125 width " << myCSW_->HiggsWidth(0, 125);
-    std::cout << "H250 width " << myCSW_->HiggsWidth(0, 250);
-    */
+/*
+  //
+  // get higgs width for 125 and 250 GeV
+  //
+  std::cout << "H125 width " << myCSW_->HiggsWidth(0, 125);
+  std::cout << "H250 width " << myCSW_->HiggsWidth(0, 250);
+*/
 }
