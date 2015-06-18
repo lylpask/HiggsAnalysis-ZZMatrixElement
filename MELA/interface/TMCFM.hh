@@ -47,8 +47,12 @@ extern "C" {
  } density_;
 
  extern  struct{
- 	 double scale,musq;
+   double scale, musq;
  } scale_;
+
+ extern  struct{
+   double facscale;
+ } facscale_;
 
  extern  struct {
      int n2; int n3; double mass2; double width2; double mass3; double width3;

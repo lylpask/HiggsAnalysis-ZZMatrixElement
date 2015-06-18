@@ -139,6 +139,18 @@ public:
     SMSyst_ResUp     = 3, // Resolution Uncertainty
     SMSyst_ResDown   = 4
   };
+  enum EventScaleScheme{
+    DefaultScaleScheme,
+    Fixed_mH,
+    Fixed_mW,
+    Fixed_mZ,
+    Fixed_mWPlusmH,
+    Fixed_mZPlusmH,
+    Fixed_TwomtPlusmH,
+    Dynamic_qH,
+    Dynamic_qJJH,
+    Dynamic_HT
+  };
 
   //---------------------------------
   // Function
@@ -247,6 +259,12 @@ struct mcfm_event_type{
 struct event_type{
   TLorentzVector p1,p2,ep,em,nu,nb;
   double PSWeight;
+};
+struct event_scales_type{
+  TVar::EventScaleScheme renomalizationScheme;
+  TVar::EventScaleScheme factorizationScheme;
+  double ren_scale_factor;
+  double fac_scale_factor;
 };
 struct anomcoup{
   double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z_,tevscale;

@@ -25,9 +25,9 @@ public:
     float phistar1,
     float phi,
     int flavor,
-    TVar::Process process,
-    TVar::MatrixElement memethod,
-    TVar::Production prodmode,
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
     double couplingvals[SIZE_HVV_FREENORM],
     double selfDHvvcoupl[SIZE_HVV][2],
     double selfDZqqcoupl[SIZE_ZQQ][2],
@@ -41,8 +41,9 @@ public:
   void computeProdXS_JJH(TLorentzVector jet1,
     TLorentzVector jet2,
     TLorentzVector higgs,
-    TVar::Process myModel,
-    TVar::Production myProduction,
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
     double selfDHggcoupl[SIZE_HGG][2],
     double selfDHvvcoupl[SIZE_HVV_VBF][2],
     double selfDHwwcoupl[SIZE_HWW_VBF][2],
@@ -51,8 +52,9 @@ public:
 
   void computeProdXS_JH(TLorentzVector singleJet,
     TLorentzVector higgs,
-    TVar::Process myModel,
-    TVar::Production myProduction,
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
     float &mevalue
     );
 
@@ -62,9 +64,9 @@ public:
     int V_daughter_pdgid[2],
     int Higgs_daughter_pdgid[4],
     bool includeHiggsDecay,
-    TVar::Process myModel,
-    TVar::MatrixElement myME,
-    TVar::Production myProduction,
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
     double selfDHvvcoupl[SIZE_HVV_VBF][2],
     float &mevalue
     );
@@ -75,9 +77,9 @@ public:
     int ttbar_daughters_pdgid[6],
     int topDecay,
     int topProcess,
-    TVar::Process myModel,
-    TVar::MatrixElement myME,
-    TVar::Production myProduction,
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
     double selfDHvvcoupl[SIZE_TTH][2],
     float &mevalue);
 

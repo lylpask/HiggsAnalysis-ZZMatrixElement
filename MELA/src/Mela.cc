@@ -585,7 +585,8 @@ switch (myType){
     ZZME->computeXS(mZZ,mZ1,mZ2,
 		    costhetastar,costheta1,costheta2, 
 		    phi, phi1, flavor,
-		    myModel_, myME_,  myProduction_, couplingvals_NOTggZZ, selfDHvvcoupl,
+		    myModel_, myME_,  myProduction_,
+        couplingvals_NOTggZZ, selfDHvvcoupl,
            selfDZqqcoupl,
            selfDZvvcoupl,
            selfDGqqcoupl,
@@ -1444,7 +1445,7 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
       jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
       higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
       ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
-        myModel_, myProduction_,
+        myModel_, myME_, myProduction_,
         selfDHggcoupl,
         selfDHvvcoupl,
         selfDHwwcoupl,
@@ -1513,7 +1514,7 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
         jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
         higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
         ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
-          myModel_, myProduction_,
+          myModel_, myME_, myProduction_,
           selfDHggcoupl,
           selfDHvvcoupl,
           selfDHwwcoupl,
@@ -1597,7 +1598,7 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
   higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
   if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
     ZZME->computeProdXS_JJH(jet1massless, jet2massless, higgs,
-      myModel_, myProduction_,
+      myModel_, myME_, myProduction_,
       selfDHggcoupl,
       selfDHvvcoupl,
       selfDHwwcoupl,
@@ -1609,8 +1610,7 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
     ZZME->computeProdXS_JH(
       jet1massless,
       higgs,
-      myModel_,
-      myProduction_,
+      myModel_, myME_, myProduction_,
       prob
       ); // Higgs + 1 jet; only SM is supported for now.
   }

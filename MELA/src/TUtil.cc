@@ -50,21 +50,111 @@ void SetEwkCouplingParameters(){
 }
 
 
-void SetAlphaS (double Q, int mynloop, int mynflav, string mypartons){
-	if(Q<=1 || mynloop<=0 || mypartons.compare("Default")==0){
-		if(Q<0) cout << "Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
-		Q = (masses_mcfm_.hmass)*0.5;
-		mynloop = 1;
-	};
+double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]){
+  double Q=0;
+  TLorentzVector nullFourVector(0, 0, 0, 0);
+  if (scheme == TVar::Fixed_mH) Q = masses_mcfm_.hmass;
+  else if (scheme == TVar::Fixed_mW) Q = masses_mcfm_.wmass;
+  else if (scheme == TVar::Fixed_mZ) Q = masses_mcfm_.zmass;
+  else if (scheme == TVar::Fixed_mWPlusmH) Q = (masses_mcfm_.wmass+masses_mcfm_.hmass);
+  else if (scheme == TVar::Fixed_mZPlusmH) Q = (masses_mcfm_.zmass+masses_mcfm_.hmass);
+  else if (scheme == TVar::Fixed_TwomtPlusmH) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
+  else if (scheme == TVar::Dynamic_qH){
+    TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
+    Q = fabs(pTotal.M());
+  }
+  else if (scheme == TVar::Dynamic_qJJH){
+    TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5]+p[6]+p[7];
+    Q = fabs(pTotal.M());
+  }
+  else if (scheme == TVar::Dynamic_HT){
+    for (int c=2; c<mxpart; c++) Q += p[c].Pt(); // Scalar sum of all pTs
+  }
+  else if (scheme == TVar::DefaultScaleScheme){
+    if (matrixElement==TVar::JHUGen){
+      if (
+        production==TVar::JJGG
+        || production==TVar::JJVBF
+        || production==TVar::JH
+        || production==TVar::ZZGG
+        || production==TVar::ZZQQB
+        || production==TVar::ZZQQB_STU
+        || production==TVar::ZZQQB_S
+        || production==TVar::ZZQQB_TU
+        || production==TVar::ZZINDEPENDENT
+        ){
+        TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
+        Q = fabs(pTotal.M());
+      }
+      else if (production==TVar::WH) Q = (masses_mcfm_.wmass+masses_mcfm_.hmass);
+      else if (production==TVar::ZH) Q = (masses_mcfm_.zmass+masses_mcfm_.hmass);
+      else if (production==TVar::ttH || production==TVar::bbH) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
+    }
+    else if (matrixElement==TVar::MCFM){
+      if (
+        production==TVar::JJGG
+        || production==TVar::JJVBF
+        || production==TVar::JH
+        || production==TVar::ZZGG
+        || production==TVar::ZZQQB
+        || production==TVar::ZZQQB_STU
+        || production==TVar::ZZQQB_S
+        || production==TVar::ZZQQB_TU
+        || production==TVar::ZZINDEPENDENT
+        ){
+        TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
+        Q = fabs(pTotal.M());
+      }
+      else if (
+        production==TVar::ZH
+        || production==TVar::WH
+        || production==TVar::ttH
+        || production==TVar::bbH
+        ){
+        TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5]+p[6]+p[7];
+        Q = fabs(pTotal.M());
+      }
+    }
+  }
+
+  if (Q<=0){
+    std::cout << "Scaling fails, defaulting to dynamic scheme m3456 " << std::endl;
+    TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
+    Q = fabs(pTotal.M());
+  }
+  return Q;
+}
+
+
+void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
+  bool hasReset=false;
+  if (multiplier_ren<=0 || multiplier_fac<=0){
+    cout << "Invalid scale multipliers" << endl;
+    return;
+  }
+  if (Q_ren<=1 || Q_fac<=1 || mynloop<=0 || mypartons.compare("Default")==0){
+    if (Q_ren<0) cout << "Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
+    if (Q_fac<0) cout << "Invalid factorization scale, setting to mH/2..." << endl;
+    Q_ren = (masses_mcfm_.hmass)*0.5;
+    Q_fac = Q_ren;
+    mynloop = 1;
+    hasReset=true;
+	}
 	if(mypartons.compare("Default")!=0 && mypartons.compare("cteq6_l")!=0 && mypartons.compare("cteq6l1")!=0){
 		cout << "Only default :: cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting to Default..." << endl;
 		mypartons = "Default";
-	};
+	}
+
+  if (!hasReset){
+    Q_ren *= multiplier_ren;
+    Q_fac *= multiplier_fac;
+  }
 
 	bool nflav_is_same = (nflav_.nflav == mynflav);
-	scale_.scale = Q;
-	scale_.musq = Q*Q;
-	nlooprun_.nlooprun = mynloop;
+  scale_.scale = Q_ren;
+  scale_.musq = Q_ren*Q_ren;
+  facscale_.facscale = Q_fac;
+  nlooprun_.nlooprun = mynloop;
 
 // From pdfwrapper_linux.f:
 	if(mypartons.compare("cteq6_l")==0) couple_.amz = 0.118;
@@ -81,7 +171,7 @@ void SetAlphaS (double Q, int mynloop, int mynflav, string mypartons){
 	}
 	else{
 		qcdcouple_.as = alphas_(&(scale_.scale),&(couple_.amz),&(nlooprun_.nlooprun));
-	};
+	}
 
 	qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
 	qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
@@ -91,7 +181,7 @@ void SetAlphaS (double Q, int mynloop, int mynflav, string mypartons){
 /*
 	if(verbosity >= TVar::DEBUG){
 		cout << "My pdf is: " << pdlabel_.pdlabel << endl;
-		cout << "My Q: " << Q << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
+		cout << "My Q_ren: " << Q_ren << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
 			<< "Nflav: " << nflav_.nflav << endl;
 */
 }
@@ -364,7 +454,7 @@ c--- 132 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [(gg->Z
 
  } 
  else{
-     std::cerr <<"[My_choose]: Can't identify Process: " << process <<endl;
+     std::cerr <<"[My_choose]: Can't identify Process: " << process << std::endl;
  } 
 }
 
@@ -427,7 +517,9 @@ bool My_smalls(double s[][mxpart],int npart){
 // 2. PartonEnergy Fraction minimum<x0,x1<1
 // 3. number of final state particle is defined
 //
-double SumMatrixElementPDF(TVar::Process process, TVar::Production production, TVar::MatrixElement myME, mcfm_event_type* mcfm_event,double flavor_msq[nmsq][nmsq],double* flux, double EBEAM, double coupling[SIZE_HVV_FREENORM]){
+double SumMatrixElementPDF(TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement, event_scales_type* event_scales, mcfm_event_type* mcfm_event, double flavor_msq[nmsq][nmsq], double* flux, double EBEAM, double coupling[SIZE_HVV_FREENORM]){
+  TLorentzVector MomStore[mxpart];
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
 
   int NPart=npart_.npart+2;
   double p4[4][mxpart];
@@ -453,8 +545,8 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
   //if(sysPt_sqr>=1.0E-10)  sysE=TMath::Sqrt(sysE*sysE-sysPt_sqr);
   
   double xx[2]={(sysE+sysPz)/EBEAM/2,(sysE-sysPz)/EBEAM/2};
-  if(xx[0] > 1.0 || xx[0]<=xmin_.xmin) return 0.0;
-  if(xx[1] > 1.0 || xx[1]<=xmin_.xmin) return 0.0;
+  if(xx[0] > 1.0 || xx[0]<=xmin_.xmin) return 0;
+  if(xx[1] > 1.0 || xx[1]<=xmin_.xmin) return 0;
   
   //Convert TLorentzVector into 4x12 Matrix
   //reverse sign of incident partons back
@@ -464,9 +556,10 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
       p4[1][ipar] = -mcfm_event->p[ipar].Py();
       p4[2][ipar] = -mcfm_event->p[ipar].Pz();
       p4[3][ipar] = -mcfm_event->p[ipar].Energy();
+      MomStore[ipar].SetXYZT(mcfm_event->p[ipar].X(), mcfm_event->p[ipar].Y(), mcfm_event->p[ipar].Z(), mcfm_event->p[ipar].T());
     }
   }
-  double invariantP[5] = {0};
+
   //initialize decayed particles
   for (int ipar=2; ipar<NPart; ipar++){
     p4[0][ipar] = mcfm_event->p[ipar].Px();
@@ -474,49 +567,48 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
     p4[2][ipar] = mcfm_event->p[ipar].Pz();
     p4[3][ipar] = mcfm_event->p[ipar].Energy();
 
-    invariantP[1] += p4[3][ipar];
-    invariantP[2] += p4[0][ipar];
-    invariantP[3] += p4[1][ipar];
-    invariantP[4] += p4[2][ipar];
+    MomStore[ipar].SetXYZT(mcfm_event->p[ipar].X(), mcfm_event->p[ipar].Y(), mcfm_event->p[ipar].Z(), mcfm_event->p[ipar].T());
   }
 
-  invariantP[0] = pow(invariantP[1],2.0);
-  for(int iq=2;iq<5;iq++) invariantP[0] -= pow(invariantP[iq],2.0);
-  invariantP[0] = sqrt(fabs(invariantP[0]));
-
-  double defaultScale = scale_.scale;
+  double defaultRenScale = scale_.scale;
+  double defaultFacScale = facscale_.facscale;
+//  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
-  SetAlphaS( invariantP[0]*0.5 , 1 , 5 , "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+//  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+//  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
   //calculate invariant masses between partons/final state particles
-  for(int jdx=0;jdx< NPart ;jdx++){
+  for (int jdx=0; jdx< NPart; jdx++){
     s[jdx][jdx]=0;
-    for(int kdx=jdx+1;kdx<NPart;kdx++){
+    for (int kdx=jdx+1; kdx<NPart; kdx++){
       s[jdx][kdx]=2*(p4[3][jdx]*p4[3][kdx]-p4[2][jdx]*p4[2][kdx]-p4[1][jdx]*p4[1][kdx]-p4[0][jdx]*p4[0][kdx]);
       s[kdx][jdx]=s[jdx][kdx];
     }
   }
   
   bool passMassCuts=true;
-  //remove events has small invariant mass
-  // if(My_masscuts(s,process)) return 0.0;
-  if (My_smalls(s, npart_.npart)) passMassCuts=false;
+  // remove events has small invariant mass
+////  if(My_masscuts(s,process)) return 0.0;
+//  if (My_smalls(s, npart_.npart)) passMassCuts=false;
 
   if (passMassCuts){
     //Calculate Pdf
     //Always pass address through fortran function
-    fdist_(&density_.ih1, &xx[0], &scale_.scale, fx1);
-    fdist_(&density_.ih2, &xx[1], &scale_.scale, fx2);
+    fdist_(&density_.ih1, &xx[0], &facscale_.facscale, fx1);
+    fdist_(&density_.ih2, &xx[1], &facscale_.facscale, fx2);
 /*
     if (process == TVar::bkgZZ && (production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU)){
       if (production == TVar::ZZQQB_STU) cout << "STU" << endl;
       if (production == TVar::ZZQQB_S) cout << "S" << endl;
       if (production == TVar::ZZQQB_TU) cout << "TU" << endl;
-    };
+    }
 */
-    if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ)      qqb_zz_(p4[0], msq[0]);
+    if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
     if (production == TVar::ZZQQB_STU && process == TVar::bkgZZ){
       channeltoggle=0;
       qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
@@ -533,10 +625,10 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
     // the subroutine for the calculations including the interfenrence             
     // ME =  sig + inter (sign, bkg)              
     // 1161 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6)) [including gg->ZZ intf.]' 'L'  
-    if (process==TVar::bkgZZ_SMHiggs && myME==TVar::JHUGen)     gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 MCFM 6.6 version
-    if (process==TVar::bkgZZ_SMHiggs && myME==TVar::MCFM)     gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
+    if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 MCFM 6.6 version
+    if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::MCFM) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
     if (process==TVar::HSMHiggs && production == TVar::ZZGG) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
-    if (process==TVar::bkgZZ && production==TVar::ZZGG)    gg_zz_(p4[0], &msqgg); // |ggZZ|**2
+    if (process==TVar::bkgZZ && production==TVar::ZZGG) gg_zz_(p4[0], &msqgg); // |ggZZ|**2
 
 /*
     // Below code sums over all production parton flavors according to PDF
@@ -578,12 +670,14 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
   }
 
   if (msqjk != msqjk || flux!=flux){
-    cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << " flux="<< *flux <<endl;
+    std::cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << " flux="<< *flux << std::endl;
     msqjk=0;
     *flux=0;
   }
 
-  SetAlphaS( defaultScale , defaultNloop , defaultNflav , defaultPdflabel); // Protection for other probabilities
+//  cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
+//  cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   return msqjk;
 }
 
@@ -730,8 +824,10 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
 }
 
 
-double HJJMatEl(TVar::Process process, TVar::Production production, const TLorentzVector p[5], double Hggcoupl[SIZE_HGG][2], double Hvvcoupl[SIZE_HVV_VBF][2], double Hwwcoupl[SIZE_HWW_VBF][2], TVar::VerbosityLevel verbosity, double EBEAM)
+double HJJMatEl(TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement, event_scales_type* event_scales, const TLorentzVector p[5], double Hggcoupl[SIZE_HGG][2], double Hvvcoupl[SIZE_HVV_VBF][2], double Hwwcoupl[SIZE_HWW_VBF][2], TVar::VerbosityLevel verbosity, double EBEAM)
 {
+  TLorentzVector MomStore[mxpart];
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
 
   // by default assume only gg productions 
   // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
@@ -740,73 +836,98 @@ double HJJMatEl(TVar::Process process, TVar::Production production, const TLoren
   //2-D matrix is reversed in fortran                                                                                                           
   // msq[ parton2 ] [ parton1 ]      
   //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
-  double MatElsq[nmsq][nmsq];
-  for ( int i = 0; i < nmsq; i++) {
-    for ( int j = 0; j < nmsq; j++ ) {
-      MatElsq[i][j] = 0;
-    }
-  }
+  double MatElsq[nmsq][nmsq] ={ { 0 } };
+
   // input unit = GeV/100 such that 125GeV is 1.25 in the code
   // this needs to be applied for all the p4
-  double p4[5][4];
-  for (int i = 0; i < 5; i++) {
-    p4[i][0] = p[i].Energy()/100.;
-    p4[i][1] = p[i].Px()/100.;
-    p4[i][2] = p[i].Py()/100.;
-    p4[i][3] = p[i].Pz()/100.;
+  if (matrixElement==TVar::JHUGen){
+    double p4[5][4];
+    for (int i = 0; i < 5; i++) {
+      p4[i][0] = p[i].Energy()/100.;
+      p4[i][1] = p[i].Px()/100.;
+      p4[i][2] = p[i].Py()/100.;
+      p4[i][3] = p[i].Pz()/100.;
 
-    // DO NOT Use out-going convention for the incoming particles for SumMEPDF
-	// For HJJ, the subroutine already does its own calculation for p1, p2, so it does not matter if the sign remains flipped or not.
-	// HJ exclusively takes lab-frame momenta, and p1 and p2 are used with a (-) sign. Thus, the sign would need to be flipped again.
+      if (i<2) MomStore[i].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T());
+      else{
+        if (production == TVar::JJGG || production == TVar::JJVBF){
+          if (i!=4) MomStore[i+4].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T()); // J1, J2, H
+          else MomStore[5].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T()); // J1, J2, H
+        }
+        else if (production == TVar::JH){
+          MomStore[i+3].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T()); // H, J1
+          // CHECK THIS!
+        }
+      }
+
+      // DO NOT Use out-going convention for the incoming particles for SumMEPDF
+      // For HJJ, the subroutine already does its own calculation for p1, p2, so it does not matter if the sign remains flipped or not.
+      // HJ exclusively takes lab-frame momenta, and p1 and p2 are used with a (-) sign. Thus, the sign would need to be flipped again.
 /*
-	if ( i < 2 ) {
-		for ( int j = 0; j < 4; j++ ) {
-			p4[i][j] = - p4[i][j];
-		}
-    }
+      if ( i < 2 ) {
+        for ( int j = 0; j < 4; j++ ) {
+          p4[i][j] = - p4[i][j];
+        }
+      }
 */
-  }      
-  if ( verbosity >= TVar::DEBUG ) {
-    std::cout << "p4[0] = "  << p4[0][0] << ", " <<  p4[0][1] << ", "  <<  p4[0][2] << ", "  <<  p4[0][3] << "\n";   
-    std::cout << "p4[1] = "  << p4[1][0] << ", " <<  p4[1][1] << ", "  <<  p4[1][2] << ", "  <<  p4[1][3] << "\n";   
-    std::cout << "p4[2] = "  << p4[2][0] << ", " <<  p4[2][1] << ", "  <<  p4[2][2] << ", "  <<  p4[2][3] << "\n"; 
-    std::cout << "p4[3] = "  << p4[3][0] << ", " <<  p4[3][1] << ", "  <<  p4[3][2] << ", "  <<  p4[3][3] << "\n";   
-    std::cout << "p4[4] = "  << p4[4][0] << ", " <<  p4[4][1] << ", "  <<  p4[4][2] << ", "  <<  p4[4][3] << "\n";   
-  }
+    }
+    if (verbosity >= TVar::DEBUG) {
+      std::cout << "p4[0] = "  << p4[0][0] << ", " <<  p4[0][1] << ", "  <<  p4[0][2] << ", "  <<  p4[0][3] << "\n";
+      std::cout << "p4[1] = "  << p4[1][0] << ", " <<  p4[1][1] << ", "  <<  p4[1][2] << ", "  <<  p4[1][3] << "\n";
+      std::cout << "p4[2] = "  << p4[2][0] << ", " <<  p4[2][1] << ", "  <<  p4[2][2] << ", "  <<  p4[2][3] << "\n";
+      std::cout << "p4[3] = "  << p4[3][0] << ", " <<  p4[3][1] << ", "  <<  p4[3][2] << ", "  <<  p4[3][3] << "\n";
+      std::cout << "p4[4] = "  << p4[4][0] << ", " <<  p4[4][1] << ", "  <<  p4[4][2] << ", "  <<  p4[4][3] << "\n";
+    }
 
-  
-  if ( production == TVar::JJGG ) {
-    __modhiggsjj_MOD_evalamp_sbfh(p4, Hggcoupl, MatElsq);
-  }
-  if ( production == TVar::JJVBF) {
-    __modhiggsjj_MOD_evalamp_wbfh(p4, Hvvcoupl, Hwwcoupl, MatElsq);
-  }
-  if ( production == TVar::JH) {
-	double pOneJet[4][4] = { { 0 } };
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++) {
-//			if( i<2 ) pOneJet[i][j] = - p4[i][j]; // Revert back to lab-frame momenta
-//			else pOneJet[i][j] = p4[i][j];
-			pOneJet[i][j] = p4[i][j]; // Revert back to lab-frame momenta
-		}
-	}
-	__modhiggsj_MOD_evalamp_hj(pOneJet, MatElsq);
-  }
 
+    if (production == TVar::JJGG) {
+      __modhiggsjj_MOD_evalamp_sbfh(p4, Hggcoupl, MatElsq);
+    }
+    if (production == TVar::JJVBF) {
+      __modhiggsjj_MOD_evalamp_wbfh(p4, Hvvcoupl, Hwwcoupl, MatElsq);
+    }
+    if (production == TVar::JH) {
+      double pOneJet[4][4] ={ { 0 } };
+      for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+//        if( i<2 ) pOneJet[i][j] = - p4[i][j]; // Revert back to lab-frame momenta
+//        else pOneJet[i][j] = p4[i][j];
+          pOneJet[i][j] = p4[i][j]; // Revert back to lab-frame momenta
+        }
+      }
+      __modhiggsj_MOD_evalamp_hj(pOneJet, MatElsq);
+    }
+  }
   //    FOTRAN convention    -5    -4   -3   -2   -1    0   1   2   3  4  5
   //     parton flavor      bbar  cbar  sbar ubar dbar  g   d   u   s  c  b
   //      C++ convention     0      1    2    3    4    5   6   7   8  9  10
 
   for(int ii = 0; ii < nmsq; ii++){
     for(int jj = 0; jj < nmsq; jj++){
-      if ( verbosity >= TVar::DEBUG ) {
-		std::cout<< "MatElsq: " << ii-5 << " " << jj-5 << " " << MatElsq[jj][ii] << "\n" ;
-      }
+      if ( verbosity >= TVar::DEBUG ) std::cout<< "MatElsq: " << ii-5 << " " << jj-5 << " " << MatElsq[jj][ii] << std::endl;
     }
   }
   
-  if ( production == TVar::JJGG || production == TVar::JJVBF || production == TVar::JH){
-	return SumMEPDF(p[0], p[1], MatElsq, verbosity, EBEAM);
+  if (production == TVar::JJGG || production == TVar::JJVBF || production == TVar::JH){
+    double defaultRenScale = scale_.scale;
+    double defaultFacScale = facscale_.facscale;
+    cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+    int defaultNloop = nlooprun_.nlooprun;
+    int defaultNflav = nflav_.nflav;
+    string defaultPdflabel = pdlabel_.pdlabel;
+    double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+    cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+    double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+    cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+    SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+
+    double sum_msqjk = SumMEPDF(p[0], p[1], MatElsq, verbosity, EBEAM);
+
+    cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+    SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
+    cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+    return sum_msqjk;
+
     //return MatElsq[5][5]; // jjgg
     //return MatElsq[6][7]+MatElsq[7][6]; // jjvbf
   }
@@ -814,8 +935,11 @@ double HJJMatEl(TVar::Process process, TVar::Production production, const TLoren
   return 0.;
 }
 
-double VHiggsMatEl(TVar::Process process, TVar::Production production, TLorentzVector p[5], TLorentzVector pHdaughter[4], int Vdecay_id[6], double MReso, double GaReso, double Hvvcoupl[SIZE_HVV_VBF][2], TVar::VerbosityLevel verbosity, double EBEAM)
+double VHiggsMatEl(TVar::Process process, TVar::Production production, event_scales_type* event_scales, TLorentzVector p[5], TLorentzVector pHdaughter[4], int Vdecay_id[6], double MReso, double GaReso, double Hvvcoupl[SIZE_HVV_VBF][2], TVar::VerbosityLevel verbosity, double EBEAM)
 {
+  TLorentzVector MomStore[mxpart];
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
+
 // Inputs to Fortran
 // The dimensionality [9] should change to [11] once H->4l or 2l2nu is added to the amplitude.
   double p4[9][4] = { { 0 } };
@@ -892,6 +1016,10 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, TLorentzV
     p4[i][1] = pVH[i].Px()/100.;
     p4[i][2] = pVH[i].Py()/100.;
     p4[i][3] = pVH[i].Pz()/100.;
+
+    if (i<2) MomStore[i].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
+    else if (i==4) MomStore[5].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
+    else if (i==5 || i==6) MomStore[i+1].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
 
     // DO NOT Use out-going convention for the incoming particles for SumMEPDF
 	// VH exclusively takes lab-frame momenta, and p1 and p2 are used with a (-) sign.
@@ -1062,8 +1190,24 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, TLorentzV
 	  }
   }
 	
-  
+  double defaultRenScale = scale_.scale;
+  double defaultFacScale = facscale_.facscale;
+  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+  int defaultNloop = nlooprun_.nlooprun;
+  int defaultNflav = nflav_.nflav;
+  string defaultPdflabel = pdlabel_.pdlabel;
+  double renQ = InterpretScaleScheme(production, TVar::JHUGen, event_scales->renomalizationScheme, MomStore);
+  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  double facQ = InterpretScaleScheme(production, TVar::JHUGen, event_scales->factorizationScheme, MomStore);
+  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+
   sumME = SumMEPDF(p[0], p[1], MatElsq, verbosity, EBEAM);
+
+  cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
+  cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  
   return sumME;
 }
 
@@ -1094,7 +1238,7 @@ double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], dou
     for (int i=0; i<11; i++){
       std::cout << "p4[" << i << "] = ";
       for (int jj=0; jj<4; jj++) std::cout << p4[i][jj] << '\t';
-      std::cout << endl;
+      std::cout << std::endl;
     }
   }
 
@@ -1122,26 +1266,19 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
   //double sysPt_sqr=sysPx*sysPx+sysPy*sysPy;
   //if(sysPt_sqr>=1.0E-10)  sysE=TMath::Sqrt(sysE*sysE-sysPt_sqr);
   double xx[2]={(sysE+sysPz)/EBEAM/2,(sysE-sysPz)/EBEAM/2};
+  if ( verbosity >= TVar::DEBUG ) std::cout << "xx[0]: " << xx[0] << "\txx[1] = " << xx[1] << "\n";
 
-  if ( verbosity >= TVar::DEBUG ) {
-    std::cout << "xx[0]: " << xx[0] << "\t xx[1] = " << xx[1] << "\n";
-  }
-
-
-  if(xx[0] > 1.0 || xx[0]<=xmin_.xmin) return 0.0;
-  if(xx[1] > 1.0 || xx[1]<=xmin_.xmin) return 0.0;
+  if(xx[0] > 1.0 || xx[0]<=xmin_.xmin) return 0;
+  if(xx[1] > 1.0 || xx[1]<=xmin_.xmin) return 0;
   double fx1[nmsq];
   double fx2[nmsq];
 
   //Always pass address through fortran function
-  fdist_ (&density_.ih1, &xx[0], &scale_.scale, fx1); 
-  fdist_ (&density_.ih2, &xx[1], &scale_.scale, fx2); 
+  fdist_(&density_.ih1, &xx[0], &facscale_.facscale, fx1);
+  fdist_(&density_.ih2, &xx[1], &facscale_.facscale, fx2);
 
   if ( verbosity >= TVar::DEBUG ) {
-    for ( int i = 0; i < nmsq; i++ ) {
-      std::cout << "fx1[" << i << "]: " <<  fx1[i] << "\t"
-	"fx2[" << i << "]: " <<  fx2[i] << "\n";
-    }
+    for ( int i = 0; i < nmsq; i++ ) std::cout << "fx1[" << i << "]: " <<  fx1[i] << "\tfx2[" << i << "]: " <<  fx2[i] << std::endl;
   }
   
   double msqjk(0.);
@@ -1149,7 +1286,6 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
   
   for(int ii=0;ii<nmsq;ii++){
     for(int jj=0;jj<nmsq;jj++){
-      flavor_msq[jj][ii] = 0.;
       //2-D matrix is reversed in fortran
       // msq[ parton2 ] [ parton1 ]
       flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];
@@ -1158,5 +1294,5 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
   }//jj
   
   return msqjk;
-
 }
+
