@@ -79,6 +79,9 @@ std::vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx,dou
 void newZZMatrixElement::set_LHAgrid(const char* path){
   Xcal2.Set_LHAgrid(path);
 }
+void newZZMatrixElement::set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_){
+  myModel=process_; myME=me_; myProduction=production_;
+}
 void newZZMatrixElement::set_mHiggs(float myPoleMass){
 	mHiggs = myPoleMass;
 }
@@ -116,6 +119,8 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
 				 float &mevalue
 			){
 // Higgs + 2 jets: SBF or WBF
+
+  set_Process(process_, me_, production_);
 
   std::vector<TLorentzVector> p;
   p=Calculate4Momentum(mZZ,mZ1,mZ2,acos(costhetastar),acos(costheta1),acos(costheta2),phistar1,phi);
@@ -181,7 +186,7 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
   }
   
   // ==== Begin the differential cross-section calculation
-  if(myME==TVar::MCFM || myModel==TVar::bkgZZ_SMHiggs) Xcal2.SetHiggsMass(mHiggs,wHiggs);
+  if (me_==TVar::MCFM || process_==TVar::bkgZZ_SMHiggs) Xcal2.SetHiggsMass(mHiggs, wHiggs);
   else Xcal2.SetHiggsMass(zzmass,wHiggs);
 
   Xcal2.SetMatrixElement(me_);
@@ -211,6 +216,7 @@ void newZZMatrixElement::computeProdXS_JJH(TLorentzVector jet1,
                double selfDHvvcoupl[SIZE_HVV_VBF][2],
                double selfDHwwcoupl[SIZE_HWW_VBF][2],
 				       float &mevalue){
+  set_Process(process_, me_, production_);
 
   TLorentzVector p4[3];
   p4[0]=jet1;
@@ -238,8 +244,9 @@ void newZZMatrixElement::computeProdXS_JH(TLorentzVector singleJet,
                TVar::MatrixElement me_,
                TVar::Production production_,
 				       float &mevalue){
-
 // Higgs + 1 jet: Only SM is supported for now.
+
+  set_Process(process_, me_, production_);
 
   TLorentzVector p4[2];
   p4[0]=higgs;
@@ -272,6 +279,8 @@ void newZZMatrixElement::computeProdXS_VH(
 
 // Dedicated VH function
 
+  set_Process(process_, me_, production_);
+
   Xcal2.SetMatrixElement(me_);
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
@@ -298,7 +307,7 @@ void newZZMatrixElement::computeProdXS_VH(
   vh_event.PdgCode[0] = 25;
 
   double zzmass = higgs.M();
-  if (myME==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
+  if (me_==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
   else Xcal2.SetHiggsMass(zzmass, wHiggs);
   mevalue  = Xcal2.XsecCalc_VX(
     process_, production_,
@@ -327,11 +336,13 @@ void newZZMatrixElement::computeProdXS_ttH(
   float &mevalue){
   // Dedicated ttH function
 
+  set_Process(process_, me_, production_);
+
   Xcal2.SetMatrixElement(me_);
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
 
-  if (myModel== TVar::SelfDefine_spin0){
+  if (process_ == TVar::SelfDefine_spin0){
     bool noCoupl=true;
     for (int iX=0; iX<SIZE_TTH; iX++){
       for (int iY=0; iY<2; iY++){
@@ -349,10 +360,10 @@ void newZZMatrixElement::computeProdXS_ttH(
   for (int vv=0; vv<3; vv++) tth_event.PdgCode_tdecay[1][vv] = ttbar_daughters_pdgid[vv+3];
 
   double zzmass = Higgs.M();
-  if (myME==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
+  if (me_==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
   else Xcal2.SetHiggsMass(zzmass, wHiggs);
 
-  if (myProduction == TVar::ttH || myProduction ==TVar::bbH){
+  if (production_ == TVar::ttH || production_ ==TVar::bbH){
     mevalue  = Xcal2.XsecCalc_TTX(
       process_, production_,
       tth_event,

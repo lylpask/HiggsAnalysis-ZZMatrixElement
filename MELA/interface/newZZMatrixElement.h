@@ -83,6 +83,7 @@ public:
     double selfDHvvcoupl[SIZE_TTH][2],
     float &mevalue);
 
+  void set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_);
   void set_mHiggs(float myPoleMass);
   void set_wHiggs(float myPoleWidth);
   void set_LeptonInterference(TVar::LeptonInterference myLepInterf);
