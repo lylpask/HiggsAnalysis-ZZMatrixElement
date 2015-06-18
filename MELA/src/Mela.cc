@@ -208,6 +208,9 @@ void Mela::resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_m
 
 void Mela::setRemoveLeptonMasses(bool MasslessLeptonSwitch){ mela::applyLeptonMassCorrection(MasslessLeptonSwitch); }
 
+void Mela::setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
+  ZZME->set_RenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
+}
 
 // Re-order masses and angles as needed by likelihoodDiscriminant. 
 // This follows a different convention than the usual Z1/Z2 definition!

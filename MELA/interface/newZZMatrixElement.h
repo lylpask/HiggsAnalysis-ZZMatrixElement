@@ -88,10 +88,12 @@ public:
   void set_LeptonInterference(TVar::LeptonInterference myLepInterf);
   void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void set_LHAgrid(const char* path);
+  void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+
 
   //compute four-momenta from angles only 
   // Nota bene: angles, not cos(theta)...
-  std::vector<TLorentzVector> Calculate4Momentum(double Mx,double M1,double M2,double theta,double theta1,double theta2,double Phi1,double Phi);
+  std::vector<TLorentzVector> Calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi);
 
 private:
   

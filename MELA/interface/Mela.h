@@ -41,6 +41,7 @@ public:
   void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf = TVar::DefaultLeptonInterf);
   void setRemoveLeptonMasses(bool MasslessLeptonSwitch = false);
   void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
+  void setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
 
   void computeP(float mZZ, float mZ1, float mZ2, // input kinematics
 		float costhetastar,

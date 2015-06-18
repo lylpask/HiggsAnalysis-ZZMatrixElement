@@ -92,6 +92,9 @@ void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemm
   Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }
 
+void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
+  Xcal2.SetRenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
+}
 
 void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
 				 float costhetastar,
