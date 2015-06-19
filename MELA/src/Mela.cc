@@ -391,187 +391,55 @@ switch (myType){
 }
 
  
- void Mela::computeP(float mZZ, float mZ1, float mZ2, // input kinematics
- 		    float costhetastar,
- 		    float costheta1, 
- 		    float costheta2,
- 		    float phi,
- 		    float phi1,
- 		    int flavor,
- 		    float& prob, bool useConstant){                   // output probability
-   reset_PAux();
+void Mela::computeP(float mZZ, float mZ1, float mZ2, // input kinematics
+  float costhetastar,
+  float costheta1,
+  float costheta2,
+  float phi,
+  float phi1,
+  int flavor,
+  float& prob, // output probability
+  bool useConstant){
 
-   //cout << "Mela::computeP - begin" << endl;
-   //cout << "calculator: " << myME_ << " model: " << myModel_ << " production: " << myProduction_ << endl;
+  reset_PAux();
+
+  //cout << "Mela::computeP - begin" << endl;
+  //cout << "calculator: " << myME_ << " model: " << myModel_ << " production: " << myProduction_ << endl;
 
   costhetastar_rrv->setVal(costhetastar);
   costheta1_rrv->setVal(costheta1);
   costheta2_rrv->setVal(costheta2);
   phi_rrv->setVal(phi);
   phi1_rrv->setVal(phi1);
-     
-   z1mass_rrv->setVal(mZ1);
-   z2mass_rrv->setVal(mZ2);
-   mzz_rrv->setVal(mZZ);
- 
-   //cout << "Mela::computeP() - set RooRealVars" << endl;
-   
-   float constant = 1;
-   double couplingvals_NOTggZZ[SIZE_HVV_FREENORM] = { 0 };
-   double selfDHvvcoupl[SIZE_HVV][2] = { { 0 } };
-   double selfDGqqcoupl[SIZE_GQQ][2] = { { 0 } }; 
-   double selfDGggcoupl[SIZE_GGG][2] = { { 0 } };
-   double selfDGvvcoupl[SIZE_GVV][2] = { { 0 } };
-   double selfDZqqcoupl[SIZE_ZQQ][2] = { { 0 } };
-   double selfDZvvcoupl[SIZE_ZVV][2] = { { 0 } };
-   
-   //
-   // analytical calculations
-   // 
-   if ( myME_ == TVar::ANALYTICAL ) {
-     
-     //cout << "Mela::computeP() - analytical calc " << endl;
-    
-     if(mZZ>100.){
 
-       if(myProduction_==TVar::ZZINDEPENDENT){
-	RooAbsPdf* integral = (RooAbsPdf*) pdf->createIntegral(RooArgSet(*costhetastar_rrv,*phi1_rrv));
-	prob = integral->getVal();
-	delete integral;
-      }else{
-	prob = pdf->getVal();
+  z1mass_rrv->setVal(mZ1);
+  z2mass_rrv->setVal(mZ2);
+  mzz_rrv->setVal(mZZ);
+
+  //cout << "Mela::computeP() - set RooRealVars" << endl;
+
+  float constant = 1;
+  double couplingvals_NOTggZZ[SIZE_HVV_FREENORM] ={ 0 };
+  double selfDHvvcoupl[SIZE_HVV][2] ={ { 0 } };
+  double selfDGqqcoupl[SIZE_GQQ][2] ={ { 0 } };
+  double selfDGggcoupl[SIZE_GGG][2] ={ { 0 } };
+  double selfDGvvcoupl[SIZE_GVV][2] ={ { 0 } };
+  double selfDZqqcoupl[SIZE_ZQQ][2] ={ { 0 } };
+  double selfDZvvcoupl[SIZE_ZVV][2] ={ { 0 } };
+
+  //
+  // analytical calculations
+  // 
+  if (myME_ == TVar::ANALYTICAL) {
+    if (mZZ>100.){
+      if (myProduction_==TVar::ZZINDEPENDENT){
+        RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+        prob = integral->getVal();
+        delete integral;
       }
-
-    }else{
-      prob = -99.0;
+      else prob = pdf->getVal();
     }
-    
-    //cout << "Mela::computeP() - getting analytical c-constants" << endl;
-    
-    // 
-    // define the constants to be used on analytical
-    // 
-    
-    // gg productions 
-    if ( myME_ == TVar::ANALYTICAL && myProduction_ == TVar::ZZGG  ) {
-      if ( flavor == 3 ) {
-	
-	//cout << "ANALYTICAL - GG - flavor=3" << endl;
-	
-				if ( myModel_ == TVar::H0minus)  constant = 6.4;
-				if ( myModel_ == TVar::H0hplus)  constant = 2.2;
-				if ( myModel_ == TVar::H2_g1g5)  constant = 9.5;
-				if ( myModel_ == TVar::H2_g4 )  constant = 7.3e7;
-				if ( myModel_ == TVar::H2_g8 )  constant = 1.1e8;
-				if ( myModel_ == TVar::H2_g5 )  constant = 16.3;
-
-				if ( myModel_ == TVar::H2_g2 ) constant = 552385;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.08147e+08;
-				if ( myModel_ == TVar::H2_g6 ) constant = 748630;
-				if ( myModel_ == TVar::H2_g7 ) constant = 1.2522e+07;
-				if ( myModel_ == TVar::H2_g9 ) constant = 3.01467e+06;
-				if ( myModel_ == TVar::H2_g10 ) constant = 1.483e+11;
-
-      }  else {
-
-	//cout << "ANALYTICAL - GG - flavor!=3" << endl;
-
-				if ( myModel_ == TVar::H0minus )  constant = 6.5;
-				if ( myModel_ == TVar::H0hplus )  constant = 2.2;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 9.3;
-				if ( myModel_ == TVar::H2_g4 )  constant = 1.1e8;
-				if ( myModel_ == TVar::H2_g8 )  constant = 1.9e8;
-				if ( myModel_ == TVar::H2_g5 )  constant = 15.6;
-
-				if ( myModel_ == TVar::H2_g2 ) constant = 552385;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.24897e+08;
-				if ( myModel_ == TVar::H2_g6 ) constant = 1.10793e+06;
-				if ( myModel_ == TVar::H2_g7 ) constant = 2.21423e+07;
-				if ( myModel_ == TVar::H2_g9 ) constant = 3.18193e+06;
-				if ( myModel_ == TVar::H2_g10 ) constant = 2.63811e+11;
-
-      }
-
-    }
-    // qqb productions 
-    if ( myME_ == TVar::ANALYTICAL && myProduction_ == TVar::ZZQQB  ) {
-      if ( flavor == 3 ) {
-
-	//cout << "ANALYTICAL - QQB - flavor=3" << endl;
-
-				if ( myModel_ == TVar::H1minus )  constant = 4.6e5;
-				if ( myModel_ == TVar::H1plus )  constant = 4.0e5;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 7.9;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 13.7977;
-				if ( myModel_ == TVar::H2_g4 ) constant = 5.12897e+07;
-				if ( myModel_ == TVar::H2_g2 ) constant = 477586;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.30907e+08;
-				if ( myModel_ == TVar::H2_g6 ) constant = 847461;
-				if ( myModel_ == TVar::H2_g7 ) constant = 1.39014e+07;
-				if ( myModel_ == TVar::H2_g8 ) constant = 7.08446e+07;
-				if ( myModel_ == TVar::H2_g9 ) constant = 2.93583e+06;
-				if ( myModel_ == TVar::H2_g10 ) constant = 1.47118e+11;
-      } else {
-
-	//cout << "ANALYTICAL - QQB - flavor!=3" << endl;
-
-				if ( myModel_ == TVar::H1minus )  constant = 4.6e5;
-				if ( myModel_ == TVar::H1plus )  constant = 4.0e5;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 7.9;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 13.7289;
-				if ( myModel_ == TVar::H2_g4 ) constant = 7.57539e+07;
-				if ( myModel_ == TVar::H2_g2 ) constant = 476156;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.44675e+08;
-				if ( myModel_ == TVar::H2_g6 ) constant = 1.07303e+06;
-				if ( myModel_ == TVar::H2_g7 ) constant = 2.37359e+07;
-				if ( myModel_ == TVar::H2_g8 ) constant = 1.35435e+08;
-				if ( myModel_ == TVar::H2_g9 ) constant = 2.99514e+06;
-				if ( myModel_ == TVar::H2_g10 ) constant = 2.13201e+11;
-      }
-    }
-    // production independent calculations
-    if ( myME_ == TVar::ANALYTICAL && myProduction_ == TVar::ZZINDEPENDENT  ) {
-      if ( flavor == 3) {
-
-	//cout << "ANALYTICAL - INDEP - flavor=3" << endl;
-
-				if ( myModel_ == TVar::H1minus )  constant = 3.4e4;
-				if ( myModel_ == TVar::H1plus )  constant = 3.4e4;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 0.66;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 1.15604;
-				if ( myModel_ == TVar::H2_g4 ) constant = 4.36662e+06;
-				if ( myModel_ == TVar::H2_g2 ) constant = 39994.6;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.0897e+07;
-				if ( myModel_ == TVar::H2_g6 ) constant = 61420.6;
-				if ( myModel_ == TVar::H2_g7 ) constant = 1.20742e+06;
-				if ( myModel_ == TVar::H2_g8 ) constant = 6.07991e+06;
-				if ( myModel_ == TVar::H2_g9 ) constant = 239187;
-				if ( myModel_ == TVar::H2_g10 ) constant = 1.1843e+10;
-      } else {
-
-	//cout << "ANALYTICAL - INDEP - flavor!=3" << endl;
-
-				if ( myModel_ == TVar::H1minus )  constant = 3.4e4;
-				if ( myModel_ == TVar::H1plus )  constant = 3.4e4;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = .66;
-
-			if ( myModel_ == TVar::H2_g5 ) constant = 1.15604;
-			if ( myModel_ == TVar::H2_g4 ) constant = 5.6237e+06;
-				if ( myModel_ == TVar::H2_g2 ) constant = 39715.6;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.16172e+07;
-				if ( myModel_ == TVar::H2_g6 ) constant = 77613.8;
-				if ( myModel_ == TVar::H2_g7 ) constant = 1.58485e+06;
-				if ( myModel_ == TVar::H2_g8 ) constant = 8.71451e+06;
-				if ( myModel_ == TVar::H2_g9 ) constant = 241591;
-				if ( myModel_ == TVar::H2_g10 ) constant = 1.55139e+10;
-
-      }
-    } 
-
-
+    else prob = -99.0;
   }
 
   //cout << "Mela::computeP() - I am out!!" << endl;
@@ -579,22 +447,22 @@ switch (myType){
   //
   // JHUGen or MCFM 
   //
-  if ( myME_ == TVar::JHUGen || myME_ == TVar::MCFM ) {
+  if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
 
     //cout << "Mela::computeP() - JHUGen/MCFM calc " << endl;
 
     //initialize variables
-    checkZorder(mZ1,mZ2,costhetastar,costheta1,costheta2,phi,phi1);
-    ZZME->computeXS(mZZ,mZ1,mZ2,
-		    costhetastar,costheta1,costheta2, 
-		    phi, phi1, flavor,
-		    myModel_, myME_,  myProduction_,
-        couplingvals_NOTggZZ, selfDHvvcoupl,
-           selfDZqqcoupl,
-           selfDZvvcoupl,
-           selfDGqqcoupl,
-           selfDGggcoupl,
-           selfDGvvcoupl,prob);
+    checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
+    ZZME->computeXS(mZZ, mZ1, mZ2,
+      costhetastar, costheta1, costheta2,
+      phi, phi1, flavor,
+      myModel_, myME_, myProduction_,
+      couplingvals_NOTggZZ, selfDHvvcoupl,
+      selfDZqqcoupl,
+      selfDZvvcoupl,
+      selfDGqqcoupl,
+      selfDGggcoupl,
+      selfDGvvcoupl, prob);
 
     //cout << "Mela::computeP() - mZZ: " << mZZ << endl;
     //cout << "Mela::computeP() - mZ1: " << mZ1 << endl;
@@ -606,280 +474,324 @@ switch (myType){
     //cout << "Mela::computeP() - phi1: " << phi1 << endl;    
     //cout << "Mela::computeP() - prob: " << prob << endl;
 
-    // adding scale factors for MCMF calculation
-    // -- taken from old code --
+    // ***
+    // experimental for the ZZ decay 
+    // ****
 
+    //cout << "Mela::computeP() - production indep MCFM" << endl;
+
+    if (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ){
+      prob = 0;
+      int gridsize_hs = 5;
+      double hs_min = 0; //-1.;
+      double hs_max = 1;
+      double hs_step = (hs_max - hs_min) / double(gridsize_hs);
+
+      int gridsize_phi1 = 5;
+      double phi1_min = 0; //-TMath::Pi();
+      double phi1_max = TMath::Pi();
+      double phi1_step = (phi1_max - phi1_min) / double(gridsize_phi1);
+
+      for (int i_hs = 0; i_hs < gridsize_hs + 1; i_hs++) {
+        double hs_val = hs_min + i_hs * hs_step;
+        for (int i_phi1 = 0; i_phi1 < gridsize_phi1 +1; i_phi1++) {
+          double phi1_val = phi1_min + i_phi1 * phi1_step;
+          float temp_prob(0.);
+          // calculate the ZZ using MCFM
+          ZZME->computeXS(mZZ, mZ1, mZ2,
+            hs_val, costheta1, costheta2,
+            phi, phi1_val, flavor,
+            myModel_, myME_, myProduction_, couplingvals_NOTggZZ, selfDHvvcoupl,
+            selfDZqqcoupl,
+            selfDZvvcoupl,
+            selfDGqqcoupl,
+            selfDGggcoupl,
+            selfDGvvcoupl, temp_prob);
+          prob += temp_prob;
+        }
+      }
+      prob =  prob / float((gridsize_hs + 1) * (gridsize_phi1 +1));
+    }
+  }
+
+  if (useConstant){
+    constant = getConstant(flavor, mZZ, false);
+    prob *= constant;
+  }
+}
+
+float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
+  float constant = 1;
+
+  if (myME_ == TVar::ANALYTICAL) {
+
+    // gg productions 
+    if (myProduction_ == TVar::ZZGG) {
+      if (flavor == 3) {
+        //cout << "ANALYTICAL - GG - flavor=3" << endl;
+        if (myModel_ == TVar::H0minus)  constant = 6.4;
+        if (myModel_ == TVar::H0hplus)  constant = 2.2;
+        if (myModel_ == TVar::H2_g1g5)  constant = 9.5;
+        if (myModel_ == TVar::H2_g4)  constant = 7.3e7;
+        if (myModel_ == TVar::H2_g8)  constant = 1.1e8;
+        if (myModel_ == TVar::H2_g5)  constant = 16.3;
+        if (myModel_ == TVar::H2_g2) constant = 552385;
+        if (myModel_ == TVar::H2_g3) constant = 1.08147e+08;
+        if (myModel_ == TVar::H2_g6) constant = 748630;
+        if (myModel_ == TVar::H2_g7) constant = 1.2522e+07;
+        if (myModel_ == TVar::H2_g9) constant = 3.01467e+06;
+        if (myModel_ == TVar::H2_g10) constant = 1.483e+11;
+      }
+      else{
+        //cout << "ANALYTICAL - GG - flavor!=3" << endl;
+        if (myModel_ == TVar::H0minus)  constant = 6.5;
+        if (myModel_ == TVar::H0hplus)  constant = 2.2;
+        if (myModel_ == TVar::H2_g1g5)  constant = 9.3;
+        if (myModel_ == TVar::H2_g4)  constant = 1.1e8;
+        if (myModel_ == TVar::H2_g8)  constant = 1.9e8;
+        if (myModel_ == TVar::H2_g5)  constant = 15.6;
+        if (myModel_ == TVar::H2_g2) constant = 552385;
+        if (myModel_ == TVar::H2_g3) constant = 1.24897e+08;
+        if (myModel_ == TVar::H2_g6) constant = 1.10793e+06;
+        if (myModel_ == TVar::H2_g7) constant = 2.21423e+07;
+        if (myModel_ == TVar::H2_g9) constant = 3.18193e+06;
+        if (myModel_ == TVar::H2_g10) constant = 2.63811e+11;
+      }
+    }
+    // qqb productions 
+    if (myProduction_ == TVar::ZZQQB) {
+      if (flavor == 3) {
+        //cout << "ANALYTICAL - QQB - flavor=3" << endl;
+        if (myModel_ == TVar::H1minus)  constant = 4.6e5;
+        if (myModel_ == TVar::H1plus)  constant = 4.0e5;
+        if (myModel_ == TVar::H2_g1g5)  constant = 7.9;
+        if (myModel_ == TVar::H2_g5) constant = 13.7977;
+        if (myModel_ == TVar::H2_g4) constant = 5.12897e+07;
+        if (myModel_ == TVar::H2_g2) constant = 477586;
+        if (myModel_ == TVar::H2_g3) constant = 1.30907e+08;
+        if (myModel_ == TVar::H2_g6) constant = 847461;
+        if (myModel_ == TVar::H2_g7) constant = 1.39014e+07;
+        if (myModel_ == TVar::H2_g8) constant = 7.08446e+07;
+        if (myModel_ == TVar::H2_g9) constant = 2.93583e+06;
+        if (myModel_ == TVar::H2_g10) constant = 1.47118e+11;
+      }
+      else{
+        //cout << "ANALYTICAL - QQB - flavor!=3" << endl;
+        if (myModel_ == TVar::H1minus)  constant = 4.6e5;
+        if (myModel_ == TVar::H1plus)  constant = 4.0e5;
+        if (myModel_ == TVar::H2_g1g5)  constant = 7.9;
+        if (myModel_ == TVar::H2_g5) constant = 13.7289;
+        if (myModel_ == TVar::H2_g4) constant = 7.57539e+07;
+        if (myModel_ == TVar::H2_g2) constant = 476156;
+        if (myModel_ == TVar::H2_g3) constant = 1.44675e+08;
+        if (myModel_ == TVar::H2_g6) constant = 1.07303e+06;
+        if (myModel_ == TVar::H2_g7) constant = 2.37359e+07;
+        if (myModel_ == TVar::H2_g8) constant = 1.35435e+08;
+        if (myModel_ == TVar::H2_g9) constant = 2.99514e+06;
+        if (myModel_ == TVar::H2_g10) constant = 2.13201e+11;
+      }
+    }
+    // production independent calculations
+    if (myProduction_ == TVar::ZZINDEPENDENT) {
+      if (flavor == 3) {
+        //cout << "ANALYTICAL - INDEP - flavor=3" << endl;
+        if (myModel_ == TVar::H1minus)  constant = 3.4e4;
+        if (myModel_ == TVar::H1plus)  constant = 3.4e4;
+        if (myModel_ == TVar::H2_g1g5)  constant = 0.66;
+        if (myModel_ == TVar::H2_g5) constant = 1.15604;
+        if (myModel_ == TVar::H2_g4) constant = 4.36662e+06;
+        if (myModel_ == TVar::H2_g2) constant = 39994.6;
+        if (myModel_ == TVar::H2_g3) constant = 1.0897e+07;
+        if (myModel_ == TVar::H2_g6) constant = 61420.6;
+        if (myModel_ == TVar::H2_g7) constant = 1.20742e+06;
+        if (myModel_ == TVar::H2_g8) constant = 6.07991e+06;
+        if (myModel_ == TVar::H2_g9) constant = 239187;
+        if (myModel_ == TVar::H2_g10) constant = 1.1843e+10;
+      }
+      else{
+        //cout << "ANALYTICAL - INDEP - flavor!=3" << endl;
+        if (myModel_ == TVar::H1minus)  constant = 3.4e4;
+        if (myModel_ == TVar::H1plus)  constant = 3.4e4;
+        if (myModel_ == TVar::H2_g1g5)  constant = .66;
+        if (myModel_ == TVar::H2_g5) constant = 1.15604;
+        if (myModel_ == TVar::H2_g4) constant = 5.6237e+06;
+        if (myModel_ == TVar::H2_g2) constant = 39715.6;
+        if (myModel_ == TVar::H2_g3) constant = 1.16172e+07;
+        if (myModel_ == TVar::H2_g6) constant = 77613.8;
+        if (myModel_ == TVar::H2_g7) constant = 1.58485e+06;
+        if (myModel_ == TVar::H2_g8) constant = 8.71451e+06;
+        if (myModel_ == TVar::H2_g9) constant = 241591;
+        if (myModel_ == TVar::H2_g10) constant = 1.55139e+10;
+      }
+    }
+  }
+  else if (myME_ == TVar::JHUGen) {
+
+    if (myProduction_ == TVar::ZZGG) {
+      if (flavor == 3) {
+        if (myModel_ == TVar::H0minus)  constant = 6.0;
+        if (myModel_ == TVar::H0hplus)  constant = 2.1;
+        if (myModel_ == TVar::H2_g1g5)  constant = 0.6;
+        if (myModel_ == TVar::H2_g4)  constant = 2.7e10;
+        if (myModel_ == TVar::H2_g8)  constant = 4.1e10;
+        if (myModel_ == TVar::H2_g5)  constant = .97;
+        if (myModel_ == TVar::H2_g2) constant = 4.74608e+08;
+        if (myModel_ == TVar::H2_g3) constant = 1.63324e+11;
+        if (myModel_ == TVar::H2_g6) constant = 46816.9;
+        if (myModel_ == TVar::H2_g7) constant = 783088;
+        if (myModel_ == TVar::H2_g9) constant = 1.13853e+09;
+        if (myModel_ == TVar::H2_g10) constant = 5.58394e+13;
+      }
+      else{
+        if (myModel_ == TVar::H0minus)  constant = 7.0;
+        if (myModel_ == TVar::H0hplus)  constant = 2.3;
+        if (myModel_ == TVar::H2_g1g5)  constant = 0.7;
+        if (myModel_ == TVar::H2_g4)  constant = 2.6e10;
+        if (myModel_ == TVar::H2_g8)  constant = 3.7e10;
+        if (myModel_ == TVar::H2_g5)  constant = 1.26;
+        if (myModel_ == TVar::H2_g2) constant = 5.96148e+08;
+        if (myModel_ == TVar::H2_g3) constant = 1.95534e+11;
+        if (myModel_ == TVar::H2_g6) constant = 55160.4;
+        if (myModel_ == TVar::H2_g7) constant = 658026;
+        if (myModel_ == TVar::H2_g9) constant = 1.23089e+09;
+        if (myModel_ == TVar::H2_g10) constant = 5.78862e+13;
+      }
+    }
+    // qqb productions 
+    if (myProduction_ == TVar::ZZQQB) {
+      if (flavor == 3) {
+        if (myModel_ == TVar::H1minus)  constant = 16.;
+        if (myModel_ == TVar::H1plus)  constant = 13.;
+        if (myModel_ == TVar::H2_g1g5)  constant = 13.;
+        if (myModel_ == TVar::H2_g5) constant = 22.8625;
+        if (myModel_ == TVar::H2_g4) constant = 8.49013e+07;
+        if (myModel_ == TVar::H2_g2) constant = 792938;
+        if (myModel_ == TVar::H2_g3) constant = 2.17563e+08;
+        if (myModel_ == TVar::H2_g6) constant = 1.40845e+06;
+        if (myModel_ == TVar::H2_g7) constant = 2.31499e+07;
+        if (myModel_ == TVar::H2_g8) constant = 1.17271e+08;
+        if (myModel_ == TVar::H2_g9) constant = 4.86462e+06;
+        if (myModel_ == TVar::H2_g10) constant = 2.43529e+11;
+      }
+      else{
+        if (myModel_ == TVar::H1minus)  constant = 19.;
+        if (myModel_ == TVar::H1plus)  constant = 14.;
+        if (myModel_ == TVar::H2_g1g5)  constant = 15.;
+        if (myModel_ == TVar::H2_g5) constant = 26.167;
+        if (myModel_ == TVar::H2_g4) constant = 8.9612e+07;
+        if (myModel_ == TVar::H2_g2) constant = 984117;
+        if (myModel_ == TVar::H2_g3) constant = 2.46285e+08;
+        if (myModel_ == TVar::H2_g6) constant = 1.6201e+06;
+        if (myModel_ == TVar::H2_g7) constant = 1.95307e+07;
+        if (myModel_ == TVar::H2_g8) constant = 1.29087e+08;
+        if (myModel_ == TVar::H2_g9) constant = 5.11404e+06;
+        if (myModel_ == TVar::H2_g10) constant = 2.4183e+11;
+      }
+    }
+    // production independent calculations
+    if (myProduction_ == TVar::ZZINDEPENDENT) {
+      if (flavor == 3) {
+        if (myModel_ == TVar::H1minus)  constant = 1.3e+10;
+        if (myModel_ == TVar::H1plus)  constant = 1.3e+10;
+        if (myModel_ == TVar::H2_g1g5)  constant = 1.6e+9;
+        if (myModel_ == TVar::H2_g5) constant = 2.71213e+09;
+        if (myModel_ == TVar::H2_g4) constant = 1.01932e+16;
+        if (myModel_ == TVar::H2_g2) constant = 9.29888e+13;
+        if (myModel_ == TVar::H2_g3) constant = 2.53613e+16;
+        if (myModel_ == TVar::H2_g6) constant = 1.43664e+14;
+        if (myModel_ == TVar::H2_g7) constant = 2.81011e+15;
+        if (myModel_ == TVar::H2_g8) constant = 1.40936e+16;
+        if (myModel_ == TVar::H2_g9) constant = 5.57788e+14;
+        if (myModel_ == TVar::H2_g10) constant = 2.73432e+19;
+      }
+      else{
+        if (myModel_ == TVar::H1minus)  constant = 1.6e+10;
+        if (myModel_ == TVar::H1plus)  constant = 1.4e+10;
+        if (myModel_ == TVar::H2_g1g5)  constant = 2.0e+9;
+        if (myModel_ == TVar::H2_g5) constant = 3.30598e+09;
+        if (myModel_ == TVar::H2_g4) constant = 1.01932e+16;
+        if (myModel_ == TVar::H2_g2) constant = 1.16336e+14;
+        if (myModel_ == TVar::H2_g3) constant = 2.76942e+16;
+        if (myModel_ == TVar::H2_g6) constant = 1.68929e+14;
+        if (myModel_ == TVar::H2_g7) constant = 2.22827e+15;
+        if (myModel_ == TVar::H2_g8) constant = 1.39674e+16;
+        if (myModel_ == TVar::H2_g9) constant = 5.63394e+14;
+        if (myModel_ == TVar::H2_g10) constant = 2.54946e+19;
+      }
+    }
+    // vbfMELA constants
+    if (myProduction_ == TVar::JJGG){
+      constant = 1.8e-5;
+      if (myModel_ == TVar::H0minus) constant *= 1.0017;
+    }
+    if (myProduction_ == TVar::JJVBF){
+      if (myModel_ == TVar::H0minus) constant = 0.067;
+    }
+    if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH){
+      if (myModel_ == TVar::H0minus) constant = pow(1.593, 2);
+    }
+
+  }
+  else if (myME_ == TVar::MCFM){
+
+    if (flavor==1){
+      // 4e scale factors
+      // for qqZZ
+      if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+        if (mZZ > 900) constant = vaScale_4e->Eval(900.);
+        else if (mZZ <  70) constant = vaScale_4e->Eval(70.);
+        else constant = vaScale_4e->Eval(mZZ);
+      }
+    }
+    else if (flavor==2){
+      // 4mu scale factors
+      // for qqZZ
+      if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+        if (mZZ > 900) constant = vaScale_4mu->Eval(900.);
+        else if (mZZ <  70) constant = vaScale_4mu->Eval(70.);
+        else constant = vaScale_4mu->Eval(mZZ);
+      }
+    }
+    else if (flavor==3){
+      // 2e2mu scale factors
+      // for qqZZ
+      if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+        if (mZZ > 900) constant = vaScale_2e2mu->Eval(900.);
+        else if (mZZ <  70) constant = vaScale_2e2mu->Eval(70.);
+        else constant = vaScale_2e2mu->Eval(mZZ);
+      }
+    }
+  }
+
+  if (useOldggZZConstants && (myME_ == TVar::MCFM || myME_ == TVar::JHUGen) && myProduction_ == TVar::ZZGG && myModel_==TVar::bkgZZ_SMHiggs){
     // note: constants are being added to ggZZ ME calculation 
     // for the purpose of building DggZZ to separate qqZZ from
     // ggZZ.  These constants have been tune on the unadulterated
     // qqZZ ME calculation, so the qqZZ scale factors should be 
     // included inorder to cancel those in the qqZZ ME calc
 
-    // 4e scale factors
-if (useConstant){
-    if(flavor==1 && myME_ == TVar::MCFM){
-
-      // for ggZZ 
- //     if(myProduction_ == TVar::ZZGG){
-
- // if(mZZ > 900)
- //   prob *=vaScale_4e->Eval(900.)/DggZZ_scalefactor->Eval(900.);
- // else if (mZZ <  110 )
- //   prob *=vaScale_4e->Eval(110.)/DggZZ_scalefactor->Eval(110.);
- // else
- //   prob *=vaScale_4e->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
- // 
- //     }// end GG
-
-      // for qqZZ
-      if(myProduction_ == TVar::ZZQQB){
-
-	if(mZZ > 900)
-	  prob *= vaScale_4e->Eval(900.);
-	else if (mZZ <  70 )
-	  prob *= vaScale_4e->Eval(70.);
-	else
-	  prob *= vaScale_4e->Eval(mZZ);
-
-      }// end QQB 
-
-    }// end 4e scale factors
-
-    // 4mu scale factors
-    if(flavor==2 && myME_ == TVar::MCFM){
-      
-      // for ggZZ 
-//      if(myProduction_ == TVar::ZZGG){
-//	if(mZZ > 900)                   
-//	  prob *=vaScale_4mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-//	else if (mZZ <  110 )
-//	  prob *=vaScale_4mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-//	else
-//	  prob *=vaScale_4mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-//      }// end GG
-            
-      // for qqZZ
-      if(myProduction_ == TVar::ZZQQB){
-	if(mZZ > 900)                   
-	  prob *= vaScale_4mu->Eval(900.);
-	else if (mZZ <  70 )
-	  prob *= vaScale_4mu->Eval(70.);
-	else
-	  prob *= vaScale_4mu->Eval(mZZ);
-      }// end qqZZ
-
-    }// end 4mu scale factors
-
-    // 2e2mu scale factors
-    if(flavor==3 && myME_ == TVar::MCFM){
-  //    cout<<"BEFORE scale: "<<prob<<endl;
-
-      // for ggZZ 
-//      if(myProduction_ == TVar::ZZGG){
-//	if(mZZ > 900) 
-//	  prob *=vaScale_2e2mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-//      else if (mZZ <  110 )
-//	  prob *=vaScale_2e2mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-//      else
-//	  prob *=vaScale_2e2mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-//
-//      }// end GG
-
-      // for qqZZ
-      if(myProduction_ == TVar::ZZQQB){
-	if(mZZ > 900)                   
-	  prob *= vaScale_2e2mu->Eval(900.);
-	else if (mZZ <  70 )
-	  prob *= vaScale_2e2mu->Eval(70.);
-	else
-	  prob *= vaScale_2e2mu->Eval(mZZ);
-      }// end qqZZ
-
-    }// end 2e2mu scale factors
- }
-    //cout << "Mela::computeP() - getting JHUGen c-constants" << endl;
-
-    // 
-    // define the constants to be used on JHUGen
-    // 
-    
-    // gg productions 
-    if ( myME_ == TVar::JHUGen && myProduction_ == TVar::ZZGG  ) {
-      if ( flavor == 3 ) {
-				if ( myModel_ == TVar::H0minus )  constant = 6.0;
-				if ( myModel_ == TVar::H0hplus )  constant = 2.1;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 0.6;
-				if ( myModel_ == TVar::H2_g4 )  constant = 2.7e10;
-				if ( myModel_ == TVar::H2_g8 )  constant = 4.1e10;
-				if ( myModel_ == TVar::H2_g5 )  constant = .97;
-
-				if ( myModel_ == TVar::H2_g2 ) constant = 4.74608e+08;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.63324e+11;
-				if ( myModel_ == TVar::H2_g6 ) constant = 46816.9;
-				if ( myModel_ == TVar::H2_g7 ) constant = 783088;
-				if ( myModel_ == TVar::H2_g9 ) constant = 1.13853e+09;
-				if ( myModel_ == TVar::H2_g10 ) constant = 5.58394e+13;
-
-      }  else {
-				if ( myModel_ == TVar::H0minus )  constant = 7.0;
-				if ( myModel_ == TVar::H0hplus )  constant = 2.3;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 1.4/2.;
-				if ( myModel_ == TVar::H2_g4 )  constant = 2.6e10;
-				if ( myModel_ == TVar::H2_g8 )  constant = 3.7e10;
-				if ( myModel_ == TVar::H2_g5 )  constant = 1.26;
-
-				if ( myModel_ == TVar::H2_g2 ) constant = 5.96148e+08;
-				if ( myModel_ == TVar::H2_g3 ) constant = 1.95534e+11;
-				if ( myModel_ == TVar::H2_g6 ) constant = 55160.4;
-				if ( myModel_ == TVar::H2_g7 ) constant = 658026;
-				if ( myModel_ == TVar::H2_g9 ) constant = 1.23089e+09;
-				if ( myModel_ == TVar::H2_g10 ) constant = 5.78862e+13;
-
-			}
-    } 
-    // qqb productions 
-    if ( myME_ == TVar::JHUGen && myProduction_ == TVar::ZZQQB  ) {
-      if ( flavor == 3 ) {
-				if ( myModel_ == TVar::H1minus )  constant = 16.;
-				if ( myModel_ == TVar::H1plus )  constant = 13.;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 13.;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 22.8625;
-				if ( myModel_ == TVar::H2_g4 ) constant = 8.49013e+07;
-				if ( myModel_ == TVar::H2_g2 ) constant = 792938;
-				if ( myModel_ == TVar::H2_g3 ) constant = 2.17563e+08;
-				if ( myModel_ == TVar::H2_g6 ) constant = 1.40845e+06;
-				if ( myModel_ == TVar::H2_g7 ) constant = 2.31499e+07;
-				if ( myModel_ == TVar::H2_g8 ) constant = 1.17271e+08;
-				if ( myModel_ == TVar::H2_g9 ) constant = 4.86462e+06;
-				if ( myModel_ == TVar::H2_g10 ) constant = 2.43529e+11;
-      } else {
-				if ( myModel_ == TVar::H1minus )  constant = 38/2.;
-				if ( myModel_ == TVar::H1plus )  constant = 28/2.;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 30/2.;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 26.167;
-				if ( myModel_ == TVar::H2_g4 ) constant = 8.9612e+07;
-				if ( myModel_ == TVar::H2_g2 ) constant = 984117;
-				if ( myModel_ == TVar::H2_g3 ) constant = 2.46285e+08;
-				if ( myModel_ == TVar::H2_g6 ) constant = 1.6201e+06;
-				if ( myModel_ == TVar::H2_g7 ) constant = 1.95307e+07;
-				if ( myModel_ == TVar::H2_g8 ) constant = 1.29087e+08;
-				if ( myModel_ == TVar::H2_g9 ) constant = 5.11404e+06;
-				if ( myModel_ == TVar::H2_g10 ) constant = 2.4183e+11;
-      }
+    constant=1.;
+    if (flavor==1){
+      // 4e scale factors
+      if (mZZ > 900) constant = vaScale_4e->Eval(900.)/DggZZ_scalefactor->Eval(900.);
+      else if (mZZ <  110) constant = vaScale_4e->Eval(110.)/DggZZ_scalefactor->Eval(110.);
+      else constant = vaScale_4e->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
     }
-    // production independent calculations
-    if ( myME_ == TVar::JHUGen && myProduction_ == TVar::ZZINDEPENDENT  ) {
-      if ( flavor == 3) {
-				if ( myModel_ == TVar::H1minus )  constant = 1.3e+10;
-				if ( myModel_ == TVar::H1plus )  constant = 1.3e+10;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 1.6e+9;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 2.71213e+09;
-				if ( myModel_ == TVar::H2_g4 ) constant = 1.01932e+16;
-				if ( myModel_ == TVar::H2_g2 ) constant = 9.29888e+13;
-				if ( myModel_ == TVar::H2_g3 ) constant = 2.53613e+16;
-				if ( myModel_ == TVar::H2_g6 ) constant = 1.43664e+14;
-				if ( myModel_ == TVar::H2_g7 ) constant = 2.81011e+15;
-				if ( myModel_ == TVar::H2_g8 ) constant = 1.40936e+16;
-				if ( myModel_ == TVar::H2_g9 ) constant = 5.57788e+14;
-				if ( myModel_ == TVar::H2_g10 ) constant = 2.73432e+19;
-      } else {
-				if ( myModel_ == TVar::H1minus )  constant = 1.6e+10;
-				if ( myModel_ == TVar::H1plus )  constant = 1.4e+10;
-				if ( myModel_ == TVar::H2_g1g5 )  constant = 2.0e+9;
-
-				if ( myModel_ == TVar::H2_g5 ) constant = 3.30598e+09;
-				if ( myModel_ == TVar::H2_g4 ) constant = 1.01932e+16;
-				if ( myModel_ == TVar::H2_g2 ) constant = 1.16336e+14;
-				if ( myModel_ == TVar::H2_g3 ) constant = 2.76942e+16;
-				if ( myModel_ == TVar::H2_g6 ) constant = 1.68929e+14;
-				if ( myModel_ == TVar::H2_g7 ) constant = 2.22827e+15;
-				if ( myModel_ == TVar::H2_g8 ) constant = 1.39674e+16;
-				if ( myModel_ == TVar::H2_g9 ) constant = 5.63394e+14;
-				if ( myModel_ == TVar::H2_g10 ) constant = 2.54946e+19;
-      }
-    } 
-    
-    // ***
-    // experimental for the ZZ decay 
-    // ****
-    
-    //cout << "Mela::computeP() - production indep MCFM" << endl;
-    
-    if ( myME_ == TVar::MCFM 
-	 && myProduction_ == TVar::ZZINDEPENDENT 
-	 &&  myModel_ == TVar::bkgZZ
-	 )
-      {
-	prob = 0;
-	int gridsize_hs = 5; 
-	double hs_min = 0; //-1.;
-	double hs_max = 1;
-	double hs_step = ( hs_max - hs_min ) / double (gridsize_hs); 
-	
-	int gridsize_phi1 = 5; 
-	double phi1_min = 0; //-TMath::Pi();
-	double phi1_max = TMath::Pi();
-	double phi1_step = ( phi1_max - phi1_min ) / double (gridsize_phi1); 
-	
-	for ( int i_hs = 0; i_hs < gridsize_hs + 1; i_hs ++ ) {
-	  double hs_val = hs_min + i_hs * hs_step; 
-	  for ( int i_phi1 = 0; i_phi1 < gridsize_phi1 +1 ; i_phi1 ++ ) {
-	    double phi1_val = phi1_min + i_phi1 * phi1_step; 
-	    float temp_prob(0.); 
-	    // calculate the ZZ using MCFM
-	    ZZME->computeXS(mZZ,mZ1,mZ2,
-			    hs_val,costheta1,costheta2, 
-			    phi, phi1_val, flavor,
-			    myModel_, myME_,  myProduction_, couplingvals_NOTggZZ,selfDHvvcoupl, 
-           selfDZqqcoupl,
-           selfDZvvcoupl,
-           selfDGqqcoupl,
-           selfDGggcoupl,
-           selfDGvvcoupl,temp_prob);
-	    prob += temp_prob;
-	  }
-	}
-	prob =  prob / float ( (gridsize_hs + 1) * (gridsize_phi1 +1 )); 
-      
-	// adding scale factors for MCMF calculation
-	// -- taken from old code --
-if(useConstant){	
-	if(flavor==1){
-	  if(mZZ > 900)                   
-	    prob *= vaScale_4e->Eval(900.);
-	  else if (mZZ <  70 )
-	    prob *= vaScale_4e->Eval(70.);
-	  else
-	    prob *= vaScale_4e->Eval(mZZ);
-	}
-	
-	if(flavor==2){
-	  if(mZZ > 900)                   
-	    prob *= vaScale_4mu->Eval(900.);
-	  else if (mZZ <  70 )
-	    prob *= vaScale_4mu->Eval(70.);
-	  else
-	    prob *= vaScale_4mu->Eval(mZZ);
-	}
-	
-	if(flavor==3){
-	  if(mZZ > 900)                   
-	    prob *= vaScale_2e2mu->Eval(900.);
-	  else if (mZZ <  70 )
-	    prob *= vaScale_2e2mu->Eval(70.);
-	  else
-	    prob *= vaScale_2e2mu->Eval(mZZ);
-	}
-}	
-      }
+    else if (flavor==2){
+      // 4mu scale factors
+      if (mZZ > 900) constant = vaScale_4mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
+      else if (mZZ <  110) constant = vaScale_4mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
+      else constant = vaScale_4mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
+    }
+    else if (flavor==3){
+      // 2e2mu scale factors
+      if (mZZ > 900) constant = vaScale_2e2mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
+      else if (mZZ <  110) constant = vaScale_2e2mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
+      else constant = vaScale_2e2mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
+    }
   }
 
-if(useConstant)
-  prob *= constant; 
-
+  return constant;
 }
 
 void Mela::computeP(float mZZ, float mZ1, float mZ2, // input kinematics
@@ -1151,92 +1063,41 @@ else cout<<"ERROR: this method only works for JHUGen and ANALYTICAL";
 
 }
 void Mela::computeP(float mZZ, float mZ1, float mZ2, // input kinematics
-		    float costhetastar,
-		    float costheta1, 
-		    float costheta2,
-		    float phi,
-		    float phi1,
-		    int flavor,
-		    double couplingvals[SIZE_HVV_FREENORM],
-		    float& prob){
+  float costhetastar,
+  float costheta1,
+  float costheta2,
+  float phi,
+  float phi1,
+  int flavor,
+  double couplingvals[SIZE_HVV_FREENORM],
+  float& prob){
   reset_PAux();
 
-	double selfDHvvcoupl[SIZE_HVV][2] = { { 0 } };
-	double selfDGqqcoupl[SIZE_GQQ][2] = { { 0 } }; 
-	double selfDGggcoupl[SIZE_GGG][2] = { { 0 } };
-	double selfDGvvcoupl[SIZE_GVV][2] = { { 0 } };
-	double selfDZqqcoupl[SIZE_ZQQ][2] = { { 0 } };
-	double selfDZvvcoupl[SIZE_ZVV][2] = { { 0 } };
+  double selfDHvvcoupl[SIZE_HVV][2] ={ { 0 } };
+  double selfDGqqcoupl[SIZE_GQQ][2] ={ { 0 } };
+  double selfDGggcoupl[SIZE_GGG][2] ={ { 0 } };
+  double selfDGvvcoupl[SIZE_GVV][2] ={ { 0 } };
+  double selfDZqqcoupl[SIZE_ZQQ][2] ={ { 0 } };
+  double selfDZvvcoupl[SIZE_ZVV][2] ={ { 0 } };
 
-  if ( (myME_==TVar::JHUGen || myME_==TVar::MCFM)&& myModel_==TVar::bkgZZ_SMHiggs ){
+  if ((myME_==TVar::JHUGen || myME_==TVar::MCFM) && myModel_==TVar::bkgZZ_SMHiggs){
+    float constant=1.;
     //initialize variables
-    checkZorder(mZ1,mZ2,costhetastar,costheta1,costheta2,phi,phi1);
-    ZZME->computeXS(mZZ,mZ1,mZ2,
-		    costhetastar,costheta1,costheta2, 
-		    phi, phi1, flavor,
-		    myModel_, myME_,  myProduction_, couplingvals,selfDHvvcoupl, 
-           selfDZqqcoupl,
-           selfDZvvcoupl,
-           selfDGqqcoupl,
-           selfDGggcoupl,
-           selfDGvvcoupl,prob);
+    checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
+    ZZME->computeXS(mZZ, mZ1, mZ2,
+      costhetastar, costheta1, costheta2,
+      phi, phi1, flavor,
+      myModel_, myME_, myProduction_, couplingvals, selfDHvvcoupl,
+      selfDZqqcoupl,
+      selfDZvvcoupl,
+      selfDGqqcoupl,
+      selfDGggcoupl,
+      selfDGvvcoupl, prob);
 
-    // note: constants are being added to ggZZ ME calculation 
-    // for the purpose of building DggZZ to separate qqZZ from
-    // ggZZ.  These constants have been tune on the unadulterated
-    // qqZZ ME calculation, so the qqZZ scale factors should be 
-    // included inorder to cancel those in the qqZZ ME calc
-
-    // 4e scale factors
-    if(flavor==1){
-      // for ggZZ 
-      if(myProduction_ == TVar::ZZGG){
-
-	if(mZZ > 900)
-	  prob *=vaScale_4e->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-	else if (mZZ <  110 )
-	  prob *=vaScale_4e->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-	else
-	  prob *=vaScale_4e->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-	
-      }// end GG
-    }// end 4e scale factors
-
-    // 4mu scale factors
-    if(flavor==2){
-      // for ggZZ 
-      if(myProduction_ == TVar::ZZGG){
-	if(mZZ > 900)                   
-	  prob *=vaScale_4mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-	else if (mZZ <  110 )
-	  prob *=vaScale_4mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-	else
-	  prob *=vaScale_4mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-      }// end GG
-    }// end 4mu scale factors
-
-    // 2e2mu scale factors
-    if(flavor==3){
-//      cout<<"BEFORE scale: "<<prob<<endl;
-
-      // for ggZZ 
-      if(myProduction_ == TVar::ZZGG){
-	if(mZZ > 900) 
-	  prob *=vaScale_2e2mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-      else if (mZZ <  110 )
-	  prob *=vaScale_2e2mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-      else
-	  prob *=vaScale_2e2mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-
-      }// end GG
-    }// end 2e2mu scale factors
+    constant = getConstant(flavor, mZZ, true);
+    prob *= constant;
   }
-//	else if (myME_==TVar::MCFM ){ //new MCFM calculation
-//
-//  }
-  else{
-    computeP(mZZ, mZ1, mZ2, costhetastar,costheta1, costheta2,phi,phi1,flavor,prob);
-  }
+  else computeP(mZZ, mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1, flavor, prob);
 }
 
 void Mela::computeP(TLorentzVector Z1_lept1, int Z1_lept1Id,  // input 4-vectors
@@ -1618,20 +1479,8 @@ void Mela::computeProdP(TLorentzVector Jet1, int Jet1_Id,
       ); // Higgs + 1 jet; only SM is supported for now.
   }
 
-  if (myME_==TVar::JHUGen){
-    if (myProduction_ == TVar::JJGG){
-      constant = 1.8e-5;
-      if (myModel_ == TVar::H0minus) constant *= 1.0017;
-    }
-    if (myProduction_ == TVar::JJVBF){
-      if (myModel_ == TVar::H0minus) constant = 0.067;
-    }
-  }
-  if (myME_==TVar::ANALYTICAL){
-//  To be added later
-  }
-
-  prob*=constant;
+  constant = getConstant(3, (float)higgs.M());
+  prob *= constant;
 }
 
 
@@ -1713,14 +1562,9 @@ void Mela::computeProdP(
 		prob
 		); // VH
 
-	if(myME_==TVar::JHUGen){
-		constant = 1; // No c-constant yet
-	}
-	else if(myME_==TVar::ANALYTICAL){
-	//To be added later
-	}
-
-	prob*=constant;
+    float mzz = (Higgs_daughter[0]+Higgs_daughter[1]+Higgs_daughter[2]+Higgs_daughter[3]).M();
+    constant = getConstant(3, mzz);
+    prob *= constant;
 }
 
 void Mela::computeProdP(
@@ -1735,9 +1579,8 @@ void Mela::computeProdP(
   reset_PAux();
   float constant = 1;
   ZZME->computeProdXS_ttH(vTTH, Higgs, ttbar_daughters_pdgid, topDecay, topProcess, myModel_, myME_, myProduction_, selfDHvvcoupl, prob);
-  if (myME_==TVar::JHUGen){
-    if (myModel_ == TVar::H0minus) constant = pow(1.593, 2);
-  }
+
+  constant = getConstant(3, (float)Higgs.M());
   prob *= constant;
 }
 

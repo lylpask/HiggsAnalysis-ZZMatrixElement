@@ -51,7 +51,7 @@ public:
 		float phi1,
 		int flavor,
 		float& prob,            // output probability
-		bool useConstant=1
+		bool useConstant=true
 		);
 
   void computeP(float mZZ, float mZ1, float mZ2, // input kinematics
@@ -250,7 +250,8 @@ public:
   TGraph* DggZZ_scalefactor;
   void setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]);
   void constructDggr(float mzz, int flavor, float bkg_VAMCFM_noscale, float ggzz_VAMCFM_noscale, float ggHZZ_prob_pure_noscale, float ggHZZ_prob_int_noscale, float& myDggr);
-	
+  float getConstant(int flavor, float mZZ, bool useOldggZZConstants=false);
+
   TGraph* tgtotalbkg[3];
   void computeD_gg(float mZZ, float mZ1, float mZ2, // input kinematics
         float costhetastar,
