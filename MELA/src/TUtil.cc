@@ -808,7 +808,7 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
   
   /*
   printf("\n ");
-  std::cout << "resoance = " << MReso *100. << ", width = " << GaReso*100. << "\n";
+  std::cout << "resonance = " << MReso *100. << ", width = " << GaReso*100. << "\n";
   for ( int i=0; i<NPart;i++) {
     std::cout << "p["<<i<<"] (E, Px, Py, Pz) = (" << p4[i][0] << ", " << p4[i][1] << ", " << p4[i][2] << ", " << p4[i][3] << ")\n";
   }
@@ -911,21 +911,21 @@ double HJJMatEl(TVar::Process process, TVar::Production production, TVar::Matrix
   if (production == TVar::JJGG || production == TVar::JJVBF || production == TVar::JH){
     double defaultRenScale = scale_.scale;
     double defaultFacScale = facscale_.facscale;
-    cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+    //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
     int defaultNloop = nlooprun_.nlooprun;
     int defaultNflav = nflav_.nflav;
     string defaultPdflabel = pdlabel_.pdlabel;
     double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-    cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+    //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
     double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-    cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+    //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
     SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
     double sum_msqjk = SumMEPDF(p[0], p[1], MatElsq, verbosity, EBEAM);
 
-    cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+    //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
     SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-    cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+    //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
     return sum_msqjk;
 
     //return MatElsq[5][5]; // jjgg
@@ -1022,12 +1022,12 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, event_sca
     else if (i==5 || i==6) MomStore[i+1].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
 
     // DO NOT Use out-going convention for the incoming particles for SumMEPDF
-	// VH exclusively takes lab-frame momenta, and p1 and p2 are used with a (-) sign.
+	  // VH exclusively takes lab-frame momenta, and p1 and p2 are used with a (-) sign.
 /*
-	if ( i < 2 ) {
-		for ( int j = 0; j < 4; j++ ) {
-			p4[i][j] = - p4[i][j];
-		}
+    if ( i < 2 ) {
+      for ( int j = 0; j < 4; j++ ) {
+        p4[i][j] = - p4[i][j];
+		  }
     }
 */
   }
@@ -1192,21 +1192,21 @@ double VHiggsMatEl(TVar::Process process, TVar::Production production, event_sca
 	
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
-  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, TVar::JHUGen, event_scales->renomalizationScheme, MomStore);
-  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, TVar::JHUGen, event_scales->factorizationScheme, MomStore);
-  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
   sumME = SumMEPDF(p[0], p[1], MatElsq, verbosity, EBEAM);
 
-  cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-  cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   
   return sumME;
 }
