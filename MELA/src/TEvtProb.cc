@@ -106,6 +106,7 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
 		if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn);
 		SetMCFMHiggsDecayCouplings(needBSMHiggs, selfDHvvcoupl);
 	}
+  // _process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
   if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs) My_choose(_process, _production, _leptonInterf, flavor);
     
     //constants
@@ -541,18 +542,28 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
 		Hvvcoupl[1][0] = 0.0;
 		Hvvcoupl[2][0] = 0.0;
 		Hvvcoupl[3][0] = 1.0;
-	}
+    Hwwcoupl[0][0] = 0.0;
+    Hwwcoupl[1][0] = 0.0;
+    Hwwcoupl[2][0] = 0.0;
+    Hwwcoupl[3][0] = 1.0;
+  }
 // 0h+
   if (_process == TVar::H0hplus) { // No need to re-set ggcoupl
 		Hvvcoupl[0][0] = 0.0;
 		Hvvcoupl[1][0] = 1.0;
 		Hvvcoupl[2][0] = 0.0;
 		Hvvcoupl[3][0] = 0.0;
-	}
+    Hwwcoupl[0][0] = 0.0;
+    Hwwcoupl[1][0] = 1.0;
+    Hwwcoupl[2][0] = 0.0;
+    Hwwcoupl[3][0] = 0.0;
+  }
   if (_process == TVar::H0_g1prime2){ // No need to re-set ggcoupl
 		Hvvcoupl[0][0] = 0.;
 		Hvvcoupl[5][0] = -12046.01;
-	}
+    Hwwcoupl[0][0] = 0.;
+    Hwwcoupl[5][0] = -12046.01;
+  }
 
   if (_process == TVar::SelfDefine_spin0){
 		for(int j=0;j<2;j++){

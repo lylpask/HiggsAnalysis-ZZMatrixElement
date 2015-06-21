@@ -357,11 +357,7 @@ contains
     do iflip = 1, 2 
        !-- ud -> ud
        amp_z = A0_VV_4f(i4,j2,i3,j1,vvcoupl,za,zb,sprod,m_z,ga_z)
-       if( all(cdabs(wwcoupl(:)).lt.1d-15) ) then
-          amp_w = -A0_VV_4f(i4,j1,i3,j2,vvcoupl,za,zb,sprod,m_w,ga_w)
-       else
-          amp_w = -A0_VV_4f(i4,j1,i3,j2,wwcoupl,za,zb,sprod,m_w,ga_w) 
-       endif
+       amp_w = -A0_VV_4f(i4,j1,i3,j2,wwcoupl,za,zb,sprod,m_w,ga_w) 
        restmp = ((abs(amp_z(-1,-1))**2) * Ld * Lu + &
             (abs(amp_z(-1,+1))**2) * Ld * Ru + &
             (abs(amp_z(+1,-1))**2) * Rd * Lu + &
@@ -381,11 +377,7 @@ contains
 
        !-- ubdb -> ubdb
        amp_z = A0_VV_4f(j2,i4,j1,i3,vvcoupl,za,zb,sprod,m_z,ga_z)
-       if( all(cdabs(wwcoupl(:)).lt.1d-15) ) then
-          amp_w = -A0_VV_4f(j1,i4,j2,i3,vvcoupl,za,zb,sprod,m_w,ga_w)
-       else
-          amp_w = -A0_VV_4f(j1,i4,j2,i3,wwcoupl,za,zb,sprod,m_w,ga_w) 
-       endif
+       amp_w = -A0_VV_4f(j1,i4,j2,i3,wwcoupl,za,zb,sprod,m_w,ga_w) 
 
 
        restmp = ((abs(amp_z(-1,-1))**2) * Ld * Lu + &
@@ -417,11 +409,7 @@ contains
 
        !--uub -> uub // ddb
        amp_z = A0_VV_4f(i3,j1,j2,i4,vvcoupl,za,zb,sprod,m_z,ga_z)
-       if( all(cdabs(wwcoupl(:)).lt.1d-15) ) then
-          amp_w = A0_VV_4f(i3,j1,j2,i4,vvcoupl,za,zb,sprod,m_w,ga_w)
-       else
-          amp_w = A0_VV_4f(i3,j1,j2,i4,wwcoupl,za,zb,sprod,m_w,ga_w) 
-       endif
+       amp_w = A0_VV_4f(i3,j1,j2,i4,wwcoupl,za,zb,sprod,m_w,ga_w) 
        restmp = ((abs(amp_z(-1,-1))**2) * Lu * Lu + &
             (abs(amp_z(-1,+1))**2) * Lu * Ru + &
             (abs(amp_z(+1,-1))**2) * Ru * Lu + &
@@ -505,11 +493,7 @@ contains
 
        !-- non-symmetric qq processes
        amp_z = A0_VV_4f(i3,j1,i4,j2,vvcoupl,za,zb,sprod,m_z,ga_z)
-       if( all(cdabs(wwcoupl(:)).lt.1d-15) ) then
-          amp_w = A0_VV_4f(i3,j2,i4,j1,vvcoupl,za,zb,sprod,m_w,ga_w)
-       else
-          amp_w = A0_VV_4f(i3,j2,i4,j1,wwcoupl,za,zb,sprod,m_w,ga_w) 
-       endif
+       amp_w = A0_VV_4f(i3,j2,i4,j1,wwcoupl,za,zb,sprod,m_w,ga_w) 
        
        !--uc -> uc
        restmp = ((abs(amp_z(-1,-1))**2) * Lu * Lu + &
@@ -553,11 +537,7 @@ contains
 
        !-- qbqb processes
        amp_z = A0_VV_4f(j1,i3,j2,i4,vvcoupl,za,zb,sprod,m_z,ga_z)
-       if( all(cdabs(wwcoupl(:)).lt.1d-15) ) then
-          amp_w = A0_VV_4f(j1,i4,j2,i3,vvcoupl,za,zb,sprod,m_w,ga_w)
-       else
-          amp_w = A0_VV_4f(j1,i4,j2,i3,wwcoupl,za,zb,sprod,m_w,ga_w) 
-       endif
+       amp_w = A0_VV_4f(j1,i4,j2,i3,wwcoupl,za,zb,sprod,m_w,ga_w) 
 
        !--ubcb -> ubcb
        restmp = ((abs(amp_z(-1,-1))**2) * Lu * Lu + &

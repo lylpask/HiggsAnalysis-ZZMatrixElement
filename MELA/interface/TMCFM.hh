@@ -81,11 +81,11 @@ extern "C" {
  } interference_;
 
  extern struct{
-        double cutoff;
+   double cutoff;
  } cutoff_;
 
  extern struct{
-        double amz;
+   double amz;
  } couple_;
 
  extern struct{
@@ -104,9 +104,13 @@ extern "C" {
    double Gf,gw,xw,gwsq,esq,vevsq;
  } ewcouple_;
 
- extern   struct {
-   double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z,tevscale;
+ extern struct {
+   double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z, tevscale;
  } anomcoup_;
+
+ extern struct{
+   double Hbit[2]; double Bbit[2];
+ } WWbits_;
 
   //mcfm/src/Inc/masses.F
  #define masses_mcfm_ masses_
@@ -123,20 +127,20 @@ extern "C" {
  } masses_mcfm_;
 
 
-  extern  struct{
-      double LambdaBSM,Lambda_z1,Lambda_z2,Lambda_z3,Lambda_z4;
-	  double Lambda_Q;
+ extern  struct{
+   double LambdaBSM, Lambda_z1, Lambda_z2, Lambda_z3, Lambda_z4;
+   double Lambda_Q;
 
-      double ghz1[2];double ghz2[2];double ghz3[2];double ghz4[2]; // No additional q2 dependence
-      double ghz1_prime[2];double ghz2_prime[2];double ghz3_prime[2];double ghz4_prime[2]; // Dipole ansatz
-      double ghz1_prime2[2];double ghz2_prime2[2];double ghz3_prime2[2];double ghz4_prime2[2]; // |q1**2| + |q2**2|
-      double ghz1_prime3[2];double ghz2_prime3[2];double ghz3_prime3[2];double ghz4_prime3[2]; // |q1**2| - |q2**2|
-      double ghz1_prime4[2];double ghz2_prime4[2];double ghz3_prime4[2];double ghz4_prime4[2]; // (q1 + q2)**2
-      double ghz1_prime5[2];double ghz2_prime5[2];double ghz3_prime5[2];double ghz4_prime5[2]; // q1**4 + q2**4
-      double ghz1_prime6[2];double ghz2_prime6[2];double ghz3_prime6[2];double ghz4_prime6[2]; // q1**4 - q2**4
-      double ghz1_prime7[2];double ghz2_prime7[2];double ghz3_prime7[2];double ghz4_prime7[2]; // |q1**2| * |q2**2|
+   double ghz1[2]; double ghz2[2]; double ghz3[2]; double ghz4[2]; // No additional q2 dependence
+   double ghz1_prime[2]; double ghz2_prime[2]; double ghz3_prime[2]; double ghz4_prime[2]; // Dipole ansatz
+   double ghz1_prime2[2]; double ghz2_prime2[2]; double ghz3_prime2[2]; double ghz4_prime2[2]; // |q1**2| + |q2**2|
+   double ghz1_prime3[2]; double ghz2_prime3[2]; double ghz3_prime3[2]; double ghz4_prime3[2]; // |q1**2| - |q2**2|
+   double ghz1_prime4[2]; double ghz2_prime4[2]; double ghz3_prime4[2]; double ghz4_prime4[2]; // (q1 + q2)**2
+   double ghz1_prime5[2]; double ghz2_prime5[2]; double ghz3_prime5[2]; double ghz4_prime5[2]; // q1**4 + q2**4
+   double ghz1_prime6[2]; double ghz2_prime6[2]; double ghz3_prime6[2]; double ghz4_prime6[2]; // q1**4 - q2**4
+   double ghz1_prime7[2]; double ghz2_prime7[2]; double ghz3_prime7[2]; double ghz4_prime7[2]; // |q1**2| * |q2**2|
 
-      bool AllowAnomalousCouplings;
+   bool AllowAnomalousCouplings;
  } spinzerohiggs_anomcoupl_;
 
 
@@ -193,7 +197,7 @@ extern "C" {
   //##############
   // ME calculator
   double lowint_(double* r, double* wgt);
-  void   dotem_(int N,double* p,double* s);
+  void dotem_(int N, double* p, double* s);
 
   //###############
   // For WW/WZ/ZZ
@@ -211,6 +215,9 @@ extern "C" {
   #define qqb_zz_stu_ qqb_zz_stu_ // Custom qqb->ZZ for different s, t, u channels
   void qqb_zz_stu_(double* p, double* msq, int* channeltoggle);
 
+  #define qq_ZZqq_ qq_ZZqq_ // WBFZZ
+  void qq_ZZqq_(double* p, double* msq);
+
   #define gg_zz_int_ gg_zz_int_
   void gg_zz_int_(double* p, double* msq);
 
@@ -226,7 +233,7 @@ extern "C" {
   #define gg_zz_ gg_zz_
   void gg_zz_(double* p, double* msq);
 
-  // For H->WW
+  // For H->WW/ZZ phase space
   void gen4h_(double* r, double* p, double* wt4);  //r(22) p(4,12)
 
   #define qqb_hww_ qqb_hww_

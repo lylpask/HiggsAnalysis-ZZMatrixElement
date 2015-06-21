@@ -367,30 +367,29 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2]){
 
 
 void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, int flavor){
-//void My_choose(TVar::Process process, TVar::Production production, int flavor){
- 
-//ZZ_4l
-if(process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production == TVar::ZZINDEPENDENT) ){ 
+  //void My_choose(TVar::Process process, TVar::Production production, int flavor){
+
+  //ZZ_4l
+  if (process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production == TVar::ZZINDEPENDENT)){
     //81 '  f(p1)+f(p2) --> Z^0(-->mu^-(p3)+mu^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))'
     //86 '  f(p1)+f(p2) --> Z^0(-->e^-(p5)+e^+(p6))+Z^0(-->mu^-(p3)+mu^+(p4)) (NO GAMMA*)'
     //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
     //    nproc_.nproc=81;  
     //    chooser_();
-  
-  // these settings are identical to use the chooser_() function
+
+    // these settings are identical to use the chooser_() function
     npart_.npart=4;
     nqcdjets_.nqcdjets=0;
 
-    vsymfact_.vsymfact=1.0;                                                                                                               
+    vsymfact_.vsymfact=1.0;
     interference_.interference=false;
 
-	if( (flavor == 1 || flavor == 0) && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn) ){
-//	if( (flavor == 1 || flavor == 0) ){
-    //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
-		vsymfact_.vsymfact=0.125; // MELA FACTOR (0.25 in MCFM 6.8)  --->   Result of just removing if(bw34_56) statements in FORTRAN code and not doing anything else
-//		vsymfact_.vsymfact=0.25; // MELA FACTOR (Same 0.25 in MCFM 6.7)
-		interference_.interference=true;
-	}
+    if ((flavor == 1 || flavor == 0) && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+      //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
+      vsymfact_.vsymfact=0.125; // MELA FACTOR (0.25 in MCFM 6.8)  --->   Result of just removing if(bw34_56) statements in FORTRAN code and not doing anything else
+      //		vsymfact_.vsymfact=0.25; // MELA FACTOR (Same 0.25 in MCFM 6.7)
+      interference_.interference=true;
+    }
 
     nwz_.nwz=0;
     bveg1_mcfm_.ndim=10;
@@ -411,39 +410,39 @@ if(process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQ
     zcouple_.r2=zcouple_.re;
 
 
-} else if( ( (process==TVar::bkgZZ || process==TVar::HSMHiggs) && production == TVar::ZZGG) || process == TVar::bkgZZ_SMHiggs) {
-
+  }
+  else if (((process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs) && production == TVar::ZZGG)){
     // 114 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6))' 'N'
-/*
-nprocs:
-c--- 128 '  f(p1)+f(p2) --> H(--> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6)) [top, bottom loops, exact]' 'L'
-c--- 129 '  f(p1)+f(p2) --> H(--> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6)) [only H, gg->ZZ intf.]' 'L' -> NOT IMPLEMENTED
-c--- 130 '  f(p1)+f(p2) --> H(--> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6)) [H squared and H, gg->ZZ intf.]' 'L'
-c--- 131 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [gg only, (H + gg->ZZ) squared]' 'L'
-c--- 132 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [(gg->ZZ) squared]' 'L'
-*/
-     
-     npart_.npart=4;
-     nqcdjets_.nqcdjets=0;
+    /*
+    nprocs:
+    c--- 128 '  f(p1)+f(p2) --> H(--> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6)) [top, bottom loops, exact]' 'L'
+    c--- 129 '  f(p1)+f(p2) --> H(--> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6)) [only H, gg->ZZ intf.]' 'L' -> NOT IMPLEMENTED
+    c--- 130 '  f(p1)+f(p2) --> H(--> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6)) [H squared and H, gg->ZZ intf.]' 'L'
+    c--- 131 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [gg only, (H + gg->ZZ) squared]' 'L'
+    c--- 132 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [(gg->ZZ) squared]' 'L'
+    */
 
-     bveg1_mcfm_.ndim=10;
+    npart_.npart=4;
+    nqcdjets_.nqcdjets=0;
 
-     vsymfact_.vsymfact=1.0;                                                                                                               
-     interference_.interference=false;
+    bveg1_mcfm_.ndim=10;
 
-	 if( (flavor == 1 || flavor == 0) && (leptonInterf==TVar::InterfOn) ){ // Notice, default lepton interf. is off for this calculation
-	 	 vsymfact_.vsymfact=0.5;
-		 interference_.interference=true;
- 	 }
+    vsymfact_.vsymfact=1.0;
+    interference_.interference=false;
 
-	 breit_.n2=1;
-     breit_.n3=1;
+    if ((flavor == 1 || flavor == 0) && (leptonInterf==TVar::InterfOn)){ // Notice, default lepton interf. is off for this calculation
+      vsymfact_.vsymfact=0.5;
+      interference_.interference=true;
+    }
 
-     breit_.mass2 =masses_mcfm_.zmass;
-     breit_.width2=masses_mcfm_.zwidth;
-     breit_.mass3 =masses_mcfm_.zmass;
-     breit_.width3=masses_mcfm_.zwidth;
-     
+    breit_.n2=1;
+    breit_.n3=1;
+
+    breit_.mass2 =masses_mcfm_.zmass;
+    breit_.width2=masses_mcfm_.zwidth;
+    breit_.mass3 =masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
+
     zcouple_.q1=-1.0;
     zcouple_.l1=zcouple_.le;
     zcouple_.r1=zcouple_.re;
@@ -452,10 +451,57 @@ c--- 132 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [(gg->Z
     zcouple_.l2=zcouple_.le;
     zcouple_.r2=zcouple_.re;
 
- } 
- else{
-     std::cerr <<"[My_choose]: Can't identify Process: " << process << std::endl;
- } 
+  }
+  else if (((process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs) && production == TVar::JJVBF)){
+    // 220 '  f(p1)+f(p2) --> Z(e-(p3),e^+(p4))Z(mu-(p5),mu+(p6)))+f(p7)+f(p8) [weak]' 'L'
+
+    if (process==TVar::bkgZZ){
+      Hbit[0]=0; Hbit[1]=0;
+      Bbit[0]=1; Bbit[1]=0;
+    }
+    else if (process==TVar::bkgZZ_SMHiggs){
+      Hbit[0]=1; Hbit[1]=0;
+      Bbit[0]=1; Bbit[1]=0;
+    }
+    else{
+      Hbit[0]=1; Hbit[1]=0;
+      Bbit[0]=0; Bbit[1]=0;
+    }
+
+    nwz_.nwz=2;
+
+    zcouple_.q1=-1.0;
+    zcouple_.l1=zcouple_.le;
+    zcouple_.r1=zcouple_.re;
+
+    zcouple_.q2=-1.0;
+    zcouple_.l2=zcouple_.le;
+    zcouple_.r2=zcouple_.re;
+
+    bveg1_mcfm_.ndim=16;
+    nqcdjets_.nqcdjets=2;
+
+    breit_.n2=1;
+    breit_.n3=1;
+
+    breit_.mass2 =masses_mcfm_.zmass;
+    breit_.width2=masses_mcfm_.zwidth;
+    breit_.mass3 =masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
+
+    npart_.npart=6;
+
+    vsymfact_.vsymfact=1.0;
+    interference_.interference=false;
+
+    if ((flavor == 1 || flavor == 0) && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+      vsymfact_.vsymfact=1.0;
+      interference_.interference=true;
+    }
+  }
+  else{
+    std::cerr <<"[My_choose]: Can't identify Process: " << process << std::endl;
+  }
 }
 
 bool My_masscuts(double s[][mxpart],TVar::Process process){
