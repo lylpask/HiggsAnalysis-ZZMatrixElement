@@ -100,70 +100,70 @@ void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizat
 }
 
 void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
-				 float costhetastar,
-				 float costheta1,
-				 float costheta2,
-				 float phi,
-				 float phistar1,
-				 int flavor,
-         TVar::Process process_,
-         TVar::MatrixElement me_,
-         TVar::Production production_,
-				 double couplingvals[SIZE_HVV_FREENORM],
-				 double selfDHvvcoupl[SIZE_HVV][2],
-				 double selfDZqqcoupl[SIZE_ZQQ][2],
-				 double selfDZvvcoupl[SIZE_ZVV][2],
-				 double selfDGqqcoupl[SIZE_GQQ][2],
-				 double selfDGggcoupl[SIZE_GGG][2],
-				 double selfDGvvcoupl[SIZE_GVV][2],
-				 float &mevalue
-			){
-// Higgs + 2 jets: SBF or WBF
+  float costhetastar,
+  float costheta1,
+  float costheta2,
+  float phi,
+  float phistar1,
+  int flavor,
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  double couplingvals[SIZE_HVV_FREENORM],
+  double selfDHvvcoupl[SIZE_HVV][2],
+  double selfDZqqcoupl[SIZE_ZQQ][2],
+  double selfDZvvcoupl[SIZE_ZVV][2],
+  double selfDGqqcoupl[SIZE_GQQ][2],
+  double selfDGggcoupl[SIZE_GGG][2],
+  double selfDGvvcoupl[SIZE_GVV][2],
+  float &mevalue
+  ){
+  // Higgs + 2 jets: SBF or WBF
 
   set_Process(process_, me_, production_);
 
   std::vector<TLorentzVector> p;
-  p=Calculate4Momentum(mZZ,mZ1,mZ2,acos(costhetastar),acos(costheta1),acos(costheta2),phistar1,phi);
+  p=Calculate4Momentum(mZZ, mZ1, mZ2, acos(costhetastar), acos(costheta1), acos(costheta2), phistar1, phi);
   TLorentzVector Z1_lept1 = p[0];
   TLorentzVector Z1_lept2 = p[1];
   TLorentzVector Z2_lept1 = p[2];
   TLorentzVector Z2_lept2 = p[3];
-  
-  int Z1_lept1Id, Z1_lept2Id, Z2_lept1Id, Z2_lept2Id; 
-  assert(flavor==1 || flavor==2 || flavor==3 );
-  if ( flavor == 1 ) {
+
+  int Z1_lept1Id, Z1_lept2Id, Z2_lept1Id, Z2_lept2Id;
+  assert(flavor==1 || flavor==2 || flavor==3);
+  if (flavor == 1) {
     Z1_lept1Id = 11;
     Z1_lept2Id = -11;
     Z2_lept1Id = 11;
     Z2_lept2Id = -11;
   }
-  if ( flavor == 2 ) {
+  if (flavor == 2) {
     Z1_lept1Id = 13;
     Z1_lept2Id = -13;
     Z2_lept1Id = 13;
     Z2_lept2Id = -13;
   }
-  if ( flavor == 3 ) {
+  if (flavor == 3) {
     Z1_lept1Id = 11;
     Z1_lept2Id = -11;
     Z2_lept1Id = 13;
     Z2_lept2Id = -13;
   }
-  
+
   hzz4l_event.p[0].SetXYZM(Z1_lept1.Px(), Z1_lept1.Py(), Z1_lept1.Pz(), 0.);
   hzz4l_event.p[1].SetXYZM(Z1_lept2.Px(), Z1_lept2.Py(), Z1_lept2.Pz(), 0.);
   hzz4l_event.p[2].SetXYZM(Z2_lept1.Px(), Z2_lept1.Py(), Z2_lept1.Pz(), 0.);
   hzz4l_event.p[3].SetXYZM(Z2_lept2.Px(), Z2_lept2.Py(), Z2_lept2.Pz(), 0.);
-  
+
   hzz4l_event.PdgCode[0] =  Z1_lept1Id;
   hzz4l_event.PdgCode[1] =  Z1_lept2Id;
   hzz4l_event.PdgCode[2] =  Z2_lept1Id;
   hzz4l_event.PdgCode[3] =  Z2_lept2Id;
-  
+
   double z1mass = (hzz4l_event.p[0]+hzz4l_event.p[1]).M();
   double z2mass = (hzz4l_event.p[2]+hzz4l_event.p[3]).M();
   double zzmass = (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).M();
-  
+
   if (verb >= TVar::DEBUG) {
     std::cout << "four lepton p4 for ME calculations: ===========================" <<endl;
     std::cout << "PDG code \n";
@@ -172,39 +172,84 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
     std::cout << "hzz4l_event.PdgCode[2] = " << hzz4l_event.PdgCode[2] << "\n";
     std::cout << "hzz4l_event.PdgCode[3] = " << hzz4l_event.PdgCode[3] << "\n";
     printf("lep1 p3 = (%4.4f, %4.4f, %4.4f)  lep2 p3 = (%4.4f, %4.4f, %4.4f)\n",
-	   Z1_lept1.Px(), Z1_lept1.Py(), Z1_lept1.Pz(), Z1_lept2.Px(), Z1_lept2.Py(), Z1_lept2.Pz());
+      Z1_lept1.Px(), Z1_lept1.Py(), Z1_lept1.Pz(), Z1_lept2.Px(), Z1_lept2.Py(), Z1_lept2.Pz());
     printf("lep3 p3 = (%4.4f, %4.4f, %4.4f)  lep4 p3 = (%4.4f, %4.4f, %4.4f)\n",
-	   Z2_lept1.Px(), Z2_lept1.Py(), Z2_lept1.Pz(), Z2_lept2.Px(), Z2_lept2.Py(), Z2_lept2.Pz());
+      Z2_lept1.Px(), Z2_lept1.Py(), Z2_lept1.Pz(), Z2_lept2.Px(), Z2_lept2.Py(), Z2_lept2.Pz());
     std::cout << "ZZ system (pX, pY, pZ, E, mass) = ( "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Px() << ", "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Py() << ", "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Pz() << ", "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Energy()  << ", "
-	      << zzmass << ")\n";
+      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Px() << ", "
+      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Py() << ", "
+      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Pz() << ", "
+      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Energy()  << ", "
+      << zzmass << ")\n";
     std::cout << "Z1 mass = " << z1mass << "\tz2mass = " << z2mass << "\n";
     std::cout << "=========================================================\n";
   }
-  
+
   // ==== Begin the differential cross-section calculation
   if (me_==TVar::MCFM || process_==TVar::bkgZZ_SMHiggs) Xcal2.SetHiggsMass(mHiggs, wHiggs);
-  else Xcal2.SetHiggsMass(zzmass,wHiggs);
+  else Xcal2.SetHiggsMass(zzmass, wHiggs);
 
   Xcal2.SetMatrixElement(me_);
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
   Xcal2.SetLeptonInterf(myLeptonInterference);
-  mevalue = Xcal2.XsecCalc(process_,production_,hzz4l_event,verb,couplingvals,selfDHvvcoupl,selfDZqqcoupl,selfDZvvcoupl,selfDGqqcoupl,selfDGggcoupl,selfDGvvcoupl);
+  mevalue = Xcal2.XsecCalc(process_, production_, hzz4l_event, verb, couplingvals, selfDHvvcoupl, selfDZqqcoupl, selfDZvvcoupl, selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
   if (wHiggs>=0){
-	  set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-	  Xcal2.SetHiggsMass(mHiggs,-1);
+    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
+    Xcal2.SetHiggsMass(mHiggs, -1);
   }
-  if( myLeptonInterference != TVar::DefaultLeptonInterf ){
-	  set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
-	  Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
+  if (myLeptonInterference != TVar::DefaultLeptonInterf){
+    set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
+    Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
   }
   return;
 }
 
+  void newZZMatrixElement::computeProdXS_VVHVV(
+  TLorentzVector jet[2],
+  TLorentzVector Higgs_daughter[4],
+  int jet_pdgid[2],
+  int Higgs_daughter_pdgid[4],
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  double selfDHvvcoupl[SIZE_HVV][2],
+  double selfDHwwcoupl[SIZE_HVV][2],
+  float& mevalue
+  ){
+  set_Process(process_, me_, production_);
+
+  for (int dd=0; dd<4; dd++){
+    hzz4l_event.p[dd].SetXYZT(Higgs_daughter[dd].X(), Higgs_daughter[dd].Y(), Higgs_daughter[dd].Z(), Higgs_daughter[dd].T());
+    hzz4l_event.PdgCode[dd] =  Higgs_daughter_pdgid[dd];
+  }
+  for (int dd=0; dd<2; dd++){
+    hzz4l_event.extraParticle_p[dd].SetXYZT(jet[dd].X(), jet[dd].Y(), jet[dd].Z(), jet[dd].T());
+    hzz4l_event.extraParticle_PdgCode[dd] =  jet_pdgid[dd];
+  }
+  double z1mass = (hzz4l_event.p[0]+hzz4l_event.p[1]).M();
+  double z2mass = (hzz4l_event.p[2]+hzz4l_event.p[3]).M();
+  double zzmass = (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).M();
+  
+  // ==== Begin the differential cross-section calculation
+  if (me_==TVar::MCFM || process_==TVar::bkgZZ_SMHiggs) Xcal2.SetHiggsMass(mHiggs, wHiggs);
+  else Xcal2.SetHiggsMass(zzmass, wHiggs);
+
+  Xcal2.SetMatrixElement(me_);
+  Xcal2.SetProduction(production_);
+  Xcal2.SetProcess(process_);
+  Xcal2.SetLeptonInterf(myLeptonInterference);
+//  mevalue = Xcal2.XsecCalc_VVXVV(process_, production_, hzz4l_event, verb, selfDHvvcoupl, selfDHwwcoupl);
+  if (wHiggs>=0){
+    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
+    Xcal2.SetHiggsMass(mHiggs, -1);
+  }
+  if (myLeptonInterference != TVar::DefaultLeptonInterf){
+    set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
+    Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
+  }
+  return;
+}
 
 void newZZMatrixElement::computeProdXS_JJH(TLorentzVector jet1,
 				       TLorentzVector jet2,
@@ -235,7 +280,6 @@ void newZZMatrixElement::computeProdXS_JJH(TLorentzVector jet1,
 	  );
   
   return;
-
 }
 
 void newZZMatrixElement::computeProdXS_JH(TLorentzVector singleJet,

@@ -125,7 +125,18 @@ public:
 		double couplingvals[SIZE_HVV_FREENORM],
 		float& prob                             // output probability
 		);
-  
+
+  void computeProdDecP(
+    TLorentzVector jet[2],
+    TLorentzVector Higgs_daughter[4],
+    int jet_pdgid[2],
+    int Higgs_daughter_pdgid[4],
+
+    double selfDHvvcoupl[SIZE_HVV][2],
+    double selfDHwwcoupl[SIZE_HVV][2],
+    float& prob
+    );
+
   void computeProdP(TLorentzVector Jet1, int Jet1_Id,
 		TLorentzVector Jet2, int Jet2_Id,
 		TLorentzVector Decay1, int Decay1_Id,

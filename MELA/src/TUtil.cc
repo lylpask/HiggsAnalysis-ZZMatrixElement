@@ -455,19 +455,26 @@ void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonI
   else if (((process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs) && production == TVar::JJVBF)){
     // 220 '  f(p1)+f(p2) --> Z(e-(p3),e^+(p4))Z(mu-(p5),mu+(p6)))+f(p7)+f(p8) [weak]' 'L'
 
+/*
     if (process==TVar::bkgZZ){
-      Hbit[0]=0; Hbit[1]=0;
-      Bbit[0]=1; Bbit[1]=0;
+      WWbits_.Hbit[0]=0;
+      WWbits_.Hbit[1]=0;
+      WWbits_.Bbit[0]=1;
+      WWbits_.Bbit[1]=0;
     }
     else if (process==TVar::bkgZZ_SMHiggs){
-      Hbit[0]=1; Hbit[1]=0;
-      Bbit[0]=1; Bbit[1]=0;
+      WWbits_.Hbit[0]=1;
+      WWbits_.Hbit[1]=0;
+      WWbits_.Bbit[0]=1;
+      WWbits_.Bbit[1]=0;
     }
     else{
-      Hbit[0]=1; Hbit[1]=0;
-      Bbit[0]=0; Bbit[1]=0;
+      WWbits_.Hbit[0]=1;
+      WWbits_.Hbit[1]=0;
+      WWbits_.Bbit[0]=0;
+      WWbits_.Bbit[1]=0;
     }
-
+*/
     nwz_.nwz=2;
 
     zcouple_.q1=-1.0;

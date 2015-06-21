@@ -238,7 +238,9 @@ static const TString branch_format_particle =
 struct hzz4l_event_type{
   int PdgCode[4];
   TLorentzVector p[4];
-  double Xsec   [10];
+  int extraParticle_PdgCode[2];
+  TLorentzVector extraParticle_p[2];
+  double Xsec[10];
   double XsecErr[10];  
 };
 struct vh_event_type{ // ME is 2 -> 3

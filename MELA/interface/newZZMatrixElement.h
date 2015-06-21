@@ -38,6 +38,19 @@ public:
     float &mevalue
     );
 
+  void computeProdXS_VVHVV(
+    TLorentzVector jet[2],
+    TLorentzVector Higgs_daughter[4],
+    int jet_pdgid[2],
+    int Higgs_daughter_pdgid[4],
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
+    double selfDHvvcoupl[SIZE_HVV][2],
+    double selfDHwwcoupl[SIZE_HVV][2],
+    float& mevalue
+    );
+
   void computeProdXS_JJH(TLorentzVector jet1,
     TLorentzVector jet2,
     TLorentzVector higgs,

@@ -127,7 +127,7 @@ extern "C" {
  } masses_mcfm_;
 
 
- extern  struct{
+ extern struct{
    double LambdaBSM, Lambda_z1, Lambda_z2, Lambda_z3, Lambda_z4;
    double Lambda_Q;
 
