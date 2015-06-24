@@ -511,13 +511,6 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
   //double W=sqrts*sqrts;
   
   // first/second number is the real/imaginary part  
-
-    for(int i = 1; i<SIZE_HGG; i++){
-       for(int j=0; j<2; j++){
-         Hggcoupl[i][j]=0;
-       }
-    }
-
   double Hggcoupl[SIZE_HGG][2];
   double Hvvcoupl[SIZE_HVV_VBF][2];
   double Hwwcoupl[SIZE_HWW_VBF][2];
