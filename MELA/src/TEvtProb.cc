@@ -512,27 +512,29 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
   
   // first/second number is the real/imaginary part  
 
-  double Hggcoupl[SIZE_HGG][2];
-  Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2 
     for(int i = 1; i<SIZE_HGG; i++){
        for(int j=0; j<2; j++){
          Hggcoupl[i][j]=0;
        }
     }
 
+  double Hggcoupl[SIZE_HGG][2];
   double Hvvcoupl[SIZE_HVV_VBF][2];
-  Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0; // g1
-    for(int i = 1; i<SIZE_HVV_VBF; i++){
-       for(int j=0; j<2; j++){
-         Hvvcoupl[i][j]=0;
-       }
-    }
   double Hwwcoupl[SIZE_HWW_VBF][2];
-    for(int i = 0; i<SIZE_HWW_VBF; i++){ // All are to be initialized at 0
-       for(int j=0; j<2; j++){
-         Hwwcoupl[i][j]=0;
-       }
+  Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2 
+  Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0; // g1
+  Hwwcoupl[0][0]=1.0;  Hwwcoupl[0][1]=0.0; // g1
+  for (int j=0; j<2; j++){
+    for (int i = 1; i<SIZE_HGG; i++){
+      Hggcoupl[i][j]=0;
     }
+    for (int i = 1; i<SIZE_HVV_VBF; i++){
+      Hvvcoupl[i][j]=0;
+    }
+    for (int i = 1; i<SIZE_HWW_VBF; i++){ // Follow same logic as Hvvcoupl
+      Hwwcoupl[i][j]=0;
+    }
+  }
 // 0-
   if (_process == TVar::H0minus){
 		Hggcoupl[0][0] = 0.0;
