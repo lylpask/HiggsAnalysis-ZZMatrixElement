@@ -230,7 +230,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
 		spinzerohiggs_anomcoupl_.ghz4_prime5[0] = 0;
 		spinzerohiggs_anomcoupl_.ghz4_prime6[0] = 0;
 		spinzerohiggs_anomcoupl_.ghz4_prime7[0] = 0;
-//		spinzerohiggs_anomcoupl_.ghzgs1_prime2[0] = 0;
+    //spinzerohiggs_anomcoupl_.ghzgs1_prime2[0] = 0;
 
 		spinzerohiggs_anomcoupl_.ghz1[1] =  0; 
 		spinzerohiggs_anomcoupl_.ghz2[1] =  0; 
@@ -272,7 +272,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
 		spinzerohiggs_anomcoupl_.ghz4_prime5[1] = 0;
 		spinzerohiggs_anomcoupl_.ghz4_prime6[1] = 0;
 		spinzerohiggs_anomcoupl_.ghz4_prime7[1] = 0;
-//		spinzerohiggs_anomcoupl_.ghzgs1_prime2[1] = 0;
+    //spinzerohiggs_anomcoupl_.ghzgs1_prime2[1] = 0;
 //
     spinzerohiggs_anomcoupl_.ghw1[0] =  1;
     spinzerohiggs_anomcoupl_.ghw2[0] =  0;
@@ -314,7 +314,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
     spinzerohiggs_anomcoupl_.ghw4_prime5[0] = 0;
     spinzerohiggs_anomcoupl_.ghw4_prime6[0] = 0;
     spinzerohiggs_anomcoupl_.ghw4_prime7[0] = 0;
-//		spinzerohiggs_anomcoupl_.ghwgs1_prime2[0] = 0;
+    //spinzerohiggs_anomcoupl_.ghwgs1_prime2[0] = 0;
 
     spinzerohiggs_anomcoupl_.ghw1[1] =  0;
     spinzerohiggs_anomcoupl_.ghw2[1] =  0;
@@ -356,7 +356,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
     spinzerohiggs_anomcoupl_.ghw4_prime5[1] = 0;
     spinzerohiggs_anomcoupl_.ghw4_prime6[1] = 0;
     spinzerohiggs_anomcoupl_.ghw4_prime7[1] = 0;
-//		spinzerohiggs_anomcoupl_.ghwgs1_prime2[1] = 0;
+    //spinzerohiggs_anomcoupl_.ghwgs1_prime2[1] = 0;
 //
   }
 	else{
@@ -393,7 +393,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
 		spinzerohiggs_anomcoupl_.ghz4_prime3[0] = Hvvcoupl[27][0];
 		spinzerohiggs_anomcoupl_.ghz4_prime4[0] = Hvvcoupl[28][0];
 		spinzerohiggs_anomcoupl_.ghz4_prime5[0] = Hvvcoupl[29][0];
-//		spinzerohiggs_anomcoupl_.ghzgs1_prime2[0] = Hvvcoupl[30][0];
+    //spinzerohiggs_anomcoupl_.ghzgs1_prime2[0] = Hvvcoupl[30][0];
 		spinzerohiggs_anomcoupl_.ghz1_prime6[0] = Hvvcoupl[31][0];
 		spinzerohiggs_anomcoupl_.ghz1_prime7[0] = Hvvcoupl[32][0];
 		spinzerohiggs_anomcoupl_.ghz2_prime6[0] = Hvvcoupl[33][0];
@@ -435,7 +435,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
 		spinzerohiggs_anomcoupl_.ghz4_prime3[1] = Hvvcoupl[27][1];
 		spinzerohiggs_anomcoupl_.ghz4_prime4[1] = Hvvcoupl[28][1];
 		spinzerohiggs_anomcoupl_.ghz4_prime5[1] = Hvvcoupl[29][1];
-//		spinzerohiggs_anomcoupl_.ghzgs1_prime2[1] = Hvvcoupl[30][1];
+    //spinzerohiggs_anomcoupl_.ghzgs1_prime2[1] = Hvvcoupl[30][1];
 		spinzerohiggs_anomcoupl_.ghz1_prime6[1] = Hvvcoupl[31][1];
 		spinzerohiggs_anomcoupl_.ghz1_prime7[1] = Hvvcoupl[32][1];
 		spinzerohiggs_anomcoupl_.ghz2_prime6[1] = Hvvcoupl[33][1];
@@ -477,7 +477,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
     spinzerohiggs_anomcoupl_.ghw4_prime3[0] = Hwwcoupl[27][0];
     spinzerohiggs_anomcoupl_.ghw4_prime4[0] = Hwwcoupl[28][0];
     spinzerohiggs_anomcoupl_.ghw4_prime5[0] = Hwwcoupl[29][0];
-//		spinzerohiggs_anomcoupl_.ghwgs1_prime2[0] = Hwwcoupl[30][0];
+    //spinzerohiggs_anomcoupl_.ghwgs1_prime2[0] = Hwwcoupl[30][0];
     spinzerohiggs_anomcoupl_.ghw1_prime6[0] = Hwwcoupl[31][0];
     spinzerohiggs_anomcoupl_.ghw1_prime7[0] = Hwwcoupl[32][0];
     spinzerohiggs_anomcoupl_.ghw2_prime6[0] = Hwwcoupl[33][0];
@@ -519,7 +519,7 @@ void SetMCFMHiggsDecayCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
     spinzerohiggs_anomcoupl_.ghw4_prime3[1] = Hwwcoupl[27][1];
     spinzerohiggs_anomcoupl_.ghw4_prime4[1] = Hwwcoupl[28][1];
     spinzerohiggs_anomcoupl_.ghw4_prime5[1] = Hwwcoupl[29][1];
-//		spinzerohiggs_anomcoupl_.ghwgs1_prime2[1] = Hwwcoupl[30][1];
+    //spinzerohiggs_anomcoupl_.ghwgs1_prime2[1] = Hwwcoupl[30][1];
     spinzerohiggs_anomcoupl_.ghw1_prime6[1] = Hwwcoupl[31][1];
     spinzerohiggs_anomcoupl_.ghw1_prime7[1] = Hwwcoupl[32][1];
     spinzerohiggs_anomcoupl_.ghw2_prime6[1] = Hwwcoupl[33][1];

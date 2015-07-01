@@ -609,56 +609,38 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
   //double W=sqrts*sqrts;
   
   // first/second number is the real/imaginary part  
-  double Hggcoupl[SIZE_HGG][2];
-  double Hvvcoupl[SIZE_HVV_VBF][2];
-  double Hwwcoupl[SIZE_HWW_VBF][2];
+  double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
+  double Hvvcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
+  double Hwwcoupl[SIZE_HWW_VBF][2] ={ { 0 } };
   Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2 
   Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0; // g1
   Hwwcoupl[0][0]=1.0;  Hwwcoupl[0][1]=0.0; // g1
-  for (int j=0; j<2; j++){
-    for (int i = 1; i<SIZE_HGG; i++){
-      Hggcoupl[i][j]=0;
-    }
-    for (int i = 1; i<SIZE_HVV_VBF; i++){
-      Hvvcoupl[i][j]=0;
-    }
-    for (int i = 1; i<SIZE_HWW_VBF; i++){ // Follow same logic as Hvvcoupl
-      Hwwcoupl[i][j]=0;
-    }
-  }
+
 // 0-
   if (_process == TVar::H0minus){
 		Hggcoupl[0][0] = 0.0;
-		Hggcoupl[1][0] = 0.0;
 		Hggcoupl[2][0] = 1.0;
-		Hvvcoupl[0][0] = 0.0;
-		Hvvcoupl[1][0] = 0.0;
-		Hvvcoupl[2][0] = 0.0;
+
+    Hvvcoupl[0][0] = 0.0;
 		Hvvcoupl[3][0] = 1.0;
     Hwwcoupl[0][0] = 0.0;
-    Hwwcoupl[1][0] = 0.0;
-    Hwwcoupl[2][0] = 0.0;
     Hwwcoupl[3][0] = 1.0;
   }
-// 0h+
-  if (_process == TVar::H0hplus) { // No need to re-set ggcoupl
+// 0+h
+  else if (_process == TVar::H0hplus) { // No need to re-set ggcoupl
 		Hvvcoupl[0][0] = 0.0;
 		Hvvcoupl[1][0] = 1.0;
-		Hvvcoupl[2][0] = 0.0;
-		Hvvcoupl[3][0] = 0.0;
     Hwwcoupl[0][0] = 0.0;
     Hwwcoupl[1][0] = 1.0;
-    Hwwcoupl[2][0] = 0.0;
-    Hwwcoupl[3][0] = 0.0;
   }
-  if (_process == TVar::H0_g1prime2){ // No need to re-set ggcoupl
+// 0+L1
+  else if (_process == TVar::H0_g1prime2){ // No need to re-set ggcoupl
 		Hvvcoupl[0][0] = 0.;
 		Hvvcoupl[5][0] = -12046.01;
     Hwwcoupl[0][0] = 0.;
     Hwwcoupl[5][0] = -12046.01;
   }
-
-  if (_process == TVar::SelfDefine_spin0){
+  else if (_process == TVar::SelfDefine_spin0){
 		for(int j=0;j<2;j++){
 			for(int i=0; i<SIZE_HGG; i++){
 				Hggcoupl [i][j] = selfDHggcoupl[i][j];
