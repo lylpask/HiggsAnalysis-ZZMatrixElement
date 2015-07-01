@@ -618,41 +618,41 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
 
 // 0-
   if (_process == TVar::H0minus){
-		Hggcoupl[0][0] = 0.0;
-		Hggcoupl[2][0] = 1.0;
+    Hggcoupl[0][0] = 0.0;
+    Hggcoupl[2][0] = 1.0;
 
     Hvvcoupl[0][0] = 0.0;
-		Hvvcoupl[3][0] = 1.0;
+    Hvvcoupl[3][0] = 1.0;
     Hwwcoupl[0][0] = 0.0;
     Hwwcoupl[3][0] = 1.0;
   }
 // 0+h
   else if (_process == TVar::H0hplus) { // No need to re-set ggcoupl
-		Hvvcoupl[0][0] = 0.0;
-		Hvvcoupl[1][0] = 1.0;
+    Hvvcoupl[0][0] = 0.0;
+    Hvvcoupl[1][0] = 1.0;
     Hwwcoupl[0][0] = 0.0;
     Hwwcoupl[1][0] = 1.0;
   }
 // 0+L1
   else if (_process == TVar::H0_g1prime2){ // No need to re-set ggcoupl
-		Hvvcoupl[0][0] = 0.;
-		Hvvcoupl[5][0] = -12046.01;
+    Hvvcoupl[0][0] = 0.;
+    Hvvcoupl[5][0] = -12046.01;
     Hwwcoupl[0][0] = 0.;
     Hwwcoupl[5][0] = -12046.01;
   }
   else if (_process == TVar::SelfDefine_spin0){
-		for(int j=0;j<2;j++){
-			for(int i=0; i<SIZE_HGG; i++){
-				Hggcoupl [i][j] = selfDHggcoupl[i][j];
-			}
-			for(int i=0; i<SIZE_HVV_VBF; i++){
-				Hvvcoupl [i][j] = selfDHvvcoupl[i][j];
-			}
-			for(int i=0; i<SIZE_HWW_VBF; i++){
-				Hwwcoupl [i][j] = selfDHwwcoupl[i][j];
-			}
-		}
-	}
+    for (int j=0; j<2; j++){
+      for (int i=0; i<SIZE_HGG; i++){
+        Hggcoupl[i][j] = selfDHggcoupl[i][j];
+      }
+      for (int i=0; i<SIZE_HVV_VBF; i++){
+        Hvvcoupl[i][j] = selfDHvvcoupl[i][j];
+      }
+      for (int i=0; i<SIZE_HWW_VBF; i++){
+        Hwwcoupl[i][j] = selfDHwwcoupl[i][j];
+      }
+    }
+  }
 
   // input kinematics 
   //  !----- p1 and p2 used to get hadronic s
@@ -672,10 +672,10 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
 	double qY = pCoM.Y();
 	double qE = pCoM.E();
 	double qPt = (qX*qX+qY*qY);
-	if ( (qPt)>0 ){
-		TVector3 boostV(-qX/qE,-qY/qE,0); // Unit boost vector
-		for(int ipt=2;ipt<5;ipt++) p[ipt].Boost(boostV);
-	}
+  if ((qPt)>0){
+    TVector3 boostV(-qX/qE, -qY/qE, 0); // Unit boost vector
+    for (int ipt=2; ipt<5; ipt++) p[ipt].Boost(boostV);
+  }
 
   // assign the right initial momentum
   // assumes the events are boosted to have 0 transverse momenta
