@@ -98,16 +98,16 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
    
 	int flavor = abs(hzz4l_event.PdgCode[0]) == abs(hzz4l_event.PdgCode[2]) ? 1 :3;
 	bool needBSMHiggs=false;
+  // _process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
   if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
 		for (int vv = 0; vv < SIZE_HVV; vv++){
 //			if (selfDHvvcoupl[vv][1] != 0 || (vv != 0 && selfDHvvcoupl[vv][0] != 0)){ needBSMHiggs = true; break; }
 			if ( selfDHvvcoupl[vv][1] != 0 || selfDHvvcoupl[vv][0] != 0 ){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
 		}
-		if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn);
-		SetMCFMHiggsDecayCouplings(needBSMHiggs, selfDHvvcoupl);
+		if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
+    SetMCFMHiggsDecayCouplings(needBSMHiggs, selfDHvvcoupl, selfDHvvcoupl);
+    My_choose(_process, _production, _leptonInterf, flavor);
 	}
-  // _process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
-  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs) My_choose(_process, _production, _leptonInterf, flavor);
     
     //constants
     double sqrts = 2.*EBEAM;
@@ -155,7 +155,7 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
     if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
       msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, flavor_msq, &flux, EBEAM, couplingvals);
       if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf); // set defaults
-      SetMCFMHiggsDecayCouplings(false, selfDHvvcoupl); // set defaults
+      SetMCFMHiggsDecayCouplings(false, selfDHvvcoupl, selfDHvvcoupl); // set defaults
     }
     else if ( _matrixElement == TVar::JHUGen ) {
 
@@ -175,7 +175,7 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       // By default set the Spin 0 couplings for SM case
       Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
       Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
-	  for (int i = 1; i < SIZE_HGG; i++){ for (int com = 0; com < 2; com++) Hggcoupl[i][com] = 0; }
+      for (int i = 1; i < SIZE_HGG; i++){ for (int com = 0; com < 2; com++) Hggcoupl[i][com] = 0; }
       for (int i = 1; i<SIZE_HVV; i++){ for(int com=0; com<2; com++) Hvvcoupl[i][com] = 0; }
 
       // 
@@ -209,10 +209,10 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
 
       // 0-
       if (_process == TVar::H0minus) {
-		Hvvcoupl[0][0] = 0.0;
-		Hvvcoupl[1][0] = 0.0;
-		Hvvcoupl[2][0] = 0.0;
-		Hvvcoupl[3][0] = 1.0;
+        Hvvcoupl[0][0] = 0.0;
+        Hvvcoupl[1][0] = 0.0;
+        Hvvcoupl[2][0] = 0.0;
+        Hvvcoupl[3][0] = 1.0;
       }
 
       if (_process == TVar::H0_Zgs) {
@@ -482,7 +482,7 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
   if(msqjk<=0){ mcfm_event.pswt=0; }
     
   flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy())	/(4*W);
-    //    dXsec=msqjk*flux;
+  //dXsec=msqjk*flux;
   dXsec=msqjk;
     
     
@@ -493,6 +493,104 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
 			<< " flux=" << flux 
 			<< endl;
 	}
+
+  ResetRenFacScaleMode();
+  return dXsec;
+}
+
+double TEvtProb::XsecCalc_VVXVV(
+  TVar::Process proc, TVar::Production production,
+  const hzz4l_event_type &hzz4l_event,
+  TVar::VerbosityLevel verbosity,
+  double selfDHvvcoupl[SIZE_HVV][2],
+  double selfDHwwcoupl[SIZE_HVV][2]
+  ){
+  //Initialize Process
+  SetProcess(proc);
+  SetProduction(production);
+
+  double couplingvals[SIZE_HVV_FREENORM]={ 0 };
+
+  int flavor = abs(hzz4l_event.PdgCode[0]) == abs(hzz4l_event.PdgCode[2]) ? 1 : 3;
+  bool needBSMHiggs=false;
+  // _process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
+  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
+    for (int vv = 0; vv < SIZE_HVV; vv++){
+      if (selfDHvvcoupl[vv][1] != 0 || selfDHvvcoupl[vv][0] != 0 || selfDHwwcoupl[vv][1] != 0 || selfDHwwcoupl[vv][0] != 0){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
+    }
+    if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
+    SetMCFMHiggsDecayCouplings(needBSMHiggs, selfDHvvcoupl, selfDHwwcoupl);
+    My_choose(_process, _production, _leptonInterf, flavor);
+  }
+
+  //constants
+  double sqrts = 2.*EBEAM;
+  double W=sqrts*sqrts;
+
+  //Weight calculation
+  double flux=1.;
+  double dXsec=0.;
+
+  mcfm_event_type mcfm_event;
+  // assign the right initial momentum
+  // assumes the events are boosted to have 0 transverse momenta
+  double sysPz= (hzz4l_event.p[0] + hzz4l_event.p[1] + hzz4l_event.p[2] + hzz4l_event.p[3] + hzz4l_event.extraParticle_p[0] + hzz4l_event.extraParticle_p[1]).Pz();
+  double sysE = (hzz4l_event.p[0] + hzz4l_event.p[1] + hzz4l_event.p[2] + hzz4l_event.p[3] + hzz4l_event.extraParticle_p[0] + hzz4l_event.extraParticle_p[1]).Energy();
+  double pz0 = (sysE+sysPz)/2.;
+  double pz1 = -(sysE-sysPz)/2.;
+  mcfm_event.p[0].SetPxPyPzE(0., 0., pz0, TMath::Abs(pz0));
+  mcfm_event.p[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
+  mcfm_event.p[2].SetPxPyPzE(hzz4l_event.p[0].Px(), hzz4l_event.p[0].Py(), hzz4l_event.p[0].Pz(), hzz4l_event.p[0].Energy());
+  mcfm_event.p[3].SetPxPyPzE(hzz4l_event.p[1].Px(), hzz4l_event.p[1].Py(), hzz4l_event.p[1].Pz(), hzz4l_event.p[1].Energy());
+  mcfm_event.p[4].SetPxPyPzE(hzz4l_event.p[2].Px(), hzz4l_event.p[2].Py(), hzz4l_event.p[2].Pz(), hzz4l_event.p[2].Energy());
+  mcfm_event.p[5].SetPxPyPzE(hzz4l_event.p[3].Px(), hzz4l_event.p[3].Py(), hzz4l_event.p[3].Pz(), hzz4l_event.p[3].Energy());
+  mcfm_event.p[6].SetPxPyPzE(hzz4l_event.extraParticle_p[0].Px(), hzz4l_event.extraParticle_p[0].Py(), hzz4l_event.extraParticle_p[0].Pz(), hzz4l_event.extraParticle_p[0].Energy());
+  mcfm_event.p[7].SetPxPyPzE(hzz4l_event.extraParticle_p[1].Px(), hzz4l_event.extraParticle_p[1].Py(), hzz4l_event.extraParticle_p[1].Pz(), hzz4l_event.extraParticle_p[1].Energy());
+
+  mcfm_event.PdgCode[0] = 21;
+  mcfm_event.PdgCode[1] = 21;
+  mcfm_event.PdgCode[2] = hzz4l_event.PdgCode[0];
+  mcfm_event.PdgCode[3] = hzz4l_event.PdgCode[1];
+  mcfm_event.PdgCode[4] = hzz4l_event.PdgCode[2];
+  mcfm_event.PdgCode[5] = hzz4l_event.PdgCode[3];
+  mcfm_event.PdgCode[6] = hzz4l_event.extraParticle_PdgCode[0];
+  mcfm_event.PdgCode[7] = hzz4l_event.extraParticle_PdgCode[1];
+
+  //Matrix Element evaluation in qX=qY=0 frame
+  //Evaluate f(x1)f(x2)|M(q)|/x1/x2 
+  // 
+  double qX=mcfm_event.p[0].Px()+mcfm_event.p[1].Px();
+  double qY=mcfm_event.p[0].Py()+mcfm_event.p[1].Py();
+
+  if ((qX*qX+qY*qY)>0){
+    double qE = mcfm_event.p[0].Energy()+mcfm_event.p[1].Energy();
+    TVector3 boostV(qX/qE, qY/qE, 0);
+    for (int ipt=0; ipt<8; ipt++) mcfm_event.p[ipt].Boost(-boostV);
+  }
+  //event selections in Lab Frame
+  double flavor_msq[nmsq][nmsq];
+  double msqjk=0;
+  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
+    msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, flavor_msq, &flux, EBEAM, couplingvals);
+    if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf); // set defaults
+    SetMCFMHiggsDecayCouplings(false, selfDHvvcoupl, selfDHwwcoupl); // set defaults
+  }
+
+
+  if (msqjk<=0){ mcfm_event.pswt=0; }
+
+  flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy())	/(4*W);
+  //dXsec=msqjk*flux;
+  dXsec=msqjk;
+
+
+  if (verbosity >= TVar::DEBUG){
+    cout <<"Process " << TVar::ProcessName(_process)
+      << " TEvtProb::XsecCalc(): dXsec=" << dXsec
+      << " Msq=" << msqjk
+      << " flux=" << flux
+      << endl;
+  }
 
   ResetRenFacScaleMode();
   return dXsec;

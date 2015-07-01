@@ -83,6 +83,14 @@ public:
     double selfDGvvcoupl[SIZE_GVV][2]
     );
 
+  double XsecCalc_VVXVV(
+    TVar::Process proc, TVar::Production production,
+    const hzz4l_event_type &hzz4l_event,
+    TVar::VerbosityLevel verbosity,
+    double selfDHvvcoupl[SIZE_HVV][2],
+    double selfDHwwcoupl[SIZE_HVV][2]
+    );
+
   double XsecCalcXJJ(
     TVar::Process proc, TVar::Production production, 
     TLorentzVector p4[3],

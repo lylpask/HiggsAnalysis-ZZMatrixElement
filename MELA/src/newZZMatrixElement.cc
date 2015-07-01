@@ -239,7 +239,7 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
   Xcal2.SetLeptonInterf(myLeptonInterference);
-//  mevalue = Xcal2.XsecCalc_VVXVV(process_, production_, hzz4l_event, verb, selfDHvvcoupl, selfDHwwcoupl);
+  mevalue = Xcal2.XsecCalc_VVXVV(process_, production_, hzz4l_event, verb, selfDHvvcoupl, selfDHwwcoupl);
   if (wHiggs>=0){
     set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
     Xcal2.SetHiggsMass(mHiggs, -1);

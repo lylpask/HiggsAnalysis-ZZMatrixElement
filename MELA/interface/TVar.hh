@@ -254,8 +254,8 @@ struct tth_event_type{ // ME is 2 -> 8
   TLorentzVector p[7]; // H, tbar-daughters 1-3, t-daughters 1-3
 };
 struct mcfm_event_type{
-  int PdgCode[6];
-  TLorentzVector p[6];
+  int PdgCode[8];
+  TLorentzVector p[8];
   double pswt;
 };
 struct event_type{
