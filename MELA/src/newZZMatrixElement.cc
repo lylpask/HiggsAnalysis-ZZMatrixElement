@@ -221,16 +221,14 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
 
   for (int dd=0; dd<4; dd++){
     hzz4l_event.p[dd].SetXYZT(Higgs_daughter[dd].X(), Higgs_daughter[dd].Y(), Higgs_daughter[dd].Z(), Higgs_daughter[dd].T());
-    hzz4l_event.PdgCode[dd] =  Higgs_daughter_pdgid[dd];
+    hzz4l_event.PdgCode[dd] = Higgs_daughter_pdgid[dd];
   }
   for (int dd=0; dd<2; dd++){
     hzz4l_event.extraParticle_p[dd].SetXYZT(jet[dd].X(), jet[dd].Y(), jet[dd].Z(), jet[dd].T());
-    hzz4l_event.extraParticle_PdgCode[dd] =  jet_pdgid[dd];
+    hzz4l_event.extraParticle_PdgCode[dd] = jet_pdgid[dd];
   }
-  double z1mass = (hzz4l_event.p[0]+hzz4l_event.p[1]).M();
-  double z2mass = (hzz4l_event.p[2]+hzz4l_event.p[3]).M();
+
   double zzmass = (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).M();
-  
   // ==== Begin the differential cross-section calculation
   if (me_==TVar::MCFM || process_==TVar::bkgZZ_SMHiggs) Xcal2.SetHiggsMass(mHiggs, wHiggs);
   else Xcal2.SetHiggsMass(zzmass, wHiggs);

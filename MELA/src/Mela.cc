@@ -1229,29 +1229,25 @@ void Mela::computeProdDecP(
   float constant=1.;
 
   if (myME_ != TVar::MCFM){
-    cout << "Mela::computeProdDecP ME is not supported." << endl;
+    cout << "Mela::computeProdDecP ME is not supported for ME " << myME_ << endl;
     prob=0;
     return;
   }
   if (myProduction_ != TVar::JJVBF){
-    cout << "Mela::computeProdDecP production mode is not supported." << endl;
+    cout << "Mela::computeProdDecP production mode is not supported for production " << myProduction_ << endl;
     prob=0;
     return;
   }
 
   TLorentzVector jet1massless(0, 0, 0, 0);
   TLorentzVector jet2massless(0, 0, 0, 0);
-  TLorentzVector higgs;
+  TLorentzVector higgs(0, 0, 0, 0);
 
   if (abs(Higgs_daughter_pdgid[0]) <= 16 && abs(Higgs_daughter_pdgid[0]) >= 11 && abs(Higgs_daughter_pdgid[1]) <= 16 && abs(Higgs_daughter_pdgid[1]) >= 11){
-    if (mela::forbidMassiveLeptons){
-      mela::constrainedRemoveLeptonMass(Higgs_daughter[0], Higgs_daughter[1]);
-    }
+    if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[0], Higgs_daughter[1]);
   }
   if (abs(Higgs_daughter_pdgid[2]) <= 16 && abs(Higgs_daughter_pdgid[2]) >= 11 && abs(Higgs_daughter_pdgid[3]) <= 16 && abs(Higgs_daughter_pdgid[3]) >= 11){
-    if (mela::forbidMassiveLeptons){
-      mela::constrainedRemoveLeptonMass(Higgs_daughter[2], Higgs_daughter[3]);
-    }
+    if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[2], Higgs_daughter[3]);
   }
   mela::computeJetMassless(jet[0], jet1massless);
   mela::computeJetMassless(jet[1], jet2massless);
@@ -1260,9 +1256,10 @@ void Mela::computeProdDecP(
 
   for (int dd=0; dd<4; dd++) higgs = higgs + Higgs_daughter[dd];
   TLorentzVector total=jet[0]+jet[1]+higgs;
-  higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-  for (int dd=0; dd<4; dd++) Higgs_daughter[dd].Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-  for (int dd=0; dd<2; dd++) jet[dd].Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
+  // Preserve Z direction
+  higgs.Boost(-total.BoostVector().X(), -total.BoostVector().Y(), 0);
+  for (int dd=0; dd<4; dd++) Higgs_daughter[dd].Boost(-total.BoostVector().X(), -total.BoostVector().Y(), 0);
+  for (int dd=0; dd<2; dd++) jet[dd].Boost(-total.BoostVector().X(), -total.BoostVector().Y(), 0);
 
   ZZME->computeProdXS_VVHVV(
     jet, Higgs_daughter,
