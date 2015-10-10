@@ -788,6 +788,8 @@ double SumMatrixElementPDF(TVar::Process process, TVar::Production production, T
     MomStore[ipar].SetXYZT(mcfm_event->p[ipar].X(), mcfm_event->p[ipar].Y(), mcfm_event->p[ipar].Z(), mcfm_event->p[ipar].T());
   }
 
+  //for (int i=0; i<NPart; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << std::endl;
+  
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
 //  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
@@ -911,9 +913,41 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
   // this needs to be applied for all the p4
   MReso = MReso / 100.0;
   GaReso = GaReso /100.0;
+
   double p4[6][4];
   double MatElSq=0;
   int MYIDUP[4];
+
+  bool isSpinZero = (
+    process == TVar::HSMHiggs
+    || process == TVar::H0minus
+    || process == TVar::H0hplus
+    || process == TVar::H0_g1prime2
+    || process== TVar::H0_Zgs
+    || process ==TVar::H0_gsgs
+    || process ==TVar::H0_Zgs_PS
+    || process ==TVar::H0_gsgs_PS
+    || process ==TVar::H0_Zgsg1prime2
+    || process == TVar::SelfDefine_spin0
+    );
+  bool isSpinOne = (
+    process == TVar::H1minus
+    || process == TVar::H1plus
+    || process == TVar::SelfDefine_spin1
+    );
+  bool isSpinTwo = (
+    process == TVar::H2_g1g5
+    || process == TVar::H2_g8
+    || process == TVar::H2_g4
+    || process == TVar::H2_g5
+    || process == TVar::H2_g2
+    || process == TVar::H2_g3
+    || process == TVar::H2_g6
+    || process == TVar::H2_g7
+    || process == TVar::H2_g9
+    || process == TVar::H2_g10
+    || process == TVar::SelfDefine_spin2
+    );
 
   int NPart = 6;
   // p(i,0:3) = (E(i),px(i),py(i),pz(i))
@@ -952,7 +986,7 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
       MYIDUP[2]=+7;
       MYIDUP[3]=-7;
     }
-    if (TMath::Abs(mcfm_event->PdgCode[2]) == 13) {
+    else if (TMath::Abs(mcfm_event->PdgCode[2]) == 13) {
       MYIDUP[0]=+8;
       MYIDUP[1]=-8;
       MYIDUP[2]=+8;
@@ -966,33 +1000,21 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
     MYIDUP[3]=-8;
   }
 
-  //if ( process == TVar::HZZ_4l || process == TVar::PSHZZ_4l || process == TVar::HDHZZ_4l || process == TVar::HZZ_4l_MIXCP   || process == TVar::CPMixHZZ_4l || process == TVar::PSHZZ_g4star || process == TVar::HDHZZ_4l_g2star || process == TVar::HDMixHZZ_4l_pi_2|| process== TVar::HDMixHZZ_4l || process == TVar::CPMixHZZ_4l_pi_2 || process == TVar::SelfDefine || process == TVar::H_g1prime2) {
-  if (
-    process == TVar::HSMHiggs
-    || process == TVar::H0minus
-    || process == TVar::H0hplus
-    || process == TVar::SelfDefine_spin0
-    || process == TVar::H0_g1prime2
-    || process== TVar::H0_Zgs
-    || process ==TVar::H0_gsgs
-    || process ==TVar::H0_Zgs_PS
-    || process ==TVar::H0_gsgs_PS
-    || process ==TVar::H0_Zgsg1prime2
-    ) __modhiggs_MOD_evalamp_gg_h_vv(p4, &MReso, &GaReso, Hggcoupl, Hvvcoupl, MYIDUP, &MatElSq);
-
-  if (production == TVar::ZZGG) {
-    if (process == TVar::H2_g1g5 || process == TVar::H2_g8 || process == TVar::H2_g4 || process == TVar::H2_g5 || process == TVar::H2_g2 || process == TVar::H2_g3 || process == TVar::H2_g6 || process == TVar::H2_g7 || process == TVar::H2_g9 || process == TVar::H2_g10 || process == TVar::SelfDefine_spin2)
-      __modgraviton_MOD_evalamp_gg_g_vv(p4, &MReso, &GaReso, Gggcoupl, Gvvcoupl, MYIDUP, &MatElSq);
+  if (production == TVar::ZZGG){
+    if (isSpinZero) __modhiggs_MOD_evalamp_gg_h_vv(p4, &MReso, &GaReso, Hggcoupl, Hvvcoupl, MYIDUP, &MatElSq);
+    else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, &MReso, &GaReso, Gggcoupl, Gvvcoupl, MYIDUP, &MatElSq);
   }
-  if (production == TVar::ZZINDEPENDENT) {
-
+  else if (production == TVar::ZZQQB){
+    if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, &MReso, &GaReso, Zqqcoupl, Zvvcoupl, MYIDUP, &MatElSq);
+    else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, &MReso, &GaReso, Gqqcoupl, Gvvcoupl, MYIDUP, &MatElSq);
+  }
+  else if (production == TVar::ZZINDEPENDENT){
     // special treatment of the 4-vectors
     // From Markus: 
     // Note that the momentum no.2, p(1:4,2), is a dummy which is not used. Momentum no.1,
     // p(1:4,1) = (/   -1.25d0,    0.00d0,    0.00d0,    0.00d0   /),
     // is the resonance momentum in its rest frame, which is crossed into the final state, 
     // i.e. the physical momentum is  -p(1:4,1) with a mass of 125GeV.
-
     double P[6][4];
     P[0][0]=-(mcfm_event->p[0]+mcfm_event->p[1]).M()/100.;
     P[0][1]=0.0;
@@ -1003,7 +1025,8 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
     P[1][1]=0.0;
     P[1][2]=0.0;
     P[1][3]=0.0;
-    //initialize decayed particles
+
+    // initialize decayed particles
     for (int ipar=2; ipar<NPart; ipar++){
       P[ipar][0] = mcfm_event->p[ipar].Energy()/100.;
       P[ipar][1] = mcfm_event->p[ipar].Px()/100.;
@@ -1011,29 +1034,17 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
       P[ipar][3] = mcfm_event->p[ipar].Pz()/100.;
     }
 
-    if (process == TVar::H2_g1g5 || process == TVar::H2_g8 || process == TVar::H2_g4 || process == TVar::H2_g5 || process == TVar::H2_g2 || process == TVar::H2_g3 || process == TVar::H2_g6 || process == TVar::H2_g7 || process == TVar::H2_g9 || process == TVar::H2_g10 || process == TVar::SelfDefine_spin2)
-      __modgraviton_MOD_evalamp_g_vv(P, &MReso, &GaReso, Gvvcoupl, MYIDUP, &MatElSq);
-
-    if (process == TVar::H1minus || process == TVar::H1plus || process == TVar::SelfDefine_spin1)
-      __modzprime_MOD_evalamp_zprime_vv(P, &MReso, &GaReso, Zvvcoupl, MYIDUP, &MatElSq);
+    if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(P, &MReso, &GaReso, Zvvcoupl, MYIDUP, &MatElSq);
+    else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(P, &MReso, &GaReso, Gvvcoupl, MYIDUP, &MatElSq);
   }
 
-  if (production == TVar::ZZQQB) {
-    if (process == TVar::H2_g1g5 || process == TVar::H2_g8 || process == TVar::H2_g4 || process == TVar::H2_g5 || process == TVar::H2_g2 || process == TVar::H2_g3 || process == TVar::H2_g6 || process == TVar::H2_g7 || process == TVar::H2_g9 || process == TVar::H2_g10 || process == TVar::SelfDefine_spin2)
-      __modgraviton_MOD_evalamp_qqb_g_vv(p4, &MReso, &GaReso, Gqqcoupl, Gvvcoupl, MYIDUP, &MatElSq);
-
-    if (process == TVar::H1minus || process == TVar::H1plus || process == TVar::SelfDefine_spin1)
-      __modzprime_MOD_evalamp_qqb_zprime_vv(p4, &MReso, &GaReso, Zqqcoupl, Zvvcoupl, MYIDUP, &MatElSq);
-  }
-
-  /*
+/*
   printf("\n ");
-  std::cout << "resonance = " << MReso *100. << ", width = " << GaReso*100. << "\n";
-  for ( int i=0; i<NPart;i++) {
-    std::cout << "p["<<i<<"] (E, Px, Py, Pz) = (" << p4[i][0] << ", " << p4[i][1] << ", " << p4[i][2] << ", " << p4[i][3] << ")\n";
-  }
-  printf("Matr.el. squared: %20.17e \n ",MatElSq);
-  */
+  std::cout << "resonance = " << MReso *100. << ", width = " << GaReso*100. << std::endl;
+  for (int i=0; i<NPart; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]*100. << '\t' << p4[i][2]*100. << '\t' << p4[i][3]*100. << '\t' << p4[i][0]*100. << std::endl;
+  printf("MEsq: %20.17e", MatElSq);
+  std::cout << std::endl;
+*/
   // 
   // This constant is needed to account for the different units used in 
   // JHUGen compared to the MCFM
@@ -1086,12 +1097,8 @@ double HJJMatEl(TVar::Process process, TVar::Production production, TVar::Matrix
       }
 */
     }
-    if (verbosity >= TVar::DEBUG) {
-      std::cout << "p4[0] = "  << p4[0][0] << ", " <<  p4[0][1] << ", "  <<  p4[0][2] << ", "  <<  p4[0][3] << "\n";
-      std::cout << "p4[1] = "  << p4[1][0] << ", " <<  p4[1][1] << ", "  <<  p4[1][2] << ", "  <<  p4[1][3] << "\n";
-      std::cout << "p4[2] = "  << p4[2][0] << ", " <<  p4[2][1] << ", "  <<  p4[2][2] << ", "  <<  p4[2][3] << "\n";
-      std::cout << "p4[3] = "  << p4[3][0] << ", " <<  p4[3][1] << ", "  <<  p4[3][2] << ", "  <<  p4[3][3] << "\n";
-      std::cout << "p4[4] = "  << p4[4][0] << ", " <<  p4[4][1] << ", "  <<  p4[4][2] << ", "  <<  p4[4][3] << "\n";
+    if (verbosity >= TVar::DEBUG){
+      for (int i=0; i<5; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]*100. << '\t' << p4[i][2]*100. << '\t' << p4[i][3]*100. << '\t' << p4[i][0]*100. << std::endl;
     }
 
 
