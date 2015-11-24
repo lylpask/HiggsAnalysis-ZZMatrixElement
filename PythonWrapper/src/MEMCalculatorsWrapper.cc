@@ -50,9 +50,6 @@ MEMCalculatorsWrapper::computeAll(TLorentzVector Z1_lept1, int Z1_lept1Id,
     ps.push_back(Z2_lept1);
     ps.push_back(Z2_lept2);
 
-    if ( Z2_lept1Id == Z2_lept2Id)
-      Z2_lept2Id=-Z2_lept2Id;
-
 
     std::vector<int> id;
     id.push_back(Z1_lept1Id);
@@ -82,7 +79,6 @@ MEMCalculatorsWrapper::computeNew(
     partP.emplace_back(Z2_lept1.Px(),Z2_lept1.Py(),Z2_lept1.Pz(),Z2_lept1.E());
     partP.emplace_back(Z2_lept2.Px(),Z2_lept2.Py(),Z2_lept2.Pz(),Z2_lept2.E());
 
-    if (Z2_lept1Id == Z2_lept2Id) Z2_lept2Id = -Z2_lept2Id;
     std::vector<int> partId;
     partId.push_back(Z1_lept1Id);
     partId.push_back(Z1_lept2Id);
