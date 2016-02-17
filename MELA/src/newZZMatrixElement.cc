@@ -1,23 +1,28 @@
 #include "ZZMatrixElement/MELA/interface/newZZMatrixElement.h"
 #include "TLorentzRotation.h"
 
-newZZMatrixElement::newZZMatrixElement(const char* pathtoHiggsCSandWidth,
-				       double ebeam,
-				       TVar::VerbosityLevel verbosity):
-
+newZZMatrixElement::newZZMatrixElement(
+  const char* pathtoPDFSet,
+  int PDFMember,
+  const char* pathtoHiggsCSandWidth,
+  double ebeam,
+  TVar::VerbosityLevel verbosity
+  ) :
   verb(verbosity),
-  Xcal2(pathtoHiggsCSandWidth,ebeam),
+  Xcal2(pathtoHiggsCSandWidth, ebeam, pathtoPDFSet, PDFMember),
   hzz4l_event(),
   vh_event(),
   tth_event(),
   EBEAM(ebeam)
-				       {
-// Set default parameters explicitly
+{
+  // Set default parameters explicitly
   mHiggs = 125.;
   wHiggs = -1;
   myLeptonInterference = TVar::DefaultLeptonInterf;
 
-  //std::cout << "TEST" << std::endl;
+  selfD_SpinZeroCouplings = Xcal2.GetSelfDSpinZeroCouplings();
+  selfD_SpinOneCouplings = Xcal2.GetSelfDSpinOneCouplings();
+  selfD_SpinTwoCouplings = Xcal2.GetSelfDSpinTwoCouplings();
 }
 
 std::vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx,double M1,double M2,double theta,double theta1,double theta2,double Phi1,double Phi){
@@ -76,8 +81,8 @@ std::vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx,dou
     return p;
 }
 
-void newZZMatrixElement::set_LHAgrid(const char* path){
-  Xcal2.Set_LHAgrid(path);
+void newZZMatrixElement::set_LHAgrid(const char* path, int pdfmember){
+  Xcal2.Set_LHAgrid(path, pdfmember);
 }
 void newZZMatrixElement::set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_){
   myModel=process_; myME=me_; myProduction=production_;
@@ -91,15 +96,100 @@ void newZZMatrixElement::set_wHiggs(float myPoleWidth){
 void newZZMatrixElement::set_LeptonInterference(TVar::LeptonInterference myLepInterf){
 	myLeptonInterference = myLepInterf;
 }
-void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
-  Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
-}
-
 void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
   Xcal2.SetRenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
+void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
+  Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
+}
+void newZZMatrixElement::resetPerEvent(){
+  if (wHiggs>=0){
+    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
+    Xcal2.SetHiggsMass(mHiggs, -1);
+  }
+  if (myLeptonInterference != TVar::DefaultLeptonInterf){
+    set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
+    Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
+  }
+}
 
-void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
+MelaIO* newZZMatrixElement::get_IORecord(){ return Xcal2.GetIORecord(); }
+
+void newZZMatrixElement::set_SpinZeroCouplings(
+  double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
+  double selfDHqqcoupl[SIZE_HQQ][2],
+  double selfDHggcoupl[SIZE_HGG][2],
+  double selfDHzzcoupl[SIZE_HVV][2],
+  double selfDHwwcoupl[SIZE_HVV][2],
+  double selfDHzzLambda_qsq[4][3],
+  double selfDHwwLambda_qsq[4][3],
+  int selfDHzzCLambda_qsq[3],
+  int selfDHwwCLambda_qsq[3],
+  bool diffHWW
+  ){
+  Xcal2.AllowSeparateWWCouplings(diffHWW);
+  for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfD_SpinZeroCouplings->SetHVVFreeNormCouplings(ic, selfDHvvcoupl_freenorm[ic]);
+  for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHqqcoupl[ic][0], selfDHqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHggcoupl[ic][0], selfDHggcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[ic][0], selfDHzzcoupl[ic][1], false, false);
+  for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[ic][0], selfDHwwcoupl[ic][1], false, true);
+  for (int ik=0; ik<3; ik++){
+    for (int ig=0; ig<4; ig++){
+      selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHzzLambda_qsq[ig][ik], false);
+      selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHwwLambda_qsq[ig][ik], true);
+    }
+    selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHzzCLambda_qsq[ik], false);
+    selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHwwCLambda_qsq[ik], true);
+  }
+}
+void newZZMatrixElement::set_SpinZeroCouplings_NoGamma(
+  double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
+  double selfDHqqcoupl[SIZE_HQQ][2],
+  double selfDHggcoupl[SIZE_HGG][2],
+  double selfDHzzcoupl[SIZE_HVV_VBF][2],
+  double selfDHwwcoupl[SIZE_HVV_VBF][2],
+  double selfDHzzLambda_qsq[4][3],
+  double selfDHwwLambda_qsq[4][3],
+  int selfDHzzCLambda_qsq[3],
+  int selfDHwwCLambda_qsq[3],
+  bool diffHWW
+  ){
+  Xcal2.AllowSeparateWWCouplings(diffHWW);
+  for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfD_SpinZeroCouplings->SetHVVFreeNormCouplings(ic, selfDHvvcoupl_freenorm[ic]);
+  for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHqqcoupl[ic][0], selfDHqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHggcoupl[ic][0], selfDHggcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_HVV_VBF; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[ic][0], selfDHzzcoupl[ic][1], true, false);
+  for (int ic=0; ic<SIZE_HVV_VBF; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[ic][0], selfDHwwcoupl[ic][1], true, true);
+  for (int ik=0; ik<3; ik++){
+    for (int ig=0; ig<4; ig++){
+      selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHzzLambda_qsq[ig][ik], false);
+      selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHwwLambda_qsq[ig][ik], true);
+    }
+    selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHzzCLambda_qsq[ik], false);
+    selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHwwCLambda_qsq[ik], true);
+  }
+}
+void newZZMatrixElement::set_SpinOneCouplings(
+  double selfDZqqcoupl[SIZE_ZQQ][2],
+  double selfDZvvcoupl[SIZE_ZVV][2]
+  ){
+  for (int ic=0; ic<SIZE_ZQQ; ic++) selfD_SpinOneCouplings->SetZQQCouplings(ic, selfDZqqcoupl[ic][0], selfDZqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_ZVV; ic++) selfD_SpinOneCouplings->SetZVVCouplings(ic, selfDZvvcoupl[ic][0], selfDZvvcoupl[ic][1]);
+}
+void newZZMatrixElement::set_SpinTwoCouplings(
+  double selfDGqqcoupl[SIZE_GQQ][2],
+  double selfDGggcoupl[SIZE_GGG][2],
+  double selfDGvvcoupl[SIZE_GVV][2]
+  ){
+  for (int ic=0; ic<SIZE_GQQ; ic++) selfD_SpinTwoCouplings->SetGQQCouplings(ic, selfDGqqcoupl[ic][0], selfDGqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_GGG; ic++) selfD_SpinTwoCouplings->SetGGGCouplings(ic, selfDGggcoupl[ic][0], selfDGggcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_GVV; ic++) selfD_SpinTwoCouplings->SetGVVCouplings(ic, selfDGvvcoupl[ic][0], selfDGvvcoupl[ic][1]);
+}
+
+
+
+void newZZMatrixElement::computeXS(
+  float mZZ, float mZ1, float mZ2,
   float costhetastar,
   float costheta1,
   float costheta2,
@@ -109,16 +199,9 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
   TVar::Process process_,
   TVar::MatrixElement me_,
   TVar::Production production_,
-  double couplingvals[SIZE_HVV_FREENORM],
-  double selfDHvvcoupl[SIZE_HVV][2],
-  double selfDZqqcoupl[SIZE_ZQQ][2],
-  double selfDZvvcoupl[SIZE_ZVV][2],
-  double selfDGqqcoupl[SIZE_GQQ][2],
-  double selfDGggcoupl[SIZE_GGG][2],
-  double selfDGvvcoupl[SIZE_GVV][2],
   float &mevalue
   ){
-  // Higgs + 2 jets: SBF or WBF
+  // Higgs + 0 jets
 
   set_Process(process_, me_, production_);
 
@@ -193,15 +276,9 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
   Xcal2.SetLeptonInterf(myLeptonInterference);
-  mevalue = Xcal2.XsecCalc(process_, production_, hzz4l_event, verb, couplingvals, selfDHvvcoupl, selfDZqqcoupl, selfDZvvcoupl, selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
-  if (wHiggs>=0){
-    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-    Xcal2.SetHiggsMass(mHiggs, -1);
-  }
-  if (myLeptonInterference != TVar::DefaultLeptonInterf){
-    set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
-    Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
-  }
+  mevalue = Xcal2.XsecCalc(process_, production_, hzz4l_event, verb);
+
+  resetPerEvent();
   return;
 }
 
@@ -213,8 +290,6 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
   TVar::Process process_,
   TVar::MatrixElement me_,
   TVar::Production production_,
-  double selfDHvvcoupl[SIZE_HVV][2],
-  double selfDHwwcoupl[SIZE_HVV][2],
   float& mevalue
   ){
   set_Process(process_, me_, production_);
@@ -237,15 +312,9 @@ void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
   Xcal2.SetLeptonInterf(myLeptonInterference);
-  mevalue = Xcal2.XsecCalc_VVXVV(process_, production_, hzz4l_event, verb, selfDHvvcoupl, selfDHwwcoupl);
-  if (wHiggs>=0){
-    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-    Xcal2.SetHiggsMass(mHiggs, -1);
-  }
-  if (myLeptonInterference != TVar::DefaultLeptonInterf){
-    set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
-    Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
-  }
+  mevalue = Xcal2.XsecCalc_VVXVV(process_, production_, hzz4l_event, verb);
+
+  resetPerEvent();
   return;
 }
 
@@ -255,9 +324,6 @@ void newZZMatrixElement::computeProdXS_JJH(TLorentzVector jet1,
                TVar::Process process_,
                TVar::MatrixElement me_,
                TVar::Production production_,
-               double selfDHggcoupl[SIZE_HGG][2],
-               double selfDHvvcoupl[SIZE_HVV_VBF][2],
-               double selfDHwwcoupl[SIZE_HWW_VBF][2],
 				       float &mevalue){
   set_Process(process_, me_, production_);
 
@@ -271,11 +337,8 @@ void newZZMatrixElement::computeProdXS_JJH(TLorentzVector jet1,
   mevalue  = Xcal2.XsecCalcXJJ(
     process_, production_,
     p4,
-	  verb,
-	  selfDHggcoupl,
-	  selfDHvvcoupl,
-	  selfDHwwcoupl
-	  );
+	  verb
+    );
   
   return;
 }
@@ -316,9 +379,8 @@ void newZZMatrixElement::computeProdXS_VH(
               TVar::MatrixElement me_,
               TVar::Production production_,
 
-              double selfDHvvcoupl[SIZE_HVV_VBF][2],
-              float &mevalue){
-
+              float &mevalue
+              ){
 // Dedicated VH function
 
   set_Process(process_, me_, production_);
@@ -354,14 +416,10 @@ void newZZMatrixElement::computeProdXS_VH(
   mevalue  = Xcal2.XsecCalc_VX(
     process_, production_,
     vh_event,
-    verb,
-    selfDHvvcoupl
+    verb
     );
-  if (wHiggs>=0){
-    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-    Xcal2.SetHiggsMass(mHiggs, -1);
-  }
 
+  resetPerEvent();
   return;
 }
 
@@ -374,7 +432,6 @@ void newZZMatrixElement::computeProdXS_ttH(
   TVar::Process process_,
   TVar::MatrixElement me_,
   TVar::Production production_,
-  double selfDHvvcoupl[SIZE_TTH][2],
   float &mevalue){
   // Dedicated ttH function
 
@@ -383,18 +440,6 @@ void newZZMatrixElement::computeProdXS_ttH(
   Xcal2.SetMatrixElement(me_);
   Xcal2.SetProduction(production_);
   Xcal2.SetProcess(process_);
-
-  if (process_ == TVar::SelfDefine_spin0){
-    bool noCoupl=true;
-    for (int iX=0; iX<SIZE_TTH; iX++){
-      for (int iY=0; iY<2; iY++){
-        if (selfDHvvcoupl[iX][iY]!=0) noCoupl=false;
-      }
-    }
-    if (noCoupl){
-      mevalue=0;
-    }
-  }
 
   tth_event.p[0] = Higgs;
   for (int vv=0; vv<6; vv++) tth_event.p[vv+1] = vTTH[vv];
@@ -410,16 +455,11 @@ void newZZMatrixElement::computeProdXS_ttH(
       process_, production_,
       tth_event,
       topDecay, topProcess,
-      verb,
-      selfDHvvcoupl
+      verb
       );
   }
   
-  if (wHiggs>=0){
-      set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-      Xcal2.SetHiggsMass(mHiggs, -1);
-  }
-
+  resetPerEvent();
   return;
 }
 

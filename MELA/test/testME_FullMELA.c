@@ -91,6 +91,24 @@ float getJHUGenMELAWeight(Mela& myMela, int lepId[4], float angularOrdered[8], d
 		);
 	return myprob;
 };
+float getJHUGenMELAWeight_NoSelfD(Mela& myMela, int lepId[4], float angularOrdered[8]){
+  float myprob=1.0;
+  int myflavor=-1;
+  if (abs(lepId[0])==abs(lepId[1]) &&
+    abs(lepId[0])==abs(lepId[2]) &&
+    abs(lepId[0])==abs(lepId[3])){
+    if (abs(lepId[0])==11) myflavor=1;
+    else myflavor=2;
+  }
+  else myflavor=3;
+
+  if (myflavor>=0) myMela.computeP(angularOrdered[0], angularOrdered[1], angularOrdered[2], angularOrdered[3],
+    angularOrdered[4], angularOrdered[5], angularOrdered[6], angularOrdered[7],
+    myflavor,
+    myprob
+    );
+  return myprob;
+};
 float getSuperMELA(Mela& myMela, int lepId[4], float mZZ, TVar::SuperMelaSyst syst){
 	float myprob=1.0;
 	TVar::LeptonFlavor myflavor=TVar::Flavor_Dummy;
@@ -1490,38 +1508,49 @@ void testME_FullMELA_FullSimMCValidation(int flavor=1){
 
 		mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
-		selfDHvvcoupl[0][0]=1;
+    mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
+    selfDHvvcoupl[0][0]=1;
 		selfDHvvcoupl[1][0]=0;
 		selfDHvvcoupl[1][1]=0;
 		selfDHvvcoupl[3][0]=0;
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=0;
 		selfDHvvcoupl[11][1]=0;
-		p0plus_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
+    p0plus_VAJHU_NEW = getJHUGenMELAWeight_NoSelfD(mela, lepIdOrdered, angularOrdered);
+//    p0plus_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
 
-		selfDHvvcoupl[0][0]=0;
-		selfDHvvcoupl[1][0]=1;
+    mela.setProcess(TVar::H0hplus, TVar::JHUGen, TVar::ZZGG);
+    selfDHvvcoupl[0][0]=0;
+		selfDHvvcoupl[1][0]=1.638;
 		selfDHvvcoupl[1][1]=0;
 		selfDHvvcoupl[3][0]=0;
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=0;
-		p0hplus_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
+    p0hplus_VAJHU_NEW = getJHUGenMELAWeight_NoSelfD(mela, lepIdOrdered, angularOrdered);
+//    p0hplus_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
 
-		selfDHvvcoupl[0][0]=0;
+    mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::ZZGG);
+    selfDHvvcoupl[0][0]=0;
 		selfDHvvcoupl[1][0]=0;
 		selfDHvvcoupl[1][1]=0;
-		selfDHvvcoupl[3][0]=1;
+		selfDHvvcoupl[3][0]=2.521;
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=0;
-		p0minus_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
+    p0minus_VAJHU_NEW = getJHUGenMELAWeight_NoSelfD(mela, lepIdOrdered, angularOrdered);
+//    p0minus_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
 
-		selfDHvvcoupl[0][0]=0;
+    mela.setProcess(TVar::H0_g1prime2, TVar::JHUGen, TVar::ZZGG);
+    selfDHvvcoupl[0][0]=0;
 		selfDHvvcoupl[1][0]=0;
 		selfDHvvcoupl[1][1]=0;
 		selfDHvvcoupl[3][0]=0;
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=-12046.01;
-		p0_g1prime2_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
+    p0_g1prime2_VAJHU_NEW = getJHUGenMELAWeight_NoSelfD(mela, lepIdOrdered, angularOrdered);
+//    p0_g1prime2_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
+
+
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
 		selfDHvvcoupl[0][0]=1;
 		selfDHvvcoupl[1][0]=1.638;
@@ -1530,7 +1559,7 @@ void testME_FullMELA_FullSimMCValidation(int flavor=1){
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=0;
 		pg1g2_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
-		pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + pow(1.638,2)*p0hplus_VAJHU_NEW);
+		pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
 		selfDHvvcoupl[0][0]=1;
 		selfDHvvcoupl[1][0]=0;
@@ -1539,7 +1568,7 @@ void testME_FullMELA_FullSimMCValidation(int flavor=1){
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=0;
 		pg1g2_pi2_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
-		pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + pow(1.638,2)*p0hplus_VAJHU_NEW);
+		pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
 		selfDHvvcoupl[0][0]=1;
 		selfDHvvcoupl[1][0]=0;
@@ -1548,7 +1577,7 @@ void testME_FullMELA_FullSimMCValidation(int flavor=1){
 		selfDHvvcoupl[3][1]=0;
 		selfDHvvcoupl[11][0]=0;
 		pg1g4_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
-		pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + pow(2.521,2)*p0minus_VAJHU_NEW);
+		pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
 		selfDHvvcoupl[0][0]=1;
 		selfDHvvcoupl[1][0]=0;
@@ -1557,7 +1586,7 @@ void testME_FullMELA_FullSimMCValidation(int flavor=1){
 		selfDHvvcoupl[3][1]=2.521;
 		selfDHvvcoupl[11][0]=0;
 		pg1g4_pi2_VAJHU_NEW = getJHUGenMELAWeight(mela, lepIdOrdered, angularOrdered, selfDHvvcoupl);
-		pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + pow(2.521,2)*p0minus_VAJHU_NEW);
+		pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
 		selfDHvvcoupl[0][0]=1;
 		selfDHvvcoupl[1][0]=0;
@@ -1589,13 +1618,13 @@ void testME_FullMELA_FullSimMCValidation(int flavor=1){
 //		bkg_VAMCFM_TU = getMCFMMELAWeight(mela, lepIdOrdered, angularOrdered, ggvvcoupl,1); // |qqZZ|**2
 
 		newtree->Fill();
-	};
+	}
 
 
 	foutput->WriteTObject(newtree);
 	foutput->Close();
 	finput->Close();
-};
+}
 
 void testME_FullMELA_MCFMBSMHiggs(int flavor=1){
 	int erg_tev=8;
@@ -2111,7 +2140,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
   int nEntries = tree->GetEntries();
   double selfDHggcoupl[SIZE_HGG][2] ={ { 0 } };
   double selfDHvvcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
-  double selfDHwwcoupl[SIZE_HWW_VBF][2] ={ { 0 } };
+  double selfDHwwcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
   double selfDTotalHvvcoupl[SIZE_HVV][2] ={ { 0 } };
   double selfDTotalHwwcoupl[SIZE_HVV][2] ={ { 0 } };
   double ggvvcoupl[2]={ 0, 0 };
@@ -2275,7 +2304,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       mela.computeProdP(jet1, 0, jet2, 0, higgs, 25, nullFourVector, 0, selfDHggcoupl, selfDHvvcoupl, selfDHwwcoupl, pvbf0plus_VAJHU);
@@ -2283,14 +2312,14 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
 
 /*
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[1][0]=1.638;
       selfDHwwcoupl[1][0]=1.638*multiplierWW;
       mela.computeProdP(jet1, 0, jet2, 0, higgs, 25, nullFourVector, 0, selfDHggcoupl, selfDHvvcoupl, selfDHwwcoupl, pvbf0hplus_VAJHU);
       pvbf0hplus_VAJHU *= p0hplus_VAJHU;
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[3][0]=2.521;
       selfDHwwcoupl[3][0]=2.521*multiplierWW;
       mela.computeProdP(jet1, 0, jet2, 0, higgs, 25, nullFourVector, 0, selfDHggcoupl, selfDHvvcoupl, selfDHwwcoupl, pvbf0minus_VAJHU);
@@ -2298,7 +2327,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
 
 */
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[11][0]=-12046.01;
       selfDHwwcoupl[11][0]=-12046.01*multiplierWW;
       mela.computeProdP(jet1, 0, jet2, 0, higgs, 25, nullFourVector, 0, selfDHggcoupl, selfDHvvcoupl, selfDHwwcoupl, pvbf0_g1prime2_VAJHU);
@@ -2306,7 +2335,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
 
 /*
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       selfDHvvcoupl[1][0]=1.638;
@@ -2315,7 +2344,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
       pvbfg1g2_VAJHU *= pg1g2_VAJHU;
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       selfDHvvcoupl[1][1]=1.638;
@@ -2324,7 +2353,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
       pvbfg1g2_pi2_VAJHU *= pg1g2_pi2_VAJHU;
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       selfDHvvcoupl[3][0]=2.521;
@@ -2333,7 +2362,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
       pvbfg1g4_VAJHU *= pg1g4_VAJHU;
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       selfDHvvcoupl[3][1]=2.521;
@@ -2343,7 +2372,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
 
 */
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       selfDHvvcoupl[11][0]=-12046.01;
@@ -2352,7 +2381,7 @@ void testME_FullMELA_BSMMCFMVBF(float multiplierWW=1, int flavor=0){
       pvbfg1g1prime2_VAJHU *= pg1g1prime2_VAJHU;
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1.*multiplierWW;
       selfDHvvcoupl[11][1]=-12046.01;
@@ -3191,10 +3220,9 @@ void testME_FullMELA_FullSimMCValidation_NonSpin0(int flavor=1){
 	int nEntries = tree->GetEntries();
 	double selfDHvvcoupl[SIZE_HVV][2] = { { 0 } };
 	double ggvvcoupl[2]={0,0};
-	mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 //	for (int ev = 0; ev < nEntries; ev++){
 //	for (int ev = 0; ev < 100; ev++){
-	for (int ev = 0; ev < 100; ev++){
+	for (int ev = 0; ev < 1000; ev++){
 		tree->GetEntry(ev);
 
 		int lepIdOrdered[4]={ 11,-11,11,-11 };
@@ -3940,7 +3968,7 @@ void testME_FullMELA_FullSimMC_VBFValidation (int flavor=1){
 	int nEntries = tree->GetEntries();
 	double selfDHggcoupl[SIZE_HGG][2] = { { 0 } };
 	double selfDHvvcoupl[SIZE_HVV_VBF][2] = { { 0 } };
-	double selfDHwwcoupl[SIZE_HWW_VBF][2] = { { 0 } };
+	double selfDHwwcoupl[SIZE_HVV_VBF][2] = { { 0 } };
 	double ggvvcoupl[2]={0,0};
 	mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 	int recorded=0;
@@ -3975,7 +4003,7 @@ void testME_FullMELA_FullSimMC_VBFValidation (int flavor=1){
       mela.computeProdP(jet1, 2, jet2, 2, higgs, 25, nullFourVector, 0, phjj0minus_VAJHU_old_NEW);
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       for (int xx = 0; xx < SIZE_HGG; xx++){ for (int yy = 0; yy < 2; yy++) selfDHggcoupl[xx][yy] = 0; }
       selfDHvvcoupl[0][0]=1;
       selfDHwwcoupl[0][0]=1;
@@ -3986,7 +4014,7 @@ void testME_FullMELA_FullSimMC_VBFValidation (int flavor=1){
       mela.computeProdP(jet1, 2, jet2, 2, higgs, 25, nullFourVector, 0, selfDHggcoupl, selfDHvvcoupl, selfDHwwcoupl, phjj_VAJHU_old_NEW_selfD);
 
       for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHvvcoupl[xx][yy] = 0; }
-      for (int xx = 0; xx < SIZE_HWW_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
+      for (int xx = 0; xx < SIZE_HVV_VBF; xx++){ for (int yy = 0; yy < 2; yy++) selfDHwwcoupl[xx][yy] = 0; }
       for (int xx = 0; xx < SIZE_HGG; xx++){ for (int yy = 0; yy < 2; yy++) selfDHggcoupl[xx][yy] = 0; }
       selfDHvvcoupl[3][0]=1;
       selfDHwwcoupl[3][0]=1;
@@ -4090,7 +4118,7 @@ void testME_FullMELA_FullSimMC_HJValidation (int flavor=1){
 	int nEntries = tree->GetEntries();
 	double selfDHggcoupl[SIZE_HGG][2] = { { 0 } };
 	double selfDHvvcoupl[SIZE_HVV_VBF][2] = { { 0 } };
-	double selfDHwwcoupl[SIZE_HWW_VBF][2] = { { 0 } };
+	double selfDHwwcoupl[SIZE_HVV_VBF][2] = { { 0 } };
 	double ggvvcoupl[2]={0,0};
 	mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 	int recorded=0;
@@ -4214,7 +4242,7 @@ void testME_FullMELA_FullSimMC_VHValidation (int flavor=1){
 	int nEntries = tree->GetEntries();
 	double selfDHggcoupl[SIZE_HGG][2] = { { 0 } };
 	double selfDHvvcoupl[SIZE_HVV_VBF][2] = { { 0 } };
-	double selfDHwwcoupl[SIZE_HWW_VBF][2] = { { 0 } };
+	double selfDHwwcoupl[SIZE_HVV_VBF][2] = { { 0 } };
 	double ggvvcoupl[2]={0,0};
 	mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 	int recorded=0;
@@ -4536,7 +4564,7 @@ void testME_FullMELA_FullSimMC_ttHValidation(int flavor=1){
 
 
   int nEntries = tree->GetEntries();
-  double selfDHttcoupl[SIZE_TTH][2] ={ { 0 } };
+  double selfDHttcoupl[SIZE_HQQ][2] ={ { 0 } };
   mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ttH);
   int recorded=0;
   for (int ev = 0; ev < nEntries; ev++){

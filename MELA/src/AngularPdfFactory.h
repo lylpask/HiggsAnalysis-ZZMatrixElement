@@ -67,112 +67,112 @@ public:
 
   AngularPdfFactory(){};
 
-  AngularPdfFactory(RooRealVar* m1,RooRealVar* m2,RooRealVar* h1,RooRealVar* h2,RooRealVar* Phi,RooRealVar* mZZ){
+  AngularPdfFactory(RooRealVar* m1, RooRealVar* m2, RooRealVar* h1, RooRealVar* h2, RooRealVar* Phi, RooRealVar* mZZ){
 
     // Parameters
-    mZ     = new RooRealVar("mZ","mZ",91.188);
-    gamZ   = new RooRealVar("gamZ","gamZ",2.5);
-           
-    a1Val  = new RooRealVar("a1Val","a1Val",1);
-    phi1Val= new RooRealVar("phi1Val","phi1Val",0);
-    a2Val  = new RooRealVar("a2Val","a2Val",0);
-    phi2Val= new RooRealVar("phi2Val","phi2Val",0);
-    a3Val  = new RooRealVar("a3Val","a3Val",0);
-    phi3Val= new RooRealVar("phi3Val","phi3Val",0);
-           
-    useGTerm = new RooRealVar("useGTerm","useGTerm",1.);
-    g1Val = new RooRealVar("g1Val","g1Val",0.);
-    g2Val = new RooRealVar("g2Val","g2Val",0.);
-    g3Val = new RooRealVar("g3Val","g3Val",0.);
-    g4Val = new RooRealVar("g4Val","g4Val",0.);
+    mZ     = new RooRealVar("mZ", "mZ", 91.188);
+    gamZ   = new RooRealVar("gamZ", "gamZ", 2.5);
 
-    g1_primeVal =  new RooRealVar("g1_primeVal", "g1_primeVal",0.);
-    g1_prime2Val = new RooRealVar("g1_prime2Val","g1_prime2Val",0.);
-    g1_prime3Val = new RooRealVar("g1_prime3Val","g1_prime3Val",0.);
-    g1_prime4Val = new RooRealVar("g1_prime4Val","g1_prime4Val",0.);
-    g1_prime5Val = new RooRealVar("g1_prime5Val","g1_prime5Val",0.);
-    g1_prime6Val = new RooRealVar("g1_prime6Val","g1_prime6Val",0.);
-    g1_prime7Val = new RooRealVar("g1_prime7Val","g1_prime7Val",0.);
+    a1Val  = new RooRealVar("a1Val", "a1Val", 1);
+    phi1Val= new RooRealVar("phi1Val", "phi1Val", 0);
+    a2Val  = new RooRealVar("a2Val", "a2Val", 0);
+    phi2Val= new RooRealVar("phi2Val", "phi2Val", 0);
+    a3Val  = new RooRealVar("a3Val", "a3Val", 0);
+    phi3Val= new RooRealVar("phi3Val", "phi3Val", 0);
+
+    useGTerm = new RooRealVar("useGTerm", "useGTerm", 1.);
+    g1Val = new RooRealVar("g1Val", "g1Val", 0.);
+    g2Val = new RooRealVar("g2Val", "g2Val", 0.);
+    g3Val = new RooRealVar("g3Val", "g3Val", 0.);
+    g4Val = new RooRealVar("g4Val", "g4Val", 0.);
+
+    g1_primeVal =  new RooRealVar("g1_primeVal", "g1_primeVal", 0.);
+    g1_prime2Val = new RooRealVar("g1_prime2Val", "g1_prime2Val", 0.);
+    g1_prime3Val = new RooRealVar("g1_prime3Val", "g1_prime3Val", 0.);
+    g1_prime4Val = new RooRealVar("g1_prime4Val", "g1_prime4Val", 0.);
+    g1_prime5Val = new RooRealVar("g1_prime5Val", "g1_prime5Val", 0.);
+    g1_prime6Val = new RooRealVar("g1_prime6Val", "g1_prime6Val", 0.);
+    g1_prime7Val = new RooRealVar("g1_prime7Val", "g1_prime7Val", 0.);
 
 
-    g2_primeVal =  new RooRealVar("g2_primeVal", "g2_primeVal",0.);
-    g2_prime2Val = new RooRealVar("g2_prime2Val","g2_prime2Val",0.);
-    g2_prime3Val = new RooRealVar("g2_prime3Val","g2_prime3Val",0.);
-    g2_prime4Val = new RooRealVar("g2_prime4Val","g2_prime4Val",0.);
-    g2_prime5Val = new RooRealVar("g2_prime5Val","g2_prime5Val",0.);
-    g2_prime6Val = new RooRealVar("g2_prime6Val","g2_prime6Val",0.);
-    g2_prime7Val = new RooRealVar("g2_prime7Val","g2_prime7Val",0.);
+    g2_primeVal =  new RooRealVar("g2_primeVal", "g2_primeVal", 0.);
+    g2_prime2Val = new RooRealVar("g2_prime2Val", "g2_prime2Val", 0.);
+    g2_prime3Val = new RooRealVar("g2_prime3Val", "g2_prime3Val", 0.);
+    g2_prime4Val = new RooRealVar("g2_prime4Val", "g2_prime4Val", 0.);
+    g2_prime5Val = new RooRealVar("g2_prime5Val", "g2_prime5Val", 0.);
+    g2_prime6Val = new RooRealVar("g2_prime6Val", "g2_prime6Val", 0.);
+    g2_prime7Val = new RooRealVar("g2_prime7Val", "g2_prime7Val", 0.);
 
-    g3_primeVal =  new RooRealVar("g3_primeVal", "g3_primeVal",0.);
-    g3_prime2Val = new RooRealVar("g3_prime2Val","g3_prime2Val",0.);
-    g3_prime3Val = new RooRealVar("g3_prime3Val","g3_prime3Val",0.);
-    g3_prime4Val = new RooRealVar("g3_prime4Val","g3_prime4Val",0.);
-    g3_prime5Val = new RooRealVar("g3_prime5Val","g3_prime5Val",0.);
-    g3_prime6Val = new RooRealVar("g3_prime6Val","g3_prime6Val",0.);
-    g3_prime7Val = new RooRealVar("g3_prime7Val","g3_prime7Val",0.);
+    g3_primeVal =  new RooRealVar("g3_primeVal", "g3_primeVal", 0.);
+    g3_prime2Val = new RooRealVar("g3_prime2Val", "g3_prime2Val", 0.);
+    g3_prime3Val = new RooRealVar("g3_prime3Val", "g3_prime3Val", 0.);
+    g3_prime4Val = new RooRealVar("g3_prime4Val", "g3_prime4Val", 0.);
+    g3_prime5Val = new RooRealVar("g3_prime5Val", "g3_prime5Val", 0.);
+    g3_prime6Val = new RooRealVar("g3_prime6Val", "g3_prime6Val", 0.);
+    g3_prime7Val = new RooRealVar("g3_prime7Val", "g3_prime7Val", 0.);
 
-    g4_primeVal =  new RooRealVar("g4_primeVal", "g4_primeVal",0.);
-    g4_prime2Val = new RooRealVar("g4_prime2Val","g4_prime2Val",0.);
-    g4_prime3Val = new RooRealVar("g4_prime3Val","g4_prime3Val",0.);
-    g4_prime4Val = new RooRealVar("g4_prime4Val","g4_prime4Val",0.);
-    g4_prime5Val = new RooRealVar("g4_prime5Val","g4_prime5Val",0.);
-    g4_prime6Val = new RooRealVar("g4_prime6Val","g4_prime6Val",0.);
-    g4_prime7Val = new RooRealVar("g4_prime7Val","g4_prime7Val",0.);
+    g4_primeVal =  new RooRealVar("g4_primeVal", "g4_primeVal", 0.);
+    g4_prime2Val = new RooRealVar("g4_prime2Val", "g4_prime2Val", 0.);
+    g4_prime3Val = new RooRealVar("g4_prime3Val", "g4_prime3Val", 0.);
+    g4_prime4Val = new RooRealVar("g4_prime4Val", "g4_prime4Val", 0.);
+    g4_prime5Val = new RooRealVar("g4_prime5Val", "g4_prime5Val", 0.);
+    g4_prime6Val = new RooRealVar("g4_prime6Val", "g4_prime6Val", 0.);
+    g4_prime7Val = new RooRealVar("g4_prime7Val", "g4_prime7Val", 0.);
 
-	R1Val  = new RooRealVar("R1Val","R1Val",0.15);
-    R2Val  = new RooRealVar("R2Val","R2Val",0.15);
+    R1Val  = new RooRealVar("R1Val", "R1Val", 0.15);
+    R2Val  = new RooRealVar("R2Val", "R2Val", 0.15);
 
-	RooRealVar* g1List[] = {
-		g1Val,
-		g1_primeVal,
-		g1_prime2Val,
-		g1_prime3Val,
-		g1_prime4Val,
-		g1_prime5Val,
-		g1_prime6Val,
-		g1_prime7Val
-	};
-	RooRealVar* g2List[] = {
-		g2Val,
-		g2_primeVal,
-		g2_prime2Val,
-		g2_prime3Val,
-		g2_prime4Val,
-		g2_prime5Val,
-		g2_prime6Val,
-		g2_prime7Val
-	};
-	RooRealVar* g3List[] = {
-		g3Val,
-		g3_primeVal,
-		g3_prime2Val,
-		g3_prime3Val,
-		g3_prime4Val,
-		g3_prime5Val,
-		g3_prime6Val,
-		g3_prime7Val
-	};
-	RooRealVar* g4List[] = {
-		g4Val,
-		g4_primeVal,
-		g4_prime2Val,
-		g4_prime3Val,
-		g4_prime4Val,
-		g4_prime5Val,
-		g4_prime6Val,
-		g4_prime7Val
-	};
+    RooRealVar* g1List[] ={
+      g1Val,
+      g1_primeVal,
+      g1_prime2Val,
+      g1_prime3Val,
+      g1_prime4Val,
+      g1_prime5Val,
+      g1_prime6Val,
+      g1_prime7Val
+    };
+    RooRealVar* g2List[] ={
+      g2Val,
+      g2_primeVal,
+      g2_prime2Val,
+      g2_prime3Val,
+      g2_prime4Val,
+      g2_prime5Val,
+      g2_prime6Val,
+      g2_prime7Val
+    };
+    RooRealVar* g3List[] ={
+      g3Val,
+      g3_primeVal,
+      g3_prime2Val,
+      g3_prime3Val,
+      g3_prime4Val,
+      g3_prime5Val,
+      g3_prime6Val,
+      g3_prime7Val
+    };
+    RooRealVar* g4List[] ={
+      g4Val,
+      g4_primeVal,
+      g4_prime2Val,
+      g4_prime3Val,
+      g4_prime4Val,
+      g4_prime5Val,
+      g4_prime6Val,
+      g4_prime7Val
+    };
 
-    PDF = new RooXZsZs_5D("PDF","PDF",*m1,*m2,*h1,*h2,*Phi,
-		*a1Val,*phi1Val,*a2Val,*phi2Val,*a3Val,*phi3Val,
-		*useGTerm,
+    PDF = new RooXZsZs_5D("PDF", "PDF", *m1, *m2, *h1, *h2, *Phi,
+      *a1Val, *phi1Val, *a2Val, *phi2Val, *a3Val, *phi3Val,
+      *useGTerm,
 
-		g1List,
-		g2List,
-		g3List,
-		g4List,
+      g1List,
+      g2List,
+      g3List,
+      g4List,
 
-		*mZ,*gamZ,*mZZ,*R1Val,*R2Val);
+      *mZ, *gamZ, *mZZ, *R1Val, *R2Val);
 
   };
 
@@ -362,7 +362,7 @@ public:
       R2Val->setConstant(kFALSE);
     }
   };
-  double getVal(double mZZ){
+  double getVal(double mZZ){// What is this nonsense?
 
     double Norm[80];
     

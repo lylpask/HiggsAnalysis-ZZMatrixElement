@@ -21,7 +21,10 @@ using namespace std;
 //-----------------------------------------------------------------------------
 // Constructors and Destructor
 //-----------------------------------------------------------------------------
-TEvtProb::TEvtProb(const char* path, double ebeam) :EBEAM(ebeam){
+TEvtProb::TEvtProb(
+  const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember
+  ) :
+  EBEAM(ebeam){
   mcfm_init_((char *)"input.DAT", (char *)"./");
   SetEwkCouplingParameters();
   energy_.sqrts = 2.*EBEAM;
@@ -37,6 +40,9 @@ TEvtProb::TEvtProb(const char* path, double ebeam) :EBEAM(ebeam){
   spinzerohiggs_anomcoupl_.Lambda_z4=10000;
   spinzerohiggs_anomcoupl_.Lambda_Q=10000;
 
+  InitJHUGenMELA(pathtoPDFSet, PDFMember);
+
+  ResetCouplings();
   ResetRenFacScaleMode();
 }
 
@@ -68,42 +74,36 @@ void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double e
 }
 
 // Set NNPDF driver path
-void TEvtProb::Set_LHAgrid(const char* path){
+void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
   char path_nnpdf_c[200];
   sprintf(path_nnpdf_c, "%s", path);
   int pathLength = strlen(path_nnpdf_c);
   nnpdfdriver_(path_nnpdf_c, &pathLength);
-  pathLength=0;
-  nninitpdf_(&pathLength);
+  nninitpdf_(&pdfmember);
 }
 
 //
 // Directly calculate the ZZ->4l differential cross-section 
 // 
-double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const hzz4l_event_type &hzz4l_event,
-  TVar::VerbosityLevel verbosity,
-  double couplingvals[SIZE_HVV_FREENORM],
-  double selfDHvvcoupl[SIZE_HVV][2],
-  double selfDZqqcoupl[SIZE_ZQQ][2],
-  double selfDZvvcoupl[SIZE_ZVV][2],
-  double selfDGqqcoupl[SIZE_GQQ][2],
-  double selfDGggcoupl[SIZE_GGG][2],
-  double selfDGvvcoupl[SIZE_GVV][2]){
+double TEvtProb::XsecCalc(
+  TVar::Process proc, TVar::Production production, const hzz4l_event_type &hzz4l_event,
+  TVar::VerbosityLevel verbosity
+  ){
+  ResetIORecord();
 
   //Initialize Process
   SetProcess(proc);
   SetProduction(production);
+  bool forceUseMCFM = (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs);
 
   int flavor = abs(hzz4l_event.PdgCode[0]) == abs(hzz4l_event.PdgCode[2]) ? 1 : 3;
   bool needBSMHiggs=false;
-  //_process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
-  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
+  if (forceUseMCFM){
     for (int vv = 0; vv < SIZE_HVV; vv++){
-      //if (selfDHvvcoupl[vv][1] != 0 || (vv != 0 && selfDHvvcoupl[vv][0] != 0)){ needBSMHiggs = true; break; }
-      if (selfDHvvcoupl[vv][1] != 0 || selfDHvvcoupl[vv][0] != 0){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
+      if ((selfDSpinZeroCoupl.Hzzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hzzcoupl)[vv][0] != 0){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
-    SetMCFMHiggsDecayCouplings(needBSMHiggs, selfDHvvcoupl, selfDHvvcoupl);
+    SetMCFMSpinZeroVVCouplings(needBSMHiggs, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hzzcoupl));
     My_choose(_process, _production, _leptonInterf, flavor);
   }
 
@@ -154,20 +154,19 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
   mcfm_event.p[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
 
   //event selections in Lab Frame
-  double flavor_msq[nmsq][nmsq];
   double msqjk=0;
-  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
-    msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, flavor_msq, &flux, EBEAM, couplingvals);
-    if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf); // set defaults
-    SetMCFMHiggsDecayCouplings(false, selfDHvvcoupl, selfDHvvcoupl); // set defaults
-  }
-  else if (_matrixElement == TVar::JHUGen) {
-
+  if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
+  else if (_matrixElement == TVar::JHUGen){
+    AllowSeparateWWCouplings(false); // HZZ couplings are used for both in spin-0
     // all the possible couplings
     double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
     double Hvvcoupl[SIZE_HVV][2] ={ { 0 } };
+    double HvvLambda_qsq[4][3] ={ { 0 } };
+    int HvvCLambda_qsq[3] ={ 0 };
+
     double Zqqcoupl[SIZE_ZQQ][2] ={ { 0 } };
     double Zvvcoupl[SIZE_ZVV][2] ={ { 0 } };
+
     double Gqqcoupl[SIZE_GQQ][2] ={ { 0 } };
     double Gggcoupl[SIZE_GGG][2] ={ { 0 } };
     double Gvvcoupl[SIZE_GVV][2] ={ { 0 } };
@@ -175,111 +174,95 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
     // 
     // set spin 0 default numbers
     // 
-
-    // By default set the Spin 0 couplings for SM case
-    Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
-    Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
-    for (int i = 1; i < SIZE_HGG; i++){ for (int com = 0; com < 2; com++) Hggcoupl[i][com] = 0; }
-    for (int i = 1; i<SIZE_HVV; i++){ for (int com=0; com<2; com++) Hvvcoupl[i][com] = 0; }
-
+    // By default set the Spin 0 couplings for SM case (0+m)
+    Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0;
+    Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;
+    for (int ic=0; ic<4; ic++){
+      for (int ik=0; ik<3; ik++) HvvLambda_qsq[ic][ik]=100.;
+    }
     // 
-    // set spin 2 default numbers (2m+)
+    // set spin 2 default numbers (2+m)
     // 
-    Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0; // 2m+
-    for (int i = 1; i<SIZE_GGG; i++){ for (int com=0; com<2; com++) Gggcoupl[i][com] = 0; }
-
     Gqqcoupl[0][0]=1.0;  Gqqcoupl[0][1]=0.0;
     Gqqcoupl[1][0]=1.0;  Gqqcoupl[1][1]=0.0;
-
-    Gvvcoupl[0][0]=1.0;  Gvvcoupl[0][1]=0.0; // 2m+
-    Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-    Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-    Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-    Gvvcoupl[4][0]=1.0;  Gvvcoupl[4][1]=0.0; // 2m+
-    Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-    Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-    Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-    Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-    Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+    Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
+    Gvvcoupl[0][0]=1.0;  Gvvcoupl[0][1]=0.0;
+    Gvvcoupl[4][0]=1.0;  Gvvcoupl[4][1]=0.0;
     //
     // set spin 1 default numbers (1-)
     //
-
-    Zqqcoupl[0][0]=1.0;  Zqqcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
+    Zqqcoupl[0][0]=1.0;  Zqqcoupl[0][1]=0.0;
     Zqqcoupl[1][0]=1.0;  Zqqcoupl[1][1]=0.0;
-    // z->vv coupling constants
     Zvvcoupl[0][0]=1.0;  Zvvcoupl[0][1]=0.0; // 1-
-    for (int i = 1; i<SIZE_ZVV; i++){ for (int com=0; com<2; com++) Zvvcoupl[i][com] = 0; }
 
+    bool isSpinZero = false;
+    bool isSpinOne = false;
+    bool isSpinTwo = false;
+
+    if (_process == TVar::HSMHiggs) isSpinZero = true; // Already the default
     // 0-
-    if (_process == TVar::H0minus) {
+    else if (_process == TVar::H0minus) {
       Hvvcoupl[0][0] = 0.0;
       Hvvcoupl[1][0] = 0.0;
       Hvvcoupl[2][0] = 0.0;
       Hvvcoupl[3][0] = 1.0;
-    }
-
-    if (_process == TVar::H0_Zgs) {
-      Hvvcoupl[4][0] = 0.0688;
-      Hvvcoupl[0][0] = 0.;
-    }
-    if (_process == TVar::H0_gsgs) {
-      Hvvcoupl[7][0] = -0.0898;
-      Hvvcoupl[0][0] = 0.;
-    }
-    if (_process == TVar::H0_Zgs_PS) {
-      Hvvcoupl[6][0] = 0.0855;
-      Hvvcoupl[0][0] = 0.;
-    }
-    if (_process == TVar::H0_gsgs_PS) {
-      Hvvcoupl[9][0] = -0.0907;
-      Hvvcoupl[0][0] = 0.;
-    }
-    if (_process == TVar::H0_Zgsg1prime2) {
-      Hvvcoupl[30][0] = -7591.914; // +- 6.613
-      Hvvcoupl[0][0] = 0.;
-    }
-
-    if (_process == TVar::SelfDefine_spin0){
-      for (int i=0; i<SIZE_HVV; i++){
-        for (int j=0; j<2; j++){
-          Hvvcoupl[i][j] = selfDHvvcoupl[i][j];
-        }
-      }
-    }
-    if (_process == TVar::SelfDefine_spin1){
-      for (int i=0; i<SIZE_ZVV; i++){
-        for (int j=0; j<2; j++){
-          Zvvcoupl[i][j] = selfDZvvcoupl[i][j];
-        }
-      }
-    }
-    if (_process == TVar::SelfDefine_spin2){
-      for (int i=0; i<SIZE_GGG; i++){
-        for (int j=0; j<2; j++){
-          Gggcoupl[i][j] = selfDGggcoupl[i][j];
-        }
-      }
-      for (int i=0; i<SIZE_GVV; i++){
-        for (int j=0; j<2; j++){
-          Gvvcoupl[i][j] = selfDGvvcoupl[i][j];
-        }
-      }
+      isSpinZero = true;
     }
     // 0h+
-    if (_process == TVar::H0hplus) {
+    else if (_process == TVar::H0hplus) {
       Hvvcoupl[0][0] = 0.0;
       Hvvcoupl[1][0] = 1.0;
       Hvvcoupl[2][0] = 0.0;
       Hvvcoupl[3][0] = 0.0;
+      isSpinZero = true;
     }
-    if (_process == TVar::H0_g1prime2){
+    // 0+L1
+    else if (_process == TVar::H0_g1prime2){
       Hvvcoupl[0][0] = 0.;
       Hvvcoupl[11][0] = -12046.01;
+      isSpinZero = true;
     }
+    else if (_process == TVar::H0_Zgs) {
+      Hvvcoupl[4][0] = 0.0688;
+      Hvvcoupl[0][0] = 0.;
+      isSpinZero = true;
+    }
+    else if (_process == TVar::H0_gsgs) {
+      Hvvcoupl[7][0] = -0.0898;
+      Hvvcoupl[0][0] = 0.;
+      isSpinZero = true;
+    }
+    else if (_process == TVar::H0_Zgs_PS) {
+      Hvvcoupl[6][0] = 0.0855;
+      Hvvcoupl[0][0] = 0.;
+      isSpinZero = true;
+    }
+    else if (_process == TVar::H0_gsgs_PS) {
+      Hvvcoupl[9][0] = -0.0907;
+      Hvvcoupl[0][0] = 0.;
+      isSpinZero = true;
+    }
+    else if (_process == TVar::H0_Zgsg1prime2) {
+      Hvvcoupl[30][0] = -7591.914; // +- 6.613
+      Hvvcoupl[0][0] = 0.;
+      isSpinZero = true;
+    }
+    else if (_process == TVar::SelfDefine_spin0){
+      for (int j=0; j<2; j++){
+        for (int i=0; i<SIZE_HGG; i++) Hggcoupl[i][j] = (selfDSpinZeroCoupl.Hggcoupl)[i][j];
+        for (int i=0; i<SIZE_HVV; i++) Hvvcoupl[i][j] = (selfDSpinZeroCoupl.Hzzcoupl)[i][j];
+      }
+      for (int j=0; j<3; j++){
+        for (int i=0; i<4; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
+        HvvCLambda_qsq[j] = (selfDSpinZeroCoupl.HzzCLambda_qsq)[j];
+      }
+      isSpinZero = true;
+    }
+
+
+    else if (_process == TVar::H2_g1g5) isSpinTwo = true; // Already the default
     // 2h-
-    if (_process == TVar::H2_g8){
+    else if (_process == TVar::H2_g8){
       // gg production coupling constants
       Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -298,10 +281,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=1.0;  Gvvcoupl[7][1]=0.0; // 2h-
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2h+
-    if (_process == TVar::H2_g4){
+    else if (_process == TVar::H2_g4){
       // gg production coupling constants
       Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -320,10 +304,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2b+
-    if (_process == TVar::H2_g5){
+    else if (_process == TVar::H2_g5){
       // gg production coupling constants
       Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;  // 2b+
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -342,9 +327,10 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
-    if (_process == TVar::H2_g2){
+      isSpinTwo = true;
+    }
+    else if (_process == TVar::H2_g2){
       // gg production coupling constants
       Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=1.0;  Gggcoupl[1][1]=0.0;
@@ -363,10 +349,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2h3plus
-    if (_process == TVar::H2_g3){
+    else if (_process == TVar::H2_g3){
       // gg production coupling constants
       Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -385,10 +372,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2h6+
-    if (_process == TVar::H2_g6){
+    else if (_process == TVar::H2_g6){
       // gg production coupling constants
       Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -407,10 +395,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2h7plus
-    if (_process == TVar::H2_g7){
+    else if (_process == TVar::H2_g7){
       // gg production coupling constants
       Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -429,10 +418,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2h9minus
-    if (_process == TVar::H2_g9){
+    else if (_process == TVar::H2_g9){
       // gg production coupling constants
       Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -451,10 +441,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=1.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-    }
 
+      isSpinTwo = true;
+    }
     // 2h10minus
-    if (_process == TVar::H2_g10){
+    else if (_process == TVar::H2_g10){
       // gg production coupling constants
       Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
       Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
@@ -473,15 +464,46 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
       Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
       Gvvcoupl[9][0]=1.0;  Gvvcoupl[9][1]=0.0;
+
+      isSpinTwo = true;
     }
-    if (_process == TVar::H1plus) {
+    else if (_process == TVar::SelfDefine_spin2){
+      for (int j=0; j<2; j++){
+        for (int i=0; i<SIZE_GGG; i++) Gggcoupl[i][j] = (selfDSpinTwoCoupl.Gggcoupl)[i][j];
+        for (int i=0; i<SIZE_GQQ; i++) Gqqcoupl[i][j] = (selfDSpinTwoCoupl.Gqqcoupl)[i][j];
+        for (int i=0; i<SIZE_GVV; i++) Gvvcoupl[i][j] = (selfDSpinTwoCoupl.Gvvcoupl)[i][j];
+      }
+      isSpinTwo = true;
+    }
+
+    // 1+
+    else if (_process == TVar::H1plus) {
       // z->vv coupling constants
       Zvvcoupl[0][0]=0.0;  Zvvcoupl[0][1]=0.0;
       Zvvcoupl[1][0]=1.0;  Zvvcoupl[1][1]=0.0; // 1+
+      isSpinOne = true;
     }
-    //cout<<_hwidth<<endl; 
-    msqjk = JHUGenMatEl(_process, _production, &mcfm_event, _hmass, _hwidth, Hggcoupl, Hvvcoupl, Zqqcoupl, Zvvcoupl, Gqqcoupl, Gggcoupl, Gvvcoupl);
+    // 1-
+    else if (_process == TVar::H1minus) isSpinOne = true; // Already the default
+    else if (_process == TVar::SelfDefine_spin1){
+      for (int j=0; j<2; j++){
+        for (int i=0; i<SIZE_ZQQ; i++) Zqqcoupl[i][j] = (selfDSpinOneCoupl.Zqqcoupl)[i][j];
+        for (int i=0; i<SIZE_ZVV; i++) Zvvcoupl[i][j] = (selfDSpinOneCoupl.Zvvcoupl)[i][j];
+      }
+      isSpinOne = true;
+    }
 
+    if (isSpinZero){
+      SetJHUGenSpinZeroGGCouplings(Hggcoupl);
+      SetJHUGenSpinZeroVVCouplings(Hvvcoupl, HvvCLambda_qsq, HvvLambda_qsq, false);
+    }
+    else if (isSpinOne) SetJHUGenSpinOneCouplings(Zqqcoupl, Zvvcoupl);
+    else if (isSpinTwo) SetJHUGenSpinTwoCouplings(Gggcoupl, Gvvcoupl, Gqqcoupl);
+    else{
+      cerr << "TEvtProb::XsecCalc: JHUGen ME is not spin zero, one or two! The process is described by Process: " << _process << ", Production: " << _production << ", and ME: " << _matrixElement << endl;
+      msqjk = 0;
+    }
+    if (isSpinZero || isSpinOne || isSpinTwo) msqjk = JHUGenMatEl(_process, _production, &mcfm_event);
   } // end of JHUGen matrix element calculations
 
   if (msqjk<=0){ mcfm_event.pswt=0; }
@@ -499,6 +521,11 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
       << endl;
   }
 
+  ResetCouplings(); // Should come first
+  if (forceUseMCFM){ // Set defaults. Should come next...
+    if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf);
+    SetMCFMSpinZeroVVCouplings(false, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hzzcoupl)); // ... because of this!
+  }
   ResetRenFacScaleMode();
   return dXsec;
 }
@@ -506,25 +533,27 @@ double TEvtProb::XsecCalc(TVar::Process proc, TVar::Production production, const
 double TEvtProb::XsecCalc_VVXVV(
   TVar::Process proc, TVar::Production production,
   const hzz4l_event_type &hzz4l_event,
-  TVar::VerbosityLevel verbosity,
-  double selfDHvvcoupl[SIZE_HVV][2],
-  double selfDHwwcoupl[SIZE_HVV][2]
+  TVar::VerbosityLevel verbosity
   ){
+  ResetIORecord();
+
   //Initialize Process
   SetProcess(proc);
   SetProduction(production);
-
-  double couplingvals[SIZE_HVV_FREENORM]={ 0 };
+  bool forceUseMCFM = (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs);
 
   int flavor = abs(hzz4l_event.PdgCode[0]) == abs(hzz4l_event.PdgCode[2]) ? 1 : 3;
   bool needBSMHiggs=false;
   // _process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
-  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
+  if (forceUseMCFM){ // Always uses MCFM
     for (int vv = 0; vv < SIZE_HVV; vv++){
-      if (selfDHvvcoupl[vv][1] != 0 || selfDHvvcoupl[vv][0] != 0 || selfDHwwcoupl[vv][1] != 0 || selfDHwwcoupl[vv][0] != 0){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
+      if (
+        (selfDSpinZeroCoupl.Hzzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hzzcoupl)[vv][0] != 0 ||
+        (selfDSpinZeroCoupl.Hwwcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hwwcoupl)[vv][0] != 0
+        ){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
-    SetMCFMHiggsDecayCouplings(needBSMHiggs, selfDHvvcoupl, selfDHwwcoupl);
+    SetMCFMSpinZeroVVCouplings(needBSMHiggs, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hwwcoupl));
     My_choose(_process, _production, _leptonInterf, flavor);
   }
 
@@ -579,20 +608,12 @@ double TEvtProb::XsecCalc_VVXVV(
   mcfm_event.p[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
 
   //event selections in Lab Frame
-  double flavor_msq[nmsq][nmsq];
   double msqjk=0;
-  if (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs){ // Always uses MCFM
-    msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, flavor_msq, &flux, EBEAM, couplingvals);
-    if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf); // set defaults
-    SetMCFMHiggsDecayCouplings(false, selfDHvvcoupl, selfDHwwcoupl); // set defaults
-  }
-
+  if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
   if (msqjk<=0){ mcfm_event.pswt=0; }
-
   flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy())	/(4*W);
   //dXsec=msqjk*flux;
   dXsec=msqjk;
-
 
   if (verbosity >= TVar::DEBUG){
     cout <<"Process " << TVar::ProcessName(_process)
@@ -602,13 +623,18 @@ double TEvtProb::XsecCalc_VVXVV(
       << endl;
   }
 
+  ResetCouplings(); // Should come first
+  if (forceUseMCFM){ // Set defaults. Should come next...
+    if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf);
+    SetMCFMSpinZeroVVCouplings(false, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hzzcoupl)); // ... because of this!
+  }
   ResetRenFacScaleMode();
   return dXsec;
 }
 
 // Cross-section calculations for H + 2 jets
-double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TLorentzVector p4[3], TVar::VerbosityLevel verbosity, double selfDHggcoupl[SIZE_HGG][2], double selfDHvvcoupl[SIZE_HVV_VBF][2], double selfDHwwcoupl[SIZE_HWW_VBF][2]){
-
+double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TLorentzVector p4[3], TVar::VerbosityLevel verbosity){
+  ResetIORecord();
   double dXsec = 0;
 
   // Initialize Process
@@ -620,49 +646,67 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
 
   // first/second number is the real/imaginary part  
   double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
-  double Hvvcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
-  double Hwwcoupl[SIZE_HWW_VBF][2] ={ { 0 } };
+  double Hzzcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
+  double Hwwcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
+  double HzzLambda_qsq[4][3] ={ { 0 } };
+  double HwwLambda_qsq[4][3] ={ { 0 } };
+  int HzzCLambda_qsq[3] ={ 0 };
+  int HwwCLambda_qsq[3] ={ 0 };
+
   Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2 
-  Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0; // g1
+  Hzzcoupl[0][0]=1.0;  Hzzcoupl[0][1]=0.0; // g1
   Hwwcoupl[0][0]=1.0;  Hwwcoupl[0][1]=0.0; // g1
+  for (int ic=0; ic<4; ic++){
+    for (int ik=0; ik<3; ik++){
+      HzzLambda_qsq[ic][ik]=100.;
+      HwwLambda_qsq[ic][ik]=100.;
+    }
+  }
 
   // 0-
   if (_process == TVar::H0minus){
     Hggcoupl[0][0] = 0.0;
     Hggcoupl[2][0] = 1.0;
 
-    Hvvcoupl[0][0] = 0.0;
-    Hvvcoupl[3][0] = 1.0;
+    Hzzcoupl[0][0] = 0.0;
+    Hzzcoupl[3][0] = 1.0;
     Hwwcoupl[0][0] = 0.0;
     Hwwcoupl[3][0] = 1.0;
   }
   // 0+h
   else if (_process == TVar::H0hplus) { // No need to re-set ggcoupl
-    Hvvcoupl[0][0] = 0.0;
-    Hvvcoupl[1][0] = 1.0;
+    Hzzcoupl[0][0] = 0.0;
+    Hzzcoupl[1][0] = 1.0;
     Hwwcoupl[0][0] = 0.0;
     Hwwcoupl[1][0] = 1.0;
   }
   // 0+L1
   else if (_process == TVar::H0_g1prime2){ // No need to re-set ggcoupl
-    Hvvcoupl[0][0] = 0.;
-    Hvvcoupl[5][0] = -12046.01;
+    Hzzcoupl[0][0] = 0.;
+    Hzzcoupl[5][0] = -12046.01;
     Hwwcoupl[0][0] = 0.;
     Hwwcoupl[5][0] = -12046.01;
   }
   else if (_process == TVar::SelfDefine_spin0){
     for (int j=0; j<2; j++){
-      for (int i=0; i<SIZE_HGG; i++){
-        Hggcoupl[i][j] = selfDHggcoupl[i][j];
-      }
+      for (int i=0; i<SIZE_HGG; i++) Hggcoupl[i][j] = (selfDSpinZeroCoupl.Hggcoupl)[i][j];
       for (int i=0; i<SIZE_HVV_VBF; i++){
-        Hvvcoupl[i][j] = selfDHvvcoupl[i][j];
-      }
-      for (int i=0; i<SIZE_HWW_VBF; i++){
-        Hwwcoupl[i][j] = selfDHwwcoupl[i][j];
+        Hzzcoupl[i][j] = (selfDSpinZeroCoupl.Hzzcoupl_NoGamma)[i][j];
+        Hwwcoupl[i][j] = (selfDSpinZeroCoupl.Hwwcoupl_NoGamma)[i][j];
       }
     }
+    for (int j=0; j<3; j++){
+      for (int i=0; i<4; i++){
+        HzzLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
+        HwwLambda_qsq[i][j] = (selfDSpinZeroCoupl.HwwLambda_qsq)[i][j];
+      }
+      HzzCLambda_qsq[j] = (selfDSpinZeroCoupl.HzzCLambda_qsq)[j];
+      HwwCLambda_qsq[j] = (selfDSpinZeroCoupl.HwwCLambda_qsq)[j];
+    }
   }
+  SetJHUGenSpinZeroGGCouplings(Hggcoupl);
+  SetJHUGenSpinZeroVVCouplings_NoGamma(Hzzcoupl, HzzCLambda_qsq, HzzLambda_qsq, false);
+  SetJHUGenSpinZeroVVCouplings_NoGamma(Hwwcoupl, HwwCLambda_qsq, HwwLambda_qsq, true);
 
   // input kinematics 
   //  !----- p1 and p2 used to get hadronic s
@@ -699,24 +743,19 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
 
   // calculate the matrix element squared
   if (_matrixElement == TVar::JHUGen){
-    dXsec = HJJMatEl(_process, _production, _matrixElement, &event_scales, p, Hggcoupl, Hvvcoupl, Hwwcoupl, verbosity, EBEAM);
-    if (verbosity >= TVar::DEBUG){
-      std::cout <<"Process " << TVar::ProcessName(_process)
-        << " TEvtProb::XsecCalc(): dXsec=" << dXsec << endl;
-    }
+    dXsec = HJJMatEl(_process, _production, _matrixElement, &event_scales, &RcdME, p, verbosity, EBEAM);
+    if (verbosity >= TVar::DEBUG) std::cout <<"Process " << TVar::ProcessName(_process) << " TEvtProb::XsecCalc(): dXsec=" << dXsec << endl;
   }
   else std::cout << "Non-JHUGen vbfMELA is not supported!" << std::endl;
 
+  ResetCouplings();
   ResetRenFacScaleMode();
   return dXsec;
 }
 
 // Cross-section calculations for H (SM) + 1 jet
 double TEvtProb::XsecCalcXJ(TVar::Process proc, TVar::Production production, TLorentzVector p4[2], TVar::VerbosityLevel verbosity){
-
-  double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
-  double Hvvcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
-  double Hwwcoupl[SIZE_HWW_VBF][2] ={ { 0 } };
+  ResetIORecord();
   double dXsec = 0;
 
   // Initialize Process
@@ -765,29 +804,27 @@ double TEvtProb::XsecCalcXJ(TVar::Process proc, TVar::Production production, TLo
 
   // calculate the matrix element squared
   if (_matrixElement == TVar::JHUGen){
-    dXsec = HJJMatEl(_process, _production, _matrixElement, &event_scales, p, Hggcoupl, Hvvcoupl, Hwwcoupl, verbosity, EBEAM);
-    if (verbosity >= TVar::DEBUG){
-      std::cout <<"Process " << TVar::ProcessName(_process)
-        << " TEvtProb::XsecCalc(): dXsec=" << dXsec << endl;
-    }
+    dXsec = HJJMatEl(_process, _production, _matrixElement, &event_scales, &RcdME, p, verbosity, EBEAM);
+    if (verbosity >= TVar::DEBUG) std::cout << "Process " << TVar::ProcessName(_process) << " TEvtProb::XsecCalc(): dXsec=" << dXsec << endl;
   }
-  else{
-    std::cout << "Non-JHUGen HJ is not supported!" << std::endl;
-  }
+  else std::cout << "Non-JHUGen HJ is not supported!" << std::endl;
 
   ResetRenFacScaleMode();
   return dXsec;
 }
 
 
-double TEvtProb::XsecCalc_VX(TVar::Process proc, TVar::Production production, vh_event_type &vh_event,
-  TVar::VerbosityLevel verbosity,
-  double selfDHvvcoupl[SIZE_HVV_VBF][2]
+double TEvtProb::XsecCalc_VX(
+  TVar::Process proc, TVar::Production production, vh_event_type &vh_event,
+  TVar::VerbosityLevel verbosity
   ){
+  ResetIORecord();
+  MelaIO RcdME_temp;
 
   //Initialize Process
   SetProcess(proc);
   SetProduction(production);
+  AllowSeparateWWCouplings(false); // HZZ couplings are used for both in spin-0
 
   // 0: Higgs; 1,2: V-daughters
   // PDG ID for V daughters could be passed as 0. While mothers cannot really be gluons, specifying 0 will mean averaging over u,d,c,s,b.
@@ -846,12 +883,17 @@ double TEvtProb::XsecCalc_VX(TVar::Process proc, TVar::Production production, vh
   for (int ipt=0; ipt<4; ipt++) pHdaughter[ipt]=vh_event.pHdecay[ipt];
 
   if (_matrixElement == TVar::JHUGen) {
+    SetJHUGenDistinguishWWCouplings(false); // HZZ couplings are used for both in spin-0
     // Set Couplings at the HVV* vertex
     double Hvvcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
+    double HvvLambda_qsq[4][3] ={ { 0 } };
+    int HvvCLambda_qsq[3] ={ 0 };
 
     // By default set the Spin 0 couplings for SM case
     Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
-    for (int i = 1; i<SIZE_HVV_VBF; i++){ for (int com=0; com<2; com++) Hvvcoupl[i][com] = 0; }
+    for (int ic=0; ic<4; ic++){
+      for (int ik=0; ik<3; ik++) HvvLambda_qsq[ic][ik]=100.;
+    }
 
     // 0-
     if (_process == TVar::H0minus) {
@@ -860,34 +902,39 @@ double TEvtProb::XsecCalc_VX(TVar::Process proc, TVar::Production production, vh
       Hvvcoupl[2][0] = 0.0;
       Hvvcoupl[3][0] = 1.0;
     }
-
-    if (_process == TVar::SelfDefine_spin0){
-      for (int i=0; i<SIZE_HVV_VBF; i++){
-        for (int j=0; j<2; j++){
-          Hvvcoupl[i][j] = selfDHvvcoupl[i][j];
-        }
-      }
-    }
     // 0h+
-    if (_process == TVar::H0hplus) {
+    else if (_process == TVar::H0hplus) {
       Hvvcoupl[0][0] = 0.0;
       Hvvcoupl[1][0] = 1.0;
       Hvvcoupl[2][0] = 0.0;
       Hvvcoupl[3][0] = 0.0;
     }
-    if (_process == TVar::H0_g1prime2){
+    // 0+L1
+    else if (_process == TVar::H0_g1prime2){
       Hvvcoupl[0][0] = 0.;
       Hvvcoupl[5][0] = -12046.01;
     }
+    else if (_process == TVar::SelfDefine_spin0){
+      for (int i=0; i<SIZE_HVV_VBF; i++){
+        for (int j=0; j<2; j++) Hvvcoupl[i][j] = (selfDSpinZeroCoupl.Hzzcoupl_NoGamma)[i][j];
+      }
+      for (int j=0; j<3; j++){
+        for (int i=0; i<4; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
+        HvvCLambda_qsq[j] = (selfDSpinZeroCoupl.HzzCLambda_qsq)[j];
+      }
+    }
+    SetJHUGenSpinZeroVVCouplings_NoGamma(Hvvcoupl, HvvCLambda_qsq, HvvLambda_qsq, false);
 
-    if (!inclusiveHadronicJets) msqjk = VHiggsMatEl(_process, _production, &event_scales, pVH, pHdaughter, Vdecay_id, _hmass, _hwidth, Hvvcoupl, verbosity, EBEAM);
+    if (!inclusiveHadronicJets) msqjk = VHiggsMatEl(_process, _production, &event_scales, &RcdME, pVH, pHdaughter, Vdecay_id, verbosity, EBEAM);
     else{
       for (int outgoing1 = -nf; outgoing1 <= nf; outgoing1++){
         if (_production == TVar::ZH){
           if (outgoing1 <= 0) continue;
           Vdecay_id[0] = outgoing1;
           Vdecay_id[1] = -outgoing1;
-          msqjk += (VHiggsMatEl(_process, _production, &event_scales, pVH, pHdaughter, Vdecay_id, _hmass, _hwidth, Hvvcoupl, verbosity, EBEAM)) / N_Q; // Average over quark flavors
+          msqjk += (VHiggsMatEl(_process, _production, &event_scales, &RcdME_temp, pVH, pHdaughter, Vdecay_id, verbosity, EBEAM)) / N_Q; // Average over quark flavors
+          RcdME.addMERecord(&RcdME_temp, 1./N_Q);
+          RcdME_temp.reset();
         }
         else if (_production == TVar::WH){
           if (outgoing1 == 0) continue;
@@ -896,7 +943,9 @@ double TEvtProb::XsecCalc_VX(TVar::Process proc, TVar::Production production, vh
               if (abs(outgoing2) == abs(outgoing1)) continue;
               Vdecay_id[0] = outgoing1;
               Vdecay_id[1] = outgoing2;
-              msqjk += (VHiggsMatEl(_process, _production, &event_scales, pVH, pHdaughter, Vdecay_id, _hmass, _hwidth, Hvvcoupl, verbosity, EBEAM)) / 12.; // Average over quark flavors; CAUTION about 12: Depends on nf, (nf+1)*(nf-1)/2 or nf**2/2
+              msqjk += (VHiggsMatEl(_process, _production, &event_scales, &RcdME_temp, pVH, pHdaughter, Vdecay_id, verbosity, EBEAM)) / 12.; // Average over quark flavors; CAUTION about 12: Depends on nf, (nf+1)*(nf-1)/2 or nf**2/2
+              RcdME.addMERecord(&RcdME_temp, 1./N_Q);
+              RcdME_temp.reset();
             }
           }
           if (outgoing1 == -2 || outgoing1 == -4){ // u-bar or c-bar to d, b or s
@@ -904,7 +953,9 @@ double TEvtProb::XsecCalc_VX(TVar::Process proc, TVar::Production production, vh
               if (abs(outgoing2) == abs(outgoing1)) continue;
               Vdecay_id[0] = outgoing1;
               Vdecay_id[1] = outgoing2;
-              msqjk += (VHiggsMatEl(_process, _production, &event_scales, pVH, pHdaughter, Vdecay_id, _hmass, _hwidth, Hvvcoupl, verbosity, EBEAM)) / 12.; // Average over quark flavors; CAUTION about 12: Depends on nf
+              msqjk += (VHiggsMatEl(_process, _production, &event_scales, &RcdME_temp, pVH, pHdaughter, Vdecay_id, verbosity, EBEAM)) / 12.; // Average over quark flavors; CAUTION about 12: Depends on nf
+              RcdME.addMERecord(&RcdME_temp, 1./N_Q);
+              RcdME_temp.reset();
             }
           }
         }
@@ -913,9 +964,10 @@ double TEvtProb::XsecCalc_VX(TVar::Process proc, TVar::Production production, vh
   } // end of JHUGen matrix element calculations
   else{
     std::cout << "Non-JHUGen VH is not supported!" << std::endl;
-    msqjk = 0.; // Analytical not implemented yet
+    msqjk = 0;
   }
 
+  ResetCouplings();
   ResetRenFacScaleMode();
   return msqjk;
 }
@@ -925,12 +977,10 @@ double TEvtProb::XsecCalc_TTX(
   TVar::Process proc, TVar::Production production,
   tth_event_type &tth_event,
   int topDecay, int topProcess,
-  TVar::VerbosityLevel verbosity,
-  double selfDHvvcoupl[SIZE_TTH][2]
+  TVar::VerbosityLevel verbosity
   ){
-
   // Set Couplings at the TTH vertex
-  double Hvvcoupl[SIZE_TTH][2] ={ { 0 } };
+  double Hqqcoupl[SIZE_HQQ][2]={ { 0 } };
 
   //Initialize Process
   SetProcess(proc);
@@ -977,22 +1027,20 @@ double TEvtProb::XsecCalc_TTX(
 
   if (_matrixElement == TVar::JHUGen){
     // By default set the Spin 0 couplings for SM case
-    Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
-    for (int i = 1; i<SIZE_TTH; i++){ for (int com=0; com<2; com++) Hvvcoupl[i][com] = 0; }
+    Hqqcoupl[0][0]=1.0;  Hqqcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
+    for (int i = 1; i<SIZE_HQQ; i++){ for (int com=0; com<2; com++) Hqqcoupl[i][com] = 0; }
 
     // 0-
     if (_process == TVar::H0minus) {
-      Hvvcoupl[0][0] = 0.0;
-      Hvvcoupl[1][0] = 1.0;
+      Hqqcoupl[0][0] = 0.0;
+      Hqqcoupl[1][0] = 1.0;
     }
-
-    if (_process == TVar::SelfDefine_spin0){
-      for (int i=0; i<SIZE_TTH; i++){
-        for (int j=0; j<2; j++){
-          Hvvcoupl[i][j] = selfDHvvcoupl[i][j];
-        }
+    else if (_process == TVar::SelfDefine_spin0){
+      for (int i=0; i<SIZE_HQQ; i++){
+        for (int j=0; j<2; j++) Hqqcoupl[i][j] = (selfDSpinZeroCoupl.Hqqcoupl)[i][j];
       }
     }
+    SetJHUGenSpinZeroQQCouplings(Hqqcoupl);
 
     double topMass = 173.2;
     double topWidth = 2.;
@@ -1000,19 +1048,20 @@ double TEvtProb::XsecCalc_TTX(
       topMass = 4.75;
       topWidth = 0;
     }
-    msq = TTHiggsMatEl(_production, pTTH, _hmass, _hwidth, topMass, topWidth, Hvvcoupl, topDecay, topProcess, verbosity);
+    msq = TTHiggsMatEl(_production, pTTH, _hmass, _hwidth, topMass, topWidth, topDecay, topProcess, verbosity);
     if (unknownTopFlavor){
       //cout << "Unknown top flavor" << endl;
       pTTH[4].SetXYZT(p_tbar.X(), p_tbar.Y(), p_tbar.Z(), p_tbar.T());
       pTTH[3].SetXYZT(p_t.X(), p_t.Y(), p_t.Z(), p_t.T());
       for (int vv=1; vv<4; vv++) pTTH[vv+7].SetXYZT(tth_event.p[vv + 3*indexTTBAR].X(), tth_event.p[vv + 3*indexTTBAR].Y(), tth_event.p[vv + 3*indexTTBAR].Z(), tth_event.p[vv + 3*indexTTBAR].T());
       for (int vv=1; vv<4; vv++) pTTH[vv+4].SetXYZT(tth_event.p[vv + 3*(1-indexTTBAR)].X(), tth_event.p[vv + 3*(1-indexTTBAR)].Y(), tth_event.p[vv + 3*(1-indexTTBAR)].Z(), tth_event.p[vv + 3*(1-indexTTBAR)].T());
-      msq += TTHiggsMatEl(_production, pTTH, _hmass, _hwidth, topMass, topWidth, Hvvcoupl, topDecay, topProcess, verbosity);
+      msq += TTHiggsMatEl(_production, pTTH, _hmass, _hwidth, topMass, topWidth, topDecay, topProcess, verbosity);
       msq *= 0.5;
     }
   }
   else std::cout << "Non-JHUGen ttH is not supported!" << std::endl;
 
+  ResetCouplings();
   ResetRenFacScaleMode();
   return msq;
 }
@@ -1030,23 +1079,15 @@ void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVa
 // way of setting MCFM parameters through
 // an interface defined in TMCFM.hh
 void TEvtProb::SetHiggsMass(double mass, float wHiggs){
-  masses_mcfm_.hmass=mass;
   _hmass = mass;
+  masses_mcfm_.hmass = _hmass;
   if (wHiggs < 0.){
-    masses_mcfm_.hwidth=myCSW_->HiggsWidth(0, min(mass, 1000.));
     _hwidth = myCSW_->HiggsWidth(0, min(mass, 1000.));
+    masses_mcfm_.hwidth = _hwidth;
   }
   else{
-    masses_mcfm_.hwidth = wHiggs;
     _hwidth = wHiggs;
+    masses_mcfm_.hwidth = _hwidth;
   }
-  //	cout << "Set JHUGen Higgs mass width to: " << _hmass << ", " << _hwidth << endl;
-  //	cout << "Set MCFM Higgs mass width to: " << masses_mcfm_.hmass << ", " << masses_mcfm_.hwidth << endl;
-/*
-    //
-    // get higgs width for 125 and 250 GeV
-    //
-    std::cout << "H125 width " << myCSW_->HiggsWidth(0, 125);
-    std::cout << "H250 width " << myCSW_->HiggsWidth(0, 250);
-*/
+  SetJHUGenHiggsMassWidth(_hmass, _hwidth);
 }

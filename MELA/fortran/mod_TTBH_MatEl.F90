@@ -1,4 +1,5 @@
 MODULE modTTBH
+use ModParameters
 IMPLICIT NONE
 
       
@@ -79,8 +80,6 @@ integer :: NumQuarks,NumGluons,NumBoson
 integer :: NumTrees
 integer :: iTree,NumParticles
 logical, save :: FirstTime=.true.
-include "includeVars.F90"
-
 
   m_Higgs = m_Reso
 
@@ -179,16 +178,14 @@ END SUBROUTINE
 
 
 
-SUBROUTINE EvalXSec_PP_TTBH(Mom,TTBHcoupl,TopDecays,SelectProcess,Res)
+SUBROUTINE EvalXSec_PP_TTBH(Mom,TopDecays,SelectProcess,Res)
 implicit none
 real(8) :: Mom(1:4,1:13),Res
-complex(8) :: TTBHcoupl(1:2)
 integer :: SelectProcess! 0=gg, 1=qqb, 2=all 
 integer :: TopDecays! 0=stable, 1=di-leptonic
 real(8) :: eta1,eta2,Etot,Pztot,MatElSq_GG,MatElSq_QQB,MatElSq_QBQ
 real(8) :: x1,x2,PDFScale,Collider_Energy,E_CMS
 real(8) :: NNpdf(1:2,-6:7),m_ferm
-include 'includeVars.F90'
       
 
       m_ferm = ExtParticles(1)%Mass
@@ -209,16 +206,16 @@ include 'includeVars.F90'
       Mom(1:4,1) = x1 * Mom(1:4,1)
       Mom(1:4,2) = x2 * Mom(1:4,2)
       if( SelectProcess.eq.0 ) then
-          call EvalAmp_GG_TTBH(Mom(1:4,1:13),TTBHcoupl,TopDecays,MatElSq_GG)
+          call EvalAmp_GG_TTBH(Mom(1:4,1:13),TopDecays,MatElSq_GG)
           MatElSq_QQB = 0d0
           MatElSq_QBQ = 0d0
       elseif( SelectProcess.eq.1 ) then
-          call EvalAmp_QQB_TTBH(Mom(1:4,1:13),TTBHcoupl,TopDecays,MatElSq_QQB)
+          call EvalAmp_QQB_TTBH(Mom(1:4,1:13),TopDecays,MatElSq_QQB)
           MatElSq_QBQ = MatElSq_QQB
           MatElSq_GG = 0d0
       else
-          call EvalAmp_GG_TTBH(Mom(1:4,1:13),TTBHcoupl,TopDecays,MatElSq_GG)
-          call EvalAmp_QQB_TTBH(Mom(1:4,1:13),TTBHcoupl,TopDecays,MatElSq_QQB)
+          call EvalAmp_GG_TTBH(Mom(1:4,1:13),TopDecays,MatElSq_GG)
+          call EvalAmp_QQB_TTBH(Mom(1:4,1:13),TopDecays,MatElSq_QQB)
           MatElSq_QBQ = MatElSq_QQB
       endif
       
@@ -245,22 +242,21 @@ END SUBROUTINE
       
 
       
-SUBROUTINE EvalAmp_GG_TTBH(Mom,TTBHcoupl,TopDecays,SqAmp)
+SUBROUTINE EvalAmp_GG_TTBH(Mom,TopDecays,SqAmp)
 ! use ModTopDecay
 implicit none
 real(8) :: Mom(1:4,1:13),SqAmp,m_ferm
 integer :: TopDecays! 0=stable, 1=di-leptonic
-complex(8) :: ResOffSh(1:4,1:2),Res(1:2,1:2),TTBHcoupl(1:2)
+complex(8) :: ResOffSh(1:4,1:2),Res(1:2,1:2)
 complex(8) :: GluPol(1:4,1:2,1:2)
 integer :: hel4,TopHel1,TopHel2,nhel
 real(8),parameter :: c_aa=64.D0/3.D0, c_ab=-8.D0/3.D0
-include 'includeVars.F90'
 SqAmp = 0d0
 
      m_ferm = ExtParticles(1)%Mass    
 
-     couplHTT_right_dyn = m_ferm/vev/2d0 * ( TTBHcoupl(1) + (0d0,1d0)*TTBHcoupl(2) )
-     couplHTT_left_dyn  = m_ferm/vev/2d0 * ( TTBHcoupl(1) - (0d0,1d0)*TTBHcoupl(2) )
+     couplHTT_right_dyn = m_ferm/vev/2d0 * ( kappa + (0d0,1d0)*kappa_tilde )
+     couplHTT_left_dyn  = m_ferm/vev/2d0 * ( kappa - (0d0,1d0)*kappa_tilde )
      if( TOPDECAYS.EQ.0 ) then
         ExtParticles(1)%Mom(1:4) = Mom(1:4,4)
         ExtParticles(2)%Mom(1:4) = Mom(1:4,5)
@@ -326,23 +322,22 @@ END SUBROUTINE
       
 
       
-SUBROUTINE EvalAmp_QQB_TTBH(Mom,TTBHcoupl,TopDecays,SqAmp)
+SUBROUTINE EvalAmp_QQB_TTBH(Mom,TopDecays,SqAmp)
 ! use ModTopDecay
 implicit none
 real(8) :: Mom(1:4,1:13),SqAmp,m_ferm
-complex(8) :: ResOffSh(1:4),Res(1:2),TTBHcoupl(1:2)
+complex(8) :: ResOffSh(1:4),Res(1:2)
 complex(8) :: QuaPol(1:4,1:2,1:2)
 integer :: hel4,TopHel1,TopHel2,nhel
 integer :: TopDecays! 0=stable, 1=di-leptonic
 real(8),parameter :: c_aa=8.0D0
-include 'includeVars.F90'
 SqAmp = 0d0
 
 
      m_ferm = ExtParticles(1)%Mass    
 
-     couplHTT_right_dyn = m_ferm/vev/2d0 * ( TTBHcoupl(1) + (0d0,1d0)*TTBHcoupl(2) )
-     couplHTT_left_dyn  = m_ferm/vev/2d0 * ( TTBHcoupl(1) - (0d0,1d0)*TTBHcoupl(2) )
+     couplHTT_right_dyn = m_ferm/vev/2d0 * ( kappa + (0d0,1d0)*kappa_tilde )
+     couplHTT_left_dyn  = m_ferm/vev/2d0 * ( kappa - (0d0,1d0)*kappa_tilde )
 
      if( TOPDECAYS.EQ.0 ) then
         ExtParticles(1)%Mom(1:4) = Mom(1:4,4)
@@ -395,15 +390,14 @@ END SUBROUTINE
 
 
 
-SUBROUTINE EvalXSec_PP_BBBH(Mom,BBBHcoupl,SelectProcess,Res)
+SUBROUTINE EvalXSec_PP_BBBH(Mom,SelectProcess,Res)
 implicit none
 real(8) :: Mom(1:4,1:13),Res
-complex(8) :: BBBHcoupl(1:2)
 integer :: SelectProcess! 0=gg, 1=qqb, 2=all 
 integer,parameter :: TopDecays=0
 
         
-        call EvalXSec_PP_TTBH(Mom,BBBHcoupl,TopDecays,SelectProcess,Res)
+        call EvalXSec_PP_TTBH(Mom,TopDecays,SelectProcess,Res)
 
 RETURN
 END SUBROUTINE
@@ -411,14 +405,13 @@ END SUBROUTINE
 
 
       
-SUBROUTINE EvalAmp_GG_BBBH(Mom,BBBHcoupl,SqAmp)
+SUBROUTINE EvalAmp_GG_BBBH(Mom,SqAmp)
 implicit none
 real(8) :: Mom(1:4,1:13),SqAmp
-complex(8) :: BBBHcoupl(1:2)
 integer,parameter :: TopDecays=0
   
 
-  call EvalAmp_GG_TTBH(Mom,BBBHcoupl,TopDecays,SqAmp)
+  call EvalAmp_GG_TTBH(Mom,TopDecays,SqAmp)
   
 RETURN
 END SUBROUTINE
@@ -427,14 +420,13 @@ END SUBROUTINE
   
 
       
-SUBROUTINE EvalAmp_QQB_BBBH(Mom,BBBHcoupl,SqAmp)
+SUBROUTINE EvalAmp_QQB_BBBH(Mom,SqAmp)
 implicit none
 real(8) :: Mom(1:4,1:13),SqAmp
-complex(8) :: BBBHcoupl(1:2)
 integer,parameter :: TopDecays=0
 
 
-  call EvalAmp_QQB_TTBH(Mom,BBBHcoupl,TopDecays,SqAmp)
+  call EvalAmp_QQB_TTBH(Mom,TopDecays,SqAmp)
 
 RETURN
 END SUBROUTINE
@@ -506,7 +498,6 @@ complex(8) :: Res(1:Ds)
 type(TreeProcess) :: TreeProc
 logical,parameter :: Boson=.true.
 integer :: i,j,Order(1:6)
-include 'includeVars.F90'
 
 
       if( TreeProc%NumQua.eq.2 .and. TreeProc%NumSca.eq.0 ) then!  2 quarks and no scalars
@@ -549,7 +540,7 @@ implicit none
 type(TreeProcess) :: TheTreeAmp
 type(Particle),target :: TheParticles(:)
 integer :: iPart,PartRef,PartType,ig,iq,ib,NPart,counterQ,counterG,LastQuark,QuarkPos(1:6)
-include 'includeVars.F90'
+
 
             TheTreeAmp%NumW = 0
             TheTreeAmp%NumV = 0
@@ -732,7 +723,7 @@ END FUNCTION
       real(8) :: mass
       complex(8) :: couplVQQ_left,couplVQQ_right,couplVQQ_left2,couplVQQ_right2
       character,parameter :: FerFla*3="dum" ! dummy, only used for check of flavor consistency inside the functions f,bf
-include 'includeVars.F90'
+
 
 
       ngluon = size(e,dim=2)
@@ -861,7 +852,7 @@ end function fV
       real(8) :: mass
       complex(8) :: couplVQQ_left,couplVQQ_right,couplVQQ_left2,couplVQQ_right2
       character,parameter :: FerFla*3="dum" ! dummy, only used for check of flavor consistency inside the functions f,bf
-include 'includeVars.F90'
+
 
       ngluon = size(e,dim=2)
       ng1 = ms   !#gluons to the left of a f-line
@@ -5880,7 +5871,6 @@ real(8),parameter :: Nc=3,NFlav=2
 real(8) :: NWAFactor_W
 complex(8) :: WProp
 real(8) :: g2_weak
-include "includeVars.F90"
 
     NWAFactor_W   = 1d0/dsqrt(2d0*Ga_W*m_W)
     WProp = (0d0,-1d0)*NWAFactor_W
@@ -6281,56 +6271,6 @@ END SUBROUTINE
               WeylToDirac(4) = SqrtFac*(sp(2)-sp(4))
           return
           end function
-
-      
-
-          
-
-
-
-
-
-!----------------------------------------------------------------
-
-
-
-
-FUNCTION IsAQuark(PartType)
-implicit none
-logical :: IsAQuark
-integer :: PartType
-
-
-  if( abs(PartType).ge.1 .and. abs(PartType).le.6 ) then
-     IsAQuark = .true.
-  else
-     IsAQuark=.false.
-  endif
-
-
-END FUNCTION
-
-
-
-FUNCTION IsABoson(PartType)
-implicit none
-logical :: IsABoson
-integer :: PartType
-
-
-  if( abs(PartType).eq.11 .or. abs(PartType).eq.12 .or. abs(PartType).eq.13 .or. abs(PartType).eq.25 ) then
-     IsABoson = .true.
-  else
-     IsABoson=.false.
-  endif
-
-
-END FUNCTION
-
-
-
-
-
 
 END MODULE
 

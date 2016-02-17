@@ -1,0 +1,1745 @@
+MODULE ModParameters
+implicit none
+save
+!
+!
+character(len=6),parameter :: JHUGen_Version="v6.8.8"
+!
+!
+integer, public, parameter :: dp = selected_real_kind(15)
+real(8), public, parameter :: tol = 0.0000001d0
+integer, public :: Collider, PDFSet,PChannel,Process,TopDecays,TauDecays
+integer, public :: VegasIt1,VegasNc0,VegasNc1,VegasNc2
+real(8), public :: Collider_Energy
+integer, public :: FacScheme,RenScheme
+real(8), public :: MuFacMultiplier,MuRenMultiplier
+integer, public :: VegasIt1_default,VegasNc0_default,VegasNc1_default,VegasNc2_default
+logical, public :: OffShellReson,CalcPMZZ
+
+integer, public, parameter :: ZZMode=00,ZgsMode=01,gsZMode=02,gsgsMode=03
+integer, public, parameter :: WWMode=10
+integer, public, parameter :: ggMode=20
+integer, public, parameter :: ZgMode=30,gsgMode=31
+integer, public            :: DecayMode1 = 0
+integer, public            :: DecayMode2 = 0
+
+integer, public, parameter :: kRenFacScheme_default=0
+integer, public, parameter :: kRenFacScheme_mhstar=1
+integer, public, parameter :: kRenFacScheme_mjjhstar=2
+integer, public, parameter :: kRenFacScheme_mjj_mhstar=3
+integer, public, parameter :: kRenFacScheme_mj_mj_mhstar=4
+integer, public, parameter :: kRenFacScheme_mjj=5
+integer, public, parameter :: kRenFacScheme_mj_mj=6
+integer, public, parameter :: kRenFacScheme_mjhstar=7
+integer, public, parameter :: kRenFacScheme_mj_mhstar=8
+integer, public, parameter :: kRenFacScheme_mj=9
+integer, public, parameter :: nRenFacSchemes=10
+
+logical, public, parameter :: includeInterference = .true.
+real(8), public, parameter :: GeV=1d0/100d0 ! we are using units of 100GeV, i.e. Lambda=10 is 1TeV 
+real(8), public, parameter :: percent=1d0/100d0
+
+real(8),public :: minCS=1d10,maxCS=0d0,avgCS=0d0
+
+!=====================================================
+
+
+
+!=====================================================
+!switches
+logical, public, parameter :: seed_random = .true.
+integer, public :: TheSeeds(0:20) = (/2,700470849,470115596,3,4,5,6,7,8,9,10,11,12,0,0,0,0,0,0,0,0/)! only used if seed_random=.false., the first entry is the total number of seeds
+
+logical, public, parameter :: includeGammaStar = .true.
+real(8), public, parameter :: MPhotonCutoff = 4d0*GeV
+logical, public, parameter :: H_DK =.false.                 ! default to false so H in V* > VH (Process = 50) does not decay
+
+integer, public            :: WidthScheme = 0    ! 0=fixed BW-width, 1=runing BW-width, 2=Passarino's CPS
+
+!=====================================================
+
+!=====================================================
+
+real(8), public, parameter :: M_Top   = 173.2d0   *GeV      ! top quark mass
+real(8), public, parameter :: Ga_Top  = 2.0d0     *GeV      ! top quark width
+real(8), public, parameter :: M_Z     = 91.1876d0 *GeV      ! Z boson mass (PDG-2011)
+real(8), public, parameter :: Ga_Z    = 2.4952d0  *GeV      ! Z boson width(PDG-2011)
+real(8), public, parameter :: M_W     = 80.399d0  *GeV      ! W boson mass (PDG-2011)
+real(8), public, parameter :: Ga_W    = 2.085d0   *GeV      ! W boson width(PDG-2011)
+real(8), public            :: M_Reso  = 125.0d0   *GeV      ! X resonance mass (spin 0, spin 1, spin 2)     (can be overwritten by command line argument)
+real(8), public            :: Ga_Reso = 0.00407d0 *GeV      ! X resonance width
+real(8), public, parameter :: Lambda  = 1000d0    *GeV      ! Lambda coupling enters in two places
+                                                            ! overal scale for x-section and in power suppressed
+                                                            ! operators/formfactors (former r).
+
+real(8), public, parameter :: m_bot = 4.75d0       *GeV     ! bottom quark mass
+real(8), public, parameter :: m_charm = 1.275d0    *GeV     ! charm quark mass
+real(8), public, parameter :: m_el = 0.00051100d0  *GeV     ! electron mass
+real(8), public, parameter :: m_mu = 0.10566d0     *GeV     ! muon mass
+real(8), public, parameter :: m_tau = 1.7768d0     *GeV     ! tau mass
+real(8), public, parameter :: Ga_tau = 2.267d-12   *GeV     ! tau width
+
+real(8), public, parameter :: HiggsDecayLengthMM = 0d0      ! Higgs decay length in [mm]
+real(8), public, parameter :: Gf = 1.16639d-5/GeV**2        ! Fermi constant
+real(8), public, parameter :: vev = 1.0d0/sqrt(Gf*sqrt(2.0d0))
+real(8), public, parameter :: gwsq = 4.0d0 * M_W**2/vev**2  ! weak constant squared
+real(8), public, parameter :: alpha_QED = 1d0/128d0         ! el.magn. coupling
+real(8), public, parameter :: sitW = dsqrt(0.23119d0)       ! sin(Theta_Weinberg) (PDG-2008)
+real(8), public            :: LHC_Energy=13000d0  *GeV      ! LHC hadronic center of mass energy
+real(8), public, parameter :: POL_A = 0d0                   ! e+ polarization. 0: no polarization, 100: helicity = 1, -100: helicity = -1
+real(8), public, parameter :: POL_B = 0d0                   ! e- polarization. 0: no polarization, 100: helicity = 1, -100: helicity = -1
+
+! PDF and QCD scale variables, set in main::InitPDFNonConstVals if not a parameter
+integer, public, parameter :: nQflavors_pdf = 5    ! Number of flavors enforced to the PDF, used in ModKinematics::EvalAlphaS()
+integer, public, parameter :: nloops_pdf = 1       ! alpha_s order
+real(8), public            :: zmass_pdf            ! Z mass used in pdf toward the QCD scale, reset later in main per PDF if needed
+real(8), public            :: Mu_Fact              ! pdf factorization scale (set to M_Reso in main.F90)
+real(8), public            :: Mu_Ren               ! QCD renormalization (alpha_s) scale (set to M_Reso in main.F90)
+real(dp), public           :: alphas               ! strong coupling per event, set to some reasonable value
+real(dp), public           :: alphas_mz            ! strong coupling at M_Z, reset later in main per PDF
+real(dp), public           :: gs                   ! = sqrt(alphas*4.0_dp*pi)
+
+!---     B0_PDF=(11.-2.*NF/3.)/4./PI
+real(dp), public, parameter :: B0_PDF(0:6) = (/ 0.8753521870054244D0,0.822300539308126D0,0.7692488916108274D0,0.716197243913529D0,0.6631455962162306D0,0.6100939485189321D0,0.5570423008216338D0 /)
+
+
+
+! CKM squared matrix entries 
+real(8), public, parameter :: VCKM_ud = 0.974285d0
+real(8), public, parameter :: VCKM_us = 0.225290d0
+real(8), public, parameter :: VCKM_cs = 0.9734244d0
+real(8), public, parameter :: VCKM_cd =-0.225182d0
+real(8), public, parameter :: VCKM_tb = 0.99912367d0
+real(8), public, parameter :: VCKM_ts =-0.040920069d0
+real(8), public, parameter :: VCKM_cb = dsqrt(1d0-VCKM_cd**2-VCKM_cs**2)
+real(8), public, parameter :: VCKM_ub = dsqrt(1d0-VCKM_ud**2-VCKM_us**2)
+real(8), public, parameter :: VCKM_td = dsqrt(1d0-VCKM_tb**2-VCKM_ts**2)
+
+
+
+real(8), public, parameter :: scale_alpha_Z_uu = 1.037560d0 ! scaling factor of alpha (~partial width) for Z > u u~, c c~
+real(8), public, parameter :: scale_alpha_Z_dd = 1.037560d0 ! scaling factor of alpha (~partial width) for Z > d d~, s s~, b b~
+real(8), public, parameter :: scale_alpha_Z_ll = 1d0        ! scaling factor of alpha (~partial width) for Z > l+ l-  (l=e,mu)
+real(8), public, parameter :: scale_alpha_Z_tt = 1d0        ! scaling factor of alpha (~partial width) for Z > tau+ tau-
+real(8), public, parameter :: scale_alpha_Z_nn = 1d0        ! scaling factor of alpha (~partial width) for Z > nu nu~
+real(8), public, parameter :: scale_alpha_W_ud = 1.038200d0 ! scaling factor of alpha (~partial width) for W > u d
+real(8), public, parameter :: scale_alpha_W_cs = 1.038200d0 ! scaling factor of alpha (~partial width) for W > c s
+real(8), public, parameter :: scale_alpha_W_ln = 1d0        ! scaling factor of alpha (~partial width) for W > l nu (l=e,mu)
+real(8), public, parameter :: scale_alpha_W_tn = 1d0        ! scaling factor of alpha (~partial width) for W > tau nu
+
+!=====================================================
+!resonance couplings
+
+!-- parameters that define on-shell spin 0 coupling to SM fields, see note
+   logical, public, parameter :: generate_as = .false.
+   complex(8), public            :: ahg1 = (1.0d0,0d0)
+   complex(8), public            :: ahg2 = (0.0d0,0d0)
+   complex(8), public            :: ahg3 = (0.0d0,0d0)  ! pseudoscalar
+   complex(8), public            :: ahz1 = (1.0d0,0d0)
+   complex(8), public            :: ahz2 = (0.0d0,0d0)  ! this coupling does not contribute for gamma+gamma final states
+   complex(8), public            :: ahz3 = (0.0d0,0d0)  ! pseudoscalar
+
+!-- parameters that define off-shell spin 0 coupling to SM fields, see note
+   complex(8), public            :: ghg2 = (1.0d0,0d0)
+   complex(8), public            :: ghg3 = (0.0d0,0d0)
+   complex(8), public            :: ghg4 = (0.0d0,0d0)   ! pseudoscalar
+   
+   complex(8), public            :: ghz1 = (1.0d0,0d0)   ! SM=2
+   complex(8), public            :: ghz2 = (0.0d0,0d0)
+   complex(8), public            :: ghz3 = (0.0d0,0d0)
+   complex(8), public            :: ghz4 = (0.0d0,0d0)   ! pseudoscalar 
+
+   complex(8), public            :: ghzgs2  = (0.00d0,0d0)
+   complex(8), public            :: ghzgs3  = (0.00d0,0d0)
+   complex(8), public            :: ghzgs4  = (0.00d0,0d0)
+   complex(8), public            :: ghgsgs2 = (0.00d0,0d0)
+   complex(8), public            :: ghgsgs3 = (0.00d0,0d0)
+   complex(8), public            :: ghgsgs4 = (0.00d0,0d0)
+
+
+!-- parameters that define q^2 dependent form factors
+   complex(8), public            :: ghz1_prime = (0.0d0,0d0)
+   complex(8), public            :: ghz1_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghz1_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghz1_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghz1_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghz1_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghz1_prime7= (0.0d0,0d0)
+
+   complex(8), public            :: ghz2_prime = (0.0d0,0d0)
+   complex(8), public            :: ghz2_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghz2_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghz2_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghz2_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghz2_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghz2_prime7= (0.0d0,0d0)
+
+   complex(8), public            :: ghz3_prime = (0.0d0,0d0)
+   complex(8), public            :: ghz3_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghz3_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghz3_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghz3_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghz3_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghz3_prime7= (0.0d0,0d0)
+
+   complex(8), public            :: ghz4_prime = (0.0d0,0d0)
+   complex(8), public            :: ghz4_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghz4_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghz4_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghz4_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghz4_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghz4_prime7= (0.0d0,0d0)
+   complex(8), public            :: ghzgs1_prime2= (0.0d0,0d0)
+
+   real(8),    public, parameter :: Lambda_z1 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_z2 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_z3 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_z4 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_zgs1 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_Q  = 10000d0*GeV
+
+   integer,    public            :: cz_q1sq = 0d0 ! Sign of q1,2,12**2 for the following Lambda's, set to 1 or -1 to get q**2-dependence from these form factor Lambdas
+   integer,    public            :: cz_q2sq = 0d0
+   integer,    public            :: cz_q12sq = 0d0
+   ! These Lambdas all have a numerical value of 1d0
+   real(8),    public            :: Lambda_z11 = 100d0*GeV ! For Z1
+   real(8),    public            :: Lambda_z21 = 100d0*GeV
+   real(8),    public            :: Lambda_z31 = 100d0*GeV
+   real(8),    public            :: Lambda_z41 = 100d0*GeV
+   real(8),    public            :: Lambda_z12 = 100d0*GeV ! For Z2
+   real(8),    public            :: Lambda_z22 = 100d0*GeV
+   real(8),    public            :: Lambda_z32 = 100d0*GeV
+   real(8),    public            :: Lambda_z42 = 100d0*GeV
+   real(8),    public            :: Lambda_z10 = 100d0*GeV ! For the Higgs
+   real(8),    public            :: Lambda_z20 = 100d0*GeV
+   real(8),    public            :: Lambda_z30 = 100d0*GeV
+   real(8),    public            :: Lambda_z40 = 100d0*GeV
+
+
+
+!---parameters that define spin 1 coupling to SM fields, see note
+   complex(8), public            :: zprime_qq_left  = (1.0d0,0d0)
+   complex(8), public            :: zprime_qq_right = (1.0d0,0d0)
+   complex(8), public            :: zprime_zz_1 =  (1.0d0,0d0)!  =1 for JP=1- vector
+   complex(8), public            :: zprime_zz_2 =  (0.0d0,0d0)!  =1 for JP=1+ pseudovector
+
+!-- parameters that define spin 2 coupling to SM fields, see note
+! minimal coupling corresponds to a1 = b1 = b5 = 1 everything else 0
+  complex(8), public            :: a1 = (0.0d0,0d0)    ! g1  -- c.f. draft
+  complex(8), public            :: a2 = (1.0d0,0d0)    ! g2
+  complex(8), public            :: a3 = (0.0d0,0d0)    ! g3
+  complex(8), public            :: a4 = (0.0d0,0d0)    ! g4
+  complex(8), public            :: a5 = (0.0d0,0d0)    ! pseudoscalar, g8
+  complex(8), public            :: graviton_qq_left  = (1.0d0,0d0)! graviton coupling to quarks
+  complex(8), public            :: graviton_qq_right = (1.0d0,0d0)
+
+!-- see mod_Graviton
+  logical, public, parameter :: generate_bis = .true.
+  logical, public, parameter :: use_dynamic_MG = .true.
+
+  complex(8), public            :: b1 = (0.0d0,0d0)  !  all b' below are g's in the draft
+  complex(8), public            :: b2 = (1.0d0,0d0)
+  complex(8), public            :: b3 = (0.0d0,0d0)
+  complex(8), public            :: b4 = (0.0d0,0d0)
+  complex(8), public            :: b5 = (0.0d0,0d0)
+  complex(8), public            :: b6 = (0.0d0,0d0)
+  complex(8), public            :: b7 = (0.0d0,0d0)
+  complex(8), public            :: b8 = (0.0d0,0d0)
+  complex(8), public            :: b9 = (0.0d0,0d0)  ! this coupling does not contribute to gamma+gamma final states
+  complex(8), public            :: b10 =(0.0d0,0d0)  ! this coupling does not contribute to gamma+gamma final states
+
+
+  complex(8), public             :: c1 = (1.0d0,0d0)
+  complex(8), public             :: c2 = (0.0d0,0d0)
+  complex(8), public             :: c3 = (0.0d0,0d0)
+  complex(8), public             :: c41= (0.0d0,0d0)
+  complex(8), public             :: c42= (0.0d0,0d0)
+  complex(8), public             :: c5 = (0.0d0,0d0)
+  complex(8), public             :: c6 = (0.0d0,0d0) ! this coupling does not contribute to gamma+gamma final states
+  complex(8), public             :: c7 = (0.0d0,0d0) ! this coupling does not contribute to gamma+gamma final states
+
+
+
+
+
+!-- extra couplings for weak boson fusion when WW-spin-0 couplings are required to be different from ZZ-spin-0
+!-- note: ZZ-spin-0 couplings are used in processes other than VBF
+   logical, public            :: distinguish_HWWcouplings=.false.
+   complex(8), public            :: ghw1 = (0.0d0,0d0)
+   complex(8), public            :: ghw2 = (0.0d0,0d0)
+   complex(8), public            :: ghw3 = (0.0d0,0d0)
+   complex(8), public            :: ghw4 = (0.0d0,0d0)
+
+!-- parameters that define q^2 dependent form factors in WBF WW-spin-0 case described above
+   complex(8), public            :: ghw1_prime = (0.0d0,0d0)
+   complex(8), public            :: ghw1_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghw1_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghw1_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghw1_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghw1_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghw1_prime7= (0.0d0,0d0)
+
+   complex(8), public            :: ghw2_prime = (0.0d0,0d0)
+   complex(8), public            :: ghw2_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghw2_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghw2_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghw2_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghw2_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghw2_prime7= (0.0d0,0d0)
+
+   complex(8), public            :: ghw3_prime = (0.0d0,0d0)
+   complex(8), public            :: ghw3_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghw3_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghw3_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghw3_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghw3_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghw3_prime7= (0.0d0,0d0)
+
+   complex(8), public            :: ghw4_prime = (0.0d0,0d0)
+   complex(8), public            :: ghw4_prime2= (0.0d0,0d0)
+   complex(8), public            :: ghw4_prime3= (0.0d0,0d0)
+   complex(8), public            :: ghw4_prime4= (0.0d0,0d0)
+   complex(8), public            :: ghw4_prime5= (0.0d0,0d0)
+   complex(8), public            :: ghw4_prime6= (0.0d0,0d0)
+   complex(8), public            :: ghw4_prime7= (0.0d0,0d0)
+   
+   real(8),    public, parameter :: Lambda_w1 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_w2 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_w3 = 10000d0*GeV
+   real(8),    public, parameter :: Lambda_w4 = 10000d0*GeV
+
+   integer,    public            :: cw_q1sq = 0d0 ! Sign of q1,2,12**2 for the following Lambda's, set to 1 or -1 to get q**2-dependence from these form factor Lambdas
+   integer,    public            :: cw_q2sq = 0d0
+   integer,    public            :: cw_q12sq = 0d0
+   real(8),    public            :: Lambda_w11 = 100d0*GeV ! For W+
+   real(8),    public            :: Lambda_w21 = 100d0*GeV
+   real(8),    public            :: Lambda_w31 = 100d0*GeV
+   real(8),    public            :: Lambda_w41 = 100d0*GeV
+   real(8),    public            :: Lambda_w12 = 100d0*GeV ! For W-
+   real(8),    public            :: Lambda_w22 = 100d0*GeV
+   real(8),    public            :: Lambda_w32 = 100d0*GeV
+   real(8),    public            :: Lambda_w42 = 100d0*GeV
+   real(8),    public            :: Lambda_w10 = 100d0*GeV ! For the Higgs
+   real(8),    public            :: Lambda_w20 = 100d0*GeV
+   real(8),    public            :: Lambda_w30 = 100d0*GeV
+   real(8),    public            :: Lambda_w40 = 100d0*GeV
+
+!  couplings for ttbar+H and bbar+H
+   complex(8),    public            :: kappa       = (1d0,0d0)
+   complex(8),    public            :: kappa_tilde = (0d0,0d0) 
+!=====================================================
+
+!=====================================================
+!internal
+
+! V-f-fbar couplings:
+!   g_R(f) = -e*sw/cw*Q(f)                 = e/2/sw/cw * a(b,c)R,
+!   g_L(f) = -e*sw/cw*Q(f) + e/sw/cw*T3(f) = e/2/sw/cw * a(b,c)L
+! with
+!   aR(f) = -2*sw**2*Q(f),
+!   aL(f) = -2*sw**2*Q(f) + 2*T3(f).
+! for V = Z-boson,
+!   bR = 0
+!   bL = dsqrt(2)*cw
+! for V = W-boson,
+! and
+!   cR = -2*sw*cw*Q(f)
+!   cL = -2*sw*cw*Q(f)
+! for V = photon*
+!
+real(8), public, parameter :: aR_lep =-2d0*sitW**2*(-1d0)
+real(8), public, parameter :: aL_lep =-2d0*sitW**2*(-1d0)-1d0
+real(8), public, parameter :: aR_neu =-2d0*sitW**2*(0d0)
+real(8), public, parameter :: aL_neu =-2d0*sitW**2*(0d0)+1d0
+real(8), public, parameter :: aR_QUp =-2d0*sitW**2*(2d0/3d0)
+real(8), public, parameter :: aL_QUp =-2d0*sitW**2*(2d0/3d0)+1d0
+real(8), public, parameter :: aR_QDn =-2d0*sitW**2*(-1d0/3d0)
+real(8), public, parameter :: aL_QDn =-2d0*sitW**2*(-1d0/3d0)-1d0
+
+real(8), public, parameter :: bL = dsqrt(2d0)*dsqrt(1d0-sitW**2)
+real(8), public, parameter :: bR = 0d0
+
+real(8), public, parameter :: cR_lep = -2d0*sitW*dsqrt(1d0-sitW**2)*(-1d0)
+real(8), public, parameter :: cL_lep = -2d0*sitW*dsqrt(1d0-sitW**2)*(-1d0)
+real(8), public, parameter :: cR_neu = -2d0*sitW*dsqrt(1d0-sitW**2)*(0d0)
+real(8), public, parameter :: cL_neu = -2d0*sitW*dsqrt(1d0-sitW**2)*(0d0)
+real(8), public, parameter :: cR_QUp = -2d0*sitW*dsqrt(1d0-sitW**2)*(2d0/3d0)
+real(8), public, parameter :: cL_QUp = -2d0*sitW*dsqrt(1d0-sitW**2)*(2d0/3d0)
+real(8), public, parameter :: cR_QDn = -2d0*sitW*dsqrt(1d0-sitW**2)*(-1d0/3d0)
+real(8), public, parameter :: cL_QDn = -2d0*sitW*dsqrt(1d0-sitW**2)*(-1d0/3d0)
+
+real(8), public, parameter :: fbGeV2=0.389379d12/(100d0**2)
+real(8), public, parameter :: SymmFac=1d0/2d0, SpinAvg=1d0/4d0, QuarkColAvg=1d0/3d0, GluonColAvg=1d0/8d0
+integer, public, target :: Up_  = 1
+integer, public, target :: Dn_  = 2
+integer, public, target :: Chm_ = 3
+integer, public, target :: Str_ = 4
+integer, public, target :: Top_ = 5
+integer, public, target :: Bot_ = 6
+integer, public, target :: ElP_ = 7
+integer, public, target :: MuP_ = 8
+integer, public, target :: TaP_ = 9
+integer, public, target :: Glu_ = 10
+integer, public, target :: Pho_ = 11
+integer, public, target :: Z0_  = 12
+integer, public, target :: Wp_  = 13
+integer, public, target :: NuE_ = 14
+integer, public, target :: NuM_ = 15
+integer, public, target :: NuT_ = 16
+integer, public, target :: Hig_ = 25
+integer, public, target :: Zpr_ = 32
+integer, public, target :: Gra_ = 39
+
+integer, public, target :: AUp_  = -1
+integer, public, target :: ADn_  = -2
+integer, public, target :: AChm_ = -3
+integer, public, target :: AStr_ = -4
+integer, public, target :: ATop_ = -5
+integer, public, target :: ABot_ = -6
+integer, public, target :: ElM_  = -7
+integer, public, target :: MuM_  = -8
+integer, public, target :: TaM_  = -9
+integer, public, target :: Wm_   = -13
+integer, public, target :: ANuE_ = -14
+integer, public, target :: ANuM_ = -15
+integer, public, target :: ANuT_ = -16
+
+integer, public, parameter :: Not_a_particle_  = -9000
+real(8), public, parameter :: Mom_Not_a_particle(1:4) = (/0d0,0d0,0d0,0d0/)
+
+integer, public, parameter :: pdfGlu_ = 0
+integer, public, parameter :: pdfDn_ = 1
+integer, public, parameter :: pdfUp_ = 2
+integer, public, parameter :: pdfStr_ = 3
+integer, public, parameter :: pdfChm_ = 4
+integer, public, parameter :: pdfBot_ = 5
+integer, public, parameter :: pdfTop_ = 6 ! Dummy
+integer, public, parameter :: pdfADn_ = -1
+integer, public, parameter :: pdfAUp_ = -2
+integer, public, parameter :: pdfAStr_ = -3
+integer, public, parameter :: pdfAChm_ = -4
+integer, public, parameter :: pdfABot_ = -5
+integer, public, parameter :: pdfATop_ = -6 ! Dummy
+
+real(dp), public, parameter :: pi =3.141592653589793238462643383279502884197_dp
+real(dp), public, parameter :: sqrt2 = 1.4142135623730950488016887242096980786_dp
+real(dp), public, parameter :: pisq = pi**2
+real(8), public, parameter :: one = 1.0d0, mone = -1.0d0
+real(8), public, parameter :: half  = 0.5d0,two = 2.0d0
+real(8), public, parameter :: zero  = 0.0d0
+complex(8), parameter, public :: czero = (0.0d0,0.0d0) 
+complex(8), parameter, public :: cone = 1.0d0
+complex(8), parameter, public :: ci=(0.0d0,1.0d0)
+complex(8), parameter, public :: ne=(0.0d0,1.0d0)
+
+integer,parameter :: io_stdout=6
+integer,parameter :: io_LHEOutFile=14
+integer,parameter :: io_HistoFile=15
+integer,parameter :: io_LHEInFile=16
+integer,parameter :: io_LogFile=17
+integer,parameter :: io_CSmaxFile=18
+integer,parameter :: io_LHEOutFile2=19
+integer,parameter :: io_LHEOutFile3=20
+integer,parameter :: io_TmpFile=21   !to use for whatever purpose is needed, but close afterwards
+
+integer, public :: ijPartons(1:2) = 0
+integer, public :: DebugCounter(0:10) = 0
+real(8), public :: debugvar(0:10) = 0d0
+
+!=====================================================
+
+integer, public :: iPart_sel, jPart_sel
+real(8), public :: M_V=M_Z,Ga_V=Ga_Z
+character(len=100) :: LHAPDFString
+integer, public :: LHAPDFMember, lenLHAPDFString
+
+!=====================================================
+
+public :: SetHiggsMassWidth,SetDecayModes,SetSpinZeroVVCouplings_NoGamma,SetSpinZeroVVCouplings,SetDistinguishWWCouplingsFlag,SetSpinZeroGGCouplings,SetSpinZeroQQCouplings
+public :: SetSpinOneCouplings
+
+
+CONTAINS
+
+!=====================================================
+! Subroutines visible to the user
+!=====================================================
+
+subroutine SetHiggsMassWidth(mass,width)
+   implicit none
+   real(8), intent(in) :: mass, width
+   M_Reso = mass
+   Ga_Reso = width
+   return
+end subroutine SetHiggsMassWidth
+
+subroutine SetDecayModes(idfirst,idsecond)
+   implicit none
+   integer, intent(in) :: idfirst(1:2)
+   integer, intent(in) :: idsecond(1:2)
+
+   if( idfirst(1).eq.Pho_ .or. idfirst(2).eq.Pho_ ) then
+      DecayMode1 = 7
+   elseif( &
+   (idfirst(1).eq.ElM_ .and. idfirst(2).eq.ANuE_) .or. (idfirst(2).eq.ElM_ .and. idfirst(1).eq.ANuE_) .or. &
+   (idfirst(1).eq.MuM_ .and. idfirst(2).eq.ANuM_) .or. (idfirst(2).eq.MuM_ .and. idfirst(1).eq.ANuM_) .or. &
+   (idfirst(1).eq.TaM_ .and. idfirst(2).eq.ANuT_) .or. (idfirst(2).eq.TaM_ .and. idfirst(1).eq.ANuT_) .or. &
+   (idfirst(1).eq.ElP_ .and. idfirst(2).eq.NuE_) .or. (idfirst(2).eq.ElP_ .and. idfirst(1).eq.NuE_) .or. &
+   (idfirst(1).eq.MuP_ .and. idfirst(2).eq.NuM_) .or. (idfirst(2).eq.MuP_ .and. idfirst(1).eq.NuM_) .or. &
+   (idfirst(1).eq.TaP_ .and. idfirst(2).eq.NuT_) .or. (idfirst(2).eq.TaP_ .and. idfirst(1).eq.NuT_)      &
+   ) then
+      DecayMode1=10
+   elseif( &
+   (idfirst(1).eq.AUp_  .and. (idfirst(2).eq.Dn_ .or. idfirst(2).eq.Str_ .or. idfirst(2).eq.Bot_)) .or. (idfirst(2).eq.AUp_  .and. (idfirst(1).eq.Dn_ .or. idfirst(1).eq.Str_ .or. idfirst(1).eq.Bot_)) .or. &
+   (idfirst(1).eq.AChm_ .and. (idfirst(2).eq.Dn_ .or. idfirst(2).eq.Str_ .or. idfirst(2).eq.Bot_)) .or. (idfirst(2).eq.AChm_ .and. (idfirst(1).eq.Dn_ .or. idfirst(1).eq.Str_ .or. idfirst(1).eq.Bot_)) .or. &
+   (idfirst(1).eq.ATop_ .and. (idfirst(2).eq.Dn_ .or. idfirst(2).eq.Str_ .or. idfirst(2).eq.Bot_)) .or. (idfirst(2).eq.ATop_ .and. (idfirst(1).eq.Dn_ .or. idfirst(1).eq.Str_ .or. idfirst(1).eq.Bot_)) .or. &
+   (idfirst(1).eq.Up_  .and. (idfirst(2).eq.ADn_ .or. idfirst(2).eq.AStr_ .or. idfirst(2).eq.ABot_)) .or. (idfirst(2).eq.Up_  .and. (idfirst(1).eq.ADn_ .or. idfirst(1).eq.AStr_ .or. idfirst(1).eq.ABot_)) .or. &
+   (idfirst(1).eq.Chm_ .and. (idfirst(2).eq.ADn_ .or. idfirst(2).eq.AStr_ .or. idfirst(2).eq.ABot_)) .or. (idfirst(2).eq.Chm_ .and. (idfirst(1).eq.ADn_ .or. idfirst(1).eq.AStr_ .or. idfirst(1).eq.ABot_)) .or. &
+   (idfirst(1).eq.Top_ .and. (idfirst(2).eq.ADn_ .or. idfirst(2).eq.AStr_ .or. idfirst(2).eq.ABot_)) .or. (idfirst(2).eq.Top_ .and. (idfirst(1).eq.ADn_ .or. idfirst(1).eq.AStr_ .or. idfirst(1).eq.ABot_))      &
+   ) then
+      DecayMode1=5
+   elseif( &
+   (idfirst(1).eq.ElM_ .and. idfirst(2).eq.ElP_) .or. (idfirst(2).eq.ElM_ .and. idfirst(1).eq.ElP_) .or. &
+   (idfirst(1).eq.MuM_ .and. idfirst(2).eq.MuP_) .or. (idfirst(2).eq.MuM_ .and. idfirst(1).eq.MuP_) .or. &
+   (idfirst(1).eq.TaM_ .and. idfirst(2).eq.TaP_) .or. (idfirst(2).eq.TaM_ .and. idfirst(1).eq.TaP_)      &
+   ) then
+      DecayMode1=8
+   elseif( &
+   (idfirst(1).eq.Up_  .and. idfirst(2).eq.AUp_) .or. (idfirst(2).eq.Up_  .and. idfirst(1).eq.AUp_) .or. &
+   (idfirst(1).eq.Dn_  .and. idfirst(2).eq.ADn_) .or. (idfirst(2).eq.Dn_  .and. idfirst(1).eq.ADn_) .or. &
+   (idfirst(1).eq.Chm_ .and. idfirst(2).eq.AChm_) .or. (idfirst(2).eq.Chm_ .and. idfirst(1).eq.AChm_) .or. &
+   (idfirst(1).eq.Str_ .and. idfirst(2).eq.AStr_) .or. (idfirst(2).eq.Str_ .and. idfirst(1).eq.Astr_) .or. &
+   (idfirst(1).eq.Top_ .and. idfirst(2).eq.ATop_) .or. (idfirst(2).eq.Top_ .and. idfirst(1).eq.ATop_) .or. &
+   (idfirst(1).eq.Bot_ .and. idfirst(2).eq.ABot_) .or. (idfirst(2).eq.Bot_ .and. idfirst(1).eq.ABot_)      &
+   ) then
+      DecayMode1=1
+   elseif( &
+   (idfirst(1).eq.NuE_ .and. idfirst(2).eq.ANuE_) .or. (idfirst(2).eq.NuE_ .and. idfirst(1).eq.ANuE_) .or. &
+   (idfirst(1).eq.NuM_ .and. idfirst(2).eq.ANuM_) .or. (idfirst(2).eq.NuM_ .and. idfirst(1).eq.ANuM_) .or. &
+   (idfirst(1).eq.NuT_ .and. idfirst(2).eq.ANuT_) .or. (idfirst(2).eq.NuT_ .and. idfirst(1).eq.ANuT_)      &
+   ) then
+      DecayMode1=3
+   endif
+
+   if( idsecond(1).eq.Pho_ .or. idsecond(2).eq.Pho_ ) then
+      DecayMode2 = 7
+   elseif( &
+   (idsecond(1).eq.ElM_ .and. idsecond(2).eq.ANuE_) .or. (idsecond(2).eq.ElM_ .and. idsecond(1).eq.ANuE_) .or. &
+   (idsecond(1).eq.MuM_ .and. idsecond(2).eq.ANuM_) .or. (idsecond(2).eq.MuM_ .and. idsecond(1).eq.ANuM_) .or. &
+   (idsecond(1).eq.TaM_ .and. idsecond(2).eq.ANuT_) .or. (idsecond(2).eq.TaM_ .and. idsecond(1).eq.ANuT_) .or. &
+   (idsecond(1).eq.ElP_ .and. idsecond(2).eq.NuE_) .or. (idsecond(2).eq.ElP_ .and. idsecond(1).eq.NuE_) .or. &
+   (idsecond(1).eq.MuP_ .and. idsecond(2).eq.NuM_) .or. (idsecond(2).eq.MuP_ .and. idsecond(1).eq.NuM_) .or. &
+   (idsecond(1).eq.TaP_ .and. idsecond(2).eq.NuT_) .or. (idsecond(2).eq.TaP_ .and. idsecond(1).eq.NuT_)      &
+   ) then
+      DecayMode2=10
+   elseif( &
+   (idsecond(1).eq.AUp_  .and. (idsecond(2).eq.Dn_ .or. idsecond(2).eq.Str_ .or. idsecond(2).eq.Bot_)) .or. (idsecond(2).eq.AUp_  .and. (idsecond(1).eq.Dn_ .or. idsecond(1).eq.Str_ .or. idsecond(1).eq.Bot_)) .or. &
+   (idsecond(1).eq.AChm_ .and. (idsecond(2).eq.Dn_ .or. idsecond(2).eq.Str_ .or. idsecond(2).eq.Bot_)) .or. (idsecond(2).eq.AChm_ .and. (idsecond(1).eq.Dn_ .or. idsecond(1).eq.Str_ .or. idsecond(1).eq.Bot_)) .or. &
+   (idsecond(1).eq.ATop_ .and. (idsecond(2).eq.Dn_ .or. idsecond(2).eq.Str_ .or. idsecond(2).eq.Bot_)) .or. (idsecond(2).eq.ATop_ .and. (idsecond(1).eq.Dn_ .or. idsecond(1).eq.Str_ .or. idsecond(1).eq.Bot_)) .or. &
+   (idsecond(1).eq.Up_  .and. (idsecond(2).eq.ADn_ .or. idsecond(2).eq.AStr_ .or. idsecond(2).eq.ABot_)) .or. (idsecond(2).eq.Up_  .and. (idsecond(1).eq.ADn_ .or. idsecond(1).eq.AStr_ .or. idsecond(1).eq.ABot_)) .or. &
+   (idsecond(1).eq.Chm_ .and. (idsecond(2).eq.ADn_ .or. idsecond(2).eq.AStr_ .or. idsecond(2).eq.ABot_)) .or. (idsecond(2).eq.Chm_ .and. (idsecond(1).eq.ADn_ .or. idsecond(1).eq.AStr_ .or. idsecond(1).eq.ABot_)) .or. &
+   (idsecond(1).eq.Top_ .and. (idsecond(2).eq.ADn_ .or. idsecond(2).eq.AStr_ .or. idsecond(2).eq.ABot_)) .or. (idsecond(2).eq.Top_ .and. (idsecond(1).eq.ADn_ .or. idsecond(1).eq.AStr_ .or. idsecond(1).eq.ABot_))      &
+   ) then
+      DecayMode2=5
+   elseif( &
+   (idsecond(1).eq.ElM_ .and. idsecond(2).eq.ElP_) .or. (idsecond(2).eq.ElM_ .and. idsecond(1).eq.ElP_) .or. &
+   (idsecond(1).eq.MuM_ .and. idsecond(2).eq.MuP_) .or. (idsecond(2).eq.MuM_ .and. idsecond(1).eq.MuP_) .or. &
+   (idsecond(1).eq.TaM_ .and. idsecond(2).eq.TaP_) .or. (idsecond(2).eq.TaM_ .and. idsecond(1).eq.TaP_)      &
+   ) then
+      DecayMode2=8
+   elseif( &
+   (idsecond(1).eq.Up_  .and. idsecond(2).eq.AUp_) .or. (idsecond(2).eq.Up_  .and. idsecond(1).eq.AUp_) .or. &
+   (idsecond(1).eq.Dn_  .and. idsecond(2).eq.ADn_) .or. (idsecond(2).eq.Dn_  .and. idsecond(1).eq.ADn_) .or. &
+   (idsecond(1).eq.Chm_ .and. idsecond(2).eq.AChm_) .or. (idsecond(2).eq.Chm_ .and. idsecond(1).eq.AChm_) .or. &
+   (idsecond(1).eq.Str_ .and. idsecond(2).eq.AStr_) .or. (idsecond(2).eq.Str_ .and. idsecond(1).eq.Astr_) .or. &
+   (idsecond(1).eq.Top_ .and. idsecond(2).eq.ATop_) .or. (idsecond(2).eq.Top_ .and. idsecond(1).eq.ATop_) .or. &
+   (idsecond(1).eq.Bot_ .and. idsecond(2).eq.ABot_) .or. (idsecond(2).eq.Bot_ .and. idsecond(1).eq.ABot_)      &
+   ) then
+      DecayMode2=1
+   elseif( &
+   (idsecond(1).eq.NuE_ .and. idsecond(2).eq.ANuE_) .or. (idsecond(2).eq.NuE_ .and. idsecond(1).eq.ANuE_) .or. &
+   (idsecond(1).eq.NuM_ .and. idsecond(2).eq.ANuM_) .or. (idsecond(2).eq.NuM_ .and. idsecond(1).eq.ANuM_) .or. &
+   (idsecond(1).eq.NuT_ .and. idsecond(2).eq.ANuT_) .or. (idsecond(2).eq.NuT_ .and. idsecond(1).eq.ANuT_)      &
+   ) then
+      DecayMode2=3
+   endif
+   call SetMVGV()
+   return
+end subroutine SetDecayModes
+
+subroutine SetSpinZeroVVCouplings(vvcoupl, cqsq, Lambda_qsq, useWWcoupl)
+   implicit none
+   complex(8), intent(in) :: vvcoupl(39)
+   integer, intent(in) :: cqsq(3)
+   real(8), intent(in) :: Lambda_qsq(1:3,1:4)
+   logical, intent(in) :: useWWcoupl
+
+   if(.not.useWWcoupl) then
+      cz_q1sq = cqsq(1)
+      Lambda_z11 = Lambda_qsq(1,1)
+      Lambda_z21 = Lambda_qsq(1,2)
+      Lambda_z31 = Lambda_qsq(1,3)
+      Lambda_z41 = Lambda_qsq(1,4)
+      cz_q2sq = cqsq(2)
+      Lambda_z12 = Lambda_qsq(2,1)
+      Lambda_z22 = Lambda_qsq(2,2)
+      Lambda_z32 = Lambda_qsq(2,3)
+      Lambda_z42 = Lambda_qsq(2,4)
+      cz_q12sq = cqsq(3)
+      Lambda_z10 = Lambda_qsq(3,1)
+      Lambda_z20 = Lambda_qsq(3,2)
+      Lambda_z30 = Lambda_qsq(3,3)
+      Lambda_z40 = Lambda_qsq(3,4)
+
+      ghz1 =  vvcoupl(1) 
+      ghz2 =  vvcoupl(2) 
+      ghz3 =  vvcoupl(3) 
+      ghz4 =  vvcoupl(4)
+
+      ghzgs2  = vvcoupl(5) 
+      ghzgs3  = vvcoupl(6)  
+      ghzgs4  = vvcoupl(7)  
+      ghgsgs2 = vvcoupl(8)
+      ghgsgs3 = vvcoupl(9)
+      ghgsgs4 = vvcoupl(10)
+
+      ghz1_prime = vvcoupl(11) 
+      ghz1_prime2= vvcoupl(12) 
+      ghz1_prime3= vvcoupl(13)
+      ghz1_prime4= vvcoupl(14)
+      ghz1_prime5= vvcoupl(15)
+
+      ghz2_prime = vvcoupl(16) 
+      ghz2_prime2= vvcoupl(17)
+      ghz2_prime3= vvcoupl(18)
+      ghz2_prime4= vvcoupl(19)
+      ghz2_prime5= vvcoupl(20)
+
+      ghz3_prime = vvcoupl(21)
+      ghz3_prime2= vvcoupl(22)
+      ghz3_prime3= vvcoupl(23)
+      ghz3_prime4= vvcoupl(24)
+      ghz3_prime5= vvcoupl(25)
+
+      ghz4_prime = vvcoupl(26)
+      ghz4_prime2= vvcoupl(27)
+      ghz4_prime3= vvcoupl(28)
+      ghz4_prime4= vvcoupl(29)
+      ghz4_prime5= vvcoupl(30)
+
+      ghzgs1_prime2= vvcoupl(31)
+
+      ghz1_prime6  = vvcoupl(32)
+      ghz1_prime7  = vvcoupl(33)
+      ghz2_prime6  = vvcoupl(34)
+      ghz2_prime7  = vvcoupl(35)
+      ghz3_prime6  = vvcoupl(36)
+      ghz3_prime7  = vvcoupl(37)
+      ghz4_prime6  = vvcoupl(38)
+      ghz4_prime7  = vvcoupl(39)
+   else
+      cw_q1sq = cqsq(1)
+      Lambda_w11 = Lambda_qsq(1,1)
+      Lambda_w21 = Lambda_qsq(1,2)
+      Lambda_w31 = Lambda_qsq(1,3)
+      Lambda_w41 = Lambda_qsq(1,4)
+      cw_q2sq = cqsq(2)
+      Lambda_w12 = Lambda_qsq(2,1)
+      Lambda_w22 = Lambda_qsq(2,2)
+      Lambda_w32 = Lambda_qsq(2,3)
+      Lambda_w42 = Lambda_qsq(2,4)
+      cw_q12sq = cqsq(3)
+      Lambda_w10 = Lambda_qsq(3,1)
+      Lambda_w20 = Lambda_qsq(3,2)
+      Lambda_w30 = Lambda_qsq(3,3)
+      Lambda_w40 = Lambda_qsq(3,4)
+
+      ghw1 =  vvcoupl(1) 
+      ghw2 =  vvcoupl(2) 
+      ghw3 =  vvcoupl(3) 
+      ghw4 =  vvcoupl(4)
+
+      ghw1_prime = vvcoupl(11) 
+      ghw1_prime2= vvcoupl(12) 
+      ghw1_prime3= vvcoupl(13)
+      ghw1_prime4= vvcoupl(14)
+      ghw1_prime5= vvcoupl(15)
+
+      ghw2_prime = vvcoupl(16) 
+      ghw2_prime2= vvcoupl(17)
+      ghw2_prime3= vvcoupl(18)
+      ghw2_prime4= vvcoupl(19)
+      ghw2_prime5= vvcoupl(20)
+
+      ghw3_prime = vvcoupl(21)
+      ghw3_prime2= vvcoupl(22)
+      ghw3_prime3= vvcoupl(23)
+      ghw3_prime4= vvcoupl(24)
+      ghw3_prime5= vvcoupl(25)
+
+      ghw4_prime = vvcoupl(26)
+      ghw4_prime2= vvcoupl(27)
+      ghw4_prime3= vvcoupl(28)
+      ghw4_prime4= vvcoupl(29)
+      ghw4_prime5= vvcoupl(30)
+
+      ghw1_prime6  = vvcoupl(32)
+      ghw1_prime7  = vvcoupl(33)
+      ghw2_prime6  = vvcoupl(34)
+      ghw2_prime7  = vvcoupl(35)
+      ghw3_prime6  = vvcoupl(36)
+      ghw3_prime7  = vvcoupl(37)
+      ghw4_prime6  = vvcoupl(38)
+      ghw4_prime7  = vvcoupl(39)
+   endif
+   return
+end subroutine SetSpinZeroVVCouplings
+
+subroutine SetSpinZeroVVCouplings_NoGamma(vvcoupl, cqsq, Lambda_qsq, useWWcoupl)
+   implicit none
+   complex(8), intent(in) :: vvcoupl(32)
+   integer, intent(in) :: cqsq(3)
+   real(8), intent(in) :: Lambda_qsq(1:3,1:4)
+   logical, intent(in) :: useWWcoupl
+
+   if(.not.useWWcoupl) then
+      cz_q1sq = cqsq(1)
+      Lambda_z11 = Lambda_qsq(1,1)
+      Lambda_z21 = Lambda_qsq(1,2)
+      Lambda_z31 = Lambda_qsq(1,3)
+      Lambda_z41 = Lambda_qsq(1,4)
+      cz_q2sq = cqsq(2)
+      Lambda_z12 = Lambda_qsq(2,1)
+      Lambda_z22 = Lambda_qsq(2,2)
+      Lambda_z32 = Lambda_qsq(2,3)
+      Lambda_z42 = Lambda_qsq(2,4)
+      cz_q12sq = cqsq(3)
+      Lambda_z10 = Lambda_qsq(3,1)
+      Lambda_z20 = Lambda_qsq(3,2)
+      Lambda_z30 = Lambda_qsq(3,3)
+      Lambda_z40 = Lambda_qsq(3,4)
+
+      ghz1 = vvcoupl(1)
+      ghz2 = vvcoupl(2)
+      ghz3 = vvcoupl(3)
+      ghz4 = vvcoupl(4)
+      ghz1_prime = vvcoupl(5) 
+      ghz1_prime2= vvcoupl(6) 
+      ghz1_prime3= vvcoupl(7) 
+      ghz1_prime4= vvcoupl(8)
+      ghz1_prime5= vvcoupl(9)
+      ghz2_prime = vvcoupl(10) 
+      ghz2_prime2= vvcoupl(11)
+      ghz2_prime3= vvcoupl(12)
+      ghz2_prime4= vvcoupl(13)
+      ghz2_prime5= vvcoupl(14)
+      ghz3_prime = vvcoupl(15)
+      ghz3_prime2= vvcoupl(16)
+      ghz3_prime3= vvcoupl(17)
+      ghz3_prime4= vvcoupl(18)
+      ghz3_prime5= vvcoupl(19)
+      ghz4_prime = vvcoupl(20)
+      ghz4_prime2= vvcoupl(21)
+      ghz4_prime3= vvcoupl(22)
+      ghz4_prime4= vvcoupl(23)
+      ghz4_prime5= vvcoupl(24)
+      ghz1_prime6= vvcoupl(25)
+      ghz1_prime7= vvcoupl(26)
+      ghz2_prime6= vvcoupl(27)
+      ghz2_prime7= vvcoupl(28)
+      ghz3_prime6= vvcoupl(29)
+      ghz3_prime7= vvcoupl(30)
+      ghz4_prime6= vvcoupl(31)
+      ghz4_prime7= vvcoupl(32)
+   else
+      cw_q1sq = cqsq(1)
+      Lambda_w11 = Lambda_qsq(1,1)
+      Lambda_w21 = Lambda_qsq(1,2)
+      Lambda_w31 = Lambda_qsq(1,3)
+      Lambda_w41 = Lambda_qsq(1,4)
+      cw_q2sq = cqsq(2)
+      Lambda_w12 = Lambda_qsq(2,1)
+      Lambda_w22 = Lambda_qsq(2,2)
+      Lambda_w32 = Lambda_qsq(2,3)
+      Lambda_w42 = Lambda_qsq(2,4)
+      cw_q12sq = cqsq(3)
+      Lambda_w10 = Lambda_qsq(3,1)
+      Lambda_w20 = Lambda_qsq(3,2)
+      Lambda_w30 = Lambda_qsq(3,3)
+      Lambda_w40 = Lambda_qsq(3,4)
+
+      ghw1 = vvcoupl(1)
+      ghw2 = vvcoupl(2)
+      ghw3 = vvcoupl(3)
+      ghw4 = vvcoupl(4)
+      ghw1_prime = vvcoupl(5) 
+      ghw1_prime2= vvcoupl(6) 
+      ghw1_prime3= vvcoupl(7) 
+      ghw1_prime4= vvcoupl(8)
+      ghw1_prime5= vvcoupl(9)
+      ghw2_prime = vvcoupl(10) 
+      ghw2_prime2= vvcoupl(11)
+      ghw2_prime3= vvcoupl(12)
+      ghw2_prime4= vvcoupl(13)
+      ghw2_prime5= vvcoupl(14)
+      ghw3_prime = vvcoupl(15)
+      ghw3_prime2= vvcoupl(16)
+      ghw3_prime3= vvcoupl(17)
+      ghw3_prime4= vvcoupl(18)
+      ghw3_prime5= vvcoupl(19)
+      ghw4_prime = vvcoupl(20)
+      ghw4_prime2= vvcoupl(21)
+      ghw4_prime3= vvcoupl(22)
+      ghw4_prime4= vvcoupl(23)
+      ghw4_prime5= vvcoupl(24)
+      ghw1_prime6= vvcoupl(25)
+      ghw1_prime7= vvcoupl(26)
+      ghw2_prime6= vvcoupl(27)
+      ghw2_prime7= vvcoupl(28)
+      ghw3_prime6= vvcoupl(29)
+      ghw3_prime7= vvcoupl(30)
+      ghw4_prime6= vvcoupl(31)
+      ghw4_prime7= vvcoupl(32)
+   endif
+   return
+end subroutine SetSpinZeroVVCouplings_NoGamma
+
+subroutine SetDistinguishWWCouplingsFlag(doAllow)
+   implicit none
+   logical, intent(in) :: doAllow
+   distinguish_HWWcouplings = doAllow
+   return
+end subroutine SetDistinguishWWCouplingsFlag
+
+subroutine SetSpinZeroGGCouplings(ggcoupl)
+   implicit none
+   complex(8), intent(in) :: ggcoupl(1:3)
+   ghg2 =  ggcoupl(1) 
+   ghg3 =  ggcoupl(2) 
+   ghg4 =  ggcoupl(3)
+   return
+end subroutine SetSpinZeroGGCouplings
+
+subroutine SetSpinZeroQQCouplings(qqcoupl)
+   implicit none
+   complex(8), intent(in) :: qqcoupl(1:2)
+   kappa =  qqcoupl(1) 
+   kappa_tilde =  qqcoupl(2) 
+   return
+end subroutine SetSpinZeroQQCouplings
+
+subroutine SetSpinOneCouplings(qqcoupl,vvcoupl)
+   implicit none
+   complex(8), intent(in) :: qqcoupl(1:2)
+   complex(8), intent(in) :: vvcoupl(1:2)
+
+   zprime_qq_left  = qqcoupl(1)
+   zprime_qq_right = qqcoupl(2)
+   zprime_zz_1 = vvcoupl(1)
+   zprime_zz_2 = vvcoupl(2)
+   return
+end subroutine SetSpinOneCouplings
+
+subroutine SetSpinTwoCouplings(acoupl,bcoupl,qLR)
+   implicit none
+   complex(8), intent(in) :: acoupl(1:5)
+   complex(8), intent(in) :: bcoupl(1:10)
+   complex(8), intent(in) :: qLR(1:2)
+
+   a1 = acoupl(1)
+   a2 = acoupl(2)
+   a3 = acoupl(3)
+   a4 = acoupl(4)
+   a5 = acoupl(5)
+
+   graviton_qq_left  = qLR(1)
+   graviton_qq_right = qLR(2)
+
+   b1 = bcoupl(1)
+   b2 = bcoupl(2)
+   b3 = bcoupl(3)
+   b4 = bcoupl(4)
+   b5 = bcoupl(5)
+   b6 = bcoupl(6)
+   b7 = bcoupl(7)
+   b8 = bcoupl(8)
+   b9 = bcoupl(9)
+   b10 = bcoupl(10)
+
+   return
+end subroutine SetSpinTwoCouplings
+
+!=====================================================
+! Internal functions and subroutines
+!=====================================================
+
+
+subroutine SetMVGV()
+implicit none
+  if( DecayMode1.le.3 .or. (DecayMode1.ge.8 .and. DecayMode1.le.9) ) then
+    M_V = M_Z
+    Ga_V= Ga_Z
+  elseif( DecayMode2.le.3 .or. (DecayMode2.ge.8 .and. DecayMode2.le.9) ) then
+    M_V = M_Z
+    Ga_V= Ga_Z
+  elseif( (DecayMode1.ge.4 .and. DecayMode1.le.6) .or. (DecayMode1.ge.10 .and. DecayMode1.le.11) ) then
+    M_V = M_W
+    Ga_V= Ga_W
+  elseif( (DecayMode2.ge.4 .and. DecayMode2.le.6) .or. (DecayMode2.ge.10 .and. DecayMode2.le.11) ) then
+    M_V = M_W
+    Ga_V= Ga_W
+  else
+    M_V = 0d0
+    Ga_V= 0d0    
+  endif
+end subroutine SetMVGV
+
+function HVVSpinZeroDynamicCoupling (index,sWplus,sWminus,sWW,tryWWcoupl)
+integer, intent(in) :: index
+real(8), intent(in) :: sWplus, sWminus, sWW
+real(8) :: sWplus_signed, sWminus_signed, sWW_signed
+logical,optional :: tryWWcoupl
+complex(8) :: HVVSpinZeroDynamicCoupling
+complex(8) :: vvcoupl(1:8)
+real(8) :: lambda_v
+real(8) :: lambda_v120(1:3)
+logical :: forceZZcoupl
+logical :: computeQsqCompundCoupl
+
+	if(present(tryWWcoupl)) then
+		forceZZcoupl = (.not.tryWWcoupl .or. .not.distinguish_HWWcouplings .or. index.gt.4)
+	else
+		forceZZcoupl = .true.
+	endif
+	computeQsqCompundCoupl = .false.
+	sWplus_signed=0d0
+	sWminus_signed=0d0
+	sWW_signed=0d0
+	vvcoupl(:)=czero
+	HVVSpinZeroDynamicCoupling=czero
+	if( forceZZcoupl ) then
+		if(cz_q1sq.ne.0) sWplus_signed=abs(sWplus)*dble(sign(1,cz_q1sq))
+		if(cz_q2sq.ne.0) sWminus_signed=abs(sWminus)*dble(sign(1,cz_q2sq))
+		if(cz_q12sq.ne.0) sWW_signed=abs(sWW)*dble(sign(1,cz_q12sq))
+		if(cz_q1sq.ne.0 .or. cz_q2sq.ne.0 .or. cz_q12sq.ne.0) computeQsqCompundCoupl=.true.
+		if(index.eq.1) then
+			vvcoupl = (/ ghz1, ghz1_prime, ghz1_prime2, ghz1_prime3, ghz1_prime4, ghz1_prime5, ghz1_prime6, ghz1_prime7 /)
+			lambda_v = Lambda_z1
+			lambda_v120 = (/ Lambda_z11, Lambda_z12, Lambda_z10 /)
+		elseif(index.eq.2) then
+			vvcoupl = (/ ghz2, ghz2_prime, ghz2_prime2, ghz2_prime3, ghz2_prime4, ghz2_prime5, ghz2_prime6, ghz2_prime7 /)
+			lambda_v = Lambda_z2
+			lambda_v120 = (/ Lambda_z21, Lambda_z22, Lambda_z20 /)
+		elseif(index.eq.3) then
+			vvcoupl = (/ ghz3, ghz3_prime, ghz3_prime2, ghz3_prime3, ghz3_prime4, ghz3_prime5, ghz3_prime6, ghz3_prime7 /)
+			lambda_v = Lambda_z3
+			lambda_v120 = (/ Lambda_z31, Lambda_z32, Lambda_z30 /)
+		elseif(index.eq.4) then
+			vvcoupl = (/ ghz4, ghz4_prime, ghz4_prime2, ghz4_prime3, ghz4_prime4, ghz4_prime5, ghz4_prime6, ghz4_prime7 /)
+			lambda_v = Lambda_z4
+			lambda_v120 = (/ Lambda_z41, Lambda_z42, Lambda_z40 /)
+		elseif(index.eq.5) then ! Zgs 1
+			if(sWW.gt.0d0) vvcoupl(3) = ghzgs1_prime2 * M_Z**2/sWW**2
+			lambda_v = Lambda_zgs1
+			lambda_v120 = (/ Lambda_z11, Lambda_z12, Lambda_z10 /)
+		elseif(index.eq.6) then ! Zgs 2-4
+			vvcoupl(1) = ghzgs2
+			lambda_v = 1d0 ! Not present
+			lambda_v120 = (/ Lambda_z21, Lambda_z22, Lambda_z20 /)
+		elseif(index.eq.7) then
+			vvcoupl(1) = ghzgs3
+			lambda_v = 1d0 ! Not present
+			lambda_v120 = (/ Lambda_z31, Lambda_z32, Lambda_z30 /)
+		elseif(index.eq.8) then
+			vvcoupl(1) = ghzgs4
+			lambda_v = 1d0 ! Not present
+			lambda_v120 = (/ Lambda_z41, Lambda_z42, Lambda_z40 /)
+		elseif(index.eq.9) then ! gsgs 2-4
+			vvcoupl(1) = ghgsgs2
+			lambda_v = 1d0 ! Not present
+			lambda_v120 = (/ Lambda_z21, Lambda_z22, Lambda_z20 /)
+		elseif(index.eq.10) then
+			vvcoupl(1) = ghgsgs3
+			lambda_v = 1d0 ! Not present
+			lambda_v120 = (/ Lambda_z31, Lambda_z32, Lambda_z30 /)
+		elseif(index.eq.11) then
+			vvcoupl(1) = ghgsgs4
+			lambda_v = 1d0 ! Not present
+			lambda_v120 = (/ Lambda_z41, Lambda_z42, Lambda_z40 /)
+		endif
+	else
+		if(cw_q1sq.ne.0) sWplus_signed=abs(sWplus)*dble(sign(1,cw_q1sq))
+		if(cw_q2sq.ne.0) sWminus_signed=abs(sWminus)*dble(sign(1,cw_q2sq))
+		if(cw_q12sq.ne.0) sWW_signed=abs(sWW)*dble(sign(1,cw_q12sq))
+		if(cw_q1sq.ne.0 .or. cw_q2sq.ne.0 .or. cw_q12sq.ne.0) computeQsqCompundCoupl=.true.
+		if(index.eq.1) then
+			vvcoupl = (/ ghw1, ghw1_prime, ghw1_prime2, ghw1_prime3, ghw1_prime4, ghw1_prime5, ghw1_prime6, ghw1_prime7 /)
+			lambda_v = Lambda_w1
+			lambda_v120 = (/ Lambda_w11, Lambda_w12, Lambda_w10 /)
+		elseif(index.eq.2) then
+			vvcoupl = (/ ghw2, ghw2_prime, ghw2_prime2, ghw2_prime3, ghw2_prime4, ghw2_prime5, ghw2_prime6, ghw2_prime7 /)
+			lambda_v = Lambda_w2
+			lambda_v120 = (/ Lambda_w21, Lambda_w22, Lambda_w20 /)
+		elseif(index.eq.3) then
+			vvcoupl = (/ ghw3, ghw3_prime, ghw3_prime2, ghw3_prime3, ghw3_prime4, ghw3_prime5, ghw3_prime6, ghw3_prime7 /)
+			lambda_v = Lambda_w3
+			lambda_v120 = (/ Lambda_w31, Lambda_w32, Lambda_w30 /)
+		elseif(index.eq.4) then
+			vvcoupl = (/ ghw4, ghw4_prime, ghw4_prime2, ghw4_prime3, ghw4_prime4, ghw4_prime5, ghw4_prime6, ghw4_prime7 /)
+			lambda_v = Lambda_w4
+			lambda_v120 = (/ Lambda_w41, Lambda_w42, Lambda_w40 /)
+		endif
+	endif
+
+	if(vvcoupl(2).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(2) * lambda_v**4/(lambda_v**2 + abs(sWplus))/(lambda_v**2 + abs(sWminus))
+	if(vvcoupl(3).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(3) * ( sWplus + sWminus )/lambda_v**2
+	if(vvcoupl(4).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(4) * ( sWplus - sWminus )/lambda_v**2
+	if(vvcoupl(5).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(5) * ( sWW )/Lambda_Q**2
+	if(vvcoupl(6).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(6) * ( sWplus**2 + sWminus**2 )/lambda_v**4
+	if(vvcoupl(7).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(7) * ( sWplus**2 - sWminus**2 )/lambda_v**4
+	if(vvcoupl(8).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(8) * ( sWplus    * sWminus    )/lambda_v**4
+
+	if(index.eq.1) then
+		if(computeQsqCompundCoupl) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling * (lambda_v120(1)*lambda_v120(2)*lambda_v120(3))**2 / ( (lambda_v120(1)**2 + sWplus_signed)*(lambda_v120(2)**2 + sWminus_signed)*(lambda_v120(3)**2 + sWW_signed) )
+		if(vvcoupl(1).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(1)
+	else
+		if(vvcoupl(1).ne.czero) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling + vvcoupl(1)
+		if(computeQsqCompundCoupl) HVVSpinZeroDynamicCoupling = HVVSpinZeroDynamicCoupling * (lambda_v120(1)*lambda_v120(2)*lambda_v120(3))**2 / ( (lambda_v120(1)**2 + sWplus_signed)*(lambda_v120(2)**2 + sWminus_signed)*(lambda_v120(3)**2 + sWW_signed) )
+	endif
+
+end function
+
+
+
+!--YaofuZhou
+FUNCTION CKM(id1in,id2in)
+implicit none
+real(8) :: CKM
+integer :: id1, id2, id1in, id2in
+id1 = abs(id1in)
+id2 = abs(id2in)
+if((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Up_)))then
+  CKM= VCKM_ud * dsqrt(scale_alpha_W_ud)
+elseif((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Up_)))then
+  CKM= VCKM_us * dsqrt(scale_alpha_W_ud)
+elseif((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Bot_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Up_)))then
+  CKM= VCKM_ub * dsqrt(scale_alpha_W_ud)
+elseif((id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Chm_)))then
+  CKM= VCKM_cd * dsqrt(scale_alpha_W_cs)
+elseif((id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Chm_)))then
+  CKM= VCKM_cs * dsqrt(scale_alpha_W_cs)
+elseif((id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Bot_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Chm_)))then
+  CKM= VCKM_cb * dsqrt(scale_alpha_W_cs)
+elseif((id1.eq.convertLHE(Top_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Top_)))then
+  CKM= VCKM_td
+elseif((id1.eq.convertLHE(Top_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Top_)))then
+  CKM= VCKM_ts
+elseif((id1.eq.convertLHE(Top_)  .and.  id2.eq.convertLHE(Bot_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Top_)))then
+  CKM= VCKM_tb
+elseif((abs(id1).eq.abs(convertLHE(NuT_))  .and.  abs(id2).eq.abs(convertLHE(TaP_)))  .or.  (abs(id1).eq.abs(convertLHE(TaP_))  .and.  abs(id2).eq.abs(convertLHE(NuT_))))then
+  CKM= 1d0 * dsqrt(scale_alpha_W_tn)
+else
+  CKM= 1d0 * dsqrt(scale_alpha_W_ln)
+endif
+
+END FUNCTION
+
+
+FUNCTION ScaleFactor(id1in,id2in)
+implicit none
+real(8) :: ScaleFactor
+integer :: id1, id2, id1in, id2in
+id1 = abs(id1in)
+id2 = abs(id2in)
+
+! W->qq
+if((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Up_)))then
+  ScaleFactor = scale_alpha_W_ud
+elseif((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Up_)))then
+  ScaleFactor = scale_alpha_W_ud
+elseif((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Bot_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Up_)))then
+  ScaleFactor = scale_alpha_W_ud
+elseif((id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Chm_)))then
+  ScaleFactor = scale_alpha_W_cs
+elseif((id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Chm_)))then
+  ScaleFactor = scale_alpha_W_cs
+elseif((id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Bot_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Chm_)))then
+  ScaleFactor = scale_alpha_W_cs
+! W-> td
+elseif((id1.eq.convertLHE(Top_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Top_)))then
+  ScaleFactor = 1d0
+elseif((id1.eq.convertLHE(Top_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Top_)))then
+  ScaleFactor = 1d0
+elseif((id1.eq.convertLHE(Top_)  .and.  id2.eq.convertLHE(Bot_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Top_)))then
+  ScaleFactor = 1d0
+! W->lnu
+elseif((abs(id1).eq.abs(convertLHE(NuT_))  .and.  abs(id2).eq.abs(convertLHE(TaP_)))  .or.  (abs(id1).eq.abs(convertLHE(TaP_))  .and.  abs(id2).eq.abs(convertLHE(NuT_))))then
+  ScaleFactor = scale_alpha_W_tn
+elseif((abs(id1).eq.abs(convertLHE(NuM_))  .and.  abs(id2).eq.abs(convertLHE(MuP_)))  .or.  (abs(id1).eq.abs(convertLHE(MuP_))  .and.  abs(id2).eq.abs(convertLHE(NuM_))))then
+  ScaleFactor = scale_alpha_W_ln
+elseif((abs(id1).eq.abs(convertLHE(NuE_))  .and.  abs(id2).eq.abs(convertLHE(ElP_)))  .or.  (abs(id1).eq.abs(convertLHE(ElP_))  .and.  abs(id2).eq.abs(convertLHE(NuE_))))then
+  ScaleFactor = scale_alpha_W_ln
+! Z->qq
+elseif((id1.eq.convertLHE(Up_)  .and.  id2.eq.convertLHE(Up_))  .or.  (id1.eq.convertLHE(Chm_)  .and.  id2.eq.convertLHE(Chm_)))then
+  ScaleFactor = scale_alpha_Z_uu
+elseif((id1.eq.convertLHE(Dn_)  .and.  id2.eq.convertLHE(Dn_))  .or.  (id1.eq.convertLHE(Str_)  .and.  id2.eq.convertLHE(Str_))  .or.  (id1.eq.convertLHE(Bot_)  .and.  id2.eq.convertLHE(Bot_)))then
+  ScaleFactor = scale_alpha_Z_dd
+! Z-> ll, nunu
+elseif(id1.eq.convertLHE(TaP_)  .and.  id2.eq.convertLHE(TaP_))then
+  ScaleFactor = scale_alpha_Z_tt
+elseif((id1.eq.convertLHE(MuP_)  .and.  id2.eq.convertLHE(MuP_))  .or.  (id1.eq.convertLHE(ElP_)  .and.  id2.eq.convertLHE(ElP_)))then
+  ScaleFactor = scale_alpha_Z_ll
+elseif((id1.eq.convertLHE(NuT_)  .and.  id2.eq.convertLHE(NuT_))  .or.  (id1.eq.convertLHE(NuM_)  .and.  id2.eq.convertLHE(NuM_))  .or.  (id1.eq.convertLHE(NuE_)  .and.  id2.eq.convertLHE(NuE_)))then
+  ScaleFactor = scale_alpha_Z_nn
+! Everything else
+else
+  ScaleFactor = 1d0
+endif
+
+END FUNCTION
+
+
+
+FUNCTION convertLHEreverse(Part)
+implicit none
+integer :: convertLHEreverse
+integer :: Part
+
+  if(     Part.eq.0 ) then      ! 0=Glu_ is not the official LHE convention
+      convertLHEreverse = Glu_
+  elseif( Part.eq.1 ) then
+      convertLHEreverse = Dn_
+  elseif( Part.eq.2 ) then
+      convertLHEreverse = Up_
+  elseif( Part.eq.3 ) then
+      convertLHEreverse = Str_
+  elseif( Part.eq.4 ) then
+      convertLHEreverse = Chm_
+  elseif( Part.eq.5 ) then
+      convertLHEreverse = Bot_
+  elseif( Part.eq.6 ) then
+      convertLHEreverse = Top_
+  elseif( Part.eq.-1 ) then
+      convertLHEreverse = ADn_
+  elseif( Part.eq.-2 ) then
+      convertLHEreverse = AUp_
+  elseif( Part.eq.-3 ) then
+      convertLHEreverse = AStr_
+  elseif( Part.eq.-4 ) then
+      convertLHEreverse = AChm_
+  elseif( Part.eq.-5 ) then
+      convertLHEreverse = ABot_
+  elseif( Part.eq.-6 ) then
+      convertLHEreverse = ATop_
+  elseif( Part.eq.21 ) then
+      convertLHEreverse = Glu_
+  elseif( Part.eq.11 ) then
+      convertLHEreverse = ElM_
+  elseif( Part.eq.22 ) then
+      convertLHEreverse = Pho_
+  elseif( Part.eq.23 ) then
+      convertLHEreverse = Z0_
+  elseif( Part.eq.24 ) then
+      convertLHEreverse = Wp_
+  elseif( Part.eq.-24 ) then
+      convertLHEreverse = Wm_
+  elseif( Part.eq.-11 ) then
+      convertLHEreverse = ElP_
+  elseif( Part.eq.13 ) then
+      convertLHEreverse = MuM_
+  elseif( Part.eq.-13 ) then
+      convertLHEreverse = MuP_
+  elseif( Part.eq.15 ) then
+      convertLHEreverse = TaM_
+  elseif( Part.eq.-15 ) then
+      convertLHEreverse = TaP_
+  elseif( Part.eq.12 ) then
+      convertLHEreverse = NuE_
+  elseif( Part.eq.-12) then
+      convertLHEreverse = ANuE_
+  elseif( Part.eq.14) then
+      convertLHEreverse = NuM_
+  elseif( Part.eq.-14) then
+      convertLHEreverse = ANuM_
+  elseif( Part.eq.16 ) then
+      convertLHEreverse = NuT_
+  elseif( Part.eq.-16) then
+      convertLHEreverse = ANuT_
+  elseif( Part.eq.+25) then
+      convertLHEreverse = Hig_
+  elseif( Part.eq.-25) then
+      convertLHEreverse = Hig_
+  else
+      print *, "MYLHE format not implemented for ",Part
+      stop
+  endif
+
+
+END FUNCTION
+
+
+
+FUNCTION convertLHE(Part)
+implicit none
+integer :: convertLHE
+integer :: Part
+
+
+  if(     Part.eq.0 ) then
+      convertLHE = 0
+  elseif( Part.eq.Glu_ ) then
+      convertLHE = 21
+  elseif( Part.eq.ElM_ ) then
+      convertLHE = 11
+  elseif( Part.eq.ElP_ ) then
+      convertLHE =-11
+  elseif( Part.eq.MuM_ ) then
+      convertLHE = 13
+  elseif( Part.eq.MuP_ ) then
+      convertLHE =-13
+  elseif( Part.eq.TaM_ ) then
+      convertLHE = 15
+  elseif( Part.eq.TaP_ ) then
+      convertLHE =-15
+  elseif( Part.eq.NuE_ ) then
+      convertLHE = 12
+  elseif( Part.eq.ANuE_) then
+      convertLHE =-12
+  elseif( Part.eq.NuM_) then
+      convertLHE = 14
+  elseif( Part.eq.ANuM_) then
+      convertLHE =-14
+  elseif( Part.eq.NuT_ ) then
+      convertLHE = 16
+  elseif( Part.eq.ANuT_) then
+      convertLHE =-16
+  elseif( Part.eq.Up_  ) then
+      convertLHE = 2
+  elseif( Part.eq.AUp_ ) then
+      convertLHE =-2
+  elseif( Part.eq.Dn_  ) then
+      convertLHE = 1
+  elseif( Part.eq.ADn_ ) then
+      convertLHE =-1
+  elseif( Part.eq.Chm_ ) then
+      convertLHE = 4
+  elseif( Part.eq.AChm_) then
+      convertLHE =-4
+  elseif( Part.eq.Str_ ) then
+      convertLHE = 3
+  elseif( Part.eq.AStr_) then
+      convertLHE =-3
+  elseif( Part.eq.Bot_ ) then
+      convertLHE = 5
+  elseif( Part.eq.ABot_) then
+      convertLHE =-5
+  elseif( Part.eq.Top_ ) then
+      convertLHE = 6
+  elseif( Part.eq.ATop_) then
+      convertLHE =-6
+  elseif( Part.eq.Z0_) then
+      convertLHE =23
+  elseif( Part.eq.Wp_) then
+      convertLHE =24
+  elseif( Part.eq.Wm_) then
+      convertLHE =-24
+  elseif( Part.eq.Pho_) then
+      convertLHE =22
+  elseif( Part.eq.Hig_) then
+      convertLHE =25
+  elseif( Part.eq.Zpr_) then
+      convertLHE =32
+  elseif( Part.eq.Gra_) then
+      convertLHE =39
+  elseif( Part.eq.Not_a_particle_) then
+      convertLHE = Part
+  elseif( Part.lt.-9000) then
+      convertLHE = Part
+  else
+      print *, "LHE format not implemented for ",Part
+      stop
+  endif
+
+END FUNCTION
+
+
+FUNCTION convertToPartIndex(Part)
+implicit none
+integer :: convertToPartIndex
+integer :: Part
+
+
+  if( Part.eq.Glu_ ) then
+      convertToPartIndex = pdfGlu_
+  elseif( Part.eq.Up_  ) then
+      convertToPartIndex = pdfUp_
+  elseif( Part.eq.AUp_ ) then
+      convertToPartIndex = pdfAUp_
+  elseif( Part.eq.Dn_  ) then
+      convertToPartIndex = pdfDn_
+  elseif( Part.eq.ADn_ ) then
+      convertToPartIndex = pdfADn_
+  elseif( Part.eq.Chm_ ) then
+      convertToPartIndex = pdfChm_
+  elseif( Part.eq.AChm_) then
+      convertToPartIndex = pdfAChm_
+  elseif( Part.eq.Str_ ) then
+      convertToPartIndex = pdfStr_
+  elseif( Part.eq.AStr_) then
+      convertToPartIndex = pdfAStr_
+  elseif( Part.eq.Bot_ ) then
+      convertToPartIndex = pdfBot_
+  elseif( Part.eq.ABot_) then
+      convertToPartIndex = pdfABot_
+  else
+      print *, "Unsuccessful conversion to a parton ME array index from ",Part
+      stop
+  endif
+
+END FUNCTION
+
+
+FUNCTION convertFromPartIndex(Part)
+implicit none
+integer :: convertFromPartIndex
+integer :: Part
+
+
+  if( Part.eq.pdfGlu_ ) then
+      convertFromPartIndex = Glu_
+  elseif( Part.eq.pdfUp_  ) then
+      convertFromPartIndex = Up_
+  elseif( Part.eq.pdfAUp_ ) then
+      convertFromPartIndex = AUp_
+  elseif( Part.eq.pdfDn_  ) then
+      convertFromPartIndex = Dn_
+  elseif( Part.eq.pdfADn_ ) then
+      convertFromPartIndex = ADn_
+  elseif( Part.eq.pdfChm_ ) then
+      convertFromPartIndex = Chm_
+  elseif( Part.eq.pdfAChm_) then
+      convertFromPartIndex = AChm_
+  elseif( Part.eq.pdfStr_ ) then
+      convertFromPartIndex = Str_
+  elseif( Part.eq.pdfAStr_) then
+      convertFromPartIndex = AStr_
+  elseif( Part.eq.pdfBot_ ) then
+      convertFromPartIndex = Bot_
+  elseif( Part.eq.pdfABot_) then
+      convertFromPartIndex = ABot_
+  elseif( Part.eq.pdfTop_ ) then
+      convertFromPartIndex = Top_
+  elseif( Part.eq.pdfATop_) then
+      convertFromPartIndex = ATop_
+  else
+      print *, "Unsuccessful conversion to a parton id from the ME array index ",Part
+      stop
+  endif
+
+END FUNCTION
+
+
+
+FUNCTION getMass(Part)
+implicit none
+real(8) :: getMass
+integer :: Part
+
+
+  if( Part.eq.Glu_ ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(ElM_) ) then
+      getMass = m_el
+  elseif( abs(Part).eq.abs(MuM_) ) then
+      getMass = m_mu
+  elseif( abs(Part).eq.abs(TaM_) ) then
+      getMass = m_tau
+  elseif( abs(Part).eq.abs(NuE_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(NuM_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(NuT_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(Up_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(Dn_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(Chm_) ) then
+      getMass = m_charm
+  elseif( abs(Part).eq.abs(Str_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(Bot_) ) then
+      getMass = m_bot
+  elseif( abs(Part).eq.abs(Top_) ) then
+      getMass = m_top
+  elseif( abs(Part).eq.abs(Z0_) ) then
+      getMass = M_Z
+  elseif( abs(Part).eq.abs(Wp_) ) then
+      getMass = M_W
+  elseif( abs(Part).eq.abs(Pho_) ) then
+      getMass = 0d0
+  elseif( abs(Part).eq.abs(Hig_) ) then
+      getMass = M_Reso
+  elseif( Part.eq.Not_a_particle_) then
+      getMass = 0d0
+  else
+     print *, "Error in getMass",Part
+     stop
+  endif
+
+END FUNCTION
+
+
+FUNCTION getDecayWidth(Part)
+implicit none
+real(8) :: getDecayWidth
+integer :: Part
+
+  getDecayWidth = 0d0
+  if( abs(Part).eq.abs(Top_) ) then
+      getDecayWidth = Ga_Top
+  elseif( abs(Part).eq.abs(Z0_) ) then
+      getDecayWidth = Ga_Z
+  elseif( abs(Part).eq.abs(Wp_) ) then
+      getDecayWidth = Ga_W
+  elseif( abs(Part).eq.abs(Hig_) ) then
+      getDecayWidth = Ga_Reso
+  elseif( abs(Part).eq.abs(TaM_) ) then
+      getDecayWidth = Ga_tau
+  endif
+
+END FUNCTION
+
+
+FUNCTION getParticle(Part)
+implicit none
+character(len=3) :: getParticle
+integer :: Part
+
+
+  if( Part.eq.Glu_ ) then
+      getParticle = "glu"
+  elseif( Part.eq.0 ) then
+      getParticle = "glu"
+  elseif( Part.eq.ElM_ ) then
+      getParticle = "el-"
+  elseif( Part.eq.ElP_ ) then
+      getParticle = "el+"
+  elseif( Part.eq.MuM_ ) then
+      getParticle = "mu-"
+  elseif( Part.eq.MuP_ ) then
+      getParticle = "mu+"
+  elseif( Part.eq.TaM_ ) then
+      getParticle = "ta-"
+  elseif( Part.eq.TaP_ ) then
+      getParticle = "t+-"
+  elseif( Part.eq.NuE_ ) then
+      getParticle = "nuE"
+  elseif( Part.eq.ANuE_ ) then
+      getParticle = "AnE"
+  elseif( Part.eq.NuM_ ) then
+      getParticle = "nuM"
+  elseif( Part.eq.ANuM_ ) then
+      getParticle = "AnM"
+  elseif( Part.eq.NuT_ ) then
+      getParticle = "nuT"
+  elseif( Part.eq.ANuT_ ) then
+      getParticle = "AnT"
+  elseif( Part.eq.Up_ ) then
+      getParticle = " up"
+  elseif( Part.eq.AUp_ ) then
+      getParticle = "Aup"
+  elseif( Part.eq.Dn_ ) then
+      getParticle = " dn"
+  elseif( Part.eq.ADn_ ) then
+      getParticle = "Adn"
+  elseif( Part.eq.Chm_ ) then
+      getParticle = "chm"
+  elseif( Part.eq.AChm_ ) then
+      getParticle = "Achm"
+  elseif( Part.eq.Str_ ) then
+      getParticle = "str"
+  elseif( Part.eq.AStr_ ) then
+      getParticle = "Astr"
+  elseif( Part.eq.Bot_ ) then
+      getParticle = "bot"
+  elseif( Part.eq.ABot_ ) then
+      getParticle = "Abot"
+  elseif( Part.eq.Top_ ) then
+      getParticle = "top"
+  elseif( Part.eq.ATop_ ) then
+      getParticle = "Atop"
+  elseif( Part.eq.Z0_ ) then
+      getParticle = " Z0"
+  elseif( Part.eq.Wp_ ) then
+      getParticle = " W+"
+  elseif( Part.eq.Wm_ ) then
+      getParticle = " W-"
+  elseif( Part.eq.Pho_ ) then
+      getParticle = "pho"
+  elseif( Part.eq.Hig_ ) then
+      getParticle = "Hig"
+  else
+     print *, "Error in getParticle",Part
+     stop
+  endif
+
+
+END FUNCTION
+
+
+
+
+
+
+
+FUNCTION getLHEParticle(PartLHE)
+implicit none
+character(len=3) :: getLHEParticle
+integer :: PartLHE,Part
+
+
+  Part = convertLHEreverse(PartLHE)
+  getLHEParticle = getParticle(Part)
+
+END FUNCTION
+
+
+
+
+FUNCTION IsAZDecay(DKMode)
+implicit none
+logical :: IsAZDecay
+integer :: DKMode
+
+
+  if( DKMode.eq.0 ) then
+     IsAZDecay = .true.
+  elseif( DKMode.eq.1 ) then
+     IsAZDecay = .true.
+  elseif( DKMode.eq.2 ) then
+     IsAZDecay = .true.
+  elseif( DKMode.eq.3 ) then
+     IsAZDecay = .true.
+  elseif( DKMode.eq.8 ) then
+     IsAZDecay = .true.
+  elseif( DKMode.eq.9 ) then
+     IsAZDecay = .true.
+  else
+     IsAZDecay=.false.
+  endif
+
+END FUNCTION
+
+
+
+
+FUNCTION IsAWDecay(DKMode)
+implicit none
+logical :: IsAWDecay
+integer :: DKMode
+
+
+  if( DKMode.eq.4 ) then
+     IsAWDecay = .true.
+  elseif( DKMode.eq.5 ) then
+     IsAWDecay = .true.
+  elseif( DKMode.eq.6 ) then
+     IsAWDecay = .true.
+  elseif( DKMode.eq.10 ) then
+     IsAWDecay = .true.
+  elseif( DKMode.eq.11 ) then
+     IsAWDecay = .true.
+  else
+     IsAWDecay=.false.
+  endif
+
+
+END FUNCTION
+
+
+
+FUNCTION IsAPhoton(DKMode)
+implicit none
+logical :: IsAPhoton
+integer :: DKMode
+
+
+  if( DKMode.eq.7 ) then
+     IsAPhoton = .true.
+  else
+     IsAPhoton=.false.
+  endif
+
+
+END FUNCTION
+
+
+
+
+
+
+FUNCTION IsAQuark(PartType)
+implicit none
+logical :: IsAQuark
+integer :: PartType
+
+
+  if( abs(PartType).ge.1 .and. abs(PartType).le.6 ) then
+     IsAQuark = .true.
+  else
+     IsAQuark=.false.
+  endif
+
+END FUNCTION
+
+
+
+
+
+FUNCTION IsANeutrino(PartType)
+implicit none
+logical :: IsANeutrino
+integer :: PartType
+
+
+  if( abs(PartType).ge.14 .and. abs(PartType).le.16 ) then
+     IsANeutrino = .true.
+  else
+     IsANeutrino=.false.
+  endif
+
+END FUNCTION
+FUNCTION IsALHELepton(PartType)! note that lepton means charged lepton here
+implicit none
+logical :: IsALHELepton
+integer :: PartType
+
+
+  if( abs(PartType).eq.11 .or. abs(PartType).eq.13 .or. abs(PartType).eq.15 ) then
+     IsALHELepton = .true.
+  else
+     IsALHELepton=.false.
+  endif
+
+END FUNCTION
+
+
+
+FUNCTION IsALepton(PartType)! note that lepton means charged lepton here
+implicit none
+logical :: IsALepton
+integer :: PartType
+
+
+  if( abs(PartType).eq.ElP_ .or. abs(PartType).eq.MuP_ .or. abs(PartType).eq.TaP_ ) then
+     IsALepton = .true.
+  else
+     IsALepton=.false.
+  endif
+
+END FUNCTION
+
+
+
+FUNCTION IsABoson(PartType)
+implicit none
+logical :: IsABoson
+integer :: PartType
+
+
+  if( abs(PartType).eq.11 .or. abs(PartType).eq.12 .or. abs(PartType).eq.13 .or. abs(PartType).eq.25 ) then
+     IsABoson = .true.
+  else
+     IsABoson=.false.
+  endif
+
+
+END FUNCTION
+
+
+FUNCTION CountLeptons( MY_IDUP )
+implicit none
+integer :: MY_IDUP(:),CountLeptons
+integer :: i
+
+   CountLeptons = 0
+   do i = 1,size(MY_IDUP)
+      if( IsALepton( MY_IDUP(i) ) ) CountLeptons=CountLeptons+1
+   enddo
+
+
+RETURN
+END FUNCTION
+
+
+
+FUNCTION SU2flip(Part)
+implicit none
+integer :: SU2flip
+integer :: Part
+
+  if( abs(Part).eq.Up_ ) then
+      SU2flip = sign(1,Part)*Dn_
+  elseif( abs(Part).eq.Dn_ ) then
+      SU2flip = sign(1,Part)*Up_
+  elseif( abs(Part).eq.Chm_ ) then
+      SU2flip = sign(1,Part)*Str_
+  elseif( abs(Part).eq.Str_ ) then
+      SU2flip = sign(1,Part)*Chm_
+  elseif( abs(Part).eq.Bot_ ) then
+      SU2flip = sign(1,Part)*Top_
+  elseif( abs(Part).eq.Top_ ) then
+      SU2flip = sign(1,Part)*Bot_
+  elseif( abs(Part).eq.ElP_ ) then
+      SU2flip = sign(1,Part)*NuE_
+  elseif( abs(Part).eq.MuP_ ) then
+      SU2flip = sign(1,Part)*NuM_
+  elseif( abs(Part).eq.TaP_ ) then
+      SU2flip = sign(1,Part)*NuT_
+  elseif( abs(Part).eq.NuE_ ) then
+      SU2flip = sign(1,Part)*ElP_
+  elseif( abs(Part).eq.NuM_ ) then
+      SU2flip = sign(1,Part)*MuP_
+  elseif( abs(Part).eq.NuT_ ) then
+      SU2flip = sign(1,Part)*TaP_
+  else
+      print *, "Error: Invalid flavor in SU2flip"
+      stop
+  endif
+
+END FUNCTION
+
+
+
+
+FUNCTION ChargeFlip(Part)
+implicit none
+integer :: ChargeFlip
+integer :: Part
+
+  if( (abs(Part).ge.1 .and. abs(Part).le.9)  .or. (abs(Part).ge.13 .and. abs(Part).le.16)) then! quarks, leptons, W's, neutrinos
+      ChargeFlip = -Part
+  elseif( (abs(Part).ge.10 .and. abs(Part).le.12) ) then!  glu,pho,Z0
+      ChargeFlip = +Part
+  elseif( Part.eq.25 .or. Part.eq.32 .or. Part.eq.39 ) then ! Higgs,Zprime,Graviton
+      ChargeFlip = +Part
+  else
+      print *, "Error: Invalid flavor in ChargeFlip"
+      stop
+  endif
+
+END FUNCTION
+
+
+
+subroutine ComputeQCDVariables()
+implicit none
+   gs = sqrt(alphas*4.0_dp*pi)
+end subroutine ComputeQCDVariables
+
+
+END MODULE
+
+
+

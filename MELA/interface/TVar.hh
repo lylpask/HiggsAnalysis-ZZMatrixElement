@@ -4,6 +4,8 @@
 #include <cstring>
 #include <string>
 #include <TLorentzVector.h>
+#include "TCouplings.hh"
+#include "MelaIO.h"
 #include "TH2F.h"
 #include "TH1F.h"
 
@@ -13,20 +15,6 @@
 #define sixteen_2Pi_to_8 3.88650230418250561e+07
 #define eight_2Pi_to_5 7.83410393050320417e+04
 #define four_2Pi_to_2 39.478417604357432
-//---------------------------------
-// Coupling array sizes
-//---------------------------------
-#define SIZE_HVV 39
-#define SIZE_HVV_VBF 32
-#define SIZE_HWW_VBF 32
-#define SIZE_HGG 3
-#define SIZE_ZQQ 2
-#define SIZE_ZVV 2
-#define SIZE_GQQ 2
-#define SIZE_GGG 5
-#define SIZE_GVV 10
-#define SIZE_HVV_FREENORM 2
-#define SIZE_TTH 2
 
 
 class TVar{
@@ -55,7 +43,7 @@ public:
     WH = 10, // W(+/-)H
     ttH = 11, // ttH 
     bbH = 12 // bbH 
-//
+    //
   };
   enum LeptonInterference{
     DefaultLeptonInterf = 0,
@@ -130,7 +118,7 @@ public:
     Flavor_Dummy = 0, // legacy code runs on 1/2/3
     Flavor_4e    = 1,
     Flavor_4mu   = 2,
-    Flavor_2e2mu = 3    
+    Flavor_2e2mu = 3
   };
   enum SuperMelaSyst{
     SMSyst_None      = 0, // nominal value
@@ -156,60 +144,60 @@ public:
   // Function
   //---------------------------------
   static TString ProcessName(int temp){
-    if     (temp==TVar::HSMHiggs          ) return TString ("HSMHiggs");
-    else if(temp==TVar::H0minus           ) return TString ("H0minus");           
-    else if(temp==TVar::H0hplus           ) return TString ("H0hplus");          
-                                                                               
-    else if(temp==TVar::H1minus           ) return TString ("H1minus");           
-    else if(temp==TVar::H1plus            ) return TString ("H1plus");            
-                                                                               
-    else if(temp==TVar::H2_g8             ) return TString ("H2_g8");             
-    else if(temp==TVar::H2_g4             ) return TString ("H2_g4");             
-    else if(temp==TVar::H2_g5             ) return TString ("H2_g5");             
-    else if(temp==TVar::H2_g1g5           ) return TString ("H2_g1g5");           
-    else if(temp == TVar::H2_g2 					) return TString ("H2_g2");
-    else if(temp == TVar::H2_g3 					) return TString ("H2_g3");
-    else if(temp == TVar::H2_g6 					) return TString ("H2_g6");
-    else if(temp == TVar::H2_g7 					) return TString ("H2_g7");
-    else if(temp == TVar::H2_g9 					) return TString ("H2_g9");
-    else if(temp == TVar::H2_g10    		  ) return TString ("H2_g10");
-                                                                               
-                                                                               
-    else if(temp==TVar::bkgZZ             ) return TString ("bkgZZ");             
-	else if(temp==TVar::bkgZZ_SMHiggs     ) return TString ("bkgZZ_SMHiggs");     
-                                                                               
-    else if(temp==TVar::H0_g1prime2       ) return TString ("H0_g1prime2");       
-                                                                               
-    else if(temp==TVar::D_g1g4            ) return TString ("D_g1g4");            
-    else if(temp==TVar::D_g1g4_pi_2       ) return TString ("D_g1g4_pi_2");       
-    else if(temp==TVar::D_g1g2            ) return TString ("D_g1g2");            
-    else if(temp==TVar::D_g1g2_pi_2       ) return TString ("D_g1g2_pi_2");       
-    else if(temp==TVar::D_g1g1prime2      ) return TString ("D_g1g1prime2");      
-                                                                               
-    else if(temp==TVar::SelfDefine_spin0  ) return TString ("SelfDefine_spin0");  
-    else if(temp==TVar::SelfDefine_spin1  ) return TString ("SelfDefine_spin1");  
-    else if(temp==TVar::SelfDefine_spin2  ) return TString ("SelfDefine_spin2");  
+    if (temp==TVar::HSMHiggs) return TString("HSMHiggs");
+    else if (temp==TVar::H0minus) return TString("H0minus");
+    else if (temp==TVar::H0hplus) return TString("H0hplus");
 
-	else if(temp==TVar::D_gg10  ) return TString ("D_gg10");  
+    else if (temp==TVar::H1minus) return TString("H1minus");
+    else if (temp==TVar::H1plus) return TString("H1plus");
 
-	else if(temp==TVar::H0_Zgs  ) return TString ("H0_Zgs");  
-	else if(temp==TVar::H0_gsgs  ) return TString ("H0_gsgs");  
-	else if(temp==TVar::D_zzzg  ) return TString ("D_zzzg");  
-	else if(temp==TVar::D_zzgg  ) return TString ("D_zzgg");  
+    else if (temp==TVar::H2_g8) return TString("H2_g8");
+    else if (temp==TVar::H2_g4) return TString("H2_g4");
+    else if (temp==TVar::H2_g5) return TString("H2_g5");
+    else if (temp==TVar::H2_g1g5) return TString("H2_g1g5");
+    else if (temp == TVar::H2_g2) return TString("H2_g2");
+    else if (temp == TVar::H2_g3) return TString("H2_g3");
+    else if (temp == TVar::H2_g6) return TString("H2_g6");
+    else if (temp == TVar::H2_g7) return TString("H2_g7");
+    else if (temp == TVar::H2_g9) return TString("H2_g9");
+    else if (temp == TVar::H2_g10) return TString("H2_g10");
 
-	else if(temp==TVar::H0_Zgs_PS  ) return TString ("H0_Zgs_PS");  
-	else if(temp==TVar::H0_gsgs_PS  ) return TString ("H0_gsgs_PS");  
-	else if(temp==TVar::D_zzzg_PS  ) return TString ("D_zzzg_PS");  
-	else if(temp==TVar::D_zzgg_PS  ) return TString ("D_zzgg_PS");  
 
-	else if(temp==TVar::H0_Zgsg1prime2  ) return TString ("H0_Zgsg1prime2");  
-	else if(temp==TVar::D_zzzg_g1prime2  ) return TString ("D_zzzg_g1prime2");  
+    else if (temp==TVar::bkgZZ) return TString("bkgZZ");
+    else if (temp==TVar::bkgZZ_SMHiggs) return TString("bkgZZ_SMHiggs");
 
-    else return TString ("UnKnown");
+    else if (temp==TVar::H0_g1prime2) return TString("H0_g1prime2");
+
+    else if (temp==TVar::D_g1g4) return TString("D_g1g4");
+    else if (temp==TVar::D_g1g4_pi_2) return TString("D_g1g4_pi_2");
+    else if (temp==TVar::D_g1g2) return TString("D_g1g2");
+    else if (temp==TVar::D_g1g2_pi_2) return TString("D_g1g2_pi_2");
+    else if (temp==TVar::D_g1g1prime2) return TString("D_g1g1prime2");
+
+    else if (temp==TVar::SelfDefine_spin0) return TString("SelfDefine_spin0");
+    else if (temp==TVar::SelfDefine_spin1) return TString("SelfDefine_spin1");
+    else if (temp==TVar::SelfDefine_spin2) return TString("SelfDefine_spin2");
+
+    else if (temp==TVar::D_gg10) return TString("D_gg10");
+
+    else if (temp==TVar::H0_Zgs) return TString("H0_Zgs");
+    else if (temp==TVar::H0_gsgs) return TString("H0_gsgs");
+    else if (temp==TVar::D_zzzg) return TString("D_zzzg");
+    else if (temp==TVar::D_zzgg) return TString("D_zzgg");
+
+    else if (temp==TVar::H0_Zgs_PS) return TString("H0_Zgs_PS");
+    else if (temp==TVar::H0_gsgs_PS) return TString("H0_gsgs_PS");
+    else if (temp==TVar::D_zzzg_PS) return TString("D_zzzg_PS");
+    else if (temp==TVar::D_zzgg_PS) return TString("D_zzgg_PS");
+
+    else if (temp==TVar::H0_Zgsg1prime2) return TString("H0_Zgsg1prime2");
+    else if (temp==TVar::D_zzzg_g1prime2) return TString("D_zzzg_g1prime2");
+
+    else return TString("UnKnown");
   };
 
   inline virtual ~TVar(){};
-  ClassDef(TVar,0)
+  ClassDef(TVar, 0)
 };
 
 
@@ -222,7 +210,6 @@ struct branch_particle {
   double E        ;
   double Eta      ;
   double Phi      ;
-
 };
 static const TString branch_format_particle =
   "PdgCode/I:"
@@ -240,8 +227,6 @@ struct hzz4l_event_type{
   TLorentzVector p[4];
   int extraParticle_PdgCode[2];
   TLorentzVector extraParticle_p[2];
-  double Xsec[10];
-  double XsecErr[10];  
 };
 struct vh_event_type{ // ME is 2 -> 3
   int PdgCode[3];
@@ -258,15 +243,18 @@ struct mcfm_event_type{
   TLorentzVector p[8];
   double pswt;
 };
-struct event_type{
-  TLorentzVector p1,p2,ep,em,nu,nb;
-  double PSWeight;
-};
+
 struct event_scales_type{
   TVar::EventScaleScheme renomalizationScheme;
   TVar::EventScaleScheme factorizationScheme;
   double ren_scale_factor;
   double fac_scale_factor;
+};
+
+
+struct event_type{
+  TLorentzVector p1,p2,ep,em,nu,nb;
+  double PSWeight;
 };
 struct anomcoup{
   double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z_,tevscale;

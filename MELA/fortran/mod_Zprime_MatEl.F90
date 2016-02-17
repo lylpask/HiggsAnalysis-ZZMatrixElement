@@ -1,25 +1,19 @@
-      module modZprime
+      MODULE ModZprime
+      use ModParameters
       implicit none
-      private
-      integer, parameter  :: dp = selected_real_kind(15)
-      real(dp), private, parameter :: tol = 0.00000010_dp
-
 
 !----- notation for subroutines
       public :: EvalAmp_qqb_Zprime_VV,EvalAmp_Zprime_VV
 
       contains
 
-
-
 !----- a subroutine for q qbar -> Zprime -> ZZ/WW
 !----- all outgoing convention and the following momentum assignment
 !-----  0 -> bq(p1) + q(p2) + e-(p3) + e+(p4) +mu-(p5) +mu+(p6)
-     subroutine EvalAmp_qqb_Zprime_VV(p,M_Reso,Ga_Reso,qqcoupl,vvcoupl,MY_IDUP,sum)
+     subroutine EvalAmp_qqb_Zprime_VV(p,MY_IDUP,sum)
       implicit none
       real(dp), intent(out) ::  sum
-      real(dp), intent(in) :: p(4,6),M_Reso,Ga_Reso
-      complex(dp) :: qqcoupl(1:2),vvcoupl(1:2)
+      real(dp), intent(in) :: p(4,6)
       integer, intent(in) :: MY_IDUP(6:9)
       real(dp) :: pin(4,4)
       complex(dp) :: A(2),qL,qR
@@ -28,66 +22,100 @@
       real(dp) :: gZ_sq
       real(dp) :: prefactor, Lambda_inv
       real(dp), parameter :: symmFact=1d0/2d0
-      include "includeVars.F90"
+      real(dp) :: intcolfac
+
+         if(IsAQuark(MY_IDUP(6)) .and. IsAQuark(MY_IDUP(8))) then
+            intcolfac=1_dp/3_dp
+         else
+            intcolfac=1_dp
+         endif
 
 
       gZ_sq = 4.0_dp*pi*alpha_QED/4.0_dp/(one-sitW**2)/sitW**2
 !---- chiral couplings of quarks to Zprimes
-      qL = qqcoupl(1) !zprime_qq_left
-      qR = qqcoupl(2) !zprime_qq_right
+      qL = zprime_qq_left
+      qR = zprime_qq_right
 
 !---- the 1/Lambda coupling
       Lambda_inv = 1.0_dp/Lambda
 !---- full prefactor; 3 is  the color factor
       prefactor = 3d0*(Lambda_inv**2)**2*(one/two*M_V*Ga_V)**2*gZ_sq**2
 
-         if( DecayMode1.le.3 ) then!  Z decay
-              if( abs(MY_IDUP(6)).eq.abs(ElM_) .or. abs(MY_IDUP(6)).eq.abs(MuM_) .or. abs(MY_IDUP(6)).eq.abs(TaM_) ) then
-                    aL1=aL_lep
-                    aR1=aR_lep
+         if( IsAZDecay(DecayMode1) ) then!  Z decay
+              if( abs(MY_IDUP(6)).eq.abs(ElM_) .or. abs(MY_IDUP(6)).eq.abs(MuM_) ) then
+                    aL1=aL_lep    * dsqrt(scale_alpha_Z_ll)
+                    aR1=aR_lep    * dsqrt(scale_alpha_Z_ll)
+              elseif( abs(MY_IDUP(6)).eq.abs(TaM_) ) then
+                    aL1=aL_lep    * dsqrt(scale_alpha_Z_tt)
+                    aR1=aR_lep    * dsqrt(scale_alpha_Z_tt)
               elseif( abs(MY_IDUP(6)).eq.abs(NuE_) .or. abs(MY_IDUP(6)).eq.abs(NuM_) .or. abs(MY_IDUP(6)).eq.abs(NuT_) ) then
-                    aL1=aL_neu
-                    aR1=aR_neu
+                    aL1=aL_neu    * dsqrt(scale_alpha_Z_nn)
+                    aR1=aR_neu    * dsqrt(scale_alpha_Z_nn)
               elseif( abs(MY_IDUP(6)).eq.abs(Up_) .or. abs(MY_IDUP(6)).eq.abs(Chm_) ) then
-                    aL1=aL_QUp
-                    aR1=aR_QUp
+                    aL1=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+                    aR1=aR_QUp    * dsqrt(scale_alpha_Z_uu)
               elseif( abs(MY_IDUP(6)).eq.abs(Dn_) .or. abs(MY_IDUP(6)).eq.abs(Str_) .or. abs(MY_IDUP(6)).eq.abs(Bot_) ) then
-                    aL1=aL_QDn
-                    aR1=aR_QDn
+                    aL1=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+                    aR1=aR_QDn    * dsqrt(scale_alpha_Z_dd)
               else
                     aL1=0d0
                     aR1=0d0
               endif
-         elseif( DecayMode1.ge.4 .and. DecayMode1.le.6 ) then !  W decay
-              aL1 = bL
-              aR1 = bR
-         elseif( DecayMode1.eq.7 ) then !  photon decay
+         elseif( IsAWDecay(DecayMode1) ) then !  W decay
+              if( IsAQuark(MY_IDUP(6)) ) then
+                 aL1 = bL * dsqrt(scale_alpha_W_ud)
+                 aR1 = bR * dsqrt(scale_alpha_W_ud)! = 0
+              elseif( abs(MY_IDUP(6)).eq.abs(ElM_) .or. abs(MY_IDUP(6)).eq.abs(MuM_) ) then
+                 aL1 = bL * dsqrt(scale_alpha_W_ln)
+                 aR1 = bR * dsqrt(scale_alpha_W_ln)! = 0
+              elseif( abs(MY_IDUP(6)).eq.abs(TaM_) ) then
+                 aL1 = bL * dsqrt(scale_alpha_W_tn)
+                 aR1 = bR * dsqrt(scale_alpha_W_tn)! = 0
+              else
+                    aL1=0d0
+                    aR1=0d0
+              endif
+         elseif( IsAPhoton(DecayMode1) ) then !  photon
          else
               aL1=0d0
               aR1=0d0            
          endif
 
-         if( DecayMode2.le.3 ) then!  Z decay
-              if( abs(MY_IDUP(8)).eq.abs(ElM_) .or. abs(MY_IDUP(8)).eq.abs(MuM_) .or. abs(MY_IDUP(8)).eq.abs(TaM_) ) then
-                    aL2=aL_lep
-                    aR2=aR_lep
+         if( IsAZDecay(DecayMode2) ) then!  Z decay
+              if( abs(MY_IDUP(8)).eq.abs(ElM_) .or. abs(MY_IDUP(8)).eq.abs(MuM_)  ) then
+                    aL2=aL_lep    * dsqrt(scale_alpha_Z_ll)
+                    aR2=aR_lep    * dsqrt(scale_alpha_Z_ll)
+              elseif( abs(MY_IDUP(8)).eq.abs(TaM_) ) then
+                    aL2=aL_lep    * dsqrt(scale_alpha_Z_tt)
+                    aR2=aR_lep    * dsqrt(scale_alpha_Z_tt)
               elseif( abs(MY_IDUP(8)).eq.abs(NuE_) .or. abs(MY_IDUP(8)).eq.abs(NuM_) .or. abs(MY_IDUP(8)).eq.abs(NuT_) ) then
-                    aL2=aL_neu
-                    aR2=aR_neu
+                    aL2=aL_neu    * dsqrt(scale_alpha_Z_nn)
+                    aR2=aR_neu    * dsqrt(scale_alpha_Z_nn)
               elseif( abs(MY_IDUP(8)).eq.abs(Up_) .or. abs(MY_IDUP(8)).eq.abs(Chm_) ) then
-                    aL2=aL_QUp
-                    aR2=aR_QUp
+                    aL2=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+                    aR2=aR_QUp    * dsqrt(scale_alpha_Z_uu)
               elseif( abs(MY_IDUP(8)).eq.abs(Dn_) .or. abs(MY_IDUP(8)).eq.abs(Str_) .or. abs(MY_IDUP(8)).eq.abs(Bot_) ) then
-                    aL2=aL_QDn
-                    aR2=aR_QDn
+                    aL2=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+                    aR2=aR_QDn    * dsqrt(scale_alpha_Z_dd)
               else
                     aL2=0d0
                     aR2=0d0
               endif
-         elseif( DecayMode2.ge.4 .and. DecayMode2.le.6 ) then !  W decay
-              aL2 = bL
-              aR2 = bR
-         elseif( DecayMode2.eq.7 ) then !  photon decay
+         elseif( IsAWDecay(DecayMode2) ) then !  W decay
+              if( IsAQuark(MY_IDUP(8)) ) then
+                 aL2 = bL * dsqrt(scale_alpha_W_ud)
+                 aR2 = bR * dsqrt(scale_alpha_W_ud)! = 0
+              elseif( abs(MY_IDUP(9)).eq.abs(ElM_) .or. abs(MY_IDUP(9)).eq.abs(MuM_) ) then
+                 aL2 = bL * dsqrt(scale_alpha_W_ln)
+                 aR2 = bR * dsqrt(scale_alpha_W_ln)! = 0
+              elseif( abs(MY_IDUP(9)).eq.abs(TaM_) ) then
+                 aL2 = bL * dsqrt(scale_alpha_W_tn)
+                 aR2 = bR * dsqrt(scale_alpha_W_tn)! = 0
+              else
+                    aL2=0d0
+                    aR2=0d0
+              endif
+         elseif( IsAPhoton(DecayMode2) ) then !  photon
          else
               aL2=0d0
               aR2=0d0  
@@ -104,11 +132,11 @@ do i4 = 1,2
 !do i4 = -1,1! on-shell check!
    
          ordering = (/3,4,5,6/)
-         call calcHelAmp(ordering,p(1:4,1:6),M_Reso,Ga_Reso,vvcoupl(1:2),i1,i3,i4,A(1))
+         call calcHelAmp(ordering,p(1:4,1:6),i1,i3,i4,A(1))
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              ordering = (/5,4,3,6/)
-             call calcHelAmp(ordering,p(1:4,1:6),M_Reso,Ga_Reso,vvcoupl(1:2),i1,i3,i4,A(2))
+             call calcHelAmp(ordering,p(1:4,1:6),i1,i3,i4,A(2))
              A(2) = -A(2) ! minus comes from fermi statistics
          endif
 
@@ -132,7 +160,7 @@ do i4 = 1,2
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              sum = sum + symmFact * (cdabs( A(1)*dconjg(A(1)) ) + cdabs( A(2)*dconjg(A(2)) ))
-             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*dreal(A(1)*dconjg(A(2)))  
+             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))  
          else
              sum = sum + cdabs( A(1)*dconjg(A(1)) )
          endif
@@ -142,6 +170,8 @@ enddo
 enddo
 enddo
 
+!  sum ~ GeV~-8
+!  prefactor ~ GeV^0
          sum = sum*prefactor
 
       end subroutine
@@ -149,15 +179,13 @@ enddo
 
 
 
-     subroutine calcHelAmp(ordering,p,M_Reso,Ga_Reso,vvcoupl,i1,i3,i4,A)
+     subroutine calcHelAmp(ordering,p,i1,i3,i4,A)
      implicit none
      integer :: ordering(1:4),i1,i3,i4,l1,l2,l3,l4
-     real(dp) :: p(1:4,1:6),M_Reso,Ga_Reso
-     complex(dp) :: vvcoupl(1:2)
+     real(dp) :: p(1:4,1:6)
      complex(dp) :: propG, propZ1, propZ2
      real(dp) :: s, pin(4,4)
      complex(dp) :: A(1:1), sp(4,4)
-     include "includeVars.F90"
 
 
       l1=ordering(1)
@@ -166,7 +194,7 @@ enddo
       l4=ordering(4)
 
       s  = two*scr(p(:,1),p(:,2))
-      propG = one/dcmplx(s - M_Reso**2,M_Reso*Ga_Reso)
+      propG = s/dcmplx(s - M_Reso**2,M_Reso*Ga_Reso)
 
 
 !       s = two*scr(p(:,3),p(:,4))
@@ -212,9 +240,12 @@ enddo
 
 
 
-         call qqZprimeZZampl(pin,sp,M_Reso,Ga_Reso,vvcoupl(1:2),A(1))
+         call qqZprimeZZampl(pin,sp,A(1)) 
 
+! A(1) ~ GeV^-2
+! propG*propZ1*propZ2 ~  GeV^-2
          A(1) = A(1) * propG*propZ1*propZ2
+
 
       end subroutine
 
@@ -223,10 +254,10 @@ enddo
 
 
 
-      subroutine qqZprimeZZampl(p,sp,M_Reso,Ga_Reso,vvcoupl,res)
+      subroutine qqZprimeZZampl(p,sp,res)
       implicit none
-      real(dp), intent(in) :: p(4,4),M_Reso,Ga_Reso
-      complex(dp), intent(in) :: sp(4,4),vvcoupl(1:2)
+      real(dp), intent(in) :: p(4,4)
+      complex(dp), intent(in) :: sp(4,4)
       complex(dp), intent(out) :: res
       complex(dp) :: e1_e2, e1_e3, e1_e4
       complex(dp) :: e2_e3, e2_e4
@@ -241,13 +272,6 @@ enddo
       complex(dp) :: q1(4),q2(4),q3(4),q4(4),q(4)
       complex(dp) :: e1(4),e2(4),e3(4),e4(4)
       complex(dp) :: yyy1,yyy2,yyy3,yyy4,xxx1,epsZpr(1:4,-1:+1)
-      include "includeVars.F90"
-
-
-      zprime_zz_1 =  vvcoupl(1) 
-      zprime_zz_2 =  vvcoupl(2) 
-
-
 
       q1 = dcmplx(p(1,:),0d0)
       q2 = dcmplx(p(2,:),0d0)
@@ -339,33 +363,17 @@ enddo
 !pause
 
 
-
       end subroutine qqZprimeZZampl
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 !----- a subroutine for Zprime -> ZZ/WW
 !----- all outgoing convention and the following momentum assignment
 !-----  0 --> Zprime(p1) e-(p3) + e+(p4) +mu-(p5) +mu+(p6)
-     subroutine EvalAmp_Zprime_VV(p,M_Reso,Ga_Reso,vvcoupl,MY_IDUP,sum)
+     subroutine EvalAmp_Zprime_VV(p,MY_IDUP,sum)
       implicit none
       real(dp), intent(out) ::  sum
-      real(dp), intent(in) :: p(4,6),M_Reso,Ga_Reso
-      complex(dp) :: vvcoupl(1:2)
+      real(dp), intent(in) :: p(4,6)
       integer, intent(in) :: MY_IDUP(6:9)
       real(dp) :: pin(4,4)
       complex(dp) :: A(2)
@@ -451,11 +459,11 @@ do i3 = 1,2! lepton string1
 do i4 = 1,2! lepton string2
    
          ordering = (/3,4,5,6/)
-         call calcHelAmp2(ordering,p(1:4,1:6),M_Reso,Ga_Reso,vvcoupl(1:2),i1,i3,i4,A(1))
+         call calcHelAmp2(ordering,p(1:4,1:6),i1,i3,i4,A(1))
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              ordering = (/5,4,3,6/)
-             call calcHelAmp2(ordering,p(1:4,1:6),M_Reso,Ga_Reso,vvcoupl(1:2),i1,i3,i4,A(2))
+             call calcHelAmp2(ordering,p(1:4,1:6),i1,i3,i4,A(2))
              A(2) = -A(2) ! minus comes from fermi statistics
          endif
 
@@ -491,11 +499,10 @@ enddo
 
 
 
-     subroutine calcHelAmp2(ordering,p,M_Reso,Ga_Reso,vvcoupl,i1,i3,i4,A)
+     subroutine calcHelAmp2(ordering,p,i1,i3,i4,A)
      implicit none
      integer :: ordering(1:4),i1,i3,i4,l1,l2,l3,l4
-     real(dp) :: p(1:4,1:6),M_Reso,Ga_Reso
-     complex(dp) :: vvcoupl(1:2)
+     real(dp) :: p(1:4,1:6)
      complex(dp) :: propZ1, propZ2
      real(dp) :: s, pin(4,4)
      complex(dp) :: A(1:1), sp(4,4)
@@ -530,7 +537,7 @@ enddo
 
 
 
-         call ZprimeZZampl(pin,sp,M_Reso,Ga_Reso,vvcoupl(1:2),A(1))
+         call ZprimeZZampl(pin,sp,A(1))
 
          A(1) = A(1) * propZ1*propZ2
 
@@ -541,10 +548,9 @@ enddo
 
 
 
-      subroutine ZprimeZZampl(p,sp,M_Reso,Ga_Reso,vvcoupl,res)
+      subroutine ZprimeZZampl(p,sp,res)
       implicit none
-      real(dp), intent(in) :: p(4,4),M_Reso,Ga_Reso
-      complex(dp) :: vvcoupl(1:2)
+      real(dp), intent(in) :: p(4,4)
       complex(dp), intent(in) :: sp(4,4)
       complex(dp), intent(out) :: res
       complex(dp) :: e1_e2, e1_e3, e1_e4
@@ -560,12 +566,6 @@ enddo
       complex(dp) :: q1(4),q2(4),q3(4),q4(4),q(4)
       complex(dp) :: e1(4),e2(4),e3(4),e4(4)
       complex(dp) :: yyy1,yyy2,yyy3,yyy4,epsZpr(1:4,-1:+1)
-      include "includeVars.F90"
-
-
-      zprime_zz_1 =  vvcoupl(1) 
-      zprime_zz_2 =  vvcoupl(2) 
-
 
 
       q1 = dcmplx(p(1,:),0d0)
@@ -637,16 +637,6 @@ enddo
 
 
 
-
-
-
-
-
-
-!    auxilary routines
-
-
-
    double complex function et1(e1,e2,e3,e4)
     implicit none
     complex(dp), intent(in) :: e1(4), e2(4), e3(4), e4(4)
@@ -666,6 +656,9 @@ enddo
 
    return
    end function et1
+
+
+
 
 
       double complex function sc(q1,q2)
@@ -689,13 +682,12 @@ enddo
   function pol_mless(p,i,outgoing)
     complex(dp), intent(in)    :: p(4)
     integer, intent(in)          :: i
-    logical, intent(in) :: outgoing
+    logical, intent(in),optional :: outgoing
     ! -------------------------------
     integer :: pol
     real(dp) :: p0,px,py,pz
     real(dp) :: pv,ct,st,cphi,sphi
     complex(dp) :: pol_mless(4)
-      include "includeVars.F90"
 
 !^^^IFmp
 !    p0=(p(1)+conjg(p(1)))/two
@@ -712,11 +704,11 @@ enddo
 
     pv=sqrt(abs(p0**2))
     ct=pz/pv
-    st=sqrt(abs(1.0d0-ct**2))
+    st=sqrt(abs(1.0_dp-ct**2))
 
     if (st < tol) then
-       cphi=1.0d0
-       sphi=0.0d0
+       cphi=1.0_dp
+       sphi=0.0_dp
     else
        cphi= px/pv/st
        sphi= py/pv/st
@@ -724,16 +716,16 @@ enddo
 
 
     ! -- distinguish between positive and negative energies
-    if ( p0 > 0.0d0) then
+    if ( p0 > 0.0_dp) then
        pol=i
     else
        pol=-i
     endif
 
     ! -- take complex conjugate for outgoing
-!    if (present(outgoing)) then
+    if (present(outgoing)) then
        if (outgoing) pol = -pol
-!    endif
+    endif
 
     pol_mless(1)=czero
     pol_mless(2)=ct*cphi/sqrt2 - ci*pol*sphi/sqrt2
@@ -751,21 +743,19 @@ enddo
     ! -------------------------------------
 
     if (out == 'out') then
-       pol_mless2 = pol_mless(p,i,.true.)
+       pol_mless2 = pol_mless(p,i,outgoing=.true.)
     else
-       pol_mless2 = pol_mless(p,i,.false.)
+       pol_mless2 = pol_mless(p,i,outgoing=.false.)
     endif
   end function pol_mless2
 
 
-  function pol_dk2mom(plepton,antilepton,i)
-  implicit none
+  function pol_dk2mom(plepton,antilepton,i,outgoing)! CAREFUL: the final result is divided by 1/q.q !!
     integer, intent(in) :: i
     integer :: j
-    complex(dp), intent(in) :: plepton(1:4),antilepton(1:4)
+    complex(dp), intent(in) :: plepton(:),antilepton(:)
+    logical, intent(in),optional :: outgoing
     complex(dp) :: pol_dk2mom(4),Ub(4),V(4),q(4),qsq
-    complex(dp),parameter :: ci=(0d0,1d0)
-
 
 
     q=plepton+antilepton
@@ -774,8 +764,8 @@ enddo
     Ub(:)=ubar0(plepton,i)
     V(:)=v0(antilepton,-i)
 
-! print *, "ubar spinor",plepton
-! print *, "v spinor   ",antilepton
+!print *, "ubar mom",plepton
+!print *, "v    mom",antilepton
 
     !---Now return in Kirill's notation  1=E,2=px,3=py,4=pz
     !   This is an expression for (-i)/qsq* (-i) Ub(+/-)) Gamma^\mu V(-/+)
@@ -789,10 +779,9 @@ enddo
     enddo
 
     ! -- do nothing in this case
-!    if (present(outgoing)) then
+    if (present(outgoing)) then
        !if (outgoing) pol_dk2mom = conjg(pol_dk2mom)
-!    endif
-
+    endif
   end function pol_dk2mom
 
 
@@ -805,7 +794,6 @@ enddo
     complex(dp) :: ubar0(4)
     complex(dp) :: fc, fc2
     real(dp)    :: p0,px,py,pz
-      include "includeVars.F90"
 
 !^^^IFmp
 !    p0=(p(1)+conjg(p(1)))/two
@@ -835,7 +823,7 @@ enddo
           ubar0(3)=czero
           ubar0(4)=czero
        else
-          print *, 'ubar0: i out of range'
+          stop 'ubar0: i out of range'
        endif
 
     else
@@ -850,7 +838,7 @@ enddo
           ubar0(3) = czero
           ubar0(4) = czero
        else
-          print *, 'ubar0: i out of range'
+          stop 'ubar0: i out of range'
        endif
     endif
 
@@ -867,7 +855,6 @@ enddo
     complex(dp) :: v0(4)
     complex(dp) :: fc2, fc
     real(dp)    :: p0,px,py,pz
-      include "includeVars.F90"
 
 !^^^IFmp
 !    p0=(p(1)+conjg(p(1)))/two
@@ -897,7 +884,7 @@ enddo
           v0(3)=czero
           v0(4)=czero
        else
-          print *, 'v0: i out of range'
+          stop 'v0: i out of range'
        endif
 
     else
@@ -913,12 +900,13 @@ enddo
           v0(3)=czero
           v0(4)=czero
        else
-          print *, 'v0: i out of range'
+          stop 'v0: i out of range'
        endif
 
     endif
 
   end function v0
+
 
 
 

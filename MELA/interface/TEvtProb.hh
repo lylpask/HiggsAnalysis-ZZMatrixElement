@@ -30,6 +30,7 @@
 #include "TROOT.h"
 // ME related
 #include "TMCFM.hh"
+#include "TCouplings.hh"
 #include "TVar.hh"
 #include "TUtil.hh"
 #include "ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h"
@@ -41,23 +42,11 @@
 class TEvtProb : public TObject {
   
 public:
-  //--------------------
-  // Variables
-  //--------------------
-  TVar::Process _process;
-  TVar::MatrixElement _matrixElement;
-  TVar::Production _production;
-  TVar::LeptonInterference _leptonInterf;
-  HiggsCSandWidth_MELA *myCSW_;
-  double _hmass;
-  double _hwidth;
-  double EBEAM;
-  
   //---------------------------------------------------------------------------
   // Constructors and Destructor
   //---------------------------------------------------------------------------
   TEvtProb() {};
-  TEvtProb(const char* path,double ebeam);
+  TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0);
   ~TEvtProb();
   
   //----------------------
@@ -67,37 +56,26 @@ public:
   void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
   void SetProduction(TVar::Production tmp){ _production = tmp; }
   void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
+  void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
-  void Set_LHAgrid(const char* path);
+  void Set_LHAgrid(const char* path, int pdfmember=0);
 
   double XsecCalc(
     TVar::Process proc, TVar::Production production,
     const hzz4l_event_type &hzz4l_event,
-    TVar::VerbosityLevel verbosity,
-    double couplingvals[SIZE_HVV_FREENORM],
-    double selfDHvvcoupl[SIZE_HVV][2],
-    double selfDZqqcoupl[SIZE_ZQQ][2],
-    double selfDZvvcoupl[SIZE_ZVV][2],
-    double selfDGqqcoupl[SIZE_GQQ][2],
-    double selfDGggcoupl[SIZE_GGG][2],
-    double selfDGvvcoupl[SIZE_GVV][2]
+    TVar::VerbosityLevel verbosity
     );
 
   double XsecCalc_VVXVV(
     TVar::Process proc, TVar::Production production,
     const hzz4l_event_type &hzz4l_event,
-    TVar::VerbosityLevel verbosity,
-    double selfDHvvcoupl[SIZE_HVV][2],
-    double selfDHwwcoupl[SIZE_HVV][2]
+    TVar::VerbosityLevel verbosity
     );
 
   double XsecCalcXJJ(
     TVar::Process proc, TVar::Production production, 
     TLorentzVector p4[3],
-    TVar::VerbosityLevel verbosity,
-    double selfDHggcoupl[SIZE_HGG][2],
-    double selfDHvvcoupl[SIZE_HVV_VBF][2],
-    double selfDHwwcoupl[SIZE_HWW_VBF][2]
+    TVar::VerbosityLevel verbosity
     );
 
   double XsecCalcXJ(
@@ -109,16 +87,14 @@ public:
   double XsecCalc_VX(
     TVar::Process proc, TVar::Production production,
     vh_event_type &vh_event,
-    TVar::VerbosityLevel verbosity,
-    double selfDHvvcoupl[SIZE_HVV_VBF][2]
+    TVar::VerbosityLevel verbosity
     );
 
   double XsecCalc_TTX(
     TVar::Process proc, TVar::Production production,
     tth_event_type &tth_event,
     int topDecay, int topProcess,
-    TVar::VerbosityLevel verbosity,
-    double selfDHvvcoupl[SIZE_TTH][2]
+    TVar::VerbosityLevel verbosity
     );
 
   // this appears to be some kind of 
@@ -129,9 +105,35 @@ public:
   void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
   void ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); };
 
+  void ResetCouplings(){ selfDSpinZeroCoupl.reset(); selfDSpinOneCoupl.reset(); selfDSpinTwoCoupl.reset(); AllowSeparateWWCouplings(false); };
+  void ResetIORecord(){ RcdME.reset(); };
+
+
+  // Get-functions
+  SpinZeroCouplings* GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); };
+  SpinOneCouplings* GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
+  SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
+  MelaIO* GetIORecord(){ return RcdME.getRef(); };
+
 private:
+  //--------------------
+  // Variables
+  //--------------------
+  TVar::Process _process;
+  TVar::MatrixElement _matrixElement;
+  TVar::Production _production;
+  TVar::LeptonInterference _leptonInterf;
+  double _hmass;
+  double _hwidth;
+  double EBEAM;
   event_scales_type event_scales;
 
+  SpinZeroCouplings selfDSpinZeroCoupl;
+  SpinOneCouplings selfDSpinOneCoupl;
+  SpinTwoCouplings selfDSpinTwoCoupl;
+  MelaIO RcdME;
+
+  HiggsCSandWidth_MELA *myCSW_;
 
   ClassDef(TEvtProb,0);
 };

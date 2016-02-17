@@ -3,8 +3,12 @@
 #define _TMODHIGGSJJMATEL_HH_
 
 extern "C" {
-  void __modhiggsjj_MOD_evalamp_wbfh(double P[5][4], double Hvvcoupl[32][2], double Hwwcoupl[32][2], double MatElSq[11][11]);
-  void __modhiggsjj_MOD_evalamp_sbfh(double P[5][4], double Hggcoupl[3][2], double MatElSq[11][11]);
+  void __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa(double P[5][4], double MatElSq[11][11]);
+  void __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select(double P[5][4], int* iSel, int* jSel, bool* zz_fusion, int* iflip, double MatElSq[11][11]);
+  void __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(double P[5][4], int* iSel, int* jSel, int* rSel, int* sSel, double MatElSq[11][11]);
+  void __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa(double P[5][4], double MatElSq[11][11]);
+  void __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select(double P[5][4], int* iSel, int* jSel, int* flav_tag, int* iflip, double MatElSq[11][11]);
+  void __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(double P[5][4], int* iSel, int* jSel, int* rSel, int* sSel, double MatElSq[11][11]);
 }
 
 #endif

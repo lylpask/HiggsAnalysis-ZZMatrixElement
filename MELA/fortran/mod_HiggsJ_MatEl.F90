@@ -1,19 +1,11 @@
-! matrix element squared of p(1) p(2) > h(3) j(4)
 module ModHiggsJ
+  use modParameters
   implicit none
   private
 
   public :: EvalAmp_HJ
 
 !-- general definitions, to be merged with Markus final structure
-  integer, parameter  :: dp = selected_real_kind(15)
-
-  include './variables.F90'
-
-  real(8),  parameter :: pi =3.141592653589793238462643383279502884197d0  
-  
-  real(dp), parameter :: gs = sqrt(alphas*4.0_dp*pi)
-
   real(dp), parameter :: xn = 3.0_dp
   real(dp), parameter :: Ca = 3.0_dp
   real(dp), parameter :: Cf = 4.0_dp/3.0_dp
@@ -34,7 +26,7 @@ subroutine EvalAmp_HJ(p,res)
     integer :: i,j
 
     heftcoupl = gs*alphas/(6.0_dp * pi * vev)
-    res=0d0
+		res=zero
 
     call spinoru(3,(/-p(:,1),-p(:,2),p(:,4)/),za,zb,sprod)
 
@@ -106,7 +98,7 @@ subroutine me2_ggg_tree(j1,j2,j3,sprod,me2)
    real(dp) :: s12, s13, s23, qsq
    real(dp), parameter :: col_gg = 4.0d0 * CA**2 * CF
 
-   me2 = 0d0
+   me2 = zero
 
    s12 = sprod(j1,j2)
    s13 = sprod(j1,j3)
@@ -116,7 +108,7 @@ subroutine me2_ggg_tree(j1,j2,j3,sprod,me2)
 
    me2 = (s12**4 + s13**4 + s23**4 + qsq**4)/s12/s13/s23
 
-   me2 = me2 * 2d0 * col_gg
+   me2 = me2 * two * col_gg
 
    return
 
@@ -129,15 +121,15 @@ subroutine me2_qbqg_tree(j1,j2,j3,sprod,me2)
    real(dp), intent(in) :: sprod(3,3)
    real(dp), intent(out) :: me2
    real(dp) :: s12, s13,s23
-   real(dp), parameter :: col_qg = 2d0 * xn * CF
+   real(dp), parameter :: col_qg = two * xn * CF
 
-   me2 = 0d0
+   me2 = zero
 
    s12 = sprod(j1,j2)
    s13 = sprod(j1,j3)
    s23 = sprod(j2,j3)
 
-   me2 = 2d0 * (s13**2 + s23**2)/s12 * col_qg
+   me2 = two * (s13**2 + s23**2)/s12 * col_qg
 !if(me2.le.0d0)then
 !print *, s12,s13,s23
 !endif
@@ -161,26 +153,26 @@ end subroutine me2_qbqg_tree
       
     !---if one of the vectors happens to be zero this routine fails.
     do j=1,N
-       za(j,j)=(0d0,0d0)
+       za(j,j)=czero
        zb(j,j)=za(j,j)
 
        !-----positive energy case
-       if (p(1,j) .gt. 0d0) then
+       if (p(1,j) .gt. zero) then
           rt(j)=sqrt(p(2,j)+p(1,j))
           c23(j)=cmplx(p(4,j),-p(3,j),kind=dp)
-          f(j)=(1d0,0d0)
+          f(j)=(one,zero)
        else
        !-----negative energy case
           rt(j)=sqrt(-p(1,j)-p(2,j))
           c23(j)=cmplx(-p(4,j),p(3,j),kind=dp)
-          f(j)=(0d0,1d0)
+          f(j)=ci
        endif
     enddo
 
     do i=2,N
   
      do j=1,i-1
-          s(i,j)=2d0*scr(p(:,i),p(:,j))
+          s(i,j)=two*scr(p(:,i),p(:,j))
           za(i,j)=f(i)*f(j) &
                *(c23(i)*cmplx(rt(j)/rt(i),kind=dp)-c23(j)*cmplx(rt(i)/rt(j),kind=dp))
           
