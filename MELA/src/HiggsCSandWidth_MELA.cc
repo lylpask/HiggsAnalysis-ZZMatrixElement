@@ -15,7 +15,7 @@
 #include "TSpline.h"
 
 
-#include "ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h"
+#include <ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h>
 
 using namespace std;
 

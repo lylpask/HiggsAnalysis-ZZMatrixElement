@@ -22,13 +22,12 @@ Please adhere to the following coding conventions:
 #include <DataFormats/GeometryVector/interface/Pi.h>
 #include <FWCore/ParameterSet/interface/FileInPath.h>
 
-#include "computeAngles.h"
-#include "AngularPdfFactory.h"
-#include "VectorPdfFactory.h"
-#include "TensorPdfFactory.h"
-#include "RooqqZZ_JHU_ZgammaZZ_fast.h"
-#include "RooqqZZ_JHU.h"
-#include "ZZMatrixElement/MELA/interface/SuperMELA.h"
+#include <ZZMatrixElement/MELA/interface/computeAngles.h>
+#include <ZZMatrixElement/MELA/interface/VectorPdfFactory.h>
+#include <ZZMatrixElement/MELA/interface/TensorPdfFactory.h>
+#include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU_ZgammaZZ_fast.h>
+#include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU.h>
+#include <ZZMatrixElement/MELA/interface/SuperMELA.h>
 
 #include <RooMsgService.h>
 #include <TFile.h>
@@ -70,18 +69,30 @@ Mela::Mela(int LHCsqrts, float mh)
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
-  mzz_rrv = new RooRealVar("mzz","m_{ZZ}",0.,1000.);
-  z1mass_rrv = new RooRealVar("z1mass","m_{Z1}",0.,180.);
-  z2mass_rrv = new RooRealVar("z2mass","m_{Z2}",0.,120.); 
+  mzz_rrv = new RooRealVar("mzz","m_{ZZ}",(double)mh, 0.,1000.);
+  z1mass_rrv = new RooRealVar("z1mass","m_{Z1}",0.,160.);
+  z2mass_rrv = new RooRealVar("z2mass","m_{Z2}",0.,200.); 
   costhetastar_rrv = new RooRealVar("costhetastar","cos#theta^{*}",-1.,1.);  
   costheta1_rrv = new RooRealVar("costheta1","cos#theta_{1}",-1.,1.);  
   costheta2_rrv = new RooRealVar("costheta2","cos#theta_{2}",-1.,1.);
   phi_rrv= new RooRealVar("phi", "#Phi", -TMath::Pi(), TMath::Pi());
   phi1_rrv= new RooRealVar("phi1", "#Phi_{1}", -TMath::Pi(), TMath::Pi());
-  
-  upFrac_rrv = new RooRealVar("upFrac","fraction up-quarks",.5,0.,1.);
+  Y_rrv = new RooRealVar("Yzz", "#Y_{ZZ}", 0, -4, 4);
 
-  spin0Model = new AngularPdfFactory(z1mass_rrv,z2mass_rrv,costheta1_rrv,costheta2_rrv,phi_rrv,mzz_rrv);
+  upFrac_rrv = new RooRealVar("upFrac", "fraction up-quarks", .5, 0., 1.);
+
+  RooSpinZero::modelMeasurables measurables_;
+  measurables_.h1 = costheta1_rrv;
+  measurables_.h2 = costheta2_rrv;
+  measurables_.Phi = phi_rrv;
+  measurables_.m1 = z1mass_rrv;
+  measurables_.m2 = z2mass_rrv;
+  measurables_.m12 = mzz_rrv;
+  measurables_.hs = costhetastar_rrv;
+  measurables_.Phi1 = phi1_rrv;
+  measurables_.Y = Y_rrv;
+
+  ggSpin0Model = new ScalarPdfFactory_ggH(measurables_, false, 1, 1); // 1,1==ZZ
   spin1Model = new VectorPdfFactory(z1mass_rrv,z2mass_rrv,costhetastar_rrv,costheta1_rrv,costheta2_rrv,phi_rrv,phi1_rrv,mzz_rrv);
   spin2Model = new TensorPdfFactory(z1mass_rrv,z2mass_rrv,costhetastar_rrv,costheta1_rrv,costheta2_rrv,phi_rrv,phi1_rrv,mzz_rrv);
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel","qqZZmodel",*z1mass_rrv,*z2mass_rrv,*costheta1_rrv,*costheta2_rrv,*phi_rrv,*costhetastar_rrv,*phi1_rrv,*mzz_rrv,*upFrac_rrv);
@@ -170,6 +181,12 @@ Mela::~Mela(){
   }
   if (DggZZ_scalefactor!=0) delete DggZZ_scalefactor;
 
+  // Let the derived RooFit objects come first...
+  delete ggSpin0Model;
+  delete spin1Model;
+  delete spin2Model;
+  delete qqZZmodel;
+  // ...then delete the observables.
   delete mzz_rrv;
   delete z1mass_rrv; 
   delete z2mass_rrv; 
@@ -178,12 +195,9 @@ Mela::~Mela(){
   delete costheta2_rrv;
   delete phi_rrv;
   delete phi1_rrv;
+  delete Y_rrv;
   delete upFrac_rrv;
 
-  delete spin0Model;
-  delete spin1Model;
-  delete spin2Model;
-  delete qqZZmodel;
   delete ZZME;
   delete super;
   delete myR;
@@ -196,20 +210,6 @@ void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Pro
   myModel_ = myModel;
   myME_ = myME;
   myProduction_ = myProduction;
-
-  // 
-  // configure the analytical calculations 
-  // 
-
-  if(myModel_==TVar::bkgZZ)  pdf = qqZZmodel;
-  else if(myProduction == TVar::JJGG || myProduction == TVar::JJVBF) ;
-  else if(myProduction == TVar::ZH || myProduction == TVar::WH ) ;
-  else if(!spin0Model->configure(myModel_)) pdf = spin0Model->PDF;
-  else if(!spin1Model->configure(myModel_)) pdf = spin1Model->PDF;
-  else if(!spin2Model->configure(myModel_,myProduction_)) pdf = spin2Model->PDF;
-  else if(myME_ == TVar::ANALYTICAL)
-    cout << "Mela::setProcess -> ERROR TVar::Process not found!!! " << myME_ << " "<< myModel_<<endl; 
-
 }
 
 void Mela::setMelaHiggsWidth(float myHiggsWidth){ // Should be called per-event
@@ -433,15 +433,14 @@ void Mela::computeP(
     z2mass_rrv->setVal(mZ2);
     mzz_rrv->setVal(mZZ);
 
-    if (mZZ>100.){
-      if (myProduction_==TVar::ZZINDEPENDENT){
-        RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-        prob = integral->getVal();
-        delete integral;
-      }
-      else prob = pdf->getVal();
+    configureAnalyticalPDFs();
+
+    if (myProduction_==TVar::ZZINDEPENDENT){
+      RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+      prob = integral->getVal();
+      delete integral;
     }
-    else prob = -99.0;
+    else prob = pdf->getVal();
   }
   else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
 
@@ -846,64 +845,18 @@ void Mela::computeP_selfDspin0(
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
+      Y_rrv->setConstant(true); // Just to avoid integrating over this variable unnecessarily
 
-      bool checkImCoupl = false;
-      for (int i =0; i<SIZE_HVV; i++){
-        if (selfDHzzcoupl[i][1]!=0){
-          cout << "Error: MELA does not support complex coupling for the moment! "<<endl;
-          checkImCoupl = true;
-          break;
-        }
+      configureAnalyticalPDFs();
+
+      if (myProduction_==TVar::ZZINDEPENDENT){
+        RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+        prob = integral->getVal();
+        delete integral;
       }
-      if (!checkImCoupl){
-        spin0Model->useGTerm->setVal(1);
-        spin0Model->modelIndex =-1;
+      else prob = pdf->getVal();
 
-        spin0Model->g1Val->setVal(selfDHzzcoupl[0][0]);
-        spin0Model->g2Val->setVal(selfDHzzcoupl[1][0]);
-        spin0Model->g3Val->setVal(selfDHzzcoupl[2][0]);
-        spin0Model->g4Val->setVal(selfDHzzcoupl[3][0]);
-
-        spin0Model->g1_primeVal->setVal(selfDHzzcoupl[10][0]);
-        spin0Model->g1_prime2Val->setVal(selfDHzzcoupl[11][0]);
-        spin0Model->g1_prime3Val->setVal(selfDHzzcoupl[12][0]);
-        spin0Model->g1_prime4Val->setVal(selfDHzzcoupl[13][0]);
-        spin0Model->g1_prime5Val->setVal(selfDHzzcoupl[14][0]);
-
-        spin0Model->g2_primeVal->setVal(selfDHzzcoupl[15][0]);
-        spin0Model->g2_prime2Val->setVal(selfDHzzcoupl[16][0]);
-        spin0Model->g2_prime3Val->setVal(selfDHzzcoupl[17][0]);
-        spin0Model->g2_prime4Val->setVal(selfDHzzcoupl[18][0]);
-        spin0Model->g2_prime5Val->setVal(selfDHzzcoupl[19][0]);
-
-        spin0Model->g3_primeVal->setVal(selfDHzzcoupl[20][0]);
-        spin0Model->g3_prime2Val->setVal(selfDHzzcoupl[21][0]);
-        spin0Model->g3_prime3Val->setVal(selfDHzzcoupl[22][0]);
-        spin0Model->g3_prime4Val->setVal(selfDHzzcoupl[23][0]);
-        spin0Model->g3_prime5Val->setVal(selfDHzzcoupl[24][0]);
-
-        spin0Model->g4_primeVal->setVal(selfDHzzcoupl[25][0]);
-        spin0Model->g4_prime2Val->setVal(selfDHzzcoupl[26][0]);
-        spin0Model->g4_prime3Val->setVal(selfDHzzcoupl[27][0]);
-        spin0Model->g4_prime4Val->setVal(selfDHzzcoupl[28][0]);
-        spin0Model->g4_prime5Val->setVal(selfDHzzcoupl[29][0]);
-
-        spin0Model->g1_prime6Val->setVal(selfDHzzcoupl[31][0]);
-        spin0Model->g1_prime7Val->setVal(selfDHzzcoupl[32][0]);
-        spin0Model->g2_prime6Val->setVal(selfDHzzcoupl[33][0]);
-        spin0Model->g2_prime7Val->setVal(selfDHzzcoupl[34][0]);
-        spin0Model->g3_prime6Val->setVal(selfDHzzcoupl[35][0]);
-        spin0Model->g3_prime7Val->setVal(selfDHzzcoupl[36][0]);
-        spin0Model->g4_prime6Val->setVal(selfDHzzcoupl[37][0]);
-        spin0Model->g4_prime7Val->setVal(selfDHzzcoupl[38][0]);
-
-        if (myProduction_==TVar::ZZINDEPENDENT){
-          RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-          prob = integral->getVal();
-          delete integral;
-        }
-        else prob = pdf->getVal();
-      }
+      Y_rrv->setConstant(false);
     }
     else cout << "ERROR: this method only works for JHUGen or MCFM or ANALYTICAL" << endl;
   }
@@ -971,7 +924,6 @@ void Mela::computeP_selfDspin2(
       costheta2_rrv->setVal(costheta2);
       phi_rrv->setVal(phi);
       phi1_rrv->setVal(phi1);
-
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
@@ -985,6 +937,7 @@ void Mela::computeP_selfDspin2(
         }
       }
       if (!checkImCoupl){
+        configureAnalyticalPDFs();
         if (myProduction_ == TVar::ZZGG || myProduction_==TVar::ZZINDEPENDENT){
           spin2Model->fz1Val->setVal(0.);
           spin2Model->fz2Val->setVal(1.);
@@ -1091,6 +1044,7 @@ void Mela::computeP_selfDspin1(
         }
       }
       if (!checkImCoupl){
+        configureAnalyticalPDFs();
         spin1Model->g1Val->setVal(selfDZvvcoupl[0][0]);
         spin1Model->g2Val->setVal(selfDZvvcoupl[1][0]);
         if (myProduction_==TVar::ZZINDEPENDENT){
@@ -2114,4 +2068,93 @@ void Mela::reset_SelfDCouplings(){
   }
   // Did I tell you that is a lot of them?
 }
+
+void Mela::configureAnalyticalPDFs(){
+  // 
+  // configure the analytical calculations 
+  // 
+  if (myModel_==TVar::bkgZZ)  pdf = qqZZmodel;
+  else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF);
+  else if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH);
+  else if (
+    myModel_ == TVar::HSMHiggs
+    || myModel_ == TVar::H0minus || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2
+    || myModel_ == TVar::H0hplus || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2
+    || myModel_ == TVar::H0_g1prime2 || myModel_ == TVar::D_g1g1prime2
+    || myModel_ == TVar::SelfDefine_spin0
+    ){
+    pdf = (RooAbsPdf*)ggSpin0Model->getPDF();
+
+    ggSpin0Model->makeParamsConst(false);
+    ggSpin0Model->resetHypotheses();
+
+    if (
+      myModel_ == TVar::HSMHiggs
+      || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2
+      || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2
+      || myModel_ == TVar::D_g1g1prime2
+      ) ggSpin0Model->addHypothesis(0, 0);
+    if (myModel_ == TVar::H0minus || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2) ggSpin0Model->addHypothesis(3, 0, (myModel_ == TVar::D_g1g4_pi_2 ? TMath::Pi() : 0.));
+    if (myModel_ == TVar::H0hplus || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2) ggSpin0Model->addHypothesis(1, 0, (myModel_ == TVar::D_g1g2_pi_2 ? TMath::Pi() : 0.));
+    if (myModel_ == TVar::H0_g1prime2 || myModel_ == TVar::D_g1g1prime2) ggSpin0Model->addHypothesis(0, 2);
+    if (myModel_ == TVar::SelfDefine_spin0){
+      RooRealVar* g1List[8][2];
+      RooRealVar* g2List[8][2];
+      RooRealVar* g3List[8][2];
+      RooRealVar* g4List[8][2];
+      for (int gg=0; gg<8; gg++){
+        for (int im=0; im<2; im++){
+          g1List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g1List[gg][im];
+          g2List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g2List[gg][im];
+          g3List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g3List[gg][im];
+          g4List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g4List[gg][im];
+        }
+      }
+      for (int im=0; im<2; im++){
+        g1List[0][im]->setVal(selfDHzzcoupl[0][im]);
+        g2List[0][im]->setVal(selfDHzzcoupl[1][im]);
+        g3List[0][im]->setVal(selfDHzzcoupl[2][im]);
+        g4List[0][im]->setVal(selfDHzzcoupl[3][im]);
+
+        g1List[1][im]->setVal(selfDHzzcoupl[10][im]);
+        g1List[2][im]->setVal(selfDHzzcoupl[11][im]);
+        g1List[3][im]->setVal(selfDHzzcoupl[12][im]);
+        g1List[4][im]->setVal(selfDHzzcoupl[13][im]);
+        g1List[5][im]->setVal(selfDHzzcoupl[14][im]);
+
+        g2List[1][im]->setVal(selfDHzzcoupl[15][im]);
+        g2List[2][im]->setVal(selfDHzzcoupl[16][im]);
+        g2List[3][im]->setVal(selfDHzzcoupl[17][im]);
+        g2List[4][im]->setVal(selfDHzzcoupl[18][im]);
+        g2List[5][im]->setVal(selfDHzzcoupl[19][im]);
+
+        g3List[1][im]->setVal(selfDHzzcoupl[20][im]);
+        g3List[2][im]->setVal(selfDHzzcoupl[21][im]);
+        g3List[3][im]->setVal(selfDHzzcoupl[22][im]);
+        g3List[4][im]->setVal(selfDHzzcoupl[23][im]);
+        g3List[5][im]->setVal(selfDHzzcoupl[24][im]);
+
+        g4List[1][im]->setVal(selfDHzzcoupl[25][im]);
+        g4List[2][im]->setVal(selfDHzzcoupl[26][im]);
+        g4List[3][im]->setVal(selfDHzzcoupl[27][im]);
+        g4List[4][im]->setVal(selfDHzzcoupl[28][im]);
+        g4List[5][im]->setVal(selfDHzzcoupl[29][im]);
+
+        g1List[6][im]->setVal(selfDHzzcoupl[31][im]);
+        g1List[7][im]->setVal(selfDHzzcoupl[32][im]);
+        g2List[6][im]->setVal(selfDHzzcoupl[33][im]);
+        g2List[7][im]->setVal(selfDHzzcoupl[34][im]);
+        g3List[6][im]->setVal(selfDHzzcoupl[35][im]);
+        g3List[7][im]->setVal(selfDHzzcoupl[36][im]);
+        g4List[6][im]->setVal(selfDHzzcoupl[37][im]);
+        g4List[7][im]->setVal(selfDHzzcoupl[38][im]);
+      }
+    }
+    ggSpin0Model->makeParamsConst(true);
+  }
+  else if (!spin1Model->configure(myModel_)) pdf = spin1Model->PDF;
+  else if (!spin2Model->configure(myModel_, myProduction_)) pdf = spin2Model->PDF;
+  else if (myME_ == TVar::ANALYTICAL) cout << "Mela::configureAnalyticalPDFs -> ERROR TVar::Process not applicable!!! ME: " << myME_ << ", model: " << myModel_ << endl;
+}
+
 

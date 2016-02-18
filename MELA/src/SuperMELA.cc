@@ -1,10 +1,10 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
-#include "../interface/SuperMELA.h"
+#include <ZZMatrixElement/MELA/interface/SuperMELA.h>
 #include "RooArgSet.h"
 #include "RooArgList.h"
 //#include "Higgs/Higgs_CS_and_Width/include/HiggsCSandWidth.h"
-#include "ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h"
+#include <ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h>
 #include "RooPlot.h"
 #include <FWCore/ParameterSet/interface/FileInPath.h>
 

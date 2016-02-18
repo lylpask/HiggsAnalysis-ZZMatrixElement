@@ -6,7 +6,7 @@
 
 // Your description goes here... 
 
-#include "RooRapiditySig.h"
+#include <ZZMatrixElement/MELA/interface/RooRapiditySig.h>
 
 #include <math.h> 
 

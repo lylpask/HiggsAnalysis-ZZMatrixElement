@@ -4310,7 +4310,9 @@ void testME_FullMELA_FullSimMC_analyticalMELAValidation(int flavor=1){
 	TGraph* vaScale_2e2mu = mela.vaScale_2e2mu;
 	TGraph* DggZZ_scalefactor = mela.DggZZ_scalefactor;
 
-	TFile* finput = new TFile(Form("/afs/cern.ch/work/u/usarica/HZZ4l-125p6-FullAnalysis/LHC_8TeV/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root",(flavor==0 ? "2mu2e" : "4e")),"read");
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor==0 ? "2mu2e" : "4e")), "read");
+  //TFile* finput = new TFile(Form("/afs/cern.ch/work/u/usarica/HZZ4l-125p6-FullAnalysis/LHC_8TeV/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", (flavor==0 ? "2mu2e" : "4e")), "read");
 	TFile* foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_Original_analyticalMELAValidationTestOnly.root",(flavor==0 ? "2mu2e" : "4e")),"recreate");
 
 	float p0plus_mela;

@@ -18,7 +18,7 @@ class TH3F;
 class RooRealVar;
 class RooAbsPdf;
 class RooArgSet;
-class AngularPdfFactory;
+class ScalarPdfFactory_ggH;
 class VectorPdfFactory;
 class TensorPdfFactory;
 class RooqqZZ_JHU_ZgammaZZ_fast;
@@ -28,10 +28,10 @@ class SuperMELA;
 
 #include <ZZMatrixElement/MELA/interface/TVar.hh>
 #include <ZZMatrixElement/MELA/interface/TEvtProb.hh>
-#include <ZZMatrixElement/MELA/src/AngularPdfFactory.h>
-#include <ZZMatrixElement/MELA/src/VectorPdfFactory.h>
-#include <ZZMatrixElement/MELA/src/TensorPdfFactory.h>
-#include <ZZMatrixElement/MELA/src/RooqqZZ_JHU_ZgammaZZ_fast.h>
+#include <ZZMatrixElement/MELA/interface/ScalarPdfFactory_ggH.h>
+#include <ZZMatrixElement/MELA/interface/VectorPdfFactory.h>
+#include <ZZMatrixElement/MELA/interface/TensorPdfFactory.h>
+#include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU_ZgammaZZ_fast.h>
 
 class Mela{
 
@@ -305,7 +305,7 @@ public:
     );
 
   RooAbsPdf* pdf;
-  AngularPdfFactory* spin0Model;
+  ScalarPdfFactory_ggH* ggSpin0Model;
   VectorPdfFactory* spin1Model;
   TensorPdfFactory* spin2Model;
   RooqqZZ_JHU_ZgammaZZ_fast* qqZZmodel;
@@ -321,7 +321,7 @@ public:
   RooRealVar* costheta2_rrv;
   RooRealVar* phi_rrv;
   RooRealVar* phi1_rrv;
-  RooRealVar* pt_rrv;
+  RooRealVar* Y_rrv;
   RooRealVar* upFrac_rrv;
 
   TGraph* vaScale_4e;
@@ -386,6 +386,7 @@ private:
   //
   // functions
   //
+  void configureAnalyticalPDFs();
   void reset_SelfDCouplings();
   void reset_PAux(){ auxiliaryProb=1.; }; // SuperProb reset
 };

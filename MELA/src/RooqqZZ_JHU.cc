@@ -11,7 +11,7 @@
 
 #include "Riostream.h" 
 
-#include "RooqqZZ_JHU.h" 
+#include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU.h>
 #include "RooAbsReal.h" 
 #include "RooAbsCategory.h" 
 #include <math.h> 

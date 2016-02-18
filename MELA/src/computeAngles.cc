@@ -6,7 +6,7 @@
  *  $Revision: 1.7 $
  */
 
-#include <ZZMatrixElement/MELA/src/computeAngles.h>
+#include <ZZMatrixElement/MELA/interface/computeAngles.h>
 #include <TLorentzVector.h>
 #include <algorithm>
 #include <iostream>
