@@ -78,7 +78,7 @@
          elseif( IsAPhoton(DecayMode1) ) then !  photon
          else
               aL1=0d0
-              aR1=0d0            
+              aR1=0d0
          endif
 
          if( IsAZDecay(DecayMode2) ) then!  Z decay
@@ -118,7 +118,7 @@
          elseif( IsAPhoton(DecayMode2) ) then !  photon
          else
               aL2=0d0
-              aR2=0d0  
+              aR2=0d0
          endif
 
 
@@ -130,7 +130,7 @@ do i3 = 1,2
 do i4 = 1,2
 !do i3 = -1,1! on-shell check!
 !do i4 = -1,1! on-shell check!
-   
+
          ordering = (/3,4,5,6/)
          call calcHelAmp(ordering,p(1:4,1:6),i1,i3,i4,A(1))
 
@@ -160,7 +160,7 @@ do i4 = 1,2
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              sum = sum + symmFact * (cdabs( A(1)*dconjg(A(1)) ) + cdabs( A(2)*dconjg(A(2)) ))
-             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))  
+             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))
          else
              sum = sum + cdabs( A(1)*dconjg(A(1)) )
          endif
@@ -229,7 +229,7 @@ enddo
 
 !-- on-shell check
 !       sp(3,1:4) = pol_mass(dcmplx(p(1:4,3)+p(1:4,4)),dsqrt(2d0*scr(p(:,3),p(:,4))),i3)
-!       sp(4,1:4) = pol_mass(dcmplx(p(1:4,5)+p(1:4,6)),dsqrt(2d0*scr(p(:,5),p(:,6))),i4) 
+!       sp(4,1:4) = pol_mass(dcmplx(p(1:4,5)+p(1:4,6)),dsqrt(2d0*scr(p(:,5),p(:,6))),i4)
 
 !        if( i3.eq.0 .and. i4.eq.0 ) then
 !             a(:) = 0d0
@@ -240,7 +240,7 @@ enddo
 
 
 
-         call qqZprimeZZampl(pin,sp,A(1)) 
+         call qqZprimeZZampl(pin,sp,A(1))
 
 ! A(1) ~ GeV^-2
 ! propG*propZ1*propZ2 ~  GeV^-2
@@ -305,14 +305,14 @@ enddo
 
 
 
-!       epsZpr(1:4,-1) = pol_mass(q,m_reso,-1) 
+!       epsZpr(1:4,-1) = pol_mass(q,m_reso,-1)
 !       epsZpr(1:4, 0) = pol_mass(q,m_reso, 0)
 !       epsZpr(1:4,+1) = pol_mass(q,m_reso,+1)
-!       e1_e3 = sc(e1,epsZpr(1:4,-1)) * sc(e3,dconjg(epsZpr(1:4,-1)))  & 
-!             + sc(e1,epsZpr(1:4,+1)) * sc(e3,dconjg(epsZpr(1:4,+1)))  & 
+!       e1_e3 = sc(e1,epsZpr(1:4,-1)) * sc(e3,dconjg(epsZpr(1:4,-1)))  &
+!             + sc(e1,epsZpr(1:4,+1)) * sc(e3,dconjg(epsZpr(1:4,+1)))  &
 !             + sc(e1,epsZpr(1:4, 0)) * sc(e3,dconjg(epsZpr(1:4, 0)))
-!       e1_e4 = sc(e1,epsZpr(1:4,-1)) * sc(e4,dconjg(epsZpr(1:4,-1)))  & 
-!             + sc(e1,epsZpr(1:4,+1)) * sc(e4,dconjg(epsZpr(1:4,+1)))  & 
+!       e1_e4 = sc(e1,epsZpr(1:4,-1)) * sc(e4,dconjg(epsZpr(1:4,-1)))  &
+!             + sc(e1,epsZpr(1:4,+1)) * sc(e4,dconjg(epsZpr(1:4,+1)))  &
 !             + sc(e1,epsZpr(1:4, 0)) * sc(e4,dconjg(epsZpr(1:4, 0)))
 
 
@@ -351,7 +351,7 @@ enddo
             - et1(e1,e3,e4,q3)*xxx1*yyy2 + et1(e1,e3,e4,q4)*xxx1*yyy2
 
 
-!       e3 = pol_mass(q3,dreal(cdsqrt(sc(q3,q3))),-1) 
+!       e3 = pol_mass(q3,dreal(cdsqrt(sc(q3,q3))),-1)
 !       e4 = pol_mass(q4,dreal(cdsqrt(sc(q4,q4))),-1)
 !       e1_e3 = sc(e1,e3)
 !       e1_e4 = sc(e1,e4)
@@ -382,7 +382,7 @@ enddo
       real(dp) :: gZ_sq
       real(dp) :: prefactor, Lambda_inv
       real(dp), parameter :: symmFact=1d0/2d0
-      include "includeVars.F90"
+
 
 
 
@@ -421,7 +421,7 @@ enddo
          elseif( DecayMode1.eq.7 ) then !  photon decay
          else
               aL1=0d0
-              aR1=0d0            
+              aR1=0d0
          endif
 
          if( DecayMode2.le.3 ) then!  Z decay
@@ -447,7 +447,7 @@ enddo
          elseif( DecayMode2.eq.7 ) then !  photon decay
          else
               aL2=0d0
-              aR2=0d0  
+              aR2=0d0
          endif
 
 
@@ -457,7 +457,7 @@ enddo
 do i1 =-1,1! Z' boson
 do i3 = 1,2! lepton string1
 do i4 = 1,2! lepton string2
-   
+
          ordering = (/3,4,5,6/)
          call calcHelAmp2(ordering,p(1:4,1:6),i1,i3,i4,A(1))
 
@@ -482,7 +482,7 @@ do i4 = 1,2! lepton string2
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              sum = sum + symmFact * (cdabs( A(1)*dconjg(A(1)) ) + cdabs( A(2)*dconjg(A(2)) ))
-             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*dreal(A(1)*dconjg(A(2)))  
+             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*dreal(A(1)*dconjg(A(2)))
          else
              sum = sum + cdabs( A(1)*dconjg(A(1)) )
          endif
@@ -506,7 +506,7 @@ enddo
      complex(dp) :: propZ1, propZ2
      real(dp) :: s, pin(4,4)
      complex(dp) :: A(1:1), sp(4,4)
-     include "includeVars.F90"
+
 
 
       l1=ordering(1)

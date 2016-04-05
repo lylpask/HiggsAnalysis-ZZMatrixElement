@@ -83,7 +83,7 @@
               prefactor = prefactor/gZ_sq**2! cancel the overall z coupling
          else
               aL1=0d0
-              aR1=0d0            
+              aR1=0d0
          endif
 
          if( IsAZDecay(DecayMode2) ) then!  Z decay
@@ -122,7 +122,7 @@
               endif
          elseif( IsAPhoton(DecayMode2) ) then !  photon "decay"
               aL2=1d0
-              aR2=1d0  
+              aR2=1d0
          else
               aL2=0d0
               aR2=0d0
@@ -158,7 +158,7 @@ do i4 = 1,2
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              sum = sum + symmFact * (cdabs( A(1)*dconjg(A(1)) ) +  cdabs( A(2)*dconjg(A(2)) ))
-             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))  
+             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))
          else
              sum = sum + cdabs( A(1)*dconjg(A(1)) )
          endif
@@ -201,7 +201,7 @@ enddo
           !careful: for gluon gauge invariance check the terms ~c3,c4 are needed because e1.q2 is not zero for e1-->q1
 
 !-------- -1 == left, 1 == right
-         if( .not.IsAPhoton(DecayMode1) ) then 
+         if( .not.IsAPhoton(DecayMode1) ) then
 !             pin(3,:) = p(:,3)+p(:,4)
 !             pin(4,:) = p(:,5)+p(:,6)
 !             sp(3,:) = pol_dk2mom(dcmplx(p(:,3)),dcmplx(p(:,4)),-3+2*i3)  !e-,e+
@@ -222,7 +222,7 @@ enddo
             s = scr(p(:,l3)+p(:,l4),p(:,l3)+p(:,l4))
             propZ2 = s/dcmplx(s - M_V**2,M_V*Ga_V)
 
-         elseif( IsAPhoton(DecayMode1) ) then 
+         elseif( IsAPhoton(DecayMode1) ) then
             pin(3,:) = p(:,l1)
             pin(4,:) = p(:,l3)
             sp(3,:) = pol_mless2(dcmplx(p(:,l1)),-3+2*i3,'out')  ! photon
@@ -324,7 +324,7 @@ enddo
               prefactor = prefactor/gZ_sq**2! cancel the overall z coupling
          else
               aL1=0d0
-              aR1=0d0            
+              aR1=0d0
          endif
 
          if( IsAZDecay(DecayMode2) ) then!  Z decay
@@ -363,10 +363,10 @@ enddo
               endif
          elseif( IsAPhoton(DecayMode2) ) then !  photon decay
               aL2=1d0
-              aR2=1d0  
+              aR2=1d0
          else
               aL2=0d0
-              aR2=0d0  
+              aR2=0d0
          endif
 
       sum = zero
@@ -402,7 +402,7 @@ do i4 = 1,2
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              sum = sum + symmFact * (cdabs( A(1)*dconjg(A(1)) ) + cdabs( A(2)*dconjg(A(2)) ))
-             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))  
+             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*intcolfac*dreal(A(1)*dconjg(A(2)))
          else
              sum = sum + cdabs( A(1)*dconjg(A(1)) )
          endif
@@ -444,7 +444,7 @@ enddo
          sp(2,:) = sp(1,:)  !-- the same, isn't really needed but for uniform bookeeping
 
 !-------- -1 == left, 1 == right
-         if( .not.IsAPhoton(DecayMode1) ) then 
+         if( .not.IsAPhoton(DecayMode1) ) then
 !             pin(3,:) = p(:,3)+p(:,4)
 !             pin(4,:) = p(:,5)+p(:,6)
 !             sp(3,:) = pol_dk2mom(dcmplx(p(:,3)),dcmplx(p(:,4)),-3+2*i3)  !e-,e+
@@ -465,7 +465,7 @@ enddo
             s = scr(p(:,l3)+p(:,l4),p(:,l3)+p(:,l4))
             propZ2 = s/dcmplx(s - M_V**2,M_V*Ga_V)
 
-         elseif( IsAPhoton(DecayMode1) ) then 
+         elseif( IsAPhoton(DecayMode1) ) then
             pin(3,:) = p(:,l1)
             pin(4,:) = p(:,l3)
             sp(3,:) = pol_mless2(dcmplx(p(:,l1)),-3+2*i3,'out')  ! photon
@@ -555,7 +555,7 @@ enddo
       MZ3=dsqrt(cdabs(q3_q3))
       MZ4=dsqrt(cdabs(q4_q4))
       if( use_dynamic_MG ) then
-          MG = dsqrt(cdabs(q_q))          
+          MG = dsqrt(cdabs(q_q))
       else
           MG = M_Reso
       endif
@@ -604,13 +604,13 @@ enddo
 !      e4_q3*yyy3 + 1./2.*e1_e3*e4_q3*yyy1 - 1./4.*e1_e3*e4_q3*MG**2*   &
 !      yyy4 + 1./2.*e1_e4*e3_q4*yyy1 + 1./4.*e1_e4*e3_q4*MG**2*yyy4 +   &
 !      e1_q3*e3_e4*MG**2*yyy2 + e1_q3*e3_q4*e4_q3*MG**2*yyy3
-! 
+!
 !       res = res +                                                        &
 !       1./2.*et1(e3,e4,q1,q)*e1_q3*yyy6 - 1./2.*et1(e3,e4,q2,q)*e1_q3*  &
 !       yyy6 + 1./4.*et1(e3,e4,e1,q)*MG**2*yyy6 + et1(e3,e4,e1,q)*q1_q3* &
 !       yyy6 + 4*et1(e3,e4,q3,q4)*q1_q3*e1_q3*MG**(-2)*yyy5 + et1(e3,e4, &
 !       q3,q4)*e1_q3*yyy5
-! 
+!
 !       res = res +                                                               &
 !      1./2.*et1(q1,e3,q,q3)*e1_q3*e4_q3*MG**(-2)*yyy7 - 1./2.*et1(q1,        &
 !       e3,q,q4)*e1_q3*e4_q3*MG**(-2)*yyy7 + 1./2.*et1(q1,e4,q,q3)*e1_q3      &
@@ -1462,7 +1462,7 @@ enddo
       real(dp) :: gZ_sq
       real(dp) :: prefactor, Lambda_inv
       real(dp), parameter :: symmFact=1d0/2d0
-      include "includeVars.F90"
+
 
 
 !---- electroweak couplings
@@ -1506,7 +1506,7 @@ enddo
               prefactor = prefactor/gZ_sq**2! cancel the overall z coupling
          else
               aL1=0d0
-              aR1=0d0            
+              aR1=0d0
          endif
 
          if( DecayMode2.le.3 ) then!  Z decay
@@ -1531,10 +1531,10 @@ enddo
               aR2 = bR
          elseif( DecayMode2.eq.7 ) then !  photon decay
               aL2=1d0
-              aR2=1d0  
+              aR2=1d0
          else
               aL2=0d0
-              aR2=0d0  
+              aR2=0d0
          endif
 
 
@@ -1573,7 +1573,7 @@ do i4 = 1,2! lepton string2
 
          if( (includeInterference.eqv..true.) .and. (MY_IDUP(6).eq.MY_IDUP(8)) .and. (MY_IDUP(7).eq.MY_IDUP(9)) ) then
              sum = sum + symmFact * (cdabs( A(1)*dconjg(A(1)) ) + cdabs( A(2)*dconjg(A(2)) ))
-             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*dreal(A(1)*dconjg(A(2)))  
+             if( i3.eq.i4 ) sum = sum + symmFact * 2d0*dreal(A(1)*dconjg(A(2)))
          else
              sum = sum + cdabs( A(1)*dconjg(A(1)) )
          endif
@@ -1597,7 +1597,7 @@ enddo
      complex(dp) :: propZ1, propZ2
      real(dp) :: s, pin(4,4)
      complex(dp) :: A(1:1), sp(0:4,1:4)
-      include "includeVars.F90"
+
 
 
 
@@ -1612,14 +1612,14 @@ enddo
 
          pin(1,:) = p(:,1)
          pin(2,:) = 0d0 ! dummy
- 
+
          sp(0,1:4) = pol_mass(dcmplx(p(1:4,1)),dsqrt(abs(s)), 0)
          sp(1,1:4) = pol_mass(dcmplx(p(1:4,1)),dsqrt(abs(s)),-1)
          sp(2,1:4) = pol_mass(dcmplx(p(1:4,1)),dsqrt(abs(s)),+1)
 
 
 !-------- -1 == left, 1 == right
-         if( DecayMode1.ne.7 ) then 
+         if( DecayMode1.ne.7 ) then
             pin(3,:) = p(:,l1)+p(:,l2)
             pin(4,:) = p(:,l3)+p(:,l4)
             sp(3,:) = pol_dk2mom(dcmplx(p(:,l1)),dcmplx(p(:,l2)),-3+2*i3)  ! ubar(l1), v(l2)
@@ -1631,7 +1631,7 @@ enddo
             s = scr(p(:,l3)+p(:,l4),p(:,l3)+p(:,l4))
             propZ2 = s/dcmplx(s - M_V**2,M_V*Ga_V)
 
-         elseif( DecayMode1.eq.7 ) then 
+         elseif( DecayMode1.eq.7 ) then
             pin(3,:) = p(:,l1)
             pin(4,:) = p(:,l3)
             sp(3,:) = pol_mless2(dcmplx(p(:,l1)),-3+2*i3,'out')  ! photon
@@ -1688,23 +1688,23 @@ enddo
 !     requirement: sp(0,:)= 0 pol
 !     requirement: sp(1,:)= - pol
 !     requirement: sp(2,:)= + pol
-      if( i1.eq.+2 ) then 
+      if( i1.eq.+2 ) then
         e0 = 1d9! dummy
         e1 = sp(2,:)! +
         e2 = sp(2,:)! +
-      elseif( i1.eq.+1 ) then 
+      elseif( i1.eq.+1 ) then
         e0 = 1d9! dummy
         e1 = sp(2,:)! +
         e2 = sp(0,:)! 0
-      elseif( i1.eq.0 ) then 
+      elseif( i1.eq.0 ) then
         e0 = sp(0,:)! 0
         e1 = sp(1,:)! -
         e2 = sp(2,:)! +
-      elseif( i1.eq.-1 ) then 
+      elseif( i1.eq.-1 ) then
         e0 = 1d9! dummy
         e1 = sp(1,:)! -
         e2 = sp(0,:)! 0
-      elseif( i1.eq.-2 ) then 
+      elseif( i1.eq.-2 ) then
         e0 = 1d9! dummy
         e1 = sp(1,:)! -
         e2 = sp(1,:)! -
@@ -1763,7 +1763,7 @@ enddo
       MZ3=dsqrt(cdabs(q3_q3))
       MZ4=dsqrt(cdabs(q4_q4))
       if( use_dynamic_MG ) then
-          MG = dsqrt(cdabs(q_q))          
+          MG = dsqrt(cdabs(q_q))
       else
           MG = M_Reso
       endif
@@ -1867,10 +1867,10 @@ enddo
      &  + yyy7*sqrt6**(-1) * (  - 2.0d0*et1(e0,e3,q,q3)*q_e4*e0_q3*&
      &    MG**(-2) + 2.0d0*et1(e0,e3,q,q3)*q_e4*e0_q4*MG**(-2) + 2.0d0*et1(e0&
      &    ,e3,q,q4)*q_e4*e0_q3*MG**(-2) - 2.0d0*et1(e0,e3,q,q4)*q_e4*e0_q4&
-     &    *MG**(-2) - 2.0d0*et1(e0,e4,q,q3)*q_e3*e0_q3*MG**(-2) + 2.0d0*et1(& 
-     &    e0,e4,q,q3)*q_e3*e0_q4*MG**(-2) + 2.0d0*et1(e0,e4,q,q4)*q_e3*&   
-     &    e0_q3*MG**(-2) - 2.0d0*et1(e0,e4,q,q4)*q_e3*e0_q4*MG**(-2) + &   
-     &    et1(e1,e3,q,q3)*q_e4*e2_q3*MG**(-2) - et1(e1,e3,q,q3)*q_e4*&  
+     &    *MG**(-2) - 2.0d0*et1(e0,e4,q,q3)*q_e3*e0_q3*MG**(-2) + 2.0d0*et1(&
+     &    e0,e4,q,q3)*q_e3*e0_q4*MG**(-2) + 2.0d0*et1(e0,e4,q,q4)*q_e3*&
+     &    e0_q3*MG**(-2) - 2.0d0*et1(e0,e4,q,q4)*q_e3*e0_q4*MG**(-2) + &
+     &    et1(e1,e3,q,q3)*q_e4*e2_q3*MG**(-2) - et1(e1,e3,q,q3)*q_e4*&
      &    e2_q4*MG**(-2) - et1(e1,e3,q,q4)*q_e4*e2_q3*MG**(-2) + et1(e1&
      &    ,e3,q,q4)*q_e4*e2_q4*MG**(-2) + et1(e1,e4,q,q3)*q_e3*e2_q3*&
      &    MG**(-2) - et1(e1,e4,q,q3)*q_e3*e2_q4*MG**(-2) - et1(e1,e4,q,&
