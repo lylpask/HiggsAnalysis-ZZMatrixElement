@@ -7,7 +7,7 @@
 #ifndef ROOSPINZERO_7DCOMPLEX_WITHACCEP_GGH
 #define ROOSPINZERO_7DCOMPLEX_WITHACCEP_GGH
 
-#include "RooSpinZero.h"
+#include <ZZMatrixElement/MELA/interface/RooSpinZero.h>
 
 
 class RooSpinZero_7DComplex_withAccep_ggH : public RooSpinZero {

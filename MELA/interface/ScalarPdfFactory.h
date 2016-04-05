@@ -1,7 +1,7 @@
 #ifndef SCALAR_PDF_FACTORY
 #define SCALAR_PDF_FACTORY
 
-#include "RooSpinZero.h"
+#include <ZZMatrixElement/MELA/interface/RooSpinZero.h>
 #include "TString.h"
 #include "RooFormulaVar.h"
 
