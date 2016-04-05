@@ -2088,66 +2088,82 @@ void Mela::configureAnalyticalPDFs(){
     ggSpin0Model->makeParamsConst(false);
     ggSpin0Model->resetHypotheses();
 
+    // Add the hypotheses with best-guess coefficients
+    // ZZ/WW
     if (
       myModel_ == TVar::HSMHiggs
-      || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2
-      || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2
       || myModel_ == TVar::D_g1g1prime2
+      || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2
+      || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2
+      || myModel_ == TVar::D_zzzg_g1prime2 || myModel_ == TVar::D_zzzg_g1prime2_pi_2 || myModel_ == TVar::D_zzzg || myModel_ == TVar::D_zzzg_PS
+      || myModel_ == TVar::D_zzgg || myModel_ == TVar::D_zzgg_PS
       ) ggSpin0Model->addHypothesis(0, 0);
-    if (myModel_ == TVar::H0minus || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2) ggSpin0Model->addHypothesis(3, 0, (myModel_ == TVar::D_g1g4_pi_2 ? TMath::Pi() : 0.));
-    if (myModel_ == TVar::H0hplus || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2) ggSpin0Model->addHypothesis(1, 0, (myModel_ == TVar::D_g1g2_pi_2 ? TMath::Pi() : 0.));
     if (myModel_ == TVar::H0_g1prime2 || myModel_ == TVar::D_g1g1prime2) ggSpin0Model->addHypothesis(0, 2);
+    if (myModel_ == TVar::H0hplus || myModel_ == TVar::D_g1g2 || myModel_ == TVar::D_g1g2_pi_2) ggSpin0Model->addHypothesis(1, 0, (myModel_ == TVar::D_g1g2_pi_2 ? TMath::Pi() : 0.));
+    if (myModel_ == TVar::H0minus || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2) ggSpin0Model->addHypothesis(3, 0, (myModel_ == TVar::D_g1g4_pi_2 ? TMath::Pi() : 0.));
+    // ZG/ZGs
+    if (myModel_ == TVar::H0_Zgsg1prime2 || myModel_ == TVar::D_zzzg_g1prime2 || myModel_ == TVar::D_zzzg_g1prime2_pi_2) ggSpin0Model->addHypothesis(4, 2, (myModel_ == TVar::D_zzzg_g1prime2_pi_2 ? TMath::Pi() : 0.));
+    if (myModel_ == TVar::H0_Zgs || myModel_ == TVar::D_zzzg) ggSpin0Model->addHypothesis(5, 0);
+    if (myModel_ == TVar::H0_Zgs_PS || myModel_ == TVar::D_zzzg_PS) ggSpin0Model->addHypothesis(7, 0);
+    // GG/GGs/GsGs
+    if (myModel_ == TVar::H0_gsgs || myModel_ == TVar::D_zzgg) ggSpin0Model->addHypothesis(8, 0);
+    if (myModel_ == TVar::H0_gsgs_PS || myModel_ == TVar::D_zzgg_PS) ggSpin0Model->addHypothesis(10, 0);
+    // Self-defined spin-0
     if (myModel_ == TVar::SelfDefine_spin0){
-      RooRealVar* g1List[8][2];
-      RooRealVar* g2List[8][2];
-      RooRealVar* g3List[8][2];
-      RooRealVar* g4List[8][2];
-      for (int gg=0; gg<8; gg++){
-        for (int im=0; im<2; im++){
-          g1List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g1List[gg][im];
-          g2List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g2List[gg][im];
-          g3List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g3List[gg][im];
-          g4List[gg][im] = (RooRealVar*)ggSpin0Model->parameters.g4List[gg][im];
-        }
-      }
       for (int im=0; im<2; im++){
-        g1List[0][im]->setVal(selfDHzzcoupl[0][im]);
-        g2List[0][im]->setVal(selfDHzzcoupl[1][im]);
-        g3List[0][im]->setVal(selfDHzzcoupl[2][im]);
-        g4List[0][im]->setVal(selfDHzzcoupl[3][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[0][im])->setVal(selfDHzzcoupl[0][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[0][im])->setVal(selfDHzzcoupl[1][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[0][im])->setVal(selfDHzzcoupl[2][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[0][im])->setVal(selfDHzzcoupl[3][im]);
 
-        g1List[1][im]->setVal(selfDHzzcoupl[10][im]);
-        g1List[2][im]->setVal(selfDHzzcoupl[11][im]);
-        g1List[3][im]->setVal(selfDHzzcoupl[12][im]);
-        g1List[4][im]->setVal(selfDHzzcoupl[13][im]);
-        g1List[5][im]->setVal(selfDHzzcoupl[14][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.gzgs2List[0][im])->setVal(selfDHzzcoupl[4][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.gzgs3List[0][im])->setVal(selfDHzzcoupl[5][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.gzgs4List[0][im])->setVal(selfDHzzcoupl[6][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.ggsgs2List[0][im])->setVal(selfDHzzcoupl[7][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.ggsgs3List[0][im])->setVal(selfDHzzcoupl[8][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.ggsgs4List[0][im])->setVal(selfDHzzcoupl[9][im]);
 
-        g2List[1][im]->setVal(selfDHzzcoupl[15][im]);
-        g2List[2][im]->setVal(selfDHzzcoupl[16][im]);
-        g2List[3][im]->setVal(selfDHzzcoupl[17][im]);
-        g2List[4][im]->setVal(selfDHzzcoupl[18][im]);
-        g2List[5][im]->setVal(selfDHzzcoupl[19][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[1][im])->setVal(selfDHzzcoupl[10][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[2][im])->setVal(selfDHzzcoupl[11][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[3][im])->setVal(selfDHzzcoupl[12][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[4][im])->setVal(selfDHzzcoupl[13][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[5][im])->setVal(selfDHzzcoupl[14][im]);
 
-        g3List[1][im]->setVal(selfDHzzcoupl[20][im]);
-        g3List[2][im]->setVal(selfDHzzcoupl[21][im]);
-        g3List[3][im]->setVal(selfDHzzcoupl[22][im]);
-        g3List[4][im]->setVal(selfDHzzcoupl[23][im]);
-        g3List[5][im]->setVal(selfDHzzcoupl[24][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[1][im])->setVal(selfDHzzcoupl[15][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[2][im])->setVal(selfDHzzcoupl[16][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[3][im])->setVal(selfDHzzcoupl[17][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[4][im])->setVal(selfDHzzcoupl[18][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[5][im])->setVal(selfDHzzcoupl[19][im]);
 
-        g4List[1][im]->setVal(selfDHzzcoupl[25][im]);
-        g4List[2][im]->setVal(selfDHzzcoupl[26][im]);
-        g4List[3][im]->setVal(selfDHzzcoupl[27][im]);
-        g4List[4][im]->setVal(selfDHzzcoupl[28][im]);
-        g4List[5][im]->setVal(selfDHzzcoupl[29][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[1][im])->setVal(selfDHzzcoupl[20][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[2][im])->setVal(selfDHzzcoupl[21][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[3][im])->setVal(selfDHzzcoupl[22][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[4][im])->setVal(selfDHzzcoupl[23][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[5][im])->setVal(selfDHzzcoupl[24][im]);
 
-        g1List[6][im]->setVal(selfDHzzcoupl[31][im]);
-        g1List[7][im]->setVal(selfDHzzcoupl[32][im]);
-        g2List[6][im]->setVal(selfDHzzcoupl[33][im]);
-        g2List[7][im]->setVal(selfDHzzcoupl[34][im]);
-        g3List[6][im]->setVal(selfDHzzcoupl[35][im]);
-        g3List[7][im]->setVal(selfDHzzcoupl[36][im]);
-        g4List[6][im]->setVal(selfDHzzcoupl[37][im]);
-        g4List[7][im]->setVal(selfDHzzcoupl[38][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[1][im])->setVal(selfDHzzcoupl[25][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[2][im])->setVal(selfDHzzcoupl[26][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[3][im])->setVal(selfDHzzcoupl[27][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[4][im])->setVal(selfDHzzcoupl[28][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[5][im])->setVal(selfDHzzcoupl[29][im]);
+
+        ((RooRealVar*)ggSpin0Model->parameters.gzgs1List[0][im])->setVal(selfDHzzcoupl[30][im]); // Zgs1_prime2
+
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[6][im])->setVal(selfDHzzcoupl[31][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g1List[7][im])->setVal(selfDHzzcoupl[32][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[6][im])->setVal(selfDHzzcoupl[33][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g2List[7][im])->setVal(selfDHzzcoupl[34][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[6][im])->setVal(selfDHzzcoupl[35][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g3List[7][im])->setVal(selfDHzzcoupl[36][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[6][im])->setVal(selfDHzzcoupl[37][im]);
+        ((RooRealVar*)ggSpin0Model->parameters.g4List[7][im])->setVal(selfDHzzcoupl[38][im]);
+      }
+      for (int qoqtqz=0; qoqtqz<3; qoqtqz++){ // 0==q1, 1==q2, 2==q12
+        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z1qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z2qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[1][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z3qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[2][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z4qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[3][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->parameters.cLambda_qsq[qoqtqz])->setVal(selfDHzzCLambda_qsq[qoqtqz]);
       }
     }
     ggSpin0Model->makeParamsConst(true);
