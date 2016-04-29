@@ -8,8 +8,8 @@
 
 #include "TLorentzVector.h"
 #include "ZZMatrixElement/MELA/interface/Mela.h"
-#include "HiggsAnalysis/CombinedLimit/interface/HZZ4LRooPdfs.h"
-#include "HiggsAnalysis/CombinedLimit/interface/HZZ2L2QRooPdfs.h"
+#include "ZZMatrixElement/MELA/interface/HZZ4LRooPdfs.h"
+#include "ZZMatrixElement/MELA/interface/HZZ2L2QRooPdfs.h"
 #include "RooRealVar.h"
 #include "RooFormulaVar.h"
 #include "RooCBShape.h"

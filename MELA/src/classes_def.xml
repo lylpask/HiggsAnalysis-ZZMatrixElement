@@ -1,0 +1,40 @@
+<lcgdict>
+	<class name="Roo4lMasses2D" />
+	<class name="Roo4lMasses2D_Bkg" />
+	<class name="Roo4lMasses2D_BkgGGZZ" />
+	<class name="RooBWHighMassGGH" />
+	<class name="RooBetaFunc_v2" />
+	<class name="RooCB" />
+	<class name="RooCPSHighMassGGH" />
+	<class name="RooCPSHighMassGGHNoInterf" />
+	<class name="RooCPSHighMassVBF" />
+	<class name="RooCPSHighMassVBFNoInterf" />
+	<class name="RooDoubleCB" />
+	<class name="RooFermi" />
+	<class name="RooFourEMassRes" />
+	<class name="RooFourEMassShapePdf2" />
+	<class name="RooFourMuMassRes" />
+	<class name="RooFourMuMassShapePdf2" />
+	<class name="RooLevelledExp" />
+	<class name="RooRelBW" />
+	<class name="RooRelBW1" />
+	<class name="RooRelBWHighMass" />
+	<class name="RooRelBWUF" />
+	<class name="RooRelBWUFParam" />
+	<class name="RooRelBWUFParamWidth" />
+	<class name="RooRelBWUF_SM4" />
+	<class name="RooSigPlusInt" />
+	<class name="RooTsallis" />
+	<class name="RooTwoETwoMuMassRes" />
+	<class name="RooTwoETwoMuMassShapePdf2" />
+	<class name="RooVBFZZPdf" />
+	<class name="RooVBFZZPdf_v2" />
+	<class name="RooaDoubleCBxBW" />
+	<class name="RooggZZPdf" />
+	<class name="RooggZZPdf_v2" />
+	<class name="RooqqZZPdf" />
+	<class name="RooqqZZPdf_v2" />
+	<class name="Triangle" />
+        <function name="function th1fmorph" />
+
+</lcgdict>
