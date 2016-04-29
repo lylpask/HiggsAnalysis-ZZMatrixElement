@@ -1915,8 +1915,6 @@ double HiggsWidthSM4(int ID, double mHrequested){
 
 /**********RooqqZZPdf*********/
 
-ClassImp(RooqqZZPdf)
-
 RooqqZZPdf::RooqqZZPdf(const char *name, const char *title,
 					   RooAbsReal& _m4l,
 					   RooAbsReal& _a1,
@@ -1981,8 +1979,6 @@ Double_t RooqqZZPdf::evaluate() const
 
 
 /************RooggZZPdf***********/
-
-ClassImp(RooggZZPdf)
 
 RooggZZPdf::RooggZZPdf(const char *name, const char *title,
 					   RooAbsReal& _m4l,
@@ -2052,8 +2048,6 @@ Double_t RooggZZPdf::evaluate() const
 }
 
 //// ------- v2 below ------
-
-ClassImp(RooqqZZPdf_v2)
 
 RooqqZZPdf_v2::RooqqZZPdf_v2(const char *name, const char *title,
 					   RooAbsReal& _m4l,
@@ -2130,8 +2124,6 @@ Double_t RooqqZZPdf_v2::evaluate() const
 
 /************RooggZZPdf_v2***********/
 
-ClassImp(RooggZZPdf_v2)
-
 RooggZZPdf_v2::RooggZZPdf_v2(const char *name, const char *title,
 					   RooAbsReal& _m4l,
 					   RooAbsReal& _a0,
@@ -2191,8 +2183,6 @@ Double_t RooggZZPdf_v2::evaluate() const
 
 
 //// ------- RooVBFZZPdf ------
-
-ClassImp(RooVBFZZPdf)
 
 RooVBFZZPdf::RooVBFZZPdf(const char *name, const char *title,
 					   RooAbsReal& _m4l,
@@ -2289,8 +2279,6 @@ Double_t RooVBFZZPdf::evaluate() const
 
 //// ------- RooVBFZZPdf_v2 ------
 
-ClassImp(RooVBFZZPdf_v2)
-
 RooVBFZZPdf_v2::RooVBFZZPdf_v2(const char *name, const char *title,
 					   RooAbsReal& _m4l,
 					   RooAbsReal& _a4,
@@ -2360,8 +2348,6 @@ Double_t RooVBFZZPdf_v2::evaluate() const
 
 
 
-
-ClassImp(RooBetaFunc_v2) 
 
 RooBetaFunc_v2::RooBetaFunc_v2(){}
 
@@ -2439,8 +2425,6 @@ double RooBetaFunc_v2::evaluate() const
 	if (final <= 0) final = 1e-12;
 	return final;
 }
-
-ClassImp(Roo4lMasses2D_Bkg) 
 
 Roo4lMasses2D_Bkg::Roo4lMasses2D_Bkg(){}
 
@@ -2682,8 +2666,6 @@ double Roo4lMasses2D_Bkg::evaluate() const
 
 // 2D ggzz
 
-ClassImp(Roo4lMasses2D_BkgGGZZ) 
-
 Roo4lMasses2D_BkgGGZZ::Roo4lMasses2D_BkgGGZZ(){}
 
 Roo4lMasses2D_BkgGGZZ::Roo4lMasses2D_BkgGGZZ(const char *name, const char *title, 
@@ -2875,8 +2857,6 @@ double Roo4lMasses2D_BkgGGZZ::evaluate() const
 // --------------------------------------------------------------------
 // 2D signal
 
-ClassImp(Roo4lMasses2D) 
-
 Roo4lMasses2D::Roo4lMasses2D(){}
 
 Roo4lMasses2D::Roo4lMasses2D(const char *name, const char *title, 
@@ -2998,9 +2978,6 @@ double Roo4lMasses2D::evaluate() const
 
 /************RooFourMuMassShapePdf2***********/
 
-ClassImp(RooFourMuMassShapePdf2)
-
-
 RooFourMuMassShapePdf2::RooFourMuMassShapePdf2(const char *name, const char *title,
 											   RooAbsReal& _m4l,
 											   RooAbsReal& _mH) :
@@ -3084,9 +3061,6 @@ Double_t RooFourMuMassShapePdf2::evaluate() const
 
 /************RooFourEMassShapePdf2***********/
 
-ClassImp(RooFourEMassShapePdf2)
-
-
 RooFourEMassShapePdf2::RooFourEMassShapePdf2(const char *name, const char *title,
 											 RooAbsReal& _m4l,
 											 RooAbsReal& _mH) :
@@ -3166,9 +3140,6 @@ Double_t RooFourEMassShapePdf2::evaluate() const
 
 /************RooTwoETwoMuMassShapePdf2*************/
 
-ClassImp(RooTwoETwoMuMassShapePdf2)
-
-
 RooTwoETwoMuMassShapePdf2::RooTwoETwoMuMassShapePdf2(const char *name, const char *title,
 													 RooAbsReal& _m4l,
 													 RooAbsReal& _mH) :
@@ -3247,9 +3218,6 @@ Double_t RooTwoETwoMuMassShapePdf2::evaluate() const
 
 /************RooRelBWUF*************/
 
-ClassImp(RooRelBWUF)
-
-
 RooRelBWUF::RooRelBWUF(const char *name, const char *title,
 													 RooAbsReal& _m4l,
 													 RooAbsReal& _mH) :
@@ -3295,9 +3263,6 @@ Double_t RooRelBWUF::evaluate() const
 
 /************RooRelBWUF_SM4*************/
 
-ClassImp(RooRelBWUF_SM4)
-
-
 RooRelBWUF_SM4::RooRelBWUF_SM4(const char *name, const char *title,
 			       RooAbsReal& _m4l,
 			       RooAbsReal& _mH) :
@@ -3331,9 +3296,6 @@ Double_t RooRelBWUF_SM4::evaluate() const
 }
 
 /************RooRelBWUFParamWidth*************/
-
-ClassImp(RooRelBWUFParamWidth)
-
 
 RooRelBWUFParamWidth::RooRelBWUFParamWidth(const char *name, const char *title,
 					   RooAbsReal& _m4l,
@@ -3373,9 +3335,6 @@ Double_t RooRelBWUFParamWidth::evaluate() const
 
 
 /************RooRelBWUFParam*************/
-
-ClassImp(RooRelBWUFParam)
-
 
 RooRelBWUFParam::RooRelBWUFParam(const char *name, const char *title,
 				 RooAbsReal& _m4l,
@@ -3428,9 +3387,6 @@ Double_t RooRelBWUFParam::evaluate() const
 
 /************RooRelBWHighMass*************/
 
-ClassImp(RooRelBWHighMass)
-
-
 RooRelBWHighMass::RooRelBWHighMass(const char *name, const char *title,
 					   RooAbsReal& _m4l,
 					   RooAbsReal& _mH,
@@ -3462,8 +3418,6 @@ Double_t RooRelBWHighMass::evaluate() const
 
 
 /***********************RooFourMuMassRes*************/
-
-ClassImp(RooFourMuMassRes)
 
 RooFourMuMassRes::RooFourMuMassRes(const char *name, const char *title,
 								   RooAbsReal& _m4l,
@@ -3525,8 +3479,6 @@ Double_t RooFourMuMassRes::evaluate() const
 
 /***********RooFourEMassRes**************/
 
-ClassImp(RooFourEMassRes)
-
 RooFourEMassRes::RooFourEMassRes(const char *name, const char *title,
 								 RooAbsReal& _m4l,
 								 RooAbsReal& _mH) :
@@ -3584,8 +3536,6 @@ Double_t RooFourEMassRes::evaluate() const
 
 
 /************RooTwoETwoMuMassRes************/
-
-ClassImp(RooTwoETwoMuMassRes)
 
 RooTwoETwoMuMassRes::RooTwoETwoMuMassRes(const char *name, const char *title,
 										 RooAbsReal& _m4l,
@@ -3649,8 +3599,6 @@ Double_t RooTwoETwoMuMassRes::evaluate() const
 
 /*************RooRelBW1***********/
 
-ClassImp(RooRelBW1)
-
 RooRelBW1::RooRelBW1(const char *name, const char *title,
 					 RooAbsReal& _m,
 					 RooAbsReal& _mean,
@@ -3683,8 +3631,6 @@ Double_t RooRelBW1::evaluate() const
 
 
 /****************RooTsallis******************/
-
-ClassImp(RooTsallis) 
 
 RooTsallis::RooTsallis() {}
 
@@ -3735,8 +3681,6 @@ RooTsallis::RooTsallis() {}
 
 
 /*************RooaDoubleCBxBW***********/
-
-ClassImp(RooaDoubleCBxBW)
 
 RooaDoubleCBxBW::RooaDoubleCBxBW(){}
 
@@ -3933,8 +3877,6 @@ double RooaDoubleCBxBW::evaluate() const
 
 
 /*************RooCPSHighMassGGH***********/
-ClassImp(RooCPSHighMassGGH) 
-
  RooCPSHighMassGGH::RooCPSHighMassGGH(){}
 
  RooCPSHighMassGGH::RooCPSHighMassGGH(const char *name, const char *title, 
@@ -4597,8 +4539,6 @@ Double_t RooCPSHighMassGGH::Spline(Double_t xx) const{
 
 
 /*************RooBWHighMassGGH***********/
-ClassImp(RooBWHighMassGGH) 
-
  RooBWHighMassGGH::RooBWHighMassGGH(){}
 
  RooBWHighMassGGH::RooBWHighMassGGH(const char *name, const char *title, 
@@ -6094,8 +6034,6 @@ Double_t RooBWHighMassGGH::H_width(Double_t mass) const
 
 
 /*************RooCPSHighMassGGHNoInterf***********/
-ClassImp(RooCPSHighMassGGHNoInterf) 
-
  RooCPSHighMassGGHNoInterf::RooCPSHighMassGGHNoInterf(){}
 
  RooCPSHighMassGGHNoInterf::RooCPSHighMassGGHNoInterf(const char *name, const char *title, 
@@ -6476,8 +6414,6 @@ Double_t RooCPSHighMassGGHNoInterf::Spline(Double_t xx) const{
 
 
 /*************RooCPSHighMassVBF***********/
-ClassImp(RooCPSHighMassVBF) 
-
  RooCPSHighMassVBF::RooCPSHighMassVBF(){}
 
  RooCPSHighMassVBF::RooCPSHighMassVBF(const char *name, const char *title, 
@@ -7178,8 +7114,6 @@ Double_t RooCPSHighMassVBF::Spline(Double_t xx) const{
 
 
 /*************RooCPSHighMassVBFNoInterf***********/
-ClassImp(RooCPSHighMassVBFNoInterf) 
-
  RooCPSHighMassVBFNoInterf::RooCPSHighMassVBFNoInterf(){}
 
  RooCPSHighMassVBFNoInterf::RooCPSHighMassVBFNoInterf(const char *name, const char *title, 
@@ -7596,8 +7530,6 @@ Double_t RooCPSHighMassVBFNoInterf::Spline(Double_t xx) const{
 
 
 /*************RooSigPlusInt***********/
-ClassImp(RooSigPlusInt) 
-
  RooSigPlusInt::RooSigPlusInt(){}
 
  RooSigPlusInt::RooSigPlusInt(const char *name, const char *title, 

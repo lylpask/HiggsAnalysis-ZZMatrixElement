@@ -30,11 +30,7 @@ class RooCB : public RooAbsPdf {
   RooRealProxy theta;
 
   Double_t evaluate() const ;
-
- private:
-
-  ClassDef(RooCB,1)
-    };
+};
 
  
 class RooDoubleCB : public RooAbsPdf {
@@ -66,10 +62,6 @@ protected:
   RooRealProxy n2;
   
   Double_t evaluate() const ;
-
-private:
-
-  ClassDef(RooDoubleCB,1)
 };
  
 class RooFermi : public RooAbsPdf {
@@ -91,10 +83,6 @@ protected:
   RooRealProxy beta ;
   
   Double_t evaluate() const ;
-
-private:
-
-  ClassDef(RooFermi,1) 
 };
   
 class RooRelBW : public RooAbsPdf {
@@ -118,10 +106,6 @@ protected:
   RooRealProxy n ;
   
   Double_t evaluate() const ;
-
-private:
-
-  ClassDef(RooRelBW,1)
 };
  
 
@@ -151,10 +135,6 @@ protected:
   RooRealProxy stop;
   
   Double_t evaluate() const;
-
-private:
-  
-  ClassDef(Triangle,1)
 };
 
 
@@ -185,11 +165,7 @@ class RooLevelledExp : public RooAbsPdf {
   
 
   Double_t evaluate() const ;
-
- private:
-
-  ClassDef(RooLevelledExp,1)
-    };
+};
 
 
 #endif

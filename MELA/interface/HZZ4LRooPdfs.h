@@ -67,10 +67,6 @@ protected:
 	RooRealProxy frac ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooqqZZPdf,1) // Your description goes here...                                                                                                   
 };
 
 
@@ -103,10 +99,6 @@ protected:
 	RooRealProxy frac ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooggZZPdf,1) // Your description goes here...                                                                                                   
 };
 
 // ------- RooqqZZPdf_v2 -------
@@ -157,10 +149,6 @@ protected:
 	
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooqqZZPdf_v2,1) // Your description goes here...                                                                                                   
 };
 
 
@@ -217,10 +205,6 @@ protected:
 	
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooVBFZZPdf,1) // Your description goes here...                                                                                                   
 };
 
 
@@ -270,10 +254,6 @@ protected:
 	
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooVBFZZPdf_v2,1) // Your description goes here...                                                                                                   
 };
 
 
@@ -315,10 +295,6 @@ protected:
 	RooRealProxy a9 ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooggZZPdf_v2,1) // Your description goes here...                                                                                                   
 };
 
 class RooBetaFunc_v2 : public RooAbsPdf {
@@ -358,10 +334,6 @@ protected:
 	RooRealProxy f0;
 	
     Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooBetaFunc_v2,1) 
 };
 
 class Roo4lMasses2D_Bkg : public RooAbsPdf {
@@ -384,9 +356,6 @@ protected:
 	
     Double_t evaluate() const ;
     Double_t UnitStep(double arg) const;
-private:
-	
-	ClassDef(Roo4lMasses2D_Bkg,1) 
 };
 
 //------------------------
@@ -411,9 +380,6 @@ protected:
 	
     Double_t evaluate() const ;
     Double_t UnitStep(double arg) const;
-private:
-	
-	ClassDef(Roo4lMasses2D_BkgGGZZ,1) 
 };
 
 // --------------------------------------------------------------------
@@ -459,10 +425,6 @@ protected:
     RooRealProxy CBn;             
 	
     Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(Roo4lMasses2D,1) 
 };
 
 // --------------------------------------
@@ -484,10 +446,6 @@ protected:
 	
 	Double_t evaluate() const ;
 	//void readFile() const ;
-	
-private:
-	
-	ClassDef(RooFourMuMassShapePdf2,2) // Your description goes here...                                                                                       
 };
 
 
@@ -508,10 +466,6 @@ protected:
 	
 	Double_t evaluate() const ;
 	//void readFile() const ;
-	
-private:
-	
-	ClassDef(RooFourEMassShapePdf2,2) // Your description goes here...                                                                                        
 };
 
 
@@ -533,10 +487,6 @@ protected:
 	
 	Double_t evaluate() const ;
 	//void readFile() const ;
-	
-private:	
-	
-	ClassDef(RooTwoETwoMuMassShapePdf2,2) // Your description goes here...                                                                                    
 };
 
 
@@ -556,10 +506,6 @@ protected:
 	RooRealProxy mH  ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooFourMuMassRes,1) // Your description goes here...                                                                                             
 };
 
 class RooFourEMassRes : public RooAbsPdf {
@@ -578,10 +524,6 @@ protected:
 	RooRealProxy mH  ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooFourEMassRes,1) // Your description goes here...                                                                                              
 };
 
 
@@ -602,10 +544,6 @@ protected:
 	
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooTwoETwoMuMassRes,1) // Your description goes here...                                                                                          
 };
 
 class RooRelBW1 : public RooAbsPdf {
@@ -626,10 +564,6 @@ protected:
 	RooRealProxy gamma ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooRelBW1,1) // Your description goes here...                                                                                                    
 };
 
 //////////////////////////////////////////////
@@ -650,10 +584,6 @@ protected:
 	RooRealProxy mH ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooRelBWUF,2) // Your description goes here...                                                                                                    
 };
 
 
@@ -675,10 +605,6 @@ protected:
 	RooRealProxy mH ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooRelBWUF_SM4,2) // Your description goes here...                                                                                                    
 };
 
 
@@ -702,10 +628,6 @@ protected:
 	RooRealProxy width;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooRelBWUFParamWidth,2) // Your description goes here...                                                                                                    
 };
 
 
@@ -730,10 +652,6 @@ protected:
 	Double_t widthSF ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooRelBWUFParam,3) // Your description goes here...                                                                                                    
 };
 
 //////////////////////////////////////////////
@@ -756,10 +674,6 @@ protected:
 	RooRealProxy gamma ;
 	
 	Double_t evaluate() const ;
-	
-private:
-	
-	ClassDef(RooRelBWHighMass,2) // Your description goes here...                                                                                                    
 };
 
 ///////////////////////////////////////////////////
@@ -795,10 +709,6 @@ protected:
   RooRealProxy fexp ;
 
   Double_t evaluate() const ;
-
-private:
-
- ClassDef(RooTsallis,1) // Your description goes here...
 };
 
 
@@ -846,11 +756,7 @@ class RooaDoubleCBxBW : public RooAbsPdf {
   Double_t evaluatePowerLaw(double lim, unsigned power, bool isLeft) const ;
   Double_t evaluateQuadratic(double lim1, double lim2, bool isLeft) const ;
   Double_t evaluateVoigtian() const ;
-
- private:
-
-  ClassDef(RooaDoubleCBxBW,1)
-    };
+};
 
 
 
@@ -896,12 +802,6 @@ protected:
   Double_t getAlpha(const Double_t& mass, const Double_t& cprime) const;
   Double_t getR(const Double_t& mass, const Double_t& cprime) const;
   Double_t getBeta(const Double_t& mass, const Double_t& cprime) const;
-  
-
-
-private:
-
-  ClassDef(RooCPSHighMassGGH,5)
 };
 
 
@@ -947,12 +847,6 @@ protected:
   Double_t getBeta(const Double_t& mass, const Double_t& cprime) const;
 
   Double_t H_width(Double_t mass) const;
-  
-
-
-private:
-
-  ClassDef(RooBWHighMassGGH,4)
 };
 
 
@@ -988,12 +882,6 @@ protected:
   Double_t interpolateMatrix(const Double_t matrix[][5], const Double_t& x, const Double_t& y) const;
   Double_t getWidth(const Double_t& mass, const Double_t& cprime) const;
   Double_t getDelta(const Double_t& mass, const Double_t& cprime) const;
-  
-
-
-private:
-
-  ClassDef(RooCPSHighMassGGHNoInterf,4)
 };
 
 
@@ -1041,12 +929,6 @@ protected:
   Double_t getAlpha(const Double_t& mass, const Double_t& cprime) const;
   Double_t getR(const Double_t& mass, const Double_t& cprime) const;
   Double_t getBeta(const Double_t& mass, const Double_t& cprime) const;
-
-
-
-private:
-
-  ClassDef(RooCPSHighMassVBF,4)
 };
 
 
@@ -1082,12 +964,6 @@ protected:
   Double_t interpolateMatrix(const Double_t matrix[][5], const Double_t& x, const Double_t& y) const;
   Double_t getWidth(const Double_t& mass, const Double_t& cprime) const;
   Double_t getDelta(const Double_t& mass, const Double_t& cprime) const;
-
-
-
-private:
-
-  ClassDef(RooCPSHighMassVBFNoInterf,4)
 };
 
 
@@ -1125,10 +1001,6 @@ protected:
   RooRealProxy r ;
   
   Double_t evaluate() const ;
-
-private:
-
-  ClassDef(RooSigPlusInt,1) // Your description goes here...
 };
 
 
