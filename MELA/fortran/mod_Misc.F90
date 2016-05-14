@@ -2,10 +2,18 @@ MODULE ModMisc
 implicit none
 
 
+INTERFACE swap
+   MODULE PROCEDURE swapi
+   MODULE PROCEDURE swapr
+   MODULE PROCEDURE swapc
+   MODULE PROCEDURE swap_mom
+   MODULE PROCEDURE swap_cmom
+END INTERFACE swap
 
 INTERFACE OPERATOR (.dot.)
    MODULE PROCEDURE MinkowskyProduct
    MODULE PROCEDURE MinkowskyProductC
+   MODULE PROCEDURE MinkowskyProductRC
 END INTERFACE OPERATOR (.dot.)
 
 INTERFACE OPERATOR (.cross.)
@@ -34,23 +42,77 @@ implicit none
 real(8), intent(in) :: p1(1:4),p2(1:4)
 real(8)             :: MinkowskyProduct
 
-     MinkowskyProduct = p1(1)*p2(1)  &
-                      - p1(2)*p2(2)  &
-                      - p1(3)*p2(3)  &
-                       -p1(4)*p2(4)
+   MinkowskyProduct = p1(1)*p2(1)  &
+                    - p1(2)*p2(2)  &
+                    - p1(3)*p2(3)  &
+                    -p1(4)*p2(4)
 END FUNCTION MinkowskyProduct
-
 
 FUNCTION MinkowskyProductC(p1,p2)
 implicit none
 complex(8), intent(in) :: p1(1:4),p2(1:4)
 complex(8)             :: MinkowskyProductC
 
-     MinkowskyProductC = p1(1)*p2(1)  &
+   MinkowskyProductC = p1(1)*p2(1)  &
+                     - p1(2)*p2(2)  &
+                     - p1(3)*p2(3)  &
+                     - p1(4)*p2(4)
+END FUNCTION MinkowskyProductC
+
+FUNCTION MinkowskyProductRC(p1,p2)
+implicit none
+real(8),    intent(in) :: p1(1:4)
+complex(8), intent(in) :: p2(1:4)
+complex(8)             :: MinkowskyProductRC
+
+   MinkowskyProductRC = p1(1)*p2(1)  &
                       - p1(2)*p2(2)  &
                       - p1(3)*p2(3)  &
-                       -p1(4)*p2(4)
-END FUNCTION MinkowskyProductC
+                      - p1(4)*p2(4)
+END FUNCTION MinkowskyProductRC
+
+
+double complex function et1(e1,e2,e3,e4)
+implicit none
+complex(8), intent(in) :: e1(4), e2(4), e3(4), e4(4)
+   et1 =  e1(1)*e2(2)*e3(3)*e4(4)-e1(1)*e2(2)*e3(4)*e4(3) &
+   -e1(1)*e2(3)*e3(2)*e4(4)+e1(1)*e2(3)*e3(4)*e4(2) &
+   +e1(1)*e2(4)*e3(2)*e4(3)-e1(1)*e2(4)*e3(3)*e4(2) &
+   -e1(2)*e2(1)*e3(3)*e4(4)+e1(2)*e2(1)*e3(4)*e4(3) &
+   +e1(2)*e2(3)*e3(1)*e4(4)-e1(2)*e2(3)*e3(4)*e4(1) &
+   -e1(2)*e2(4)*e3(1)*e4(3)+e1(2)*e2(4)*e3(3)*e4(1) &
+   +e1(3)*e2(1)*e3(2)*e4(4)-e1(3)*e2(1)*e3(4)*e4(2) &
+   -e1(3)*e2(2)*e3(1)*e4(4)+e1(3)*e2(2)*e3(4)*e4(1) &
+   +e1(3)*e2(4)*e3(1)*e4(2)-e1(3)*e2(4)*e3(2)*e4(1) &
+   -e1(4)*e2(1)*e3(2)*e4(3)+e1(4)*e2(1)*e3(3)*e4(2) &
+   +e1(4)*e2(2)*e3(1)*e4(3)-e1(4)*e2(2)*e3(3)*e4(1) &
+   -e1(4)*e2(3)*e3(1)*e4(2)+e1(4)*e2(3)*e3(2)*e4(1)
+   return
+end function et1
+
+double complex function sc(q1,q2)
+implicit none
+complex(8), intent(in) :: q1(4)
+complex(8), intent(in) :: q2(4)
+   sc = q1.dot.q2
+   return
+end function sc
+
+double precision function scr(p1,p2)
+implicit none
+real(8), intent(in) :: p1(4),p2(4)
+   scr = p1.dot.p2
+   return
+end function scr
+
+double complex function scrc(p1,p2)
+implicit none
+real(8), intent(in) :: p1(4)
+complex(8), intent(in) :: p2(4)
+   scrc = p1.dot.p2
+   return
+end function scrc
+
 
 
 FUNCTION Get_PT(Mom)
@@ -153,29 +215,6 @@ END FUNCTION
 
 
 
-SUBROUTINE swap_mom(Mom1,Mom2)
-implicit none
-real(8) :: Mom1(1:4),Mom2(1:4),tmp(1:4)
-
-    tmp(1:4) = Mom2(1:4)
-    Mom2(1:4) = Mom1(1:4)
-    Mom1(1:4) = tmp(1:4)
-
-RETURN
-END SUBROUTINE
-
-
-SUBROUTINE swap_cmom(Mom1,Mom2)
-implicit none
-complex(8) :: Mom1(1:4),Mom2(1:4),tmp(1:4)
-
-    tmp(1:4) = Mom2(1:4)
-    Mom2(1:4) = Mom1(1:4)
-    Mom1(1:4) = tmp(1:4)
-
-RETURN
-END SUBROUTINE
-
 
 SUBROUTINE pT_order(N,Mom)
 implicit none
@@ -276,11 +315,8 @@ implicit none
 logical IsNan
 real(8) :: x
 
-   if( .not.x.le.0d0 .and. .not.x.gt.0d0 ) then
-       IsNaN=.true.
-   else
-      IsNaN=.false.
-   endif
+   IsNaN = .not.(x.eq.x)
+
 RETURN
 END FUNCTION
 
@@ -297,8 +333,6 @@ integer :: i,j,temp
 
 END SUBROUTINE
 
-
-
 SUBROUTINE swapr(i,j)
 implicit none
 real(8) :: i,j,temp
@@ -309,6 +343,39 @@ real(8) :: i,j,temp
 
 END SUBROUTINE
 
+SUBROUTINE swapc(i,j)
+implicit none
+complex(8) :: i,j,temp
+
+    temp=j
+    j=i
+    i=temp
+
+END SUBROUTINE
+
+SUBROUTINE swap_mom(Mom1,Mom2)
+implicit none
+real(8) :: Mom1(1:4),Mom2(1:4),tmp(1:4)
+
+    tmp(1:4) = Mom2(1:4)
+    Mom2(1:4) = Mom1(1:4)
+    Mom1(1:4) = tmp(1:4)
+
+RETURN
+END SUBROUTINE
+
+SUBROUTINE swap_cmom(Mom1,Mom2)
+implicit none
+complex(8) :: Mom1(1:4),Mom2(1:4),tmp(1:4)
+
+    tmp(1:4) = Mom2(1:4)
+    Mom2(1:4) = Mom1(1:4)
+    Mom1(1:4) = tmp(1:4)
+
+RETURN
+END SUBROUTINE
+
+
 
 function FindInputFmt0(EventInfoLine)
 implicit none
@@ -318,7 +385,7 @@ integer :: i, j, fieldwidth, spaces(1:6)
 integer :: ProcessIdCharacters, WeightScaleAqedAqcdCharacters(1:4), WeightScaleAqedAqcdAfterDecimal(1:4)
 character(len=40) :: FormatParts(1:6)
 
-!find the nubmer of spaces at the beginning
+!find the number of spaces at the beginning
 spaces(1) = 0
 i = 1
 do while (EventInfoLine(i:i) .eq. " ")
@@ -710,71 +777,8 @@ end function Capitalize
 
 
 
+!========================================================================
 
-
-subroutine spinoru(p,za,zb,s)
-!---Calculate spinor products      
-!---taken from MCFM & modified by R. Rontsch, May 2015
-!---extended to deal with negative energies ie with all momenta outgoing                                                                
-!---Arbitrary conventions of Bern, Dixon, Kosower, Weinzierl,                                                                                  
-!---za(i,j)*zb(j,i)=s(i,j)                      
-      implicit none
-      real(8) :: p(:,:),two
-      integer, parameter :: mxpart=14
-      complex(8):: c23(mxpart),f(mxpart),rt(mxpart),za(:,:),zb(:,:),czero,cone,ci
-      real(8)   :: s(:,:)
-      integer i,j,N
-      
-      N = size(p,1)
-!       if (size(p,1) .ne. N) then
-!          call Error("spinorz: momentum mismatch",size(p,1))
-!       endif
-      two=2d0
-      czero=dcmplx(0d0,0d0)
-      cone=dcmplx(1d0,0d0)
-      ci=dcmplx(0d0,1d0)
-      
-
-!---if one of the vectors happens to be zero this routine fails.                                                                                                                
-      do j=1,N
-         za(j,j)=czero
-         zb(j,j)=za(j,j)
-
-!-----positive energy case                                                                                                                                                      
-         if (p(j,4) .gt. 0d0) then
-            rt(j)=dsqrt(p(j,4)+p(j,1))
-            c23(j)=dcmplx(p(j,3),-p(j,2))
-            f(j)=cone
-         else
-!-----negative energy case                                                                                                                                                      
-            rt(j)=dsqrt(-p(j,4)-p(j,1))
-            c23(j)=dcmplx(-p(j,3),p(j,2))
-            f(j)=ci
-         endif
-      enddo
-      do i=2,N
-         do j=1,i-1
-         s(i,j)=two*(p(i,4)*p(j,4)-p(i,1)*p(j,1)-p(i,2)*p(j,2)-p(i,3)*p(j,3))
-         za(i,j)=f(i)*f(j)*(c23(i)*dcmplx(rt(j)/rt(i))-c23(j)*dcmplx(rt(i)/rt(j)))
-
-         if (abs(s(i,j)).lt.1d-5) then
-         zb(i,j)=-(f(i)*f(j))**2*dconjg(za(i,j))
-         else
-         zb(i,j)=-dcmplx(s(i,j))/za(i,j)
-         endif
-         za(j,i)=-za(i,j)
-         zb(j,i)=-zb(i,j)
-         s(j,i)=s(i,j)
-         enddo
-      enddo
-
-    end subroutine spinoru
-
-    
-    
-    
-    
-    
     subroutine convert_to_MCFM(p,pout)
       implicit none
 ! converts from (E,px,py,pz) to (px,py,pz,E)
@@ -782,26 +786,210 @@ subroutine spinoru(p,za,zb,s)
       real(8), optional :: pout(1:4)
 
       if( present(pout) ) then
-          pout(1)=p(2)  
-          pout(2)=p(3)  
-          pout(3)=p(4) 
-          pout(4)=p(1)  
+          pout(1)=p(2)
+          pout(2)=p(3)
+          pout(3)=p(4)
+          pout(4)=p(1)
       else
           tmp(1)=p(1)
           tmp(2)=p(2)
           tmp(3)=p(3)
           tmp(4)=p(4)
 
-          p(1)=tmp(2)  
-          p(2)=tmp(3) 
-          p(3)=tmp(4)  
-          p(4)=tmp(1)  
-      endif  
-      
+          p(1)=tmp(2)
+          p(2)=tmp(3)
+          p(3)=tmp(4)
+          p(4)=tmp(1)
+      endif
+
     end subroutine convert_to_MCFM
 
+!========================================================================
+!borrowed from Passarino's file, some internal variable names or comments
+!might not be correct in this context
+!========================================================================
 
-    
+    SUBROUTINE EvaluateSpline(EvalPoint, SplineData, SplineDataLength, TheResult)
+    !SplineData: SplineDataLength by 2 array
+    !    SplineData(1:SplineDataLength,1) are the x values
+    !    SplineData(1:SplineDataLength,2) are the corresponding y values
+
+    IMPLICIT NONE
+
+    INTEGER i,top,gdim,SplineDataLength
+    REAL(8) u,value,EvalPoint
+    REAL(8), intent(out) :: TheResult
+    REAL(8), dimension(SplineDataLength) :: bc,cc,dc
+    REAL(8) :: SplineData(1:SplineDataLength, 1:2)
+
+! u value of M_H at which the spline is to be evaluated
+
+    gdim= SplineDataLength
+
+    CALL HTO_FMMsplineSingleHt(bc,cc,dc,top,gdim,SplineData(1:SplineDataLength,1),SplineData(1:SplineDataLength,2))
+
+    u= EvalPoint
+    CALL HTO_Seval3SingleHt(u,bc,cc,dc,top,gdim,value,xc=SplineData(1:SplineDataLength,1),yc=SplineData(1:SplineDataLength,2))
+
+    TheResult= value
+
+    RETURN
+
+!-----------------------------------------------------------------------
+
+    CONTAINS
+
+    SUBROUTINE HTO_FMMsplineSingleHt(b,c,d,top,gdim,xc,yc)
+
+!---------------------------------------------------------------------------
+
+    INTEGER k,n,i,top,gdim,l
+
+    REAL(8), dimension(gdim) :: xc,yc
+    REAL(8), dimension(gdim) :: x,y
+
+    REAL(8), DIMENSION(gdim) :: b
+! linear coeff
+
+    REAL(8), DIMENSION(gdim) :: c
+! quadratic coeff.
+
+    REAL(8), DIMENSION(gdim) :: d
+! cubic coeff.
+
+    REAL(8) :: t
+    REAL(8),PARAMETER:: ZERO=0.0, TWO=2.0, THREE=3.0
+
+! The grid
+
+
+    n= gdim
+    FORALL(l=1:gdim)
+     x(l)= xc(l)
+     y(l)= yc(l)
+    ENDFORALL
+
+!.....Set up tridiagonal system.........................................
+!     b=diagonal, d=offdiagonal, c=right-hand side
+
+    d(1)= x(2)-x(1)
+    c(2)= (y(2)-y(1))/d(1)
+    DO k= 2,n-1
+     d(k)= x(k+1)-x(k)
+     b(k)= TWO*(d(k-1)+d(k))
+     c(k+1)= (y(k+1)-y(k))/d(k)
+     c(k)= c(k+1)-c(k)
+    END DO
+
+!.....End conditions.  third derivatives at x(1) and x(n) obtained
+!     from divided differences.......................................
+
+    b(1)= -d(1)
+    b(n)= -d(n-1)
+    c(1)= ZERO
+    c(n)= ZERO
+    IF (n > 3) THEN
+     c(1)= c(3)/(x(4)-x(2))-c(2)/(x(3)-x(1))
+     c(n)= c(n-1)/(x(n)-x(n-2))-c(n-2)/(x(n-1)-x(n-3))
+     c(1)= c(1)*d(1)*d(1)/(x(4)-x(1))
+     c(n)= -c(n)*d(n-1)*d(n-1)/(x(n)-x(n-3))
+    END IF
+
+    DO k=2,n    ! forward elimination
+     t= d(k-1)/b(k-1)
+     b(k)= b(k)-t*d(k-1)
+     c(k)= c(k)-t*c(k-1)
+    END DO
+
+    c(n)= c(n)/b(n)
+
+! back substitution ( makes c the sigma of text)
+
+    DO k=n-1,1,-1
+     c(k)= (c(k)-d(k)*c(k+1))/b(k)
+    END DO
+
+!.....Compute polynomial coefficients...................................
+
+    b(n)= (y(n)-y(n-1))/d(n-1)+d(n-1)*(c(n-1)+c(n)+c(n))
+    DO k=1,n-1
+     b(k)= (y(k+1)-y(k))/d(k)-d(k)*(c(k+1)+c(k)+c(k))
+     d(k)= (c(k+1)-c(k))/d(k)
+     c(k)= THREE*c(k)
+    END DO
+    c(n)= THREE*c(n)
+    d(n)= d(n-1)
+
+    RETURN
+
+    END SUBROUTINE HTO_FMMsplineSingleHt
+
+!------------------------------------------------------------------------
+
+    SUBROUTINE HTO_Seval3SingleHt(u,b,c,d,top,gdim,f,fp,fpp,fppp,xc,yc)
+
+! ---------------------------------------------------------------------------
+
+    REAL(8),INTENT(IN) :: u
+! abscissa at which the spline is to be evaluated
+
+    INTEGER j,k,n,l,top,gdim
+
+    REAL(8), dimension(gdim) :: xc,yc
+    REAL(8), dimension(gdim) :: x,y
+    REAL(8), DIMENSION(gdim) :: b,c,d
+! linear,quadratic,cubic coeff
+
+    REAL(8),INTENT(OUT),OPTIONAL:: f,fp,fpp,fppp
+! function, 1st,2nd,3rd deriv
+
+    INTEGER, SAVE :: i=1
+    REAL(8)    :: dx
+    REAL(8),PARAMETER:: TWO=2.0, THREE=3.0, SIX=6.0
+
+! The grid
+
+    n= gdim
+    FORALL(l=1:gdim)
+     x(l)= xc(l)
+     y(l)= yc(l)
+    ENDFORALL
+
+!.....First check if u is in the same interval found on the
+!     last call to Seval.............................................
+
+    IF (  (i<1) .OR. (i >= n) ) i=1
+    IF ( (u < x(i))  .OR.  (u >= x(i+1)) ) THEN
+     i=1
+
+! binary search
+
+     j= n+1
+     DO
+      k= (i+j)/2
+      IF (u < x(k)) THEN
+       j= k
+      ELSE
+       i= k
+      ENDIF
+      IF (j <= i+1) EXIT
+     ENDDO
+    ENDIF
+
+    dx= u-x(i)
+
+! evaluate the spline
+
+    IF (Present(f))    f= y(i)+dx*(b(i)+dx*(c(i)+dx*d(i)))
+    IF (Present(fp))   fp= b(i)+dx*(TWO*c(i) + dx*THREE*d(i))
+    IF (Present(fpp))  fpp= TWO*c(i) + dx*SIX*d(i)
+    IF (Present(fppp)) fppp= SIX*d(i)
+
+    RETURN
+
+    END SUBROUTINE HTO_Seval3SingleHt
+
+    END SUBROUTINE EvaluateSpline
 
 END MODULE
 

@@ -58,10 +58,10 @@ subroutine EvalAmp_VHiggs(id,helicity,MomExt,me2)
 
       amplitude=MATRIXELEMENT0(MomExt,inv_mass,mass,helicity,id)
       me2=dble(amplitude*dconjg(amplitude))
-!print *, me2, helicity(1:2), helicity(6:7)
-    return
 
+      return
 end subroutine EvalAmp_VHiggs
+
 
 
 
@@ -83,7 +83,7 @@ end subroutine EvalAmp_VHiggs
       integer, intent(in) :: id(9)
 
       integer mu1,mu2,mu3,mu4,lambda1,lambda2
-      complex(8) PVVX0P      
+      complex(8) PVVX0P
       complex(8) Vcurrent1(4), Acurrent1(4), current1(4), Vcurrent2(4)
       complex(8) Acurrent2(4), current2(4),POL1(3,4), POL2(3,4)
       complex(8) g_mu_nu(4,4), pp(4,4), epp(4,4)
@@ -176,7 +176,7 @@ end subroutine EvalAmp_VHiggs
           else
             current2=(0.5d0*T3lL - QlL*sitW**2) *Vcurrent2 -(0.5d0*T3lL)*Acurrent2
           endif
-          current2=current2*gFFZ*dsqrt(scale_alpha_Z_ll)        
+          current2=current2*gFFZ*dsqrt(scale_alpha_Z_ll)
 
 !tau+ tau- Z vertex for final state
         else if((abs(id(6)).eq.15))then
@@ -205,7 +205,7 @@ end subroutine EvalAmp_VHiggs
           endif
           current2=current2*gFFZ*dsqrt(scale_alpha_Z_dd)
 
-!nu nu~ Z vertex for final state        
+!nu nu~ Z vertex for final state
         else if((abs(id(6)).eq.12).or.(abs(id(6)).eq.14).or.(abs(id(6)).eq.16))then
           current2=(0.5d0*T3nL - QnL*sitW**2) *Vcurrent2 -(0.5d0*T3nL)*Acurrent2
           current2=current2*gFFZ*dsqrt(scale_alpha_Z_nn)
@@ -221,7 +221,7 @@ end subroutine EvalAmp_VHiggs
 
       call POLARIZATION(MomExt(:,3), POL1)
       call POLARIZATION(MomExt(:,4), POL2)
-   
+
 
 !ZZX vertex
       q3_q3 = inv_mass(3)**2
@@ -295,8 +295,8 @@ end subroutine EvalAmp_VHiggs
 !ANGLES.F
 !VERSION 20130531
 !
-!A subroutine that calculates the polar and azimuthal angles of a 
-!given vector(4) in terms of their sin and cos, which will be 
+!A subroutine that calculates the polar and azimuthal angles of a
+!given vector(4) in terms of their sin and cos, which will be
 !returned by the array sincos(4).
 
       subroutine ANGLES(sincos, vector)
@@ -374,7 +374,7 @@ end subroutine EvalAmp_VHiggs
 !ANTISYMMETRIC2.F
 !VERSION 20130702
 
-!in epp(_mu, _nu) returns the 
+!in epp(_mu, _nu) returns the
 
       subroutine ANTISYMMETRIC2(p1,p2,epp)
 
@@ -433,7 +433,7 @@ end subroutine EvalAmp_VHiggs
 !ANTISYMMETRIC.F
 !VERSION 20130618
 
-!returns the element of the rank-4 COVARIANT total antysymmetric 
+!returns the element of the rank-4 COVARIANT total antysymmetric
 !tensor.
 !ANTISYMMETRIC(0,1,2,3)=1.
 
@@ -486,7 +486,7 @@ end subroutine EvalAmp_VHiggs
       complex(8) epep(4,4),emem(4,4),epe0(4,4),eme0(4,4),e0e0(4,4)
       complex(8) epem(4,4),e0ep(4,4),e0em(4,4),emep(4,4)
       complex(8) POL(3,4), T_mu_nu(5,4,4)
-      
+
       call CONTRA_OUTER(POL(1,:), POL(1,:), epep)
       call CONTRA_OUTER(POL(2,:), POL(2,:), emem)
       call CONTRA_OUTER(POL(1,:), POL(3,:), epe0)
@@ -604,7 +604,7 @@ end subroutine EvalAmp_VHiggs
       complex(8) epep(4,4),emem(4,4),epe0(4,4),eme0(4,4),e0e0(4,4)
       complex(8) epem(4,4),e0ep(4,4),e0em(4,4),emep(4,4)
       complex(8) POL(3,4), T_mu_nu(5,4,4)
-      
+
       call COVARIANT_OUTER(POL(1,:), POL(1,:), epep)
       call COVARIANT_OUTER(POL(2,:), POL(2,:), emem)
       call COVARIANT_OUTER(POL(1,:), POL(3,:), epe0)
@@ -749,7 +749,7 @@ end subroutine EvalAmp_VHiggs
 
       implicit none
       real(8), parameter :: epsilon = 1d-13 !a small quantity slightly above machine precision
-      
+
       real(8) p1(4), p2(4), h1, h2
       integer pdg_code1, pdg_code2
       real(8) sqrt_pp1Dpp2
@@ -769,11 +769,11 @@ end subroutine EvalAmp_VHiggs
       endif
 
       FFP=FFP*(0d0,-1d0)
-      
+
       if( (dble(pdg_code1)*h1) .lt. 0d0)then
         FFP=-dconjg(FFP)
-        
-      endif    
+
+      endif
 
       return
       END function FFP
@@ -807,7 +807,7 @@ end subroutine EvalAmp_VHiggs
 
       implicit none
       real(8), parameter :: epsilon = 1d-13 !a small quantity slightly above machine precision
-      
+
       real(8) p1(4), p2(4), h1, h2
       integer pdg_code1, pdg_code2
       real(8) sqrt_pp1Dpp2, sqrt_pp1Xpp2
@@ -866,8 +866,8 @@ end subroutine EvalAmp_VHiggs
 !       print *, Acurrent
         do mu=1,4
           Acurrent(mu)=-dconjg(Acurrent(mu))
-        enddo       
-      endif    
+        enddo
+      endif
 
       return
       END subroutine FFA
@@ -900,7 +900,7 @@ end subroutine EvalAmp_VHiggs
 
       implicit none
       real(8), parameter :: epsilon = 1d-13 !a small quantity slightly above machine precision
-      
+
       real(8) p1(4), p2(4), h1, h2
       integer pdg_code1, pdg_code2
       real(8) sqrt_pp1Dpp2
@@ -923,8 +923,8 @@ end subroutine EvalAmp_VHiggs
 
       if( (dble(pdg_code1)*h1) .lt. 0d0)then
         FFS=-dconjg(FFS)
-        
-      endif    
+
+      endif
 
       return
       END function FFS
@@ -957,7 +957,7 @@ end subroutine EvalAmp_VHiggs
 
       implicit none
       real(8), parameter :: epsilon = 1d-13 !a small quantity slightly above machine precision
-      
+
       real(8) p1(4), p2(4), h1, h2
       integer pdg_code1, pdg_code2
       real(8) sqrt_pp1Dpp2, sqrt_pp1Xpp2
@@ -1011,8 +1011,8 @@ end subroutine EvalAmp_VHiggs
       if( (dble(pdg_code1)*h1) .lt. 0d0)then
         do mu=1,4
           Vcurrent(mu)=dconjg(Vcurrent(mu))
-        enddo       
-      endif    
+        enddo
+      endif
 
       return
       END subroutine FFV
@@ -1085,7 +1085,7 @@ end subroutine EvalAmp_VHiggs
 
       implicit none
 
-      real(8) vector(4), boost(4) 
+      real(8) vector(4), boost(4)
       real(8) lambda(4,4), vector_copy(4)
       real(8) beta(2:4), beta_sq, gamma
       integer i,j
@@ -1267,7 +1267,7 @@ end subroutine EvalAmp_VHiggs
       real(8) p(4), sincos(4), inv_mass, abs3p
       complex(8) POL(3,4)
 !     integer lambda, mu
-      
+
       call ANGLES(sincos, p)
 
 !lambda = +1
@@ -1282,7 +1282,7 @@ end subroutine EvalAmp_VHiggs
       POL(2,4)= -sincos(2)/dsqrt(2d0)
 !|3-momentum|
       abs3p = dsqrt(p(2)**2+p(3)**2+p(4)**2)
-!invariant mass     
+!invariant mass
       inv_mass= dsqrt(p(1)**2-abs3p**2)
 !lambda = L
       POL(3,1)= abs3p/inv_mass
@@ -1326,7 +1326,7 @@ end subroutine EvalAmp_VHiggs
       implicit none
       real(8) p(4), sincos(4), inv_mass, abs3p
       complex(8) POL(2,4)
-      
+
       call ANGLES(sincos, p)
 
 !lambda = +1
@@ -1384,7 +1384,7 @@ end subroutine EvalAmp_VHiggs
       real(8) p(4), sincos(4), inv_mass, abs3p
       complex(8) POL(3,4)
 !     integer lambda, mu
-      
+
       call ANGLES(sincos, p)
 
 !lambda = +1
@@ -1399,7 +1399,7 @@ end subroutine EvalAmp_VHiggs
       POL(2,4)= -sincos(2)/dsqrt(2d0)
 !|3-momentum|
       abs3p = dsqrt(p(2)**2+p(3)**2+p(4)**2)
-!invariant mass     
+!invariant mass
       inv_mass= dsqrt(p(1)**2-abs3p**2)
 !lambda = L
       POL(3,1)= 0d0
@@ -1490,7 +1490,7 @@ end subroutine EvalAmp_VHiggs
 !VVP.F
 !VERSION 20130524
 
-!in epp(_mu, _nu) returns the 
+!in epp(_mu, _nu) returns the
 
       subroutine VVP(p1,p2,epp)
 

@@ -29,17 +29,17 @@ endif
 
 
 ifeq ($(Comp),ifort)
-	fcomp = ifort -fpp -O2 -vec-report0 -Dcompiler=1 -lifcore -fPIC
+	fcomp = ifort -fpp -O2 -vec-report0 -Dcompiler=1 -D_def_melatools_ -lifcore -fPIC
 endif
 ifeq ($(Comp),gfort)
-	fcomp = gfortran -O0 -ffree-line-length-none -Dcompiler=2 $(LHAPDFflags) -fno-automatic -fno-f2c  -fPIC -g 
+	fcomp = gfortran -O0 -ffree-line-length-none -Dcompiler=2 -D_def_melatools_ $(LHAPDFflags) -fno-automatic -fno-f2c  -fPIC -g 
 endif
 
 ifeq ($(Comp),gfort)
-	ccomp = gcc
+	ccomp = gcc -D_def_melatools_
 endif
 ifeq ($(Comp),ifort)
-	ccomp = icc
+	ccomp = icc -D_def_melatools_
 endif
 
 ifeq ($(Comp),gfort)
@@ -57,7 +57,7 @@ all:    libs
 #	mv *.o $(OBJECTS)
 #	mv *.mod $(MODULES)
 
-libs: NNPDFDriver.o mod_Parameters.o mod_Misc.o mod_Kinematics.o mod_JHUGen.o mod_Higgs_MatEl.o mod_Graviton_MatEl.o mod_Zprime_MatEl.o mod_HiggsJJ_MatEl.o mod_HiggsJ_MatEl.o mod_VHiggs_MatEl.o mod_TTBH_MatEl.o mod_TH_MatEl.o
+libs: NNPDFDriver.o mod_Parameters.o mod_Misc.o mod_Kinematics.o mod_JHUGen.o mod_Higgs.o mod_Graviton.o mod_Zprime.o mod_HiggsJJ.o mod_HiggsJ.o mod_VHiggs.o mod_Topdecay.o mod_TTBHiggs.o mod_THiggs.o
 
 NNPDFDriver.o: ./pdfs/NNPDFDriver.f
 	@echo " "
@@ -92,46 +92,51 @@ mod_JHUGen.o: mod_JHUGen.F90 mod_Kinematics.F90 mod_Parameters.F90 mod_Misc.F90
 	$(fcomp) -c mod_JHUGen.F90
 
 
-mod_Higgs_MatEl.o: mod_Higgs_MatEl.F90 mod_Misc.F90 mod_Parameters.F90
+mod_Higgs.o: mod_Higgs.F90 mod_Misc.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_Higgs_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_Higgs_MatEl.F90
+	@echo " compiling mod_Higgs.F90 with "$(Comp)
+	$(fcomp) -c mod_Higgs.F90
 
 
-mod_Zprime_MatEl.o: mod_Zprime_MatEl.F90 mod_Misc.F90 mod_Parameters.F90
+mod_Zprime.o: mod_Zprime.F90 mod_Misc.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_Zprime_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_Zprime_MatEl.F90
+	@echo " compiling mod_Zprime.F90 with "$(Comp)
+	$(fcomp) -c mod_Zprime.F90
 
-mod_Graviton_MatEl.o: mod_Graviton_MatEl.F90 mod_Misc.F90 mod_Parameters.F90
+mod_Graviton.o: mod_Graviton.F90 mod_Misc.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_Graviton_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_Graviton_MatEl.F90
+	@echo " compiling mod_Graviton.F90 with "$(Comp)
+	$(fcomp) -c mod_Graviton.F90
 
-mod_HiggsJ_MatEl.o: mod_HiggsJ_MatEl.F90 mod_Parameters.F90
+mod_HiggsJ.o: mod_HiggsJ.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_HiggsJ_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_HiggsJ_MatEl.F90
+	@echo " compiling mod_HiggsJ.F90 with "$(Comp)
+	$(fcomp) -c mod_HiggsJ.F90
 
-mod_HiggsJJ_MatEl.o: mod_HiggsJJ_MatEl.F90 mod_Misc.F90 mod_Parameters.F90
+mod_HiggsJJ.o: mod_HiggsJJ.F90 mod_Misc.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_HiggsJJ_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_HiggsJJ_MatEl.F90
+	@echo " compiling mod_HiggsJJ.F90 with "$(Comp)
+	$(fcomp) -c mod_HiggsJJ.F90
 
-mod_VHiggs_MatEl.o: mod_VHiggs_MatEl.F90 mod_Parameters.F90
+mod_VHiggs.o: mod_VHiggs.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_VHiggs_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_VHiggs_MatEl.F90 
+	@echo " compiling mod_VHiggs.F90 with "$(Comp)
+	$(fcomp) -c mod_VHiggs.F90 
 
-mod_TTBH_MatEl.o: mod_TTBH_MatEl.F90 mod_Parameters.F90
+mod_TTBHiggs.o: mod_TTBHiggs.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_TTBH_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_TTBH_MatEl.F90  
+	@echo " compiling mod_TTBHiggs.F90 with "$(Comp)
+	$(fcomp) -c mod_TTBHiggs.F90  
 
-mod_TH_MatEl.o: mod_TH_MatEl.F90 mod_Parameters.F90
+mod_Topdecay.o: mod_TopDecay.F90 mod_Parameters.F90
 	@echo " "
-	@echo " compiling mod_TH_MatEl.F90 with "$(Comp)
-	$(fcomp) -c mod_TH_MatEl.F90  
+	@echo " compiling mod_TopDecay.F90 with "$(Comp)
+	$(fcomp) -c mod_TopDecay.F90  
+
+mod_THiggs.o: mod_THiggs.F90 mod_Parameters.F90
+	@echo " "
+	@echo " compiling mod_THiggs.F90 with "$(Comp)
+	$(fcomp) -c mod_THiggs.F90  
 
 clean:
 	@echo " deleting object files"

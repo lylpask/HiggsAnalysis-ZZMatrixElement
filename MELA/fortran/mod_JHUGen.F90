@@ -29,13 +29,14 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
    VegasNc2=-1
    PChannel=2
 
+   includeInterference=.true.
+   includeGammaStar=.true.
    DecayMode1=0  ! Z/W+
    DecayMode2=0  ! Z/W-
    WidthScheme=0
    TopDecays=-1
    TauDecays=-1
    Process = 0   ! select 0, 1 or 2 to represent the spin of the resonance
-   CalcPMZZ = .false.
    LHAPDFString = pdftable
    LHAPDFMember = pdfmember
    lenLHAPDFString = pdfstrlength
@@ -52,25 +53,25 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
 #if useLHAPDF==1
    if( LHAPDFString.eq."" ) then
       print *, "Need to specify pdf file name in command line argument LHAPDF"
-      stop    
+      stop
    endif
-#endif    
-    
+#endif
+
    if( IsAZDecay(DecayMode1) ) then
       M_V = M_Z
       Ga_V= Ga_Z
    elseif( IsAWDecay(DecayMode1) ) then
       M_V = M_W
-      Ga_V= Ga_W    
+      Ga_V= Ga_W
    elseif( IsAPhoton(DecayMode1) ) then
       M_V = 0d0
-      Ga_V= 0d0    
+      Ga_V= 0d0
    endif
 
    !includeInterference = .true.
 
    call InitPDFs()
-   IF( COLLIDER.EQ.1) THEN 
+   IF( COLLIDER.EQ.1) THEN
       Collider_Energy  = LHC_Energy
    ELSE
       print *,"Collider not implemented."
@@ -133,7 +134,7 @@ SUBROUTINE InitPDFValues()
    implicit none
 
 #if useLHAPDF==0
-   IF (alphas_mz .LE. 0d0) THEN 
+   IF (alphas_mz .LE. 0d0) THEN
       WRITE(6,*) 'alphas_mz .le. 0:',alphas_mz
       WRITE(6,*) 'continuing with alphas_mz=0.118'
       alphas_mz=0.118d0
@@ -163,7 +164,7 @@ integer :: TheUnit
     write(TheUnit,"(A90)") " *   Spin and parity determination of single-produced resonances at hadron colliders   *"
     write(TheUnit,"(A90)") " *                                                                                     *"
     write(TheUnit,"(A90)") " *          I. Anderson, S. Bolognesi, F. Caola, Y. Gao, A. Gritsan, Z. Guo,           *"
-    write(TheUnit,"(A90)") " *        C. Martin, K. Melnikov, R.Rontsch, H. Roskes, U. Sarica, M. Schulze,         *" 
+    write(TheUnit,"(A90)") " *        C. Martin, K. Melnikov, R.Rontsch, H. Roskes, U. Sarica, M. Schulze,         *"
     write(TheUnit,"(A90)") " *                   N. Tran, A. Whitbeck, M. Xiao, C. You, Y. Zhou                    *"
     write(TheUnit,"(A90)") " *                Phys.Rev. D81 (2010) 075022;  arXiv:1001.3396 [hep-ph],              *"
     write(TheUnit,"(A90)") " *                Phys.Rev. D86 (2012) 095031;  arXiv:1208.4018 [hep-ph],              *"
