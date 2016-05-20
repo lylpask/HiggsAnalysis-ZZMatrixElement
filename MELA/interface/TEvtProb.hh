@@ -64,10 +64,20 @@ private:
   std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
   std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
 
+  // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively
   MELACandidate* ConvertVectorFormat(
-    std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
-    std::vector<TLorentzVector>* pAssociated=0, std::vector<int>* idAssociated=0,
-    std::vector<TLorentzVector>* pMothers=0, std::vector<int>* idMothers=0
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>* pDaughters,
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>* pAssociated=0,
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>* pMothers=0,
+    );
+  // Check if at least one input candidate is present
+  bool CheckInputPresent();
+  // Boost the particles with or without associated ones to pT=0 frame and return std::vectors filled with (id, momentum) pairs
+  void GetBoostedParticleVectors(
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
+    bool useAssociated=false
     );
 
 public:
@@ -77,7 +87,7 @@ public:
   TEvtProb() {};
   TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0);
   ~TEvtProb();
-  
+
   //----------------------
   // Function
   //----------------------
@@ -108,7 +118,7 @@ public:
     );
 
   double XsecCalcXJJ(
-    TVar::Process proc, TVar::Production production, 
+    TVar::Process proc, TVar::Production production,
     TVar::VerbosityLevel verbosity
     );
 
@@ -128,7 +138,7 @@ public:
     TVar::VerbosityLevel verbosity
     );
 
-  // this appears to be some kind of 
+  // this appears to be some kind of
   // way of setting MCFM parameters through
   // an interface defined in TMCFM.hh
   void SetHiggsMass(double mass, float wHiggs=-1);

@@ -3,7 +3,9 @@
 
 #include <cstring>
 #include <string>
-#include <TLorentzVector.h>
+#include <vector>
+#include <pair>
+#include "TLorentzVector.h"
 #include "TCouplings.hh"
 #include "MelaIO.h"
 #include "TH2F.h"
@@ -41,8 +43,8 @@ public:
     JH = 8, // H + 1 jet
     ZH = 9, // ZH
     WH = 10, // W(+/-)H
-    ttH = 11, // ttH 
-    bbH = 12 // bbH 
+    ttH = 11, // ttH
+    bbH = 12 // bbH
     //
   };
   enum LeptonInterference{
@@ -67,7 +69,7 @@ public:
     D_g1g4_pi_2, // D_CP_T
     D_g1g2,   // D_int
     D_g1g2_pi_2, // D_int_T
-    D_g1g1prime2, // D_int_lambda1	
+    D_g1g1prime2, // D_int_lambda1
     D_zzzg,
     D_zzgg,
     D_zzzg_PS,
@@ -82,8 +84,8 @@ public:
     H2_g2, // 2h2+
     H2_g3, // 2h3+
     H2_g4, //2h+
-    H2_g5, //2b+ 
-    H2_g1g5, //2m+ 
+    H2_g5, //2b+
+    H2_g1g5, //2m+
     H2_g6, // 2h6+
     H2_g7, // 2h7+
     H2_g8, //2h-
@@ -205,6 +207,12 @@ static const TString branch_format_particle =
   "E/D:"
   "Eta/D:"
   "Phi/D";
+
+struct simple_event_record{
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> pDaughters;
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> pAssociated;
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> pMothers;
+};
 
 /*
 struct hzz4l_event_type{

@@ -57,12 +57,12 @@ TEvtProb::~TEvtProb(){
 
 /*
 void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ){
-	ewinput_.Gf_inp = ext_Gf;
-	ewinput_.aemmz_inp = ext_aemmz;
-	ewinput_.wmass_inp = ext_mW;
-	ewinput_.zmass_inp = ext_mZ;
-	ewinput_.xw_inp = 1.-pow(ext_mW/ext_mZ,2);
-	coupling_();
+  ewinput_.Gf_inp = ext_Gf;
+  ewinput_.aemmz_inp = ext_aemmz;
+  ewinput_.wmass_inp = ext_mW;
+  ewinput_.zmass_inp = ext_mZ;
+  ewinput_.xw_inp = 1.-pow(ext_mW/ext_mZ,2);
+  coupling_();
 }
 */
 
@@ -86,29 +86,38 @@ void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
   nninitpdf_(&pdfmember);
 }
 
-//
-// Directly calculate the VV->4f differential cross-section 
-// 
-double TEvtProb::XsecCalc_XVV(
-  TVar::Process proc, TVar::Production production,
-  TVar::VerbosityLevel verbosity
-  ){
-  ResetIORecord();
+
+bool TEvtProb::CheckInputPresent(){
   if (melaCand==0 || candList.size()==0){
     cerr
       << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand
       << " or candList.size()==" << candList.size() << " is problematic!"
       << endl;
-    if (candList.size()==0) return 0.;
+    if (candList.size()==0) return false;
     else{
       SetCurrentCandidate(candList.size()-1);
       cerr << "TEvtProb::XsecCalc_XVV: melaCand now points to the latest candidate (cand" << (candList.size()-1) << ")" << endl;
+      return true;
     }
   }
+  return true;
+}
+
+
+//
+// Directly calculate the VV->4f differential cross-section
+//
+double TEvtProb::XsecCalc_XVV(
+  TVar::Process proc, TVar::Production production,
+  TVar::VerbosityLevel verbosity
+  ){
+  ResetIORecord();
+  if(!CheckInputPresent()) return 0.;
 
   //Initialize Process
   SetProcess(proc);
   SetProduction(production);
+
   bool forceUseMCFM = (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs);
   bool calculateME=true;
 
@@ -130,44 +139,13 @@ double TEvtProb::XsecCalc_XVV(
   double flux=1.;
   double dXsec=0.;
 
-  // LEFT HERE
-  mcfm_event_type mcfm_event;
-  // assign the right initial momentum
-  // assumes the events are boosted to have 0 transverse momenta
-  TLorentzVector totalMom = hzz4l_event.p[0] + hzz4l_event.p[1] + hzz4l_event.p[2] + hzz4l_event.p[3];
-  double sysPz= totalMom.Z();
-  double sysE = totalMom.T();
-  mcfm_event.p[2].SetPxPyPzE(hzz4l_event.p[0].Px(), hzz4l_event.p[0].Py(), hzz4l_event.p[0].Pz(), hzz4l_event.p[0].Energy());
-  mcfm_event.p[3].SetPxPyPzE(hzz4l_event.p[1].Px(), hzz4l_event.p[1].Py(), hzz4l_event.p[1].Pz(), hzz4l_event.p[1].Energy());
-  mcfm_event.p[4].SetPxPyPzE(hzz4l_event.p[2].Px(), hzz4l_event.p[2].Py(), hzz4l_event.p[2].Pz(), hzz4l_event.p[2].Energy());
-  mcfm_event.p[5].SetPxPyPzE(hzz4l_event.p[3].Px(), hzz4l_event.p[3].Py(), hzz4l_event.p[3].Pz(), hzz4l_event.p[3].Energy());
-
-  mcfm_event.PdgCode[0] = 21;
-  mcfm_event.PdgCode[1] = 21;
-  mcfm_event.PdgCode[2] = hzz4l_event.PdgCode[0];
-  mcfm_event.PdgCode[3] = hzz4l_event.PdgCode[1];
-  mcfm_event.PdgCode[4] = hzz4l_event.PdgCode[2];
-  mcfm_event.PdgCode[5] = hzz4l_event.PdgCode[3];
-
-  //Matrix Element evaluation in qX=qY=0 frame
-  //Evaluate f(x1)f(x2)|M(q)|/x1/x2 
-  // 
-  double qX = totalMom.X();
-  double qY = totalMom.Y();
-  double qE = sysE;
-
-  if ((qX*qX+qY*qY)>0){
-    TVector3 boostV(qX/qE, qY/qE, 0);
-    for (int ipt=2; ipt<6; ipt++) mcfm_event.p[ipt].Boost(-boostV);
-    totalMom.Boost(-boostV);
-  }
-
-  sysPz= totalMom.Z();
-  sysE = totalMom.T();
-  double pz0 = (sysE+sysPz)/2.;
-  double pz1 = -(sysE-sysPz)/2.;
-  mcfm_event.p[0].SetPxPyPzE(0., 0., pz0, TMath::Abs(pz0));
-  mcfm_event.p[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    false // Do not use pTotal=pDaughters+pAssociated
+  );
 
   //event selections in Lab Frame
   double msqjk=0;
@@ -187,18 +165,18 @@ double TEvtProb::XsecCalc_XVV(
     double Gggcoupl[SIZE_GGG][2] ={ { 0 } };
     double Gvvcoupl[SIZE_GVV][2] ={ { 0 } };
 
-    // 
+    //
     // set spin 0 default numbers
-    // 
+    //
     // By default set the Spin 0 couplings for SM case (0+m)
     Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0;
     Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;
     for (int ic=0; ic<4; ic++){
       for (int ik=0; ik<3; ik++) HvvLambda_qsq[ic][ik]=100.;
     }
-    // 
+    //
     // set spin 2 default numbers (2+m)
-    // 
+    //
     Gqqcoupl[0][0]=1.0;  Gqqcoupl[0][1]=0.0;
     Gqqcoupl[1][0]=1.0;  Gqqcoupl[1][1]=0.0;
     Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
@@ -286,7 +264,7 @@ double TEvtProb::XsecCalc_XVV(
       Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
       Gggcoupl[4][0]=1.0;  Gggcoupl[4][1]=0.0; // 2h-
 
-      // Graviton->ZZ coupling constants 
+      // Graviton->ZZ coupling constants
       Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
       Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
       Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
@@ -309,7 +287,7 @@ double TEvtProb::XsecCalc_XVV(
       Gggcoupl[3][0]=1.0;  Gggcoupl[3][1]=0.0; // 2h+
       Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
 
-      // Graviton->ZZ coupling constants 
+      // Graviton->ZZ coupling constants
       Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
       Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
       Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
@@ -332,7 +310,7 @@ double TEvtProb::XsecCalc_XVV(
       Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
       Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
 
-      // Graviton->ZZ coupling constants 
+      // Graviton->ZZ coupling constants
       Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
       Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
       Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
@@ -524,7 +502,7 @@ double TEvtProb::XsecCalc_XVV(
 
   if (msqjk<=0){ mcfm_event.pswt=0; }
 
-  flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy())	/(4*W);
+  flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy()) /(4*W);
   //dXsec=msqjk*flux;
   dXsec=msqjk;
 
@@ -604,8 +582,8 @@ double TEvtProb::XsecCalc_VVXVV(
   mcfm_event.PdgCode[7] = hzz4l_event.extraParticle_PdgCode[1];
 
   //Matrix Element evaluation in qX=qY=0 frame
-  //Evaluate f(x1)f(x2)|M(q)|/x1/x2 
-  // 
+  //Evaluate f(x1)f(x2)|M(q)|/x1/x2
+  //
   double qX = totalMom.X();
   double qY = totalMom.Y();
   double qE = sysE;
@@ -627,7 +605,7 @@ double TEvtProb::XsecCalc_VVXVV(
   double msqjk=0;
   if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
   if (msqjk<=0){ mcfm_event.pswt=0; }
-  flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy())	/(4*W);
+  flux=fbGeV2/(mcfm_event.p[0].Energy()*mcfm_event.p[1].Energy()) /(4*W);
   //dXsec=msqjk*flux;
   dXsec=msqjk;
 
@@ -660,7 +638,7 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TV
   //double sqrts = 2.*EBEAM;
   //double W=sqrts*sqrts;
 
-  // first/second number is the real/imaginary part  
+  // first/second number is the real/imaginary part
   double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
   double Hzzcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
   double Hwwcoupl[SIZE_HVV_VBF][2] ={ { 0 } };
@@ -669,7 +647,7 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TV
   int HzzCLambda_qsq[3] ={ 0 };
   int HwwCLambda_qsq[3] ={ 0 };
 
-  Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2 
+  Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2
   Hzzcoupl[0][0]=1.0;  Hzzcoupl[0][1]=0.0; // g1
   Hwwcoupl[0][0]=1.0;  Hwwcoupl[0][1]=0.0; // g1
   for (int ic=0; ic<4; ic++){
@@ -724,7 +702,7 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TV
   SetJHUGenSpinZeroVVCouplings_NoGamma(Hzzcoupl, HzzCLambda_qsq, HzzLambda_qsq, false);
   SetJHUGenSpinZeroVVCouplings_NoGamma(Hwwcoupl, HwwCLambda_qsq, HwwLambda_qsq, true);
 
-  // input kinematics 
+  // input kinematics
   //  !----- p1 and p2 used to get hadronic s
   //  !----- P(p1)+P(p2) -> j(p3) + j(p4) + H(p5)
   // p[0] -> p1
@@ -781,10 +759,10 @@ double TEvtProb::XsecCalcXJ(TVar::Process proc, TVar::Production production, TVa
   //double sqrts = 2.*EBEAM;
   //double W=sqrts*sqrts;
 
-  // first/second number is the real/imaginary part  
+  // first/second number is the real/imaginary part
 
 
-  // input kinematics 
+  // input kinematics
   //  !----- p1 and p2 used to get hadronic s
   //  !----- P(p1)+P(p2) -> H(p3) + j(p4)
   // p[0] -> p1
@@ -1090,7 +1068,7 @@ void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVa
 }
 
 
-// this appears to be some kind of 
+// this appears to be some kind of
 // way of setting MCFM parameters through
 // an interface defined in TMCFM.hh
 void TEvtProb::SetHiggsMass(double mass, float wHiggs){
@@ -1107,44 +1085,121 @@ void TEvtProb::SetHiggsMass(double mass, float wHiggs){
   SetJHUGenHiggsMassWidth(_hmass, _hwidth);
 }
 
+// LEFT HERE
+void TEvtProb::GetBoostedParticleVectors( // Should be put inside TUtil since different types of associated particles would need to be used (use gammas vs jets etc.)
+  // Empty vectors
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
+  bool useAssociated=false
+  ){
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> daughters;
+  if(melaCand->getNDaughters()==0) daughters.push_back(
+    std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->id, melaCand->p4)
+    );
+  else{
+    for(int ip=0;ip<melaCand->getNDaughters();ip++){
+       if(melaCand->getSortedDaughter(ip)!=0) daughters.push_back(
+         std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getSortedDaughter(ip)->id, melaCand->getSortedDaughter(ip)->p4)
+         );
+    }
+  }
+
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> associated;
+  for(int ip=0;ip<melaCand->getNAssociatedLeptons();ip++){
+     if(melaCand->getAssociatedLepton(ip)!=0) associated.push_back(
+       std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedLepton(ip)->id, melaCand->getAssociatedLepton(ip)->p4)
+       );
+  }
+  for(int ip=0;ip<melaCand->getNAssociatedPhotons();ip++){
+     if(melaCand->getAssociatedPhoton(ip)!=0) associated.push_back(
+       std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedPhoton(ip)->id, melaCand->getAssociatedPhoton(ip)->p4)
+       );
+  }
+  for(int ip=0;ip<melaCand->getNAssociatedJets();ip++){
+     if(melaCand->getAssociatedJet(ip)!=0) associated.push_back(
+       std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedJet(ip)->id, melaCand->getAssociatedJet(ip)->p4)
+       );
+  }
+
+  TLorentzVector pTotal(0, 0, 0, 0);
+  for(unsigned int ip=0;ip<daughters.size();ip++) pTotal = pTotal + daughters.at(ip).second;
+  if(useAssociated){ for(unsigned int ip=0;ip<associated.size();ip++) pTotal = pTotal + associated.at(ip).second; }
+
+  double qX = pTotal.X();
+  double qY = pTotal.Y();
+  double qE = pTotal.T();;
+  if ((qX*qX+qY*qY)>0.){
+    TVector3 boostV(-qX/qE, -qY/qE, 0.);
+    for(unsigned int ip=0;ip<daughters.size();ip++) daughters.at(ip).second.Boost(boostV);
+    for(unsigned int ip=0;ip<associated.size();ip++) associated.at(ip).second.Boost(boostV);
+    pTotal.Boost(boostV);
+  }
+
+  double sysPz= pTotal.Z();
+  double sysE = pTotal.T();
+  double pz0 = (sysE+sysPz)/2.;
+  double pz1 = -(sysE-sysPz)/2.;
+  if(melaCand->getNMothers()==2){
+    if((melaCand->getMother(0)->p4).Z()<0.){
+      double pztmp = pz1;
+      pz1=pz0;
+      pz0=pztmp;
+    }
+  }
+  TLorentzVector pM[2];
+  pM[0].SetPxPyPzE(0., 0., pz0, TMath::Abs(pz0));
+  pM[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
+
+  pDaughters.clear();
+  for(unsigned int ip=0;ip<daughters.size();ip++) pDaughters.push_back(daughters.at(ip));
+  pAssociated.clear();
+  for(unsigned int ip=0;ip<associated.size();ip++) pAssociated.push_back(associated.at(ip));
+  pMothers.clear();
+  for(unsigned int ip=0;ip<2;ip++){
+    int idmother = 0; // In case it is unknown.
+    if(melaCand->getNMothers()==2) idmother = melaCand->getMother(ip)->id;
+    pMothers.push_back(
+      std::pair<std::vector<int>, std::vector<TLorentzVector>>(idmother, pM[ip])
+      );
+  }
+}
 
 MELACandidate* TEvtProb::ConvertVectorFormat(
-  std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
-  std::vector<TLorentzVector>* pAssociated, std::vector<int>* idAssociated,
-  std::vector<TLorentzVector>* pMothers, std::vector<int>* idMothers
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>* pDaughters,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>* pAssociated,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>* pMothers,
   ){
   MELACandidate* cand=0;
 
-  if (pDaughters==0 || idDaughters==0){ cerr << "TEvtProb::ConvertVectorFormat: No daughters!" << endl; return cand; }
-  else if (pDaughters->size()!=idDaughters->size()){ cerr << "TEvtProb::ConvertVectorFormat: Daughter momentum size (" << pDaughters->size() << ") != daughter id size (" << idDaughters->size() << ")!" << endl; return cand; }
+  if (pDaughters==0){ cerr << "TEvtProb::ConvertVectorFormat: No daughters!" << endl; return cand; }
   else if (pDaughters->size()==0){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size==0!" << endl; return cand; }
   else if (pDaughters->size()>4){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
-  if ((pAssociated==0 || idAssociated==0) && !(pAssociated==0 && idAssociated==0)){ cerr << "TEvtProb::ConvertVectorFormat: For associated particles, either the momentum std::vector of the id std::vector is 0!" << endl; return cand; }
+  if (pAssociated==0) && !(pAssociated==0 && idAssociated==0)){ cerr << "TEvtProb::ConvertVectorFormat: For associated particles, either the momentum std::vector of the id std::vector is 0!" << endl; return cand; }
   else if (pAssociated!=0 && idAssociated!=0 && pAssociated->size()!=idAssociated->size()){ cerr << "TEvtProb::ConvertVectorFormat: Associated momentum size (" << pAssociated->size() << ") != associated id size (" << idAssociated->size() << ")!" << endl; return cand; }
-  if ((pMothers==0 || idMothers==0) && !(pMothers==0 && idMothers==0)){ cerr << "TEvtProb::ConvertVectorFormat: For mother particles, either the momentum std::vector of the id std::vector is 0!" << endl; return cand; }
-  else if (pMothers!=0 && idMothers!=0 && pMothers->size()!=idMothers->size() && pMothers->size()!=1){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") != associated id size (" << idMothers->size() << ") or is not supported!" << endl; return cand; }
+  if (pMothers!=0 && pMothers->size()!=2){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") is not supported!" << endl; /*return cand;*/ }
 
   std::vector<MELAParticle* daughters;
   std::vector<MELAParticle* aparticles;
   std::vector<MELAParticle* mothers;
 
   for (unsigned int ip=0; ip<pDaughters->size(); ip++){
-    MELAParticle* onePart = new MELAParticle(idDaughters->at(ip), pDaughters->at(ip));
+    MELAParticle* onePart = new MELAParticle((pDaughters->at(ip)).first, (pDaughters->at(ip)).second);
     onePart->setGenStatus(1); // Final state status
     particleList.push_back(onePart);
     daughters.push_back(onePart);
   }
   if (pAssociated!=0){
     for (unsigned int ip=0; ip<pAssociated->size(); ip++){
-      MELAParticle* onePart = new MELAParticle(idAssociated->at(ip), pAssociated->at(ip));
+      MELAParticle* onePart = new MELAParticle((pAssociated->at(ip)).first, (pAssociated->at(ip)).second);
       onePart->setGenStatus(1); // Final state status
       particleList.push_back(onePart);
       aparticles.push_back(onePart);
     }
   }
-  if (pMothers!=0){
+  if (pMothers!=0 && pMothers->size()!=2){
     for (unsigned int ip=0; ip<pMothers->size(); ip++){
-      MELAParticle* onePart = new MELAParticle(idMothers->at(ip), pMothers->at(ip));
+      MELAParticle* onePart = new MELAParticle((pMothers->at(ip)).first, (pMothers->at(ip)).second);
       onePart->setGenStatus(-1); // Mother status
       particleList.push_back(onePart);
       mothers.push_back(onePart);
@@ -1252,6 +1307,7 @@ void TEvtProb::ResetInputEvent(){
   }
   particleList.clear();
 }
+
 
 
 

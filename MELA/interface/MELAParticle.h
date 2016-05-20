@@ -35,8 +35,8 @@ public:
   void setGenStatus(int status_){ genStatus=status_; }
   void setLifetime(int life_){ lifetime=life_; }
 
-  void addMother(MELAParticle* myMELAParticle);
-  void addDaughter(MELAParticle* myMELAParticle);
+  void addMother(MELAParticle* myParticle);
+  void addDaughter(MELAParticle* myParticle);
 
   int getNMothers() const{ return mothers.size(); };
   int getNDaughters() const{ return daughters.size(); };
@@ -62,7 +62,7 @@ protected:
   std::vector<MELAParticle*> mothers;
   std::vector<MELAParticle*> daughters;
 
-  bool checkParticleExists(MELAParticle* myMELAParticle, std::vector<MELAParticle*>& particleArray);
+  bool checkParticleExists(MELAParticle* myParticle, std::vector<MELAParticle*>& particleArray);
 };
 
 

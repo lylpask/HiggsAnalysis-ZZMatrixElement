@@ -29,11 +29,11 @@ public:
   int getNAssociatedJets()const{ return associatedJets.size(); };
   int getNSortedVs()const{ return sortedVs.size(); };
 
-  void addAssociatedLeptons(MELAParticle* myMELAParticle);
-  void addAssociatedNeutrinos(MELAParticle* myMELAParticle);
-  void addAssociatedPhotons(MELAParticle* myMELAParticle);
-  void addAssociatedJets(MELAParticle* myMELAParticle);
-  void addSortedV(MELAParticle* myMELAParticle){ sortedVs.push_back(myMELAParticle); };
+  void addAssociatedLeptons(MELAParticle* myParticle);
+  void addAssociatedNeutrinos(MELAParticle* myParticle);
+  void addAssociatedPhotons(MELAParticle* myParticle);
+  void addAssociatedJets(MELAParticle* myParticle);
+  void addSortedV(MELAParticle* myParticle){ sortedVs.push_back(myParticle); };
   void addAssociatedVs();
 
   void sortDaughters();
@@ -54,9 +54,9 @@ private:
   void sortDaughtersInitial();
   void sortDaughtersByBestZ1();
   void createSortedVs();
-  bool checkDaughtership(MELAParticle* myMELAParticle)const;
+  bool checkDaughtership(MELAParticle* myParticle)const;
   void createAssociatedVs(std::vector<MELAParticle*>& particleArray);
-  void addByHighestPt(MELAParticle* myMELAParticle, std::vector<MELAParticle*>& particleArray);
+  void addByHighestPt(MELAParticle* myParticle, std::vector<MELAParticle*>& particleArray);
 };
 
 

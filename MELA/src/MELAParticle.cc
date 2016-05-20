@@ -45,14 +45,14 @@ MELAParticle& MELAParticle::operator=(const MELAParticle& particle_){
 }
 
 
-bool MELAParticle::checkParticleExists(MELAParticle* myMELAParticle, std::vector<MELAParticle*>& particleArray){
+bool MELAParticle::checkParticleExists(MELAParticle* myParticle, std::vector<MELAParticle*>& particleArray){
   for (std::vector<MELAParticle*>::iterator it = particleArray.begin(); it<particleArray.end(); it++){
-    if ((*it)==myMELAParticle) return true;
+    if ((*it)==myParticle) return true;
   }
   return false;
 }
-void MELAParticle::addMother(MELAParticle* myMELAParticle){ if (!checkParticleExists(myMELAParticle, mothers)) mothers.push_back(myMELAParticle); }
-void MELAParticle::addDaughter(MELAParticle* myMELAParticle){ if (!checkParticleExists(myMELAParticle, daughters)) daughters.push_back(myMELAParticle); }
+void MELAParticle::addMother(MELAParticle* myParticle){ if (!checkParticleExists(myParticle, mothers)) mothers.push_back(myParticle); }
+void MELAParticle::addDaughter(MELAParticle* myParticle){ if (!checkParticleExists(myParticle, daughters)) daughters.push_back(myParticle); }
 MELAParticle* MELAParticle::getMother(int index)const{
   if ((int)mothers.size()>index) return mothers.at(index);
   else return 0;

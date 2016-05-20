@@ -324,39 +324,39 @@ bool MELACandidate::daughtersInterfere()const{
 }
 
 
-bool MELACandidate::checkDaughtership(MELAParticle* myMELAParticle)const{
+bool MELACandidate::checkDaughtership(MELAParticle* myParticle)const{
   for (int dd=0; dd<getNDaughters(); dd++){
-    if (myMELAParticle==getDaughter(dd)) return true;
+    if (myParticle==getDaughter(dd)) return true;
   }
   return false;
 }
 
-void MELACandidate::addAssociatedLeptons(MELAParticle* myMELAParticle){
-  if (!checkDaughtership(myMELAParticle)) addByHighestPt(myMELAParticle, associatedLeptons);
+void MELACandidate::addAssociatedLeptons(MELAParticle* myParticle){
+  if (!checkDaughtership(myParticle)) addByHighestPt(myParticle, associatedLeptons);
 }
-void MELACandidate::addAssociatedNeutrinos(MELAParticle* myMELAParticle){
-  if (!checkDaughtership(myMELAParticle)){
-    addByHighestPt(myMELAParticle, associatedLeptons); // Neutrinos are leptons at the ZZ candidate level
-    addByHighestPt(myMELAParticle, associatedNeutrinos);
+void MELACandidate::addAssociatedNeutrinos(MELAParticle* myParticle){
+  if (!checkDaughtership(myParticle)){
+    addByHighestPt(myParticle, associatedLeptons); // Neutrinos are leptons at the ZZ candidate level
+    addByHighestPt(myParticle, associatedNeutrinos);
   }
 }
-void MELACandidate::addAssociatedPhotons(MELAParticle* myMELAParticle){
-  if (!checkDaughtership(myMELAParticle)) addByHighestPt(myMELAParticle, associatedPhotons);
+void MELACandidate::addAssociatedPhotons(MELAParticle* myParticle){
+  if (!checkDaughtership(myParticle)) addByHighestPt(myParticle, associatedPhotons);
 }
-void MELACandidate::addAssociatedJets(MELAParticle* myMELAParticle){
-  if (!checkDaughtership(myMELAParticle)) addByHighestPt(myMELAParticle, associatedJets);
+void MELACandidate::addAssociatedJets(MELAParticle* myParticle){
+  if (!checkDaughtership(myParticle)) addByHighestPt(myParticle, associatedJets);
 }
-void MELACandidate::addByHighestPt(MELAParticle* myMELAParticle, std::vector<MELAParticle*>& particleArray){
-  bool inserted = checkParticleExists(myMELAParticle, particleArray); // Test if the particle is already in the vector
+void MELACandidate::addByHighestPt(MELAParticle* myParticle, std::vector<MELAParticle*>& particleArray){
+  bool inserted = checkParticleExists(myParticle, particleArray); // Test if the particle is already in the vector
   if (!inserted){
     for (std::vector<MELAParticle*>::iterator it = particleArray.begin(); it<particleArray.end(); it++){
-      if ((*it)->pt()<myMELAParticle->pt()){
+      if ((*it)->pt()<myParticle->pt()){
         inserted=true;
-        particleArray.insert(it, myMELAParticle);
+        particleArray.insert(it, myParticle);
         break;
       }
     }
-    if (!inserted) particleArray.push_back(myMELAParticle);
+    if (!inserted) particleArray.push_back(myParticle);
   }
 }
 void MELACandidate::addAssociatedVs(){
