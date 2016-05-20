@@ -42,7 +42,7 @@ using namespace std;
 TString DbnEventLepSelName(int i); // Obsolete
 
 // Parameter settings
-void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, int flavor);
+bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, std::vector<int> id_dau, std::vector<int> id_associated);
 void SetEwkCouplingParameters();
 void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons);
 double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]);

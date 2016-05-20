@@ -1,9 +1,8 @@
-#include "TMath.h"
-#include "TLorentzVector.h"
 #include "ZZMatrixElement/MELA/interface/TUtil.hh"
-#include <stdio.h>
-#include <math.h>
 #include <iostream>
+#include <cstdio>
+#include <cmath>
+#include <TMath.h>
 
 using namespace std;
 
@@ -59,6 +58,7 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
   else if (scheme == TVar::Fixed_mWPlusmH) Q = (masses_mcfm_.wmass+masses_mcfm_.hmass);
   else if (scheme == TVar::Fixed_mZPlusmH) Q = (masses_mcfm_.zmass+masses_mcfm_.hmass);
   else if (scheme == TVar::Fixed_TwomtPlusmH) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
+  else if (scheme == TVar::Fixed_mtPlusmH) Q = masses_mcfm_.mt+masses_mcfm_.hmass;
   else if (scheme == TVar::Dynamic_qH){
     TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
     Q = fabs(pTotal.M());
@@ -66,6 +66,15 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
   else if (scheme == TVar::Dynamic_qJJH){
     TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5]+p[6]+p[7];
     Q = fabs(pTotal.M());
+  }
+  else if (scheme == TVar::Dynamic_qJJ_qH){
+    TLorentzVector qH = p[2]+p[3]+p[4]+p[5];
+    TLorentzVector qJJ = p[6]+p[7];
+    Q = fabs(qH.M()+qJJ.M());
+  }
+  else if (scheme == TVar::Dynamic_qJ_qJ_qH){
+    TLorentzVector qH = p[2]+p[3]+p[4]+p[5];
+    Q = fabs(qH.M()+p[6].M()+p[7].M());
   }
   else if (scheme == TVar::Dynamic_HT){
     for (int c=2; c<mxpart; c++) Q += p[c].Pt(); // Scalar sum of all pTs
@@ -82,12 +91,12 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
         || production==TVar::ZZQQB_S
         || production==TVar::ZZQQB_TU
         || production==TVar::ZZINDEPENDENT
+        || production==TVar::WH
+        || production==TVar::ZH
         ){
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
         Q = fabs(pTotal.M());
       }
-      else if (production==TVar::WH) Q = (masses_mcfm_.wmass+masses_mcfm_.hmass);
-      else if (production==TVar::ZH) Q = (masses_mcfm_.zmass+masses_mcfm_.hmass);
       else if (production==TVar::ttH || production==TVar::bbH) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
     }
     else if (matrixElement==TVar::MCFM){
@@ -101,14 +110,14 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
         || production==TVar::ZZQQB_S
         || production==TVar::ZZQQB_TU
         || production==TVar::ZZINDEPENDENT
+        || production==TVar::ZH
+        || production==TVar::WH
         ){
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
         Q = fabs(pTotal.M());
       }
       else if (
-        production==TVar::ZH
-        || production==TVar::WH
-        || production==TVar::ttH
+        production==TVar::ttH
         || production==TVar::bbH
         ){
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5]+p[6]+p[7];
@@ -561,30 +570,49 @@ void SetJHUGenSpinOneCouplings(double Zqqcoupl[SIZE_ZQQ][2], double Zvvcoupl[SIZ
 void SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]){ __modparameters_MOD_setspintwocouplings(Gacoupl, Gbcoupl, qLeftRightcoupl); }
 
 
-void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, int flavor){
-  //void My_choose(TVar::Process process, TVar::Production production, int flavor){
+bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, std::vector<int> id_dau, std::vector<int> id_associated){
+  unsigned int ndau = id_dau.size();
+  unsigned int naparts = id_associated.size();
+  unsigned int najets = 0;
+  unsigned int naneutrinos = 0;
+  unsigned int naleps = 0;
+  unsigned int naferms = 0;
+  unsigned int naphotons = 0;
+  unsigned int nainvalid = 0;
+  for (unsigned int ap=0; ap<naparts; ap++){
+    if (isALepton(id_associated.at(ap))) naleps++;
+    else if (isANeutrino(id_associated.at(ap))) naneutrinos++;
+    else if (isAPhoton(id_associated.at(ap))) naphotons++;
+    else if (isAJet(id_associated.at(ap))) najets++;
+    else nainvalid++;
+  }
+  naferms = naleps + naneutrinos + najets;
+  if (nainvalid>0) cerr << "TUtil::MCFM_chooser: nainvalid=" << nainvalid << ">0! This should not have happened!" << endl;
+  naparts -= nainvalid;
+  bool definiteInterf = false;
+  if (ndau>3) definiteInterf = (
+    id_dau.at(0)==id_dau.at(2) && id_dau.at(1)==id_dau.at(3)
+    &&
+    !isAnUnknownJet(id_dau.at(0)) && !isAnUnknownJet(id_dau.at(2))
+    &&
+    !isInvalid(id_dau.at(0)) && !isInvalid(id_dau.at(2))
+    );
 
-  //ZZ_4l
-  if (process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production == TVar::ZZINDEPENDENT)){
+  // VV->4f
+  if (
+    ndau>=4
+    &&
+    process==TVar::bkgZZ
+    &&
+    (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production == TVar::ZZINDEPENDENT)
+    ){
     //81 '  f(p1)+f(p2) --> Z^0(-->mu^-(p3)+mu^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))'
     //86 '  f(p1)+f(p2) --> Z^0(-->e^-(p5)+e^+(p6))+Z^0(-->mu^-(p3)+mu^+(p4)) (NO GAMMA*)'
     //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
-    //    nproc_.nproc=81;  
-    //    chooser_();
 
     // these settings are identical to use the chooser_() function
     npart_.npart=4;
     nqcdjets_.nqcdjets=0;
-
-    vsymfact_.vsymfact=1.0;
-    interference_.interference=false;
-
-    if ((flavor == 1 || flavor == 0) && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
-      //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
-      vsymfact_.vsymfact=0.125; // MELA FACTOR (0.25 in MCFM 6.8)  --->   Result of just removing if(bw34_56) statements in FORTRAN code and not doing anything else
-      //		vsymfact_.vsymfact=0.25; // MELA FACTOR (Same 0.25 in MCFM 6.7)
-      interference_.interference=true;
-    }
 
     nwz_.nwz=0;
     bveg1_mcfm_.ndim=10;
@@ -604,9 +632,23 @@ void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonI
     zcouple_.l2=zcouple_.le;
     zcouple_.r2=zcouple_.re;
 
+    vsymfact_.vsymfact=1.0;
+    interference_.interference=false;
+    if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+      //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
+      vsymfact_.vsymfact=0.125; // MELA FACTOR (0.25 in MCFM 6.8)  --->   Result of just removing if(bw34_56) statements in FORTRAN code and not doing anything else
+      //		vsymfact_.vsymfact=0.25; // MELA FACTOR (Same 0.25 in MCFM 6.7)
+      interference_.interference=true;
+    }
 
   }
-  else if (((process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs) && production == TVar::ZZGG)){
+  else if (
+    ndau>=4
+    &&
+    production == TVar::ZZGG
+    &&
+    (process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs)
+    ){
     // 114 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6))' 'N'
     /*
     nprocs:
@@ -621,14 +663,6 @@ void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonI
     nqcdjets_.nqcdjets=0;
 
     bveg1_mcfm_.ndim=10;
-
-    vsymfact_.vsymfact=1.0;
-    interference_.interference=false;
-
-    if ((flavor == 1 || flavor == 0) && (leptonInterf==TVar::InterfOn)){ // Notice, default lepton interf. is off for this calculation
-      vsymfact_.vsymfact=0.5;
-      interference_.interference=true;
-    }
 
     breit_.n2=1;
     breit_.n3=1;
@@ -646,8 +680,24 @@ void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonI
     zcouple_.l2=zcouple_.le;
     zcouple_.r2=zcouple_.re;
 
+    vsymfact_.vsymfact=1.0;
+    interference_.interference=false;
+    if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+      vsymfact_.vsymfact=0.5;
+      interference_.interference=true;
+    }
+
   }
-  else if (((process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs) && production == TVar::JJVBF)){
+  // JJ + VV->4f
+  else if (
+    najets>=2 // Only jets since MCFM ME does not support leptons or neutrinos as associated particles
+    &&
+    ndau>=4
+    &&
+    production == TVar::JJVBF
+    &&
+    (process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs)
+    ){
     // 220 '  f(p1)+f(p2) --> Z(e-(p3),e^+(p4))Z(mu-(p5),mu+(p6)))+f(p7)+f(p8) [weak]' 'L'
 
     if (process==TVar::bkgZZ){
@@ -668,6 +718,8 @@ void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonI
       wwbits_.Bbit[0]=0;
       wwbits_.Bbit[1]=0;
     }
+
+    npart_.npart=6;
 
     nwz_.nwz=2;
 
@@ -690,19 +742,28 @@ void My_choose(TVar::Process process, TVar::Production production, TVar::LeptonI
     breit_.mass3 =masses_mcfm_.zmass;
     breit_.width3=masses_mcfm_.zwidth;
 
-    npart_.npart=6;
-
     vsymfact_.vsymfact=1.0;
     interference_.interference=false;
-
-    if ((flavor == 1 || flavor == 0) && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+    if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
       vsymfact_.vsymfact=1.0;
       interference_.interference=true;
     }
+
   }
   else{
-    std::cerr <<"[My_choose]: Can't identify Process: " << process << std::endl;
+    cerr <<"TUtil::MCFM_chooser: Can't identify Process: " << process << endl;
+    cerr <<"TUtil::MCFM_chooser: ndau: " << ndau << '\t';
+    cerr <<"TUtil::MCFM_chooser: naparts: " << naparts << '\t';
+    cerr <<"TUtil::MCFM_chooser: nainvalid: " << nainvalid << '\t';
+    cerr <<"TUtil::MCFM_chooser: najets: " << najets << '\t';
+    cerr <<"TUtil::MCFM_chooser: naneutrinos: " << naneutrinos << '\t';
+    cerr <<"TUtil::MCFM_chooser: naleps: " << naleps << '\t';
+    cerr <<"TUtil::MCFM_chooser: naferms: " << naferms << '\t';
+    cerr <<"TUtil::MCFM_chooser: naphotons: " << naphotons << '\t';
+    cerr << endl;
+    return false;
   }
+  return true;
 }
 
 bool My_masscuts(double s[][mxpart],TVar::Process process){

@@ -12,6 +12,7 @@
 //-----------------------------------------------------------------------------
 #include <sstream>
 #include <cstdio>
+#include <vector>
 #include <string>
 
 #include <iostream>
@@ -33,88 +34,13 @@
 #include "TCouplings.hh"
 #include "TVar.hh"
 #include "TUtil.hh"
-#include "ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h"
+#include <ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h>
 
 
 //----------------------------------------
 // Class TEvtProb
 //----------------------------------------
 class TEvtProb : public TObject {
-  
-public:
-  //---------------------------------------------------------------------------
-  // Constructors and Destructor
-  //---------------------------------------------------------------------------
-  TEvtProb() {};
-  TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0);
-  ~TEvtProb();
-  
-  //----------------------
-  // Function
-  //----------------------
-  void SetProcess(TVar::Process tmp) { _process = tmp; }
-  void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
-  void SetProduction(TVar::Production tmp){ _production = tmp; }
-  void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
-  void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
-  void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
-  void Set_LHAgrid(const char* path, int pdfmember=0);
-
-  double XsecCalc(
-    TVar::Process proc, TVar::Production production,
-    const hzz4l_event_type &hzz4l_event,
-    TVar::VerbosityLevel verbosity
-    );
-
-  double XsecCalc_VVXVV(
-    TVar::Process proc, TVar::Production production,
-    const hzz4l_event_type &hzz4l_event,
-    TVar::VerbosityLevel verbosity
-    );
-
-  double XsecCalcXJJ(
-    TVar::Process proc, TVar::Production production, 
-    TLorentzVector p4[3],
-    TVar::VerbosityLevel verbosity
-    );
-
-  double XsecCalcXJ(
-    TVar::Process proc, TVar::Production production,
-    TLorentzVector p4[2],
-    TVar::VerbosityLevel verbosity
-    );
-
-  double XsecCalc_VX(
-    TVar::Process proc, TVar::Production production,
-    vh_event_type &vh_event,
-    TVar::VerbosityLevel verbosity
-    );
-
-  double XsecCalc_TTX(
-    TVar::Process proc, TVar::Production production,
-    tth_event_type &tth_event,
-    int topDecay, int topProcess,
-    TVar::VerbosityLevel verbosity
-    );
-
-  // this appears to be some kind of 
-  // way of setting MCFM parameters through
-  // an interface defined in TMCFM.hh
-  void SetHiggsMass(double mass, float wHiggs=-1);
-
-  void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
-  void ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); };
-
-  void ResetCouplings(){ selfDSpinZeroCoupl.reset(); selfDSpinOneCoupl.reset(); selfDSpinTwoCoupl.reset(); AllowSeparateWWCouplings(false); };
-  void ResetIORecord(){ RcdME.reset(); };
-
-
-  // Get-functions
-  SpinZeroCouplings* GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); };
-  SpinOneCouplings* GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
-  SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
-  MelaIO* GetIORecord(){ return RcdME.getRef(); };
-
 private:
   //--------------------
   // Variables
@@ -133,7 +59,95 @@ private:
   SpinTwoCouplings selfDSpinTwoCoupl;
   MelaIO RcdME;
 
-  HiggsCSandWidth_MELA *myCSW_;
+  HiggsCSandWidth_MELA* myCSW_;
+  MELACandidate* melaCand; // Only a pointer to the top-level (input) candList object
+  std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
+  std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
+
+  MELACandidate* ConvertVectorFormat(
+    std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
+    std::vector<TLorentzVector>* pAssociated=0, std::vector<int>* idAssociated=0,
+    std::vector<TLorentzVector>* pMothers=0, std::vector<int>* idMothers=0
+    );
+
+public:
+  //---------------------------------------------------------------------------
+  // Constructors and Destructor
+  //---------------------------------------------------------------------------
+  TEvtProb() {};
+  TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0);
+  ~TEvtProb();
+  
+  //----------------------
+  // Function
+  //----------------------
+  void SetProcess(TVar::Process tmp) { _process = tmp; }
+  void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
+  void SetProduction(TVar::Production tmp){ _production = tmp; }
+  void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
+  void SetRcdInputEvent(){ RcdME.melaCand = melaCand; }
+  void SetCurrentCandidate(unsigned int icand){ if (candList.size()>icand) melaCand = candList.at(icand); else std::cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << std::endl; }
+  void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
+  void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
+  void Set_LHAgrid(const char* path, int pdfmember=0);
+
+  void SetInputEvent(
+    std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
+    std::vector<TLorentzVector>* pAssociated=0, std::vector<int>* idAssociated=0,
+    std::vector<TLorentzVector>* pMothers=0, std::vector<int>* idMothers=0
+    );
+
+  double XsecCalc_XVV(
+    TVar::Process proc, TVar::Production production,
+    TVar::VerbosityLevel verbosity
+    );
+
+  double XsecCalc_VVXVV(
+    TVar::Process proc, TVar::Production production,
+    TVar::VerbosityLevel verbosity
+    );
+
+  double XsecCalcXJJ(
+    TVar::Process proc, TVar::Production production, 
+    TVar::VerbosityLevel verbosity
+    );
+
+  double XsecCalcXJ(
+    TVar::Process proc, TVar::Production production,
+    TVar::VerbosityLevel verbosity
+    );
+
+  double XsecCalc_VX(
+    TVar::Process proc, TVar::Production production,
+    TVar::VerbosityLevel verbosity
+    );
+
+  double XsecCalc_TTX(
+    TVar::Process proc, TVar::Production production,
+    int topDecay, int topProcess,
+    TVar::VerbosityLevel verbosity
+    );
+
+  // this appears to be some kind of 
+  // way of setting MCFM parameters through
+  // an interface defined in TMCFM.hh
+  void SetHiggsMass(double mass, float wHiggs=-1);
+
+  void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+  void ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); };
+
+  void ResetCouplings(){ selfDSpinZeroCoupl.reset(); selfDSpinOneCoupl.reset(); selfDSpinTwoCoupl.reset(); AllowSeparateWWCouplings(false); };
+  void ResetIORecord(){ RcdME.reset(); };
+  void ResetInputEvent();
+
+
+  // Get-functions
+  SpinZeroCouplings* GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); };
+  SpinOneCouplings* GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
+  SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
+  MelaIO* GetIORecord(){ return RcdME.getRef(); };
+
+private:
 
   ClassDef(TEvtProb,0);
 };

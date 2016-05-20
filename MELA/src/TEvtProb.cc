@@ -24,7 +24,9 @@ using namespace std;
 TEvtProb::TEvtProb(
   const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember
   ) :
-  EBEAM(ebeam){
+  EBEAM(ebeam),
+  myCSW_(0)
+{
   mcfm_init_((char *)"input.DAT", (char *)"./");
   SetEwkCouplingParameters();
   energy_.sqrts = 2.*EBEAM;
@@ -44,11 +46,13 @@ TEvtProb::TEvtProb(
 
   ResetCouplings();
   ResetRenFacScaleMode();
+  ResetInputEvent();
 }
 
 
 TEvtProb::~TEvtProb(){
-  delete myCSW_;
+  ResetInputEvent();
+  if (myCSW_!=0) delete myCSW_;
 }
 
 /*
@@ -83,20 +87,31 @@ void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
 }
 
 //
-// Directly calculate the ZZ->4l differential cross-section 
+// Directly calculate the VV->4f differential cross-section 
 // 
-double TEvtProb::XsecCalc(
-  TVar::Process proc, TVar::Production production, const hzz4l_event_type &hzz4l_event,
+double TEvtProb::XsecCalc_XVV(
+  TVar::Process proc, TVar::Production production,
   TVar::VerbosityLevel verbosity
   ){
   ResetIORecord();
+  if (melaCand==0 || candList.size()==0){
+    cerr
+      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand
+      << " or candList.size()==" << candList.size() << " is problematic!"
+      << endl;
+    if (candList.size()==0) return 0.;
+    else{
+      SetCurrentCandidate(candList.size()-1);
+      cerr << "TEvtProb::XsecCalc_XVV: melaCand now points to the latest candidate (cand" << (candList.size()-1) << ")" << endl;
+    }
+  }
 
   //Initialize Process
   SetProcess(proc);
   SetProduction(production);
   bool forceUseMCFM = (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs);
+  bool calculateME=true;
 
-  int flavor = abs(hzz4l_event.PdgCode[0]) == abs(hzz4l_event.PdgCode[2]) ? 1 : 3;
   bool needBSMHiggs=false;
   if (forceUseMCFM){
     for (int vv = 0; vv < SIZE_HVV; vv++){
@@ -104,7 +119,7 @@ double TEvtProb::XsecCalc(
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
     SetMCFMSpinZeroVVCouplings(needBSMHiggs, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hzzcoupl));
-    My_choose(_process, _production, _leptonInterf, flavor);
+    calculateME = MCFM_chooser(_process, _production, _leptonInterf, melaCand->getDaughterIds(), melaCand->getAssociatedParticleIds());
   }
 
   //constants
@@ -115,6 +130,7 @@ double TEvtProb::XsecCalc(
   double flux=1.;
   double dXsec=0.;
 
+  // LEFT HERE
   mcfm_event_type mcfm_event;
   // assign the right initial momentum
   // assumes the events are boosted to have 0 transverse momenta
@@ -554,7 +570,7 @@ double TEvtProb::XsecCalc_VVXVV(
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
     SetMCFMSpinZeroVVCouplings(needBSMHiggs, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hwwcoupl));
-    My_choose(_process, _production, _leptonInterf, flavor);
+    MCFM_chooser(_process, _production, _leptonInterf, flavor);
   }
 
   //constants
@@ -633,7 +649,7 @@ double TEvtProb::XsecCalc_VVXVV(
 }
 
 // Cross-section calculations for H + 2 jets
-double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TLorentzVector p4[3], TVar::VerbosityLevel verbosity){
+double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TVar::VerbosityLevel verbosity){
   ResetIORecord();
   double dXsec = 0;
 
@@ -754,7 +770,7 @@ double TEvtProb::XsecCalcXJJ(TVar::Process proc, TVar::Production production, TL
 }
 
 // Cross-section calculations for H (SM) + 1 jet
-double TEvtProb::XsecCalcXJ(TVar::Process proc, TVar::Production production, TLorentzVector p4[2], TVar::VerbosityLevel verbosity){
+double TEvtProb::XsecCalcXJ(TVar::Process proc, TVar::Production production, TVar::VerbosityLevel verbosity){
   ResetIORecord();
   double dXsec = 0;
 
@@ -815,7 +831,7 @@ double TEvtProb::XsecCalcXJ(TVar::Process proc, TVar::Production production, TLo
 
 
 double TEvtProb::XsecCalc_VX(
-  TVar::Process proc, TVar::Production production, vh_event_type &vh_event,
+  TVar::Process proc, TVar::Production production,
   TVar::VerbosityLevel verbosity
   ){
   ResetIORecord();
@@ -975,7 +991,6 @@ double TEvtProb::XsecCalc_VX(
 // Cross-section calculations for ttbar -> H
 double TEvtProb::XsecCalc_TTX(
   TVar::Process proc, TVar::Production production,
-  tth_event_type &tth_event,
   int topDecay, int topProcess,
   TVar::VerbosityLevel verbosity
   ){
@@ -1091,3 +1106,153 @@ void TEvtProb::SetHiggsMass(double mass, float wHiggs){
   }
   SetJHUGenHiggsMassWidth(_hmass, _hwidth);
 }
+
+
+MELACandidate* TEvtProb::ConvertVectorFormat(
+  std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
+  std::vector<TLorentzVector>* pAssociated, std::vector<int>* idAssociated,
+  std::vector<TLorentzVector>* pMothers, std::vector<int>* idMothers
+  ){
+  MELACandidate* cand=0;
+
+  if (pDaughters==0 || idDaughters==0){ cerr << "TEvtProb::ConvertVectorFormat: No daughters!" << endl; return cand; }
+  else if (pDaughters->size()!=idDaughters->size()){ cerr << "TEvtProb::ConvertVectorFormat: Daughter momentum size (" << pDaughters->size() << ") != daughter id size (" << idDaughters->size() << ")!" << endl; return cand; }
+  else if (pDaughters->size()==0){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size==0!" << endl; return cand; }
+  else if (pDaughters->size()>4){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
+  if ((pAssociated==0 || idAssociated==0) && !(pAssociated==0 && idAssociated==0)){ cerr << "TEvtProb::ConvertVectorFormat: For associated particles, either the momentum std::vector of the id std::vector is 0!" << endl; return cand; }
+  else if (pAssociated!=0 && idAssociated!=0 && pAssociated->size()!=idAssociated->size()){ cerr << "TEvtProb::ConvertVectorFormat: Associated momentum size (" << pAssociated->size() << ") != associated id size (" << idAssociated->size() << ")!" << endl; return cand; }
+  if ((pMothers==0 || idMothers==0) && !(pMothers==0 && idMothers==0)){ cerr << "TEvtProb::ConvertVectorFormat: For mother particles, either the momentum std::vector of the id std::vector is 0!" << endl; return cand; }
+  else if (pMothers!=0 && idMothers!=0 && pMothers->size()!=idMothers->size() && pMothers->size()!=1){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") != associated id size (" << idMothers->size() << ") or is not supported!" << endl; return cand; }
+
+  std::vector<MELAParticle* daughters;
+  std::vector<MELAParticle* aparticles;
+  std::vector<MELAParticle* mothers;
+
+  for (unsigned int ip=0; ip<pDaughters->size(); ip++){
+    MELAParticle* onePart = new MELAParticle(idDaughters->at(ip), pDaughters->at(ip));
+    onePart->setGenStatus(1); // Final state status
+    particleList.push_back(onePart);
+    daughters.push_back(onePart);
+  }
+  if (pAssociated!=0){
+    for (unsigned int ip=0; ip<pAssociated->size(); ip++){
+      MELAParticle* onePart = new MELAParticle(idAssociated->at(ip), pAssociated->at(ip));
+      onePart->setGenStatus(1); // Final state status
+      particleList.push_back(onePart);
+      aparticles.push_back(onePart);
+    }
+  }
+  if (pMothers!=0){
+    for (unsigned int ip=0; ip<pMothers->size(); ip++){
+      MELAParticle* onePart = new MELAParticle(idMothers->at(ip), pMothers->at(ip));
+      onePart->setGenStatus(-1); // Mother status
+      particleList.push_back(onePart);
+      mothers.push_back(onePart);
+    }
+  }
+
+  /***** Adaptation of LHEAnalyzer::Event::constructVVCandidates *****/
+  /*
+  The assumption is that the daughters make sense for either ffb, gamgam, Zgam, ZZ or WW.
+  No checking is done on whether particle-antiparticle pairing is correct when necessary.
+  If not, you will get a seg. fault!
+  */
+  // Undecayed Higgs
+  if (daughters.size()==1) cand = new MELACandidate(25, (daughters.at(0))->p4); // No sorting!
+  // GG / ff final states
+  else if (daughters.size()==2){
+    MELAParticle* F1 = daughters.at(0);
+    MELAParticle* F2 = daughters.at(1);
+    TLorentzVector pH = F1->p4+F2->p4;
+    cand = new MELACandidate(25, pH);
+    cand->addDaughter(F1);
+    cand->addDaughter(F2);
+    double defaultHVVmass = PDGHelpers::HVVmass;
+    PDGHelpers::setHVVmass(Zeromass);
+    cand->sortDaughters();
+    PDGHelpers::setHVVmass(defaultHVVmass);
+  }
+  // ZG
+  else if (daughters.size()==3){
+    MELAParticle* F1 = daughters.at(0);
+    MELAParticle* F2 = daughters.at(1);
+    MELAParticle* gamma = daughters.at(2);
+    if (PDGHelpers::isAPhoton(F1->id)){
+      MELAParticle* tmp = F1;
+      F1 = gamma;
+      gamma = tmp;
+    }
+    else if (PDGHelpers::isAPhoton(F2->id)){
+      MELAParticle* tmp = F2;
+      F2 = gamma;
+      gamma = tmp;
+    }
+    TLorentzVector pH = F1->p4+F2->p4;
+    cand = new MELACandidate(25, pH);
+    cand->addDaughter(F1);
+    cand->addDaughter(F2);
+    cand->addDaughter(gamma);
+    double defaultHVVmass = PDGHelpers::HVVmass;
+    PDGHelpers::setHVVmass(PDGHelpers::Zmass);
+    cand->sortDaughters();
+    PDGHelpers::setHVVmass(defaultHVVmass);
+  }
+  // ZZ / WW
+  else/* if (daughters.size()==4)*/{
+    TLorentzVector pH(0, 0, 0, 0);
+    for (int ip=0; ip<4; ip++) pH = pH + (daughters.at(ip))->p4;
+    cand = new MELACandidate(25, pH);
+    for (int ip=0; ip<4; ip++) cand->addDaughter(daughters.at(ip));
+    cand->sortDaughters();
+  }
+  /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
+  if (mothers.size()>0){ // ==2
+    for (int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));
+    cand->setGenStatus(-1); // is a gen. particle!
+  }
+  /***** Adaptation of LHEAnalyzer::Event::addVVCandidateAppendages *****/
+  if (aparticles.size()>0){ // ==2
+    for (int ip=0; ip<aparticles.size(); ip++){
+      const int partId = (aparticles.at(ip))->id;
+      if (PDGHelpers::isALepton(partId)) cand->addAssociatedLeptons(aparticles.at(ip));
+      else if (PDGHelpers::isANeutrino(partId)) cand->addAssociatedNeutrinos(aparticles.at(ip)); // Be careful: Neutrinos are neutrinos, but also "leptons" in MELACandidate!
+      else if (PDGHelpers::isAPhoton(partId)) cand->addAssociatedPhotons(aparticles.at(ip));
+      else if (PDGHelpers::isAJet(partId)) cand->addAssociatedJets(aparticles.at(ip));
+    }
+  }
+
+  candList.push_back(cand);
+  return cand;
+}
+void TEvtProb::SetInputEvent(
+  std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
+  std::vector<TLorentzVector>* pAssociated, std::vector<int>* idAssociated,
+  std::vector<TLorentzVector>* pMothers, std::vector<int>* idMothers
+  ){
+  melaCand = ConvertVectorFormat(
+    pDaughters, idDaughters,
+    pAssociated, idAssociated,
+    pMothers, idMothers
+    );
+}
+
+void TEvtProb::ResetInputEvent(){
+  RcdME.melaCand = 0;
+  melaCand = 0;
+
+  // Clear bookkeeping objects
+  for (unsigned int p=0; p<candList.size(); p++){
+    MELACandidate* tmpCand = (MELACandidate*)candList.at(p);
+    if (tmpCand!=0) delete tmpCand;
+  }
+  candList.clear();
+  for (unsigned int p=0; p<particleList.size(); p++){
+    MELAParticle* tmpPart = (MELAParticle*)particleList.at(p);
+    if (tmpPart!=0) delete tmpPart;
+  }
+  particleList.clear();
+}
+
+
+
+

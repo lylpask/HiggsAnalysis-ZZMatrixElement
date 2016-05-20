@@ -1,14 +1,20 @@
 #ifndef SCALAR_PDF_FACTORY
 #define SCALAR_PDF_FACTORY
 
+#ifdef _def_melatools_
 #include <ZZMatrixElement/MELA/interface/RooSpinZero.h>
+#include <ZZMatrixElement/MELA/interface/SpinPdfFactory.h>
+#else
+#include "RooSpinZero.h"
+#include "SpinPdfFactory.h"
+#endif
 #include "TString.h"
 #include "RooFormulaVar.h"
 
-class ScalarPdfFactory{
+
+class ScalarPdfFactory : public SpinPdfFactory{
 public:
-  RooSpinZero::modelMeasurables measurables;
-  RooSpinZero::modelParameters parameters;
+  RooSpinZero::modelCouplings couplings;
 
   RooRealVar* g1Frac[7]; // f_a1 = 1.-sum_{i, i>1}{fabs(f_ai)}
   RooRealVar* g2Frac[8];
@@ -53,40 +59,28 @@ public:
   RooRealVar* gZGsRatioVal[4][1];
   RooRealVar* gGsGsRatioVal[3][1];
 
-  ScalarPdfFactory(RooSpinZero::modelMeasurables measurables_, bool acceptance_=false, int V1decay_=1, int V2decay_=1);
-  ScalarPdfFactory(RooSpinZero::modelMeasurables measurables_, double gRatio_[4][8], double gZGsRatio_[4][1], double gGsGsRatio_[3][1], bool pmf_applied_=false, bool acceptance_=false, int V1decay_=1, int V2decay_=1);
+  ScalarPdfFactory(RooSpin::modelMeasurables measurables_, bool acceptance_=false, RooSpin::VdecayType V1decay_=RooSpin::kVdecayType_Zll, RooSpin::VdecayType V2decay_=RooSpin::kVdecayType_Zll, Bool_t OnshellH_=true);
+  ScalarPdfFactory(RooSpin::modelMeasurables measurables_, double gRatio_[4][8], double gZGsRatio_[4][1], double gGsGsRatio_[3][1], bool pmf_applied_=false, bool acceptance_=false, RooSpin::VdecayType V1decay_=RooSpin::kVdecayType_Zll, RooSpin::VdecayType V2decay_=RooSpin::kVdecayType_Zll, Bool_t OnshellH_=true);
   virtual ~ScalarPdfFactory();
 
   virtual void makeParamsConst(bool yesNo)=0;
+  virtual void makeCouplingsConst(bool yesNo=true);
   virtual void addHypothesis(int ig, int ilam, double iphase=0, double altparam_fracval=0);
   virtual void resetHypotheses();
-  virtual void resetVdecay(int V1decay_, int V2decay_);
   virtual RooSpinZero* getPDF()=0;
 
 protected:
-  RooSpinZero* PDF_base;
-
   int parameterization;
   bool pmf_applied;
   bool acceptance;
-
-  int V1decay;
-  int V2decay;
 
   double gRatio[4][8];
   double gZGsRatio[4][1];
   double gGsGsRatio[3][1];
 
-  virtual double getRValue(int Vdecay);
-
-  virtual void initMeasurables(RooSpinZero::modelMeasurables measurables_);
-  virtual void initMassPole();
-  virtual void initVdecayParams();
   virtual void initFractionsPhases();
   virtual void initGVals();
 
-  virtual void destroyMassPole();
-  virtual void destroyVdecayParams();
   virtual void destroyFractionsPhases();
   virtual void destroyGVals();
 

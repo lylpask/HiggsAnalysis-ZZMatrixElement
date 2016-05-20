@@ -40,6 +40,7 @@ public:
 
   int getNMothers() const{ return mothers.size(); };
   int getNDaughters() const{ return daughters.size(); };
+  virtual std::vector<int> getDaughterIds()const;
 
   MELAParticle* getMother(int index) const;
   MELAParticle* getDaughter(int index) const;

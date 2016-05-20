@@ -19,17 +19,19 @@ namespace PDGHelpers{
 
   extern double HVVmass;
 
-  bool isALepton(int id);
-  bool isANeutrino(int id);
-  bool isAJet(int id);
-  bool isAQuark(int id);
-  bool isUpTypeQuark(int id);
-  bool isDownTypeQuark(int id);
-  bool isAGluon(int id);
-  bool isAPhoton(int id);
-  bool isAZBoson(int id);
-  bool isAWBoson(int id);
-  bool isAHiggs(int id);
+  bool isALepton(const int id);
+  bool isANeutrino(const int id);
+  bool isAJet(const int id);
+  bool isAnUnknownJet(const int id);
+  bool isInvalid(const int id);
+  bool isAQuark(const int id);
+  bool isUpTypeQuark(const int id);
+  bool isDownTypeQuark(const int id);
+  bool isAGluon(const int id);
+  bool isAPhoton(const int id);
+  bool isAZBoson(const int id);
+  bool isAWBoson(const int id);
+  bool isAHiggs(const int id);
   void setHVVmass(double mymass);
 
   int convertPythiaStatus(int pSt);

@@ -20,6 +20,9 @@ public:
   MELAParticle* getAssociatedJet(int index)const;
   TLorentzVector getAlternativeVMomentum(int index)const;
 
+  virtual std::vector<int> getDaughterIds()const;
+  std::vector<int> getAssociatedParticleIds()const;
+
   int getNAssociatedLeptons()const{ return associatedLeptons.size(); };
   int getNAssociatedNeutrinos()const{ return associatedNeutrinos.size(); };
   int getNAssociatedPhotons()const{ return associatedPhotons.size(); };
@@ -35,6 +38,8 @@ public:
 
   void sortDaughters();
   void testPreSelectedDaughters();
+
+  bool daughtersInterfere()const;
 
 private:
   std::vector<MELAParticle*> associatedLeptons;

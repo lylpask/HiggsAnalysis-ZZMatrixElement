@@ -1,7 +1,7 @@
 /*
 
 ************* CMS MELA interface to MCFM/JHUGen-MELA *************
-Last update: 12.02.2016 by U. Sarica
+Last update: 19.05.2016 by U. Sarica
 
 Notes:
 1) Each specific type of computeP* function comes with its wrapper for common use.
@@ -94,7 +94,7 @@ Mela::Mela(int LHCsqrts, float mh)
 
   ggSpin0Model = new ScalarPdfFactory_ggH(measurables_, false, 1, 1); // 1,1==ZZ
   spin1Model = new VectorPdfFactory(z1mass_rrv,z2mass_rrv,costhetastar_rrv,costheta1_rrv,costheta2_rrv,phi_rrv,phi1_rrv,mzz_rrv);
-  spin2Model = new TensorPdfFactory(z1mass_rrv,z2mass_rrv,costhetastar_rrv,costheta1_rrv,costheta2_rrv,phi_rrv,phi1_rrv,mzz_rrv);
+  spin2Model = new TensorPdfFactory_HVV(measurables_, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll);
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel","qqZZmodel",*z1mass_rrv,*z2mass_rrv,*costheta1_rrv,*costheta2_rrv,*phi_rrv,*costhetastar_rrv,*phi1_rrv,*mzz_rrv,*upFrac_rrv);
 
  //edm::FileInPath HiggsWidthFile("Higgs/Higgs_CS_and_Width/txtFiles/8TeV-ggH.txt");
@@ -279,43 +279,6 @@ void Mela::computeD_CP(
   float& prob
   ){
   reset_PAux();
-
-
-  /******** No analytical for D_CP_T and D_Int_T, ME has no imaginary part now! Only work for JHUGen *******/
-  // float pMix, p0plus, p_star;
-  // TVar::Process mixProcess , starProcess;
-  //
-  //if(myType == TVar::D_g1g4) { mixProcess = TVar::CPMixHZZ_4l; starProcess = TVar::PSHZZ_g4star;}
-  //else if(myType == TVar::D_g1g4_pi_2) { mixProcess = TVar::CPMixHZZ_4l_pi_2; starProcess = TVar::PSHZZ_g4star;}
-  //else if(myType == TVar::D_g1g2) { mixProcess = TVar::HDMixHZZ_4l; starProcess = TVar::HDHZZ_4l_g2star;}
-  //else if(myType == TVar::D_g1g2_pi_2) { mixProcess = TVar::HDMixHZZ_4l_pi_2; starProcess = TVar::HDHZZ_4l_g2star;}
-  //else{
-  // cout<<"Interaction type not supported!"<<endl;
-  // return;
-  //}
-  // setProcess( mixProcess, myME, TVar::ZZGG);
-  // computeP(mZZ, mZ1, mZ2,
-  //        costhetastar,costheta1,costheta2,phi,phi1,flavor,
-  //        pMix);
-  //
-  // setProcess(TVar::HSMHiggs, myME, TVar::ZZGG);
-  // computeP(mZZ, mZ1, mZ2,
-  //        costhetastar,costheta1,costheta2,phi,phi1,flavor,
-  //        p0plus);
-  //
-  // setProcess(starProcess,myME, TVar::ZZGG);
-  // computeP(mZZ, mZ1, mZ2,
-  //        costhetastar,costheta1,costheta2,phi,phi1,flavor,
-  //        p_star);
-  //  prob = pMix- p0plus- p_star;
-  //
-
-  // setProcess(TVar::H0minus, myME, TVar::ZZGG);
-  // computeP(mZZ, mZ1, mZ2,
-  //        costhetastar,costheta1,costheta2,phi,phi1,flavor,
-  //        p0minus);                                        
-
-  //prob = (p0minus_plus - p0minus_g4star - p0plus ) / (p0minus + p0plus);
 
   double coupl_mix[SIZE_HVV][2] ={ { 0 } };
   double coupl_1[SIZE_HVV][2] ={ { 0 } };
@@ -506,6 +469,7 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
         if (myModel_ == TVar::H0minus)  constant = 6.4;
         if (myModel_ == TVar::H0hplus)  constant = 2.2;
         if (myModel_ == TVar::H2_g1g5)  constant = 9.5;
+        if (myModel_ == TVar::H2_g1)  constant = 5.5;
         if (myModel_ == TVar::H2_g4)  constant = 7.3e7;
         if (myModel_ == TVar::H2_g8)  constant = 1.1e8;
         if (myModel_ == TVar::H2_g5)  constant = 16.3;
@@ -521,6 +485,7 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
         if (myModel_ == TVar::H0minus)  constant = 6.5;
         if (myModel_ == TVar::H0hplus)  constant = 2.2;
         if (myModel_ == TVar::H2_g1g5)  constant = 9.3;
+        if (myModel_ == TVar::H2_g1)  constant = 5.5;
         if (myModel_ == TVar::H2_g4)  constant = 1.1e8;
         if (myModel_ == TVar::H2_g8)  constant = 1.9e8;
         if (myModel_ == TVar::H2_g5)  constant = 15.6;
@@ -539,6 +504,7 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
         if (myModel_ == TVar::H1minus)  constant = 4.6e5;
         if (myModel_ == TVar::H1plus)  constant = 4.0e5;
         if (myModel_ == TVar::H2_g1g5)  constant = 7.9;
+        if (myModel_ == TVar::H2_g1)  constant = 4.5;
         if (myModel_ == TVar::H2_g5) constant = 13.7977;
         if (myModel_ == TVar::H2_g4) constant = 5.12897e+07;
         if (myModel_ == TVar::H2_g2) constant = 477586;
@@ -554,6 +520,7 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
         if (myModel_ == TVar::H1minus)  constant = 4.6e5;
         if (myModel_ == TVar::H1plus)  constant = 4.0e5;
         if (myModel_ == TVar::H2_g1g5)  constant = 7.9;
+        if (myModel_ == TVar::H2_g1)  constant = 4.5;
         if (myModel_ == TVar::H2_g5) constant = 13.7289;
         if (myModel_ == TVar::H2_g4) constant = 7.57539e+07;
         if (myModel_ == TVar::H2_g2) constant = 476156;
@@ -938,26 +905,6 @@ void Mela::computeP_selfDspin2(
       }
       if (!checkImCoupl){
         configureAnalyticalPDFs();
-        if (myProduction_ == TVar::ZZGG || myProduction_==TVar::ZZINDEPENDENT){
-          spin2Model->fz1Val->setVal(0.);
-          spin2Model->fz2Val->setVal(1.);
-        }
-        if (myProduction_ == TVar::ZZQQB){
-          spin2Model->fz1Val->setVal(1.);
-          spin2Model->fz2Val->setVal(0.);
-        }
-        spin2Model->g1Val->setVal(selfDGvvcoupl[0][0]);
-        spin2Model->g2Val->setVal(selfDGvvcoupl[1][0]);
-        spin2Model->g3Val->setVal(selfDGvvcoupl[2][0]);
-        spin2Model->g4Val->setVal(selfDGvvcoupl[3][0]);
-        spin2Model->g5Val->setVal(selfDGvvcoupl[4][0]);
-        spin2Model->g6Val->setVal(selfDGvvcoupl[5][0]);
-        spin2Model->g7Val->setVal(selfDGvvcoupl[6][0]);
-        spin2Model->g8Val->setVal(selfDGvvcoupl[7][0]);
-        spin2Model->g9Val->setVal(selfDGvvcoupl[8][0]);
-        spin2Model->g10Val->setVal(selfDGvvcoupl[9][0]);
-
-        spin2Model->calculatefz2();
 
         if (myProduction_==TVar::ZZINDEPENDENT){
           RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
@@ -2084,7 +2031,6 @@ void Mela::configureAnalyticalPDFs(){
     || myModel_ == TVar::SelfDefine_spin0
     ){
     pdf = (RooAbsPdf*)ggSpin0Model->getPDF();
-
     ggSpin0Model->makeParamsConst(false);
     ggSpin0Model->resetHypotheses();
 
@@ -2169,7 +2115,76 @@ void Mela::configureAnalyticalPDFs(){
     ggSpin0Model->makeParamsConst(true);
   }
   else if (!spin1Model->configure(myModel_)) pdf = spin1Model->PDF;
-  else if (!spin2Model->configure(myModel_, myProduction_)) pdf = spin2Model->PDF;
+  else if (
+    myModel_ == TVar::H2_g1
+    || myModel_ == TVar::H2_g1g5
+    || myModel_ == TVar::H2_g2
+    || myModel_ == TVar::H2_g3
+    || myModel_ == TVar::H2_g4
+    || myModel_ == TVar::H2_g5
+    || myModel_ == TVar::H2_g6
+    || myModel_ == TVar::H2_g7
+    || myModel_ == TVar::H2_g8
+    || myModel_ == TVar::H2_g9
+    || myModel_ == TVar::H2_g10
+    || myModel_ == TVar::SelfDefine_spin2
+    ){
+    pdf = (RooAbsPdf*)spin2Model->getPDF();
+    spin2Model->makeParamsConst(false);
+    spin2Model->resetHypotheses();
+    // Add the hypotheses with best-guess coefficients
+    // ZZ/WW
+    if (
+      myModel_ == TVar::H2_g1
+      || myModel_ == TVar::H2_g1g5
+      ) spin2Model->addHypothesis(0, 1.);
+    if (
+      myModel_ == TVar::H2_g1g5
+      || myModel_ == TVar::H2_g5
+      ) spin2Model->addHypothesis(4, 1.);
+    if (myModel_ == TVar::H2_g2) spin2Model->addHypothesis(1, 1.);
+    if (myModel_ == TVar::H2_g3) spin2Model->addHypothesis(2, 1.);
+    if (myModel_ == TVar::H2_g4) spin2Model->addHypothesis(3, 1.);
+    if (myModel_ == TVar::H2_g5) spin2Model->addHypothesis(4, 1.);
+    if (myModel_ == TVar::H2_g6) spin2Model->addHypothesis(5, 1.);
+    if (myModel_ == TVar::H2_g7) spin2Model->addHypothesis(6, 1.);
+    if (myModel_ == TVar::H2_g8) spin2Model->addHypothesis(7, 1.);
+    if (myModel_ == TVar::H2_g9) spin2Model->addHypothesis(8, 1.);
+    if (myModel_ == TVar::H2_g10) spin2Model->addHypothesis(10, 1.);
+    // Self-defined spin-2
+    if (myModel_ == TVar::SelfDefine_spin2){
+      for (int ig=0; ig<SIZE_GVV; ig++){
+        for (int im=0; im<2; im++) ((RooRealVar*)spin2Model->parameters.bList[ig][im])->setVal(selfDGvvcoupl[ig][im]);
+      }
+    }
+    if (myProduction_ == TVar::ZZQQB){
+      spin2Model->setTensorPolarization(1, 1.);
+      spin2Model->setTensorPolarization(2, 0.);
+    }
+    else{
+      if (myModel_ == TVar::SelfDefine_spin2){
+        double c1 = 2*selfDGggcoupl[0][0] + 2.*selfDGggcoupl[1][0];
+        double c2 = -0.5*selfDGggcoupl[0][0] + selfDGggcoupl[2][0] + 2.*selfDGggcoupl[3][0];
+        double c5 = 4*selfDGggcoupl[7][0];
+        Double_t fppReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
+        Double_t fppImag = 1./sqrt(6.) * c5;
+        Double_t fmmReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
+        Double_t fmmImag = 1./sqrt(6.)* c5;
+        Double_t fmpReal = 1./4.*c1*2.;
+        Double_t fmpImag = 0;
+        Double_t fpp = fppImag*fppImag + fppReal*fppReal;
+        Double_t fmm = fmmImag*fmmImag + fmmReal*fmmReal;
+        Double_t fmp = fmpImag*fmpImag + fmpReal*fmpReal;
+        spin2Model->setTensorPolarization(1, 0.); // This is wrong in the strict sense of what "SelfDefine_spin2" is.
+        spin2Model->setTensorPolarization(2, 2.*fmp/(fmm+fpp+2.*fmp));
+      }
+      else{
+        spin2Model->setTensorPolarization(1, 0.);
+        spin2Model->setTensorPolarization(2, 1.);
+      }
+    }
+    spin2Model->makeParamsConst(true);
+  }
   else if (myME_ == TVar::ANALYTICAL) cout << "Mela::configureAnalyticalPDFs -> ERROR TVar::Process not applicable!!! ME: " << myME_ << ", model: " << myModel_ << endl;
 }
 

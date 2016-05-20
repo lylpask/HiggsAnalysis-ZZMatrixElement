@@ -9,6 +9,26 @@ void MELACandidate::sortDaughters(){
   createSortedVs();
 }
 
+std::vector<int> MELACandidate::getDaughterIds()const{
+  std::vector<int> result;
+  for (unsigned int idau=0; idau<sortedDaughters.size(); idau++){
+    if (sortedDaughters.at(idau)!=0) result.push_back(sortedDaughters.at(idau)->id);
+  }
+  return result;
+}
+std::vector<int> MELACandidate::getAssociatedParticleIds()const{
+  std::vector<int> result;
+  for (unsigned int ip=0; ip<associatedLeptons.size(); ip++){
+    if (associatedLeptons.at(ip)!=0) result.push_back(associatedLeptons.at(ip)->id);
+  }
+  for (unsigned int ip=0; ip<associatedPhotons.size(); ip++){
+    if (associatedPhotons.at(ip)!=0) result.push_back(associatedPhotons.at(ip)->id);
+  }
+  for (unsigned int ip=0; ip<associatedJets.size(); ip++){
+    if (associatedJets.at(ip)!=0) result.push_back(associatedJets.at(ip)->id);
+  }
+  return result;
+}
 MELAParticle* MELACandidate::getSortedDaughter(int index) const{
   if ((int)sortedDaughters.size()>index) return sortedDaughters.at(index);
   else return 0;
@@ -291,6 +311,18 @@ TLorentzVector MELACandidate::getAlternativeVMomentum(int index)const{
   }
   else return nullFourVector;
 }
+bool MELACandidate::daughtersInterfere()const{
+  bool doInterfere = false;
+  if (sortedDaughters.size()>3) doInterfere = (
+    (sortedDaughters.at(0))->id == (sortedDaughters.at(2))->id
+    &&
+    (sortedDaughters.at(1))->id == (sortedDaughters.at(3))->id
+    &&
+    !isAnUnknownJet(sortedDaughters.at(0)) && !isAnUnknownJet(sortedDaughters.at(2))
+    );
+  return doInterfere;
+}
+
 
 bool MELACandidate::checkDaughtership(MELAParticle* myMELAParticle)const{
   for (int dd=0; dd<getNDaughters(); dd++){

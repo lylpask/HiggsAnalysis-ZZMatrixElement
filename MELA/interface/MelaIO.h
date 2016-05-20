@@ -2,6 +2,7 @@
 #define MELAINPUTOUTPUT_H
 
 #include "TMCFM.hh"
+#include "MELACandidate.h"
 #include <iostream>
 #include <vector>
 
@@ -9,12 +10,15 @@ using namespace std;
 
 class MelaIO{
 private:
+
   double partonWeight[2][nmsq];
   double MEsq[nmsq][nmsq];
   double weightedMEsq[nmsq][nmsq];
   double sumME;
 
 public:
+
+  MELACandidate* melaCand; // Persistent container of the four-vectors, not owned by MelaIO
 
   void reset(){
     sumME=0;
@@ -77,7 +81,7 @@ public:
     }
   }
 
-  MelaIO(){ reset(); }
+  MelaIO(){ melaCand=0; reset(); }
 
   double getSumME(){ return sumME; }
   void getWeightedMEArray(double MEsq_[nmsq][nmsq]){

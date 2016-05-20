@@ -53,72 +53,54 @@ public:
 
   enum Process{
 
-    HSMHiggs          = 0,    //0+, replacing HZZ_4l, when production is ZZGG, replacing HJJNONVBF/HJJVBF/HJJVH, when production is JJGG/JJVBF/JJVH. Call this for MCFM |H|**2.
-    H0minus           = 1,    //0-, replacing PSHZZ_4l, when production is ZZGG, replacing PSHJJNONVBF/PSHJJVBF/PSHJJVH when production is JJGG/JJVBF/JJVH
-    H0hplus           = 2,    //0h+, replacing HDHZZ_4l
+    HSMHiggs,    //0+, call this for MCFM |H|**2.
+    H0minus,    //0-
+    H0hplus,    //0h+
+    H0_g1prime2,   //g1=0, g1prime2=-12046.01
+    H0_Zgs,
+    H0_gsgs,
+    H0_Zgs_PS,
+    H0_gsgs_PS,
+    H0_Zgsg1prime2,
 
-    H1minus           = 3,    //1-, replacing VZZ_4l
-    H1plus            = 4,    //1+, replacing AVZZ_4l
+    D_g1g4, // D_CP
+    D_g1g4_pi_2, // D_CP_T
+    D_g1g2,   // D_int
+    D_g1g2_pi_2, // D_int_T
+    D_g1g1prime2, // D_int_lambda1	
+    D_zzzg,
+    D_zzgg,
+    D_zzzg_PS,
+    D_zzgg_PS,
+    D_zzzg_g1prime2,
+    D_zzzg_g1prime2_pi_2,
 
-    H2_g8             = 5,    //2h-, replacing PTZZ_2hminus_4l	
-    H2_g4             = 6,    //2h+, replacing TZZ_2hplus_4l
-    H2_g5             = 7,    //2b+, replacing TZZ_2bplus_4l 
-    H2_g1g5           = 8,    //2m+, replacing TZZ_4l 
-    H2_g2					= 9, // 2h2+
-    H2_g3					= 10, // 2h3+
-    H2_g6					= 11, // 2h6+
-    H2_g7					= 12, // 2h7+
-    H2_g9					= 13, // 2h9-
-    H2_g10				= 14, // 2h10-
+    H1minus,    //1-
+    H1plus,    //1+
 
+    H2_g1, //2m+, Zg, gg
+    H2_g2, // 2h2+
+    H2_g3, // 2h3+
+    H2_g4, //2h+
+    H2_g5, //2b+ 
+    H2_g1g5, //2m+ 
+    H2_g6, // 2h6+
+    H2_g7, // 2h7+
+    H2_g8, //2h-
+    H2_g9, // 2h9-
+    H2_g10, // 2h10-
 
-    bkgZZ              = 15,    //qq->ZZ, replacing ZZ_2e2m & ZZ_4e, when production is ZZQQB, replacing GGZZ_4l when production is ggZZ, replacing SummedBackgrounds for superMela calculation 
-    bkgZZ_SMHiggs      =16,    //ggZZ+SMHiggs, ggZZ always calculated by MCFM, ME stands for SMHiggs ME, JHUGen: MCFM ggZZ + JHUGen SMHiggs, MCFM: MCFM (ggZZ+ SMHiggs) 
-
-    H0_g1prime2       = 17,   //g1=0, g1prime2=-12046.01, replacing H_g1prime2	
-
-    /***For interaction terms **/
-    D_g1g4            = 18,   //D_CP
-    D_g1g4_pi_2       = 19,   //D_CP_T
-    D_g1g2            = 20,   //D_int
-    D_g1g2_pi_2       = 21,   //D_int_T
-    D_g1g1prime2      = 22,   //D_int_lambda1	
+    bkgZZ,    //qq->ZZ
+    bkgZZ_SMHiggs,    //ggZZ+SMHiggs, ggZZ always calculated by MCFM, ME stands for SMHiggs ME, JHUGen: MCFM ggZZ + JHUGen SMHiggs, MCFM: MCFM (ggZZ+ SMHiggs)
+    /**** For width ***/
+    D_gg10,
 
     /***** Self Defined******/
-    SelfDefine_spin0  = 23,
-    SelfDefine_spin1  = 24,
-    SelfDefine_spin2  = 25,
-    /**** For width ***/
-    D_gg10						= 26,
-
-    H0_Zgs 						= 27,
-    H0_gsgs 					= 28,
-    D_zzzg						= 29,
-    D_zzgg						= 30,
-
-    H0_Zgs_PS 					= 31,
-    H0_gsgs_PS 					= 32,
-    D_zzzg_PS						= 33,
-    D_zzgg_PS						= 34,
-
-    H0_Zgsg1prime2						= 35,
-    D_zzzg_g1prime2						= 36,
-    D_zzzg_g1prime2_pi_2						= 37,
-
-    /*** Are these ones still used? ***/
-    //  QQB_TZZ_4l = 8,
-    //  TZZ_DECAY_4l = 10,
-    //  VZZ_DECAY_4l = 11,
-    //  AVZZ_DECAY_4l = 12,
-    //  HZZ_4l_MIXCP = 17,
+    SelfDefine_spin0,
+    SelfDefine_spin1,
+    SelfDefine_spin2,
 
     Null
-  };
-  enum LeptonFlavor{
-    Flavor_Dummy = 0, // legacy code runs on 1/2/3
-    Flavor_4e    = 1,
-    Flavor_4mu   = 2,
-    Flavor_2e2mu = 3
   };
   enum SuperMelaSyst{
     SMSyst_None      = 0, // nominal value
@@ -135,8 +117,11 @@ public:
     Fixed_mWPlusmH,
     Fixed_mZPlusmH,
     Fixed_TwomtPlusmH,
+    Fixed_mtPlusmH,
     Dynamic_qH,
     Dynamic_qJJH,
+    Dynamic_qJJ_qH,
+    Dynamic_qJ_qJ_qH,
     Dynamic_HT
   };
 
@@ -221,7 +206,7 @@ static const TString branch_format_particle =
   "Eta/D:"
   "Phi/D";
 
-// in development
+/*
 struct hzz4l_event_type{
   int PdgCode[4];
   TLorentzVector p[4];
@@ -243,6 +228,7 @@ struct mcfm_event_type{
   TLorentzVector p[8];
   double pswt;
 };
+*/
 
 struct event_scales_type{
   TVar::EventScaleScheme renomalizationScheme;
