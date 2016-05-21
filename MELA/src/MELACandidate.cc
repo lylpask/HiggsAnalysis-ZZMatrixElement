@@ -80,10 +80,10 @@ void MELACandidate::sortDaughtersInitial(){
     (df[0]!=0 && df[1]!=0)
     &&
     (
+    // Order by ubar(0)v(1)
     (df[0]->id<df[1]->id && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
     ||
-    //(std::abs(df[0]->id)<std::abs(df[1]->id) && PDGHelpers::HVVmass==PDGHelpers::Wmass) // Order by nu(0)l(1) / u(0)d(1)
-    (df[0]->id<df[1]->id && df[0]->id<0 && PDGHelpers::HVVmass==PDGHelpers::Wmass) // Order by ubar(0)v(1)
+    (df[0]->id<df[1]->id && df[0]->id<0 && PDGHelpers::HVVmass==PDGHelpers::Wmass)
     )
     ){
     MELAParticle* dtmp = df[0];
@@ -94,10 +94,10 @@ void MELACandidate::sortDaughtersInitial(){
     (ds[0]!=0 && ds[1]!=0)
     &&
     (
+    // Order by ubar(0)v(1)
     (ds[0]->id<ds[1]->id && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
     ||
-    //(std::abs(ds[0]->id)<std::abs(ds[1]->id) && PDGHelpers::HVVmass==PDGHelpers::Wmass) // Order by nu(0)l(1) / u(0)d(1)
-    (ds[0]->id<ds[1]->id && ds[0]->id<0 && PDGHelpers::HVVmass==PDGHelpers::Wmass) // Order by ubar(0)v(1)
+    (ds[0]->id<ds[1]->id && ds[0]->id<0 && PDGHelpers::HVVmass==PDGHelpers::Wmass)
     )
     ){
     MELAParticle* dtmp = ds[0];
@@ -376,15 +376,15 @@ void MELACandidate::createAssociatedVs(std::vector<MELAParticle*>& particleArray
       int bosonId=-1;
       if ((Qi+Qj)==0 && (id_i+id_j)==0) bosonId = (id_i==0 ? 0 : 23);
       else if (
-          abs(Qi+Qj)==1 // W boson
-          &&
-          (
-            ((PDGHelpers::isALepton(id_i) || PDGHelpers::isALepton(id_j)) && std::abs(id_i+id_j)==1) // Require SF lnu particle-antiparticle pairs
-          ||
-            (PDGHelpers::isUpTypeQuark(id_i) && PDGHelpers::isDownTypeQuark(id_j)) // Require ud- or du-type pairs, qqbar requirement is satisfied with charge.
-          ||
-            (PDGHelpers::isDownTypeQuark(id_i) && PDGHelpers::isUpTypeQuark(id_j))
-          )
+        abs(Qi+Qj)==1 // W boson
+        &&
+        (
+        ((PDGHelpers::isALepton(id_i) || PDGHelpers::isALepton(id_j)) && std::abs(id_i+id_j)==1) // Require SF lnu particle-antiparticle pairs
+        ||
+        (PDGHelpers::isUpTypeQuark(id_i) && PDGHelpers::isDownTypeQuark(id_j)) // Require ud- or du-type pairs, qqbar requirement is satisfied with charge.
+        ||
+        (PDGHelpers::isDownTypeQuark(id_i) && PDGHelpers::isUpTypeQuark(id_j))
+        )
         ) bosonId=24*(Qi+Qj);
 
       if (bosonId!=-1){
@@ -394,7 +394,8 @@ void MELACandidate::createAssociatedVs(std::vector<MELAParticle*>& particleArray
         if (
           (particleArray.at(firstdaughter)->id<particleArray.at(seconddaughter)->id && !PDGHelpers::isAWBoson(bosonId))
           ||
-          (std::abs(particleArray.at(firstdaughter)->id)<std::abs(particleArray.at(seconddaughter)->id) && PDGHelpers::isAWBoson(bosonId))
+          //(std::abs(particleArray.at(firstdaughter)->id)<std::abs(particleArray.at(seconddaughter)->id) && PDGHelpers::isAWBoson(bosonId)) // Order by nu-l / u-d
+          (particleArray.at(firstdaughter)->id<particleArray.at(seconddaughter)->id && particleArray.at(firstdaughter)->id<0 && PDGHelpers::isAWBoson(bosonId)) // Order by f-f'b
           ){
           firstdaughter = j; seconddaughter = i;
         }

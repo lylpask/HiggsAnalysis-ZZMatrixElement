@@ -827,11 +827,27 @@ bool My_smalls(double s[][mxpart],int npart){
 //
 double SumMatrixElementPDF(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
-  event_scales_type* event_scales, mcfm_event_type* mcfm_event, MelaIO* RcdME,
+  event_scales_type* event_scales, MelaIO* RcdME,
   double* flux, double EBEAM, double coupling[SIZE_HVV_FREENORM]
   ){
+
+  int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
+  if (
+    ((process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ) && production==TVar::JJVBF)
+    ) partIncCode=TVar::kUseAssociated_Jets; // Use asociated jets in the pT=0 frame boost
+
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    mela_event.intermediateVid,
+    partIncCode
+    );
+
   double xx[2]={ 0 };
-  if (!CheckPartonMomFraction(mcfm_event->p[0], mcfm_event->p[1], xx, TVar::ERROR, EBEAM)) return 0;
+  if (!CheckPartonMomFraction(mela_event.pMothers.at(0).second, mela_event.pMothers.at(1).second, xx, TVar::ERROR, EBEAM)) return 0;
 
   TLorentzVector MomStore[mxpart];
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
@@ -846,22 +862,32 @@ double SumMatrixElementPDF(
   //Convert TLorentzVector into 4xNPart Matrix
   //reverse sign of incident partons
   for(int ipar=0;ipar<2;ipar++){    
-    if(mcfm_event->p[ipar].Energy()>0){
-      p4[0][ipar] = -mcfm_event->p[ipar].Px();
-      p4[1][ipar] = -mcfm_event->p[ipar].Py();
-      p4[2][ipar] = -mcfm_event->p[ipar].Pz();
-      p4[3][ipar] = -mcfm_event->p[ipar].Energy();
-      MomStore[ipar].SetXYZT(mcfm_event->p[ipar].X(), mcfm_event->p[ipar].Y(), mcfm_event->p[ipar].Z(), mcfm_event->p[ipar].T());
+    if(mela_event.pMothers.at(ipar).second.T()>0){
+      p4[0][ipar] = -mela_event.pMothers.at(ipar).second.X();
+      p4[1][ipar] = -mela_event.pMothers.at(ipar).second.Y();
+      p4[2][ipar] = -mela_event.pMothers.at(ipar).second.Z();
+      p4[3][ipar] = -mela_event.pMothers.at(ipar).second.T();
+      MomStore[ipar] = mela_event.pMothers.at(ipar).second;
+    }
+    else{
+      p4[0][ipar] = mela_event.pMothers.at(ipar).second.X();
+      p4[1][ipar] = mela_event.pMothers.at(ipar).second.Y();
+      p4[2][ipar] = mela_event.pMothers.at(ipar).second.Z();
+      p4[3][ipar] = mela_event.pMothers.at(ipar).second.T();
+      MomStore[ipar] = -mela_event.pMothers.at(ipar).second;
     }
   }
 
   //initialize decayed particles
-  for (int ipar=2; ipar<NPart; ipar++){
-    p4[0][ipar] = mcfm_event->p[ipar].Px();
-    p4[1][ipar] = mcfm_event->p[ipar].Py();
-    p4[2][ipar] = mcfm_event->p[ipar].Pz();
-    p4[3][ipar] = mcfm_event->p[ipar].Energy();
-    MomStore[ipar].SetXYZT(mcfm_event->p[ipar].X(), mcfm_event->p[ipar].Y(), mcfm_event->p[ipar].Z(), mcfm_event->p[ipar].T());
+  for (int ipar=2; ipar<std::min(NPart, mela_event.pDaughters.size()+mela_event.pAssociated.size()+2); ipar++){
+    TLorentzVector* momTmp;
+    if (ipar<mela_event.pDaughters.size()+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
+    else momTmp=&(mela_event.pAssociated.at(ipar-2).second);
+    p4[0][ipar] = momTmp->X();
+    p4[1][ipar] = momTmp->Y();
+    p4[2][ipar] = momTmp->Z();
+    p4[3][ipar] = momTmp->T();
+    MomStore[ipar]=*momTmp;
   }
 
   //for (int i=0; i<NPart; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << std::endl;
@@ -888,10 +914,6 @@ double SumMatrixElementPDF(
   }
   
   bool passMassCuts=true;
-  // remove events has small invariant mass
-////  if(My_masscuts(s,process)) return 0.0;
-//  if (My_smalls(s, npart_.npart)) passMassCuts=false;
-
   if (passMassCuts){
     if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
     if (production == TVar::ZZQQB_STU && process == TVar::bkgZZ){
@@ -919,7 +941,6 @@ double SumMatrixElementPDF(
     // Below code sums over all production parton flavors according to PDF
     // This is disabled as we are not using the intial production information
     // the below code is fine for the particle produced by single flavor of incoming partons
-
     for(int ii=0;ii<nmsq;ii++){
       for(int jj=0;jj<nmsq;jj++){
 
@@ -933,12 +954,12 @@ double SumMatrixElementPDF(
       }//ii
     //cout<<"\n";
     }//jj
-      */
     // by default assume only gg productions 
     // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
     //     parton flavor bbar cbar sbar ubar dbar g d u s c b
     // C++ convention     0     1   2    3    4   5 6 7 8 9 10
     //
+    */
     double msqjk_sum = SumMEPDF(mcfm_event->p[0], mcfm_event->p[1], msq, RcdME, TVar::ERROR, EBEAM);
     if (process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production ==TVar::ZZINDEPENDENT)) msqjk = msq[3][7] + msq[7][3]; // all of the unweighted MEs are the same
     else if ((process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ) && production==TVar::JJVBF) msqjk = msqjk_sum; // MCFM VVH sum
@@ -959,15 +980,32 @@ double SumMatrixElementPDF(
   return msqjk;
 }
 
-//
-// Test code from Markus to calculate the HZZ cross-section
-// 
-double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_event_type* mcfm_event){
-  // input unit = GeV/100 such that 125GeV is 1.25 in the code
-  // this needs to be applied for all the p4
-  double p4[6][4];
+
+double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* RcdME){
+  const double GeV=1./100.;
+  double p4[6][4]={ { 0. } };
   double MatElSq=0;
-  int MYIDUP[4];
+  int MYIDUP_tmp[4]={ 0 }; // Initial assignment array. 0==Unassigned
+  int MYIDUP[4]={ 0 }; // The one that is actually used
+  int idfirst[2]={ 0 };
+  int idsecond[2]={ 0 };
+  vector<int> idarray[4];
+
+  // Notice that partIncCode is specific for this subroutine
+  int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    mela_event.intermediateVid,
+    partIncCode
+    );
+  if (mela_event.pDaughters.size()<2 || mela_event.intermediateVid.size()!=2){
+    cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
+    return 0.;
+  }
 
   bool isSpinZero = (
     process == TVar::HSMHiggs
@@ -988,6 +1026,7 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
     );
   bool isSpinTwo = (
     process == TVar::H2_g1g5
+    || process == TVar::H2_g1
     || process == TVar::H2_g8
     || process == TVar::H2_g4
     || process == TVar::H2_g5
@@ -1003,95 +1042,196 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, mcfm_even
   int NPart = 6;
   // p(i,0:3) = (E(i),px(i),py(i),pz(i))
   // i=0,1: glu1,glu2 (outgoing convention)
-  // i=2,3: correspond to MY_IDUP(1),MY_IDUP(0)
-  // i=4,5: correspond to MY_IDUP(3),MY_IDUP(2)
-
+  // i=2,3: correspond to MY_IDUP(0),MY_IDUP(1)
+  // i=4,5: correspond to MY_IDUP(2),MY_IDUP(3)
   for (int ipar=0; ipar<2; ipar++){
-    if (mcfm_event->p[ipar].Energy()>0){
-      p4[ipar][0] = -mcfm_event->p[ipar].Energy()/100.;
-      p4[ipar][1] = -mcfm_event->p[ipar].Px()/100.;
-      p4[ipar][2] = -mcfm_event->p[ipar].Py()/100.;
-      p4[ipar][3] = -mcfm_event->p[ipar].Pz()/100.;
+    if (mela_event.pMothers.at(ipar).second.T()>0){
+      p4[ipar][0] = -mela_event.pMothers.at(ipar).second.T()*GeV;
+      p4[ipar][1] = -mela_event.pMothers.at(ipar).second.X()*GeV;
+      p4[ipar][2] = -mela_event.pMothers.at(ipar).second.Y()*GeV;
+      p4[ipar][3] = -mela_event.pMothers.at(ipar).second.Z()*GeV;
     }
+    else{
+      p4[ipar][0] = mela_event.pMothers.at(ipar).second.T()*GeV;
+      p4[ipar][1] = mela_event.pMothers.at(ipar).second.X()*GeV;
+      p4[ipar][2] = mela_event.pMothers.at(ipar).second.Y()*GeV;
+      p4[ipar][3] = mela_event.pMothers.at(ipar).second.Z()*GeV;
+    }
+    // From Markus: 
+    // Note that the momentum no.2, p(1:4, 2), is a dummy which is not used in case production==TVar::ZZINDEPENDENT.
+    if (ipar==1 && production==TVar::ZZINDEPENDENT){ for (int ix=0; ix<4; ix++){ p4[0][ix] += p4[ipar][ix]; p4[ipar][ix]=0.; } }
   }
   //initialize decayed particles
-  for (int ipar=2; ipar<NPart; ipar++){
-    p4[ipar][0] = mcfm_event->p[ipar].Energy()/100.;
-    p4[ipar][1] = mcfm_event->p[ipar].Px()/100.;
-    p4[ipar][2] = mcfm_event->p[ipar].Py()/100.;
-    p4[ipar][3] = mcfm_event->p[ipar].Pz()/100.;
-  }
+  if (mela_event.pDaughters.size()==2){
+    for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+      TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
+      int* idtmp = &(mela_event.pDaughters.at(ipar).first);
 
-  // particle ID: +7=e+,  -7=e-,  +8=mu+,  -8=mu-
-
-  if (
-    TMath::Abs(mcfm_event->PdgCode[2]) == TMath::Abs(mcfm_event->PdgCode[3])
-    &&
-    TMath::Abs(mcfm_event->PdgCode[3]) == TMath::Abs(mcfm_event->PdgCode[4])
-    &&
-    TMath::Abs(mcfm_event->PdgCode[4]) == TMath::Abs(mcfm_event->PdgCode[5])
-    ){
-    if (TMath::Abs(mcfm_event->PdgCode[2]) == 11) {
-      MYIDUP[0]=+7;
-      MYIDUP[1]=-7;
-      MYIDUP[2]=+7;
-      MYIDUP[3]=-7;
-    }
-    else if (TMath::Abs(mcfm_event->PdgCode[2]) == 13) {
-      MYIDUP[0]=+8;
-      MYIDUP[1]=-8;
-      MYIDUP[2]=+8;
-      MYIDUP[3]=-8;
+      int arrindex = ipar;
+      if (PDGHelpers::isAPhoton(*idtmp) && ipar==1) arrindex=2;
+      if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[arrindex] = *idtmp;
+      else MYIDUP_tmp[ipar] = 0;
+      p4[arrindex+2][0] = momTmp->T()*GeV;
+      p4[arrindex+2][1] = momTmp->X()*GeV;
+      p4[arrindex+2][2] = momTmp->Y()*GeV;
+      p4[arrindex+2][3] = momTmp->Z()*GeV;
     }
   }
   else{
-    MYIDUP[0]=+7;
-    MYIDUP[1]=-7;
-    MYIDUP[2]=+8;
-    MYIDUP[3]=-8;
-  }
+    for (int ipar=0; ipar<4; ipar++){
+      if (ipar<mela_event.pDaughters.size()){
+        TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
+        int* idtmp = &(mela_event.pDaughters.at(ipar).first);
 
-  if (production == TVar::ZZGG){
-    if (isSpinZero){
-      //__modkinematics_MOD_evalalphas();
-      __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElSq);
+        if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[ipar] = *idtmp;
+        else MYIDUP_tmp[ipar] = 0;
+        p4[ipar+2][0] = momTmp->T()*GeV;
+        p4[ipar+2][1] = momTmp->X()*GeV;
+        p4[ipar+2][2] = momTmp->Y()*GeV;
+        p4[ipar+2][3] = momTmp->Z()*GeV;
+      }
+      else MYIDUP_tmp[ipar] = -9000; // No need to set p4, which is already 0 by initialization
+      // __modparameters_MOD_not_a_particle__?
     }
-    else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElSq);
+    cout << "MYIDUP_tmp[" << ipar << "]=" << MYIDUP_tmp[ipar] << endl;
   }
-  else if (production == TVar::ZZQQB){
-    if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, MYIDUP, &MatElSq);
-    else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, MYIDUP, &MatElSq);
-  }
-  else if (production == TVar::ZZINDEPENDENT){
-    // special treatment of the 4-vectors
-    // From Markus: 
-    // Note that the momentum no.2, p(1:4,2), is a dummy which is not used. Momentum no.1,
-    // p(1:4,1) = (/   -1.25d0,    0.00d0,    0.00d0,    0.00d0   /),
-    // is the resonance momentum in its rest frame, which is crossed into the final state, 
-    // i.e. the physical momentum is  -p(1:4,1) with a mass of 125GeV.
-    double P[6][4];
-    P[0][0]=-(mcfm_event->p[0]+mcfm_event->p[1]).M()/100.;
-    P[0][1]=0.0;
-    P[0][2]=0.0;
-    P[0][3]=0.0;
 
-    P[1][0]=0.0;
-    P[1][1]=0.0;
-    P[1][2]=0.0;
-    P[1][3]=0.0;
-
-    // initialize decayed particles
-    for (int ipar=2; ipar<NPart; ipar++){
-      P[ipar][0] = mcfm_event->p[ipar].Energy()/100.;
-      P[ipar][1] = mcfm_event->p[ipar].Px()/100.;
-      P[ipar][2] = mcfm_event->p[ipar].Py()/100.;
-      P[ipar][3] = mcfm_event->p[ipar].Pz()/100.;
+  // In case the ordering happens to be antiparticle-particle or invalid-photon, swap momenta
+  for (int iv=0; iv<2; iv++){
+    int ivd_i = 2*iv+0;
+    int ivd_j = 2*iv+1;
+    if (
+      (MYIDUP_tmp[ivd_i]<0 && MYIDUP_tmp[ivd_j]>0)
+      ||
+      (MYIDUP_tmp[ivd_i]==-9000 && PDGHelpers::isAPhoton(MYIDUP_tmp[ivd_j]))
+      ){
+      MYIDUP_tmp[ivd_i] = MYIDUP_tmp[ivd_i] + MYIDUP_tmp[ivd_j];
+      MYIDUP_tmp[ivd_j] = MYIDUP_tmp[ivd_i] - MYIDUP_tmp[ivd_j];
+      MYIDUP_tmp[ivd_i] = MYIDUP_tmp[ivd_i] - MYIDUP_tmp[ivd_j];
+      for (int ix=0; ix<4; ix++){
+        p4[ivd_i][ix] = p4[ivd_i][ix] + p4[ivd_j][ix];
+        p4[ivd_j][ix] = p4[ivd_i][ix] - p4[ivd_j][ix];
+        p4[ivd_i][ix] = p4[ivd_i][ix] - p4[ivd_j][ix];
+      }
     }
-
-    if (isSpinZero) __modhiggs_MOD_evalamp_h_vv(P, MYIDUP, &MatElSq);
-    else if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(P, MYIDUP, &MatElSq);
-    else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(P, MYIDUP, &MatElSq);
   }
+
+  for (int idau=0; idau<4; idau++) cout << "MYIDUP_tmp[" << idau << "]=" << MYIDUP_tmp[idau] << endl;
+
+  for (int idau=0; idau<4; idau++){
+    // If is is known, just assign it.
+    if (MYIDUP_tmp[idau]!=0) idarray[idau].push_back(MYIDUP_tmp[idau]);
+    else{
+      if (idau<2 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))){ // Z->ffb
+        if (MYIDUP_tmp[1-idau]!=0) idarray[idau].push_back(-MYIDUP_tmp[1-idau]); // Z->f+unknown (I don't know how this could happen, but cover this case as well)
+        else if(idau==0){
+          for (int iquark=1; iquark<=5; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
+            idarray[idau].push_back(iquark);
+            idarray[1-idau].push_back(-iquark);
+          }
+        }
+      }
+      else if (idau<2 && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))){ // (W+)->ffb
+        if (MYIDUP_tmp[1-idau]!=0){ // One quark is known
+          if (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1-idau])){
+            int id_dn = TMath::Sign(1, -MYIDUP_tmp[1-idau]);
+            int id_st = TMath::Sign(3, -MYIDUP_tmp[1-idau]);
+            int id_bt = TMath::Sign(5, -MYIDUP_tmp[1-idau]);
+            idarray[idau].push_back(id_dn);
+            idarray[idau].push_back(id_st);
+            idarray[idau].push_back(id_bt);
+          }
+          else if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1-idau])){
+            int id_up = TMath::Sign(2, -MYIDUP_tmp[1-idau]);
+            int id_ch = TMath::Sign(4, -MYIDUP_tmp[1-idau]);
+            idarray[idau].push_back(id_up);
+            idarray[idau].push_back(id_ch);
+          }
+        }
+        else if (idau==0){ // Both quarks unknown
+          for (int iquark=1; iquark<=5; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
+            if (PDGHelpers::isUpTypeQuark(iquark)) idarray[idau].push_back(iquark); // Assign u to f
+            else idarray[1-idau].push_back(-iquark); // Assign db to fb
+          }
+        }
+      }
+      if (idau>=2 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))){ // Z->ffb
+        if (MYIDUP_tmp[5-idau]!=0) idarray[idau].push_back(-MYIDUP_tmp[5-idau]); // Z->f+unknown (I don't know how this could happen, but cover this case as well)
+        else if (idau==2){
+          for (int iquark=1; iquark<=5; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
+            idarray[idau].push_back(iquark);
+            idarray[5-idau].push_back(-iquark);
+          }
+        }
+      }
+      else if (idau>=2 && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))){ // (W-)->ffb
+        if (MYIDUP_tmp[5-idau]!=0){ // One quark is known
+          if (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[5-idau])){
+            int id_dn = TMath::Sign(1, -MYIDUP_tmp[5-idau]);
+            int id_st = TMath::Sign(3, -MYIDUP_tmp[5-idau]);
+            int id_bt = TMath::Sign(5, -MYIDUP_tmp[5-idau]);
+            idarray[idau].push_back(id_dn);
+            idarray[idau].push_back(id_st);
+            idarray[idau].push_back(id_bt);
+          }
+          if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[5-idau])){
+            int id_up = TMath::Sign(2, -MYIDUP_tmp[5-idau]);
+            int id_ch = TMath::Sign(4, -MYIDUP_tmp[5-idau]);
+            idarray[idau].push_back(id_up);
+            idarray[idau].push_back(id_ch);
+          }
+        }
+        else if (idau==2){ // Both quarks unknown
+          for (int iquark=-5; iquark<=-1; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
+            if (PDGHelpers::isDownTypeQuark(iquark)) idarray[idau].push_back(-iquark); // Assign d to f
+            else idarray[5-idau].push_back(iquark); // Assign ub to fb
+          }
+        }
+      }
+    }
+  }
+
+  double nNonZero=0.;
+  for (int d1=0; d1<idarray[0].size(); d1++){
+    for (int d2=0; d2<idarray[1].size(); d2++){
+      for (int d3=0; d1<idarray[2].size(); d3++){
+        for (int d4=0; d1<idarray[3].size(); d4++){
+          // Convert the particles
+          MYIDUP[0] = convertLHEreverse(&(idarray[0].at(d1)));
+          MYIDUP[1] = convertLHEreverse(&(idarray[1].at(d2)));
+          MYIDUP[2] = convertLHEreverse(&(idarray[2].at(d3)));
+          MYIDUP[3] = convertLHEreverse(&(idarray[3].at(d4)));
+          // TEST: Print particles
+          for (int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl;
+          // Determine M_V and Ga_V in JHUGen, needed for g1 vs everything else.
+          for (int ip=0; ip<2; ip++){ idfirst[ip]=MYIDUP[ip]; idsecond[ip]=MYIDUP[ip+2]; }
+          __modparameters_MOD_setdecaymodes(idfirst, idsecond); // Set M_V and Ga_V in JHUGen
+
+          double MatElTmp=0.;
+          if (production == TVar::ZZGG){
+            if (isSpinZero){
+              //__modkinematics_MOD_evalalphas();
+              __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
+            }
+            else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElTmp);
+          }
+          else if (production == TVar::ZZQQB){
+            if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, MYIDUP, &MatElTmp);
+            else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, MYIDUP, &MatElTmp);
+          }
+          else if (production == TVar::ZZINDEPENDENT){
+            if (isSpinZero) __modhiggs_MOD_evalamp_h_vv(p4, MYIDUP, &MatElTmp);
+            else if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(p4, MYIDUP, &MatElTmp);
+            else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
+          }
+          MatElSq += MatElTmp;
+          if (MatElTmp>0.) nNonZero += 1.;
+        }
+      }
+    }
+  }
+  MatElSq /= nNonZero;
+  cout << "Number of matrix element instances computed: " << nNonZero << endl;
 
 /*
   printf("\n ");
@@ -1562,6 +1702,115 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
   RcdME->computeWeightedMEArray();
   RcdME->getWeightedMEArray(wgt_msq);
   return RcdME->getSumME();
+}
+
+
+void GetBoostedParticleVectors( // Should be put inside TUtil since different types of associated particles would need to be used (use gammas vs jets etc.)
+  MELACandidate* melaCand,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
+  std::vector<int>& intermediateVid,
+  int useAssociatedCode
+  ){
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> daughters;
+  std::vector<int> idVstar;
+  if (melaCand->getNDaughters()==0){
+    // Undecayed Higgs has V1=H, V2=empty, no sortedDaughters!
+    daughters.push_back(
+      std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->id, melaCand->p4)
+      );
+    idVstar.push_back(melaCand->id);
+  }
+  else{
+    // H->ffb has V1=f->f, V2=fb->fb
+    // H->GG has V1=G->G, V2=G->G
+    // H->ZG has V1=Z->ffb, V2=G->G
+    // Everything else is as expected.
+    for (int iv=0; iv<2; iv++){ // 2 Vs are guaranteed in MELACandidate.
+      MELAParticle* Vdau = melaCand->getSortedV(iv);
+      if (Vdau!=0){
+        int idtmp = Vdau->id;
+        for (int ivd=0; ivd<Vdau->getNDaughters(); ivd++){
+          MELAParticle* Vdau_i = Vdau->getDaughter(ivd);
+          if (Vdau_i!=0) daughters.push_back(
+            std::pair<std::vector<int>, std::vector<TLorentzVector>>(Vdau_i->id, Vdau_i->p4)
+            );
+        }
+        if (idtmp!=0 || Vdau->getNDaughters()>0){ // Avoid "empty" intermediate Vs of the MELACandidate object
+          if (Vdau->getNDaughters()>=2 && isAPhoton(idtmp)) idtmp=23; // Special case to avoid V->2f with HVVmass==Zeromass setting (could happen by mistake)
+          idVstar.push_back(idtmp);
+        }
+      }
+    }
+  }
+
+  std::pair<std::vector<int>, std::vector<TLorentzVector>> associated;
+  if (code%TVar::kUseAssociated_Leptons){
+    for (int ip=0; ip<melaCand->getNAssociatedLeptons(); ip++){
+      if (melaCand->getAssociatedLepton(ip)!=0) associated.push_back(
+        std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedLepton(ip)->id, melaCand->getAssociatedLepton(ip)->p4)
+        );
+    }
+  }
+  if (code%TVar::kUseAssociated_Photons){
+    for (int ip=0; ip<melaCand->getNAssociatedPhotons(); ip++){
+      if (melaCand->getAssociatedPhoton(ip)!=0) associated.push_back(
+        std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedPhoton(ip)->id, melaCand->getAssociatedPhoton(ip)->p4)
+        );
+    }
+  }
+  if (code%TVar::kUseAssociated_Jets){
+    for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
+      if (melaCand->getAssociatedJet(ip)!=0) associated.push_back(
+        std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedJet(ip)->id, melaCand->getAssociatedJet(ip)->p4)
+        );
+    }
+  }
+
+  TLorentzVector pTotal(0, 0, 0, 0);
+  for (unsigned int ip=0; ip<daughters.size(); ip++) pTotal = pTotal + daughters.at(ip).second;
+  if (useAssociated){ for (unsigned int ip=0; ip<associated.size(); ip++) pTotal = pTotal + associated.at(ip).second; }
+
+  double qX = pTotal.X();
+  double qY = pTotal.Y();
+  double qE = pTotal.T();;
+  if ((qX*qX+qY*qY)>0.){
+    TVector3 boostV(-qX/qE, -qY/qE, 0.);
+    for (unsigned int ip=0; ip<daughters.size(); ip++) daughters.at(ip).second.Boost(boostV);
+    for (unsigned int ip=0; ip<associated.size(); ip++) associated.at(ip).second.Boost(boostV);
+    pTotal.Boost(boostV);
+  }
+
+  double sysPz= pTotal.Z();
+  double sysE = pTotal.T();
+  double pz0 = (sysE+sysPz)/2.;
+  double pz1 = -(sysE-sysPz)/2.;
+  if (melaCand->getNMothers()==2){
+    if ((melaCand->getMother(0)->p4).Z()<0.){
+      double pztmp = pz1;
+      pz1=pz0;
+      pz0=pztmp;
+    }
+  }
+  TLorentzVector pM[2];
+  pM[0].SetPxPyPzE(0., 0., pz0, TMath::Abs(pz0));
+  pM[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
+
+  pDaughters.clear();
+  for (unsigned int ip=0; ip<daughters.size(); ip++) pDaughters.push_back(daughters.at(ip));
+  intermediateVid.clear();
+  for (unsigned int ip=0; ip<idVstar.size(); ip++) intermediateVid.push_back(idVstar.at(ip));
+  pAssociated.clear();
+  for (unsigned int ip=0; ip<associated.size(); ip++) pAssociated.push_back(associated.at(ip));
+  pMothers.clear();
+  for (unsigned int ip=0; ip<2; ip++){
+    int idmother = 0; // In case it is unknown.
+    if (melaCand->getNMothers()==2) idmother = melaCand->getMother(ip)->id;
+    pMothers.push_back(
+      std::pair<std::vector<int>, std::vector<TLorentzVector>>(idmother, pM[ip])
+      );
+  }
 }
 
 

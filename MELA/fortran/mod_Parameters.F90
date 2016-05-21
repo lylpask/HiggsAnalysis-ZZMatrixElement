@@ -614,91 +614,29 @@ subroutine SetDecayModes(idfirst,idsecond)
    implicit none
    integer, intent(in) :: idfirst(1:2)
    integer, intent(in) :: idsecond(1:2)
+   integer :: idV(1:2)
 
    if( idfirst(1).eq.Pho_ .or. idfirst(2).eq.Pho_ ) then
       DecayMode1 = 7
-   elseif( &
-   (idfirst(1).eq.ElM_ .and. idfirst(2).eq.ANuE_) .or. (idfirst(2).eq.ElM_ .and. idfirst(1).eq.ANuE_) .or. &
-   (idfirst(1).eq.MuM_ .and. idfirst(2).eq.ANuM_) .or. (idfirst(2).eq.MuM_ .and. idfirst(1).eq.ANuM_) .or. &
-   (idfirst(1).eq.TaM_ .and. idfirst(2).eq.ANuT_) .or. (idfirst(2).eq.TaM_ .and. idfirst(1).eq.ANuT_) .or. &
-   (idfirst(1).eq.ElP_ .and. idfirst(2).eq.NuE_) .or. (idfirst(2).eq.ElP_ .and. idfirst(1).eq.NuE_) .or. &
-   (idfirst(1).eq.MuP_ .and. idfirst(2).eq.NuM_) .or. (idfirst(2).eq.MuP_ .and. idfirst(1).eq.NuM_) .or. &
-   (idfirst(1).eq.TaP_ .and. idfirst(2).eq.NuT_) .or. (idfirst(2).eq.TaP_ .and. idfirst(1).eq.NuT_)      &
-   ) then
-      DecayMode1=10
-   elseif( &
-   (idfirst(1).eq.AUp_  .and. (idfirst(2).eq.Dn_ .or. idfirst(2).eq.Str_ .or. idfirst(2).eq.Bot_)) .or. (idfirst(2).eq.AUp_  .and. (idfirst(1).eq.Dn_ .or. idfirst(1).eq.Str_ .or. idfirst(1).eq.Bot_)) .or. &
-   (idfirst(1).eq.AChm_ .and. (idfirst(2).eq.Dn_ .or. idfirst(2).eq.Str_ .or. idfirst(2).eq.Bot_)) .or. (idfirst(2).eq.AChm_ .and. (idfirst(1).eq.Dn_ .or. idfirst(1).eq.Str_ .or. idfirst(1).eq.Bot_)) .or. &
-   (idfirst(1).eq.ATop_ .and. (idfirst(2).eq.Dn_ .or. idfirst(2).eq.Str_ .or. idfirst(2).eq.Bot_)) .or. (idfirst(2).eq.ATop_ .and. (idfirst(1).eq.Dn_ .or. idfirst(1).eq.Str_ .or. idfirst(1).eq.Bot_)) .or. &
-   (idfirst(1).eq.Up_  .and. (idfirst(2).eq.ADn_ .or. idfirst(2).eq.AStr_ .or. idfirst(2).eq.ABot_)) .or. (idfirst(2).eq.Up_  .and. (idfirst(1).eq.ADn_ .or. idfirst(1).eq.AStr_ .or. idfirst(1).eq.ABot_)) .or. &
-   (idfirst(1).eq.Chm_ .and. (idfirst(2).eq.ADn_ .or. idfirst(2).eq.AStr_ .or. idfirst(2).eq.ABot_)) .or. (idfirst(2).eq.Chm_ .and. (idfirst(1).eq.ADn_ .or. idfirst(1).eq.AStr_ .or. idfirst(1).eq.ABot_)) .or. &
-   (idfirst(1).eq.Top_ .and. (idfirst(2).eq.ADn_ .or. idfirst(2).eq.AStr_ .or. idfirst(2).eq.ABot_)) .or. (idfirst(2).eq.Top_ .and. (idfirst(1).eq.ADn_ .or. idfirst(1).eq.AStr_ .or. idfirst(1).eq.ABot_))      &
-   ) then
-      DecayMode1=5
-   elseif( &
-   (idfirst(1).eq.ElM_ .and. idfirst(2).eq.ElP_) .or. (idfirst(2).eq.ElM_ .and. idfirst(1).eq.ElP_) .or. &
-   (idfirst(1).eq.MuM_ .and. idfirst(2).eq.MuP_) .or. (idfirst(2).eq.MuM_ .and. idfirst(1).eq.MuP_) .or. &
-   (idfirst(1).eq.TaM_ .and. idfirst(2).eq.TaP_) .or. (idfirst(2).eq.TaM_ .and. idfirst(1).eq.TaP_)      &
-   ) then
-      DecayMode1=8
-   elseif( &
-   (idfirst(1).eq.Up_  .and. idfirst(2).eq.AUp_) .or. (idfirst(2).eq.Up_  .and. idfirst(1).eq.AUp_) .or. &
-   (idfirst(1).eq.Dn_  .and. idfirst(2).eq.ADn_) .or. (idfirst(2).eq.Dn_  .and. idfirst(1).eq.ADn_) .or. &
-   (idfirst(1).eq.Chm_ .and. idfirst(2).eq.AChm_) .or. (idfirst(2).eq.Chm_ .and. idfirst(1).eq.AChm_) .or. &
-   (idfirst(1).eq.Str_ .and. idfirst(2).eq.AStr_) .or. (idfirst(2).eq.Str_ .and. idfirst(1).eq.Astr_) .or. &
-   (idfirst(1).eq.Top_ .and. idfirst(2).eq.ATop_) .or. (idfirst(2).eq.Top_ .and. idfirst(1).eq.ATop_) .or. &
-   (idfirst(1).eq.Bot_ .and. idfirst(2).eq.ABot_) .or. (idfirst(2).eq.Bot_ .and. idfirst(1).eq.ABot_)      &
-   ) then
-      DecayMode1=1
-   elseif( &
-   (idfirst(1).eq.NuE_ .and. idfirst(2).eq.ANuE_) .or. (idfirst(2).eq.NuE_ .and. idfirst(1).eq.ANuE_) .or. &
-   (idfirst(1).eq.NuM_ .and. idfirst(2).eq.ANuM_) .or. (idfirst(2).eq.NuM_ .and. idfirst(1).eq.ANuM_) .or. &
-   (idfirst(1).eq.NuT_ .and. idfirst(2).eq.ANuT_) .or. (idfirst(2).eq.NuT_ .and. idfirst(1).eq.ANuT_)      &
-   ) then
-      DecayMode1=3
+      idV(1)=Pho_
+   else
+      idV(1)=CoupledVertex(idfirst,-1)
+      if( idV(1).eq.Wp_ .or. idV(1).eq.Wm_ ) then
+         DecayMode1=11
+      elseif( idV(1).eq.Z0_ ) then
+         DecayMode1=9
+      endif
    endif
-
    if( idsecond(1).eq.Pho_ .or. idsecond(2).eq.Pho_ ) then
       DecayMode2 = 7
-   elseif( &
-   (idsecond(1).eq.ElM_ .and. idsecond(2).eq.ANuE_) .or. (idsecond(2).eq.ElM_ .and. idsecond(1).eq.ANuE_) .or. &
-   (idsecond(1).eq.MuM_ .and. idsecond(2).eq.ANuM_) .or. (idsecond(2).eq.MuM_ .and. idsecond(1).eq.ANuM_) .or. &
-   (idsecond(1).eq.TaM_ .and. idsecond(2).eq.ANuT_) .or. (idsecond(2).eq.TaM_ .and. idsecond(1).eq.ANuT_) .or. &
-   (idsecond(1).eq.ElP_ .and. idsecond(2).eq.NuE_) .or. (idsecond(2).eq.ElP_ .and. idsecond(1).eq.NuE_) .or. &
-   (idsecond(1).eq.MuP_ .and. idsecond(2).eq.NuM_) .or. (idsecond(2).eq.MuP_ .and. idsecond(1).eq.NuM_) .or. &
-   (idsecond(1).eq.TaP_ .and. idsecond(2).eq.NuT_) .or. (idsecond(2).eq.TaP_ .and. idsecond(1).eq.NuT_)      &
-   ) then
-      DecayMode2=10
-   elseif( &
-   (idsecond(1).eq.AUp_  .and. (idsecond(2).eq.Dn_ .or. idsecond(2).eq.Str_ .or. idsecond(2).eq.Bot_)) .or. (idsecond(2).eq.AUp_  .and. (idsecond(1).eq.Dn_ .or. idsecond(1).eq.Str_ .or. idsecond(1).eq.Bot_)) .or. &
-   (idsecond(1).eq.AChm_ .and. (idsecond(2).eq.Dn_ .or. idsecond(2).eq.Str_ .or. idsecond(2).eq.Bot_)) .or. (idsecond(2).eq.AChm_ .and. (idsecond(1).eq.Dn_ .or. idsecond(1).eq.Str_ .or. idsecond(1).eq.Bot_)) .or. &
-   (idsecond(1).eq.ATop_ .and. (idsecond(2).eq.Dn_ .or. idsecond(2).eq.Str_ .or. idsecond(2).eq.Bot_)) .or. (idsecond(2).eq.ATop_ .and. (idsecond(1).eq.Dn_ .or. idsecond(1).eq.Str_ .or. idsecond(1).eq.Bot_)) .or. &
-   (idsecond(1).eq.Up_  .and. (idsecond(2).eq.ADn_ .or. idsecond(2).eq.AStr_ .or. idsecond(2).eq.ABot_)) .or. (idsecond(2).eq.Up_  .and. (idsecond(1).eq.ADn_ .or. idsecond(1).eq.AStr_ .or. idsecond(1).eq.ABot_)) .or. &
-   (idsecond(1).eq.Chm_ .and. (idsecond(2).eq.ADn_ .or. idsecond(2).eq.AStr_ .or. idsecond(2).eq.ABot_)) .or. (idsecond(2).eq.Chm_ .and. (idsecond(1).eq.ADn_ .or. idsecond(1).eq.AStr_ .or. idsecond(1).eq.ABot_)) .or. &
-   (idsecond(1).eq.Top_ .and. (idsecond(2).eq.ADn_ .or. idsecond(2).eq.AStr_ .or. idsecond(2).eq.ABot_)) .or. (idsecond(2).eq.Top_ .and. (idsecond(1).eq.ADn_ .or. idsecond(1).eq.AStr_ .or. idsecond(1).eq.ABot_))      &
-   ) then
-      DecayMode2=5
-   elseif( &
-   (idsecond(1).eq.ElM_ .and. idsecond(2).eq.ElP_) .or. (idsecond(2).eq.ElM_ .and. idsecond(1).eq.ElP_) .or. &
-   (idsecond(1).eq.MuM_ .and. idsecond(2).eq.MuP_) .or. (idsecond(2).eq.MuM_ .and. idsecond(1).eq.MuP_) .or. &
-   (idsecond(1).eq.TaM_ .and. idsecond(2).eq.TaP_) .or. (idsecond(2).eq.TaM_ .and. idsecond(1).eq.TaP_)      &
-   ) then
-      DecayMode2=8
-   elseif( &
-   (idsecond(1).eq.Up_  .and. idsecond(2).eq.AUp_) .or. (idsecond(2).eq.Up_  .and. idsecond(1).eq.AUp_) .or. &
-   (idsecond(1).eq.Dn_  .and. idsecond(2).eq.ADn_) .or. (idsecond(2).eq.Dn_  .and. idsecond(1).eq.ADn_) .or. &
-   (idsecond(1).eq.Chm_ .and. idsecond(2).eq.AChm_) .or. (idsecond(2).eq.Chm_ .and. idsecond(1).eq.AChm_) .or. &
-   (idsecond(1).eq.Str_ .and. idsecond(2).eq.AStr_) .or. (idsecond(2).eq.Str_ .and. idsecond(1).eq.Astr_) .or. &
-   (idsecond(1).eq.Top_ .and. idsecond(2).eq.ATop_) .or. (idsecond(2).eq.Top_ .and. idsecond(1).eq.ATop_) .or. &
-   (idsecond(1).eq.Bot_ .and. idsecond(2).eq.ABot_) .or. (idsecond(2).eq.Bot_ .and. idsecond(1).eq.ABot_)      &
-   ) then
-      DecayMode2=1
-   elseif( &
-   (idsecond(1).eq.NuE_ .and. idsecond(2).eq.ANuE_) .or. (idsecond(2).eq.NuE_ .and. idsecond(1).eq.ANuE_) .or. &
-   (idsecond(1).eq.NuM_ .and. idsecond(2).eq.ANuM_) .or. (idsecond(2).eq.NuM_ .and. idsecond(1).eq.ANuM_) .or. &
-   (idsecond(1).eq.NuT_ .and. idsecond(2).eq.ANuT_) .or. (idsecond(2).eq.NuT_ .and. idsecond(1).eq.ANuT_)      &
-   ) then
-      DecayMode2=3
+      idV(2)=Pho_
+   else
+      idV(2)=CoupledVertex(idsecond,-1)
+      if( idV(2).eq.Wp_ .or. idV(2).eq.Wm_ ) then
+         DecayMode2=11
+      elseif( idV(2).eq.Z0_ ) then
+         DecayMode2=9
+      endif
    endif
    call SetMVGV()
    return
@@ -1012,16 +950,10 @@ end subroutine SetSpinTwoCouplings
 
 subroutine SetMVGV()
 implicit none
-  if( DecayMode1.le.3 .or. (DecayMode1.ge.8 .and. DecayMode1.le.9) ) then
+  if( IsAZDecay(DecayMode1) ) then
     M_V = M_Z
     Ga_V= Ga_Z
-  elseif( DecayMode2.le.3 .or. (DecayMode2.ge.8 .and. DecayMode2.le.9) ) then
-    M_V = M_Z
-    Ga_V= Ga_Z
-  elseif( (DecayMode1.ge.4 .and. DecayMode1.le.6) .or. (DecayMode1.ge.10 .and. DecayMode1.le.11) ) then
-    M_V = M_W
-    Ga_V= Ga_W
-  elseif( (DecayMode2.ge.4 .and. DecayMode2.le.6) .or. (DecayMode2.ge.10 .and. DecayMode2.le.11) ) then
+  elseif( IsAWDecay(DecayMode1) ) then
     M_V = M_W
     Ga_V= Ga_W
   else
@@ -1029,6 +961,21 @@ implicit none
     Ga_V= 0d0
   endif
 end subroutine SetMVGV
+
+subroutine SetMVGVFromVertex(idV)
+implicit none
+integer idV
+  if( idV.eq.Z0_ ) then
+    M_V = M_Z
+    Ga_V= Ga_Z
+  else if( idV.eq.Wp_ .or. idV.eq.Wm_ ) then
+    M_V = M_W
+    Ga_V= Ga_W
+  else
+    M_V = 0d0
+    Ga_V= 0d0
+  endif
+end subroutine
 
 
 function HVVSpinZeroDynamicCoupling (index,sWplus,sWminus,sWW,tryWWcoupl)

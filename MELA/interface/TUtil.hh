@@ -38,9 +38,6 @@
 
 using namespace std;
 
-
-TString DbnEventLepSelName(int i); // Obsolete
-
 // Parameter settings
 bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, std::vector<int> id_dau, std::vector<int> id_associated);
 void SetEwkCouplingParameters();
@@ -80,5 +77,16 @@ double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], dou
 bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], TVar::VerbosityLevel verbosity, double EBEAM);
 void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], TVar::VerbosityLevel verbosity, double EBEAM);
 double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, TVar::VerbosityLevel verbosity, double EBEAM);
+
+// Boost the particles with or without associated ones to pT=0 frame and return std::vectors filled with (id, momentum) pairs
+void GetBoostedParticleVectors(
+  MELACandidate* melaCand,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
+  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
+  std::vector<int>& intermediateVid,
+  int useAssociatedCode
+  );
+
 
 #endif

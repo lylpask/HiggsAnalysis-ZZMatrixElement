@@ -72,13 +72,7 @@ private:
     );
   // Check if at least one input candidate is present
   bool CheckInputPresent();
-  // Boost the particles with or without associated ones to pT=0 frame and return std::vectors filled with (id, momentum) pairs
-  void GetBoostedParticleVectors(
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
-    bool useAssociated=false
-    );
+  void SetRcdInputEvent();
 
 public:
   //---------------------------------------------------------------------------
@@ -95,7 +89,6 @@ public:
   void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
   void SetProduction(TVar::Production tmp){ _production = tmp; }
   void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
-  void SetRcdInputEvent(){ RcdME.melaCand = melaCand; }
   void SetCurrentCandidate(unsigned int icand){ if (candList.size()>icand) melaCand = candList.at(icand); else std::cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << std::endl; }
   void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);

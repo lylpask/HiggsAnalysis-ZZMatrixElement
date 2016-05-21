@@ -21,6 +21,13 @@
 
 class TVar{
 public:
+
+  enum{
+    kNoAssociated=1,
+    kUseAssociated_Leptons=2, // l or nu
+    kUseAssociated_Photons=3,
+    kUseAssociated_Jets=5
+  };
   enum VerbosityLevel {
     ERROR = 0,
     INFO = 1,
@@ -209,6 +216,7 @@ static const TString branch_format_particle =
   "Phi/D";
 
 struct simple_event_record{
+  std::vector<int> intermediateVid; // Origin of daughters, not associated particles
   std::pair<std::vector<int>, std::vector<TLorentzVector>> pDaughters;
   std::pair<std::vector<int>, std::vector<TLorentzVector>> pAssociated;
   std::pair<std::vector<int>, std::vector<TLorentzVector>> pMothers;

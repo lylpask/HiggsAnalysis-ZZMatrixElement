@@ -14,6 +14,18 @@ extern "C" {
 
   void __modparameters_MOD_setspinonecouplings(double qqcoupl[2][2], double vvcoupl[2][2]);
   void __modparameters_MOD_setspintwocouplings(double acoupl[5][2], double bcoupl[10][2], double qlr[2][2]);
+
+  // From PDG ids to JHU ids
+  int __modparameters_MOD_convertlhereverse(int* part);
+#ifndef convertLHEreverse
+#define convertLHEreverse __modparameters_MOD_convertlhereverse
+#endif
+  // From JHU ids to PDG ids
+  int __modparameters_MOD_convertlhe(int* part);
+#ifndef convertLHE
+#define convertLHE __modparameters_MOD_convertlhe
+#endif
+
 }
 
 #endif

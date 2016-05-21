@@ -97,11 +97,12 @@ bool TEvtProb::CheckInputPresent(){
     else{
       SetCurrentCandidate(candList.size()-1);
       cerr << "TEvtProb::XsecCalc_XVV: melaCand now points to the latest candidate (cand" << (candList.size()-1) << ")" << endl;
-      return true;
     }
   }
+  SetRcdInputEvent(); // If input event is present, set the RcdME pointer to melaCand
   return true;
 }
+void TEvtProb::SetRcdInputEvent(){ RcdME.melaCand = melaCand; }
 
 
 //
@@ -139,17 +140,9 @@ double TEvtProb::XsecCalc_XVV(
   double flux=1.;
   double dXsec=0.;
 
-  simple_event_record mela_event;
-  GetBoostedParticleVectors(
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    false // Do not use pTotal=pDaughters+pAssociated
-  );
-
   //event selections in Lab Frame
   double msqjk=0;
-  if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &mcfm_event, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
+  if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
   else if (_matrixElement == TVar::JHUGen){
     AllowSeparateWWCouplings(false); // HZZ couplings are used for both in spin-0
     // all the possible couplings
@@ -497,7 +490,7 @@ double TEvtProb::XsecCalc_XVV(
       cerr << "TEvtProb::XsecCalc: JHUGen ME is not spin zero, one or two! The process is described by Process: " << _process << ", Production: " << _production << ", and ME: " << _matrixElement << endl;
       msqjk = 0;
     }
-    if (isSpinZero || isSpinOne || isSpinTwo) msqjk = JHUGenMatEl(_process, _production, &mcfm_event);
+    if (isSpinZero || isSpinOne || isSpinTwo) msqjk = JHUGenMatEl(_process, _production, &RcdME);
   } // end of JHUGen matrix element calculations
 
   if (msqjk<=0){ mcfm_event.pswt=0; }
@@ -1085,85 +1078,6 @@ void TEvtProb::SetHiggsMass(double mass, float wHiggs){
   SetJHUGenHiggsMassWidth(_hmass, _hwidth);
 }
 
-// LEFT HERE
-void TEvtProb::GetBoostedParticleVectors( // Should be put inside TUtil since different types of associated particles would need to be used (use gammas vs jets etc.)
-  // Empty vectors
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
-  bool useAssociated=false
-  ){
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> daughters;
-  if(melaCand->getNDaughters()==0) daughters.push_back(
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->id, melaCand->p4)
-    );
-  else{
-    for(int ip=0;ip<melaCand->getNDaughters();ip++){
-       if(melaCand->getSortedDaughter(ip)!=0) daughters.push_back(
-         std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getSortedDaughter(ip)->id, melaCand->getSortedDaughter(ip)->p4)
-         );
-    }
-  }
-
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> associated;
-  for(int ip=0;ip<melaCand->getNAssociatedLeptons();ip++){
-     if(melaCand->getAssociatedLepton(ip)!=0) associated.push_back(
-       std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedLepton(ip)->id, melaCand->getAssociatedLepton(ip)->p4)
-       );
-  }
-  for(int ip=0;ip<melaCand->getNAssociatedPhotons();ip++){
-     if(melaCand->getAssociatedPhoton(ip)!=0) associated.push_back(
-       std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedPhoton(ip)->id, melaCand->getAssociatedPhoton(ip)->p4)
-       );
-  }
-  for(int ip=0;ip<melaCand->getNAssociatedJets();ip++){
-     if(melaCand->getAssociatedJet(ip)!=0) associated.push_back(
-       std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedJet(ip)->id, melaCand->getAssociatedJet(ip)->p4)
-       );
-  }
-
-  TLorentzVector pTotal(0, 0, 0, 0);
-  for(unsigned int ip=0;ip<daughters.size();ip++) pTotal = pTotal + daughters.at(ip).second;
-  if(useAssociated){ for(unsigned int ip=0;ip<associated.size();ip++) pTotal = pTotal + associated.at(ip).second; }
-
-  double qX = pTotal.X();
-  double qY = pTotal.Y();
-  double qE = pTotal.T();;
-  if ((qX*qX+qY*qY)>0.){
-    TVector3 boostV(-qX/qE, -qY/qE, 0.);
-    for(unsigned int ip=0;ip<daughters.size();ip++) daughters.at(ip).second.Boost(boostV);
-    for(unsigned int ip=0;ip<associated.size();ip++) associated.at(ip).second.Boost(boostV);
-    pTotal.Boost(boostV);
-  }
-
-  double sysPz= pTotal.Z();
-  double sysE = pTotal.T();
-  double pz0 = (sysE+sysPz)/2.;
-  double pz1 = -(sysE-sysPz)/2.;
-  if(melaCand->getNMothers()==2){
-    if((melaCand->getMother(0)->p4).Z()<0.){
-      double pztmp = pz1;
-      pz1=pz0;
-      pz0=pztmp;
-    }
-  }
-  TLorentzVector pM[2];
-  pM[0].SetPxPyPzE(0., 0., pz0, TMath::Abs(pz0));
-  pM[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
-
-  pDaughters.clear();
-  for(unsigned int ip=0;ip<daughters.size();ip++) pDaughters.push_back(daughters.at(ip));
-  pAssociated.clear();
-  for(unsigned int ip=0;ip<associated.size();ip++) pAssociated.push_back(associated.at(ip));
-  pMothers.clear();
-  for(unsigned int ip=0;ip<2;ip++){
-    int idmother = 0; // In case it is unknown.
-    if(melaCand->getNMothers()==2) idmother = melaCand->getMother(ip)->id;
-    pMothers.push_back(
-      std::pair<std::vector<int>, std::vector<TLorentzVector>>(idmother, pM[ip])
-      );
-  }
-}
 
 MELACandidate* TEvtProb::ConvertVectorFormat(
   std::pair<std::vector<int>, std::vector<TLorentzVector>>* pDaughters,
@@ -1274,6 +1188,7 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
       else if (PDGHelpers::isAPhoton(partId)) cand->addAssociatedPhotons(aparticles.at(ip));
       else if (PDGHelpers::isAJet(partId)) cand->addAssociatedJets(aparticles.at(ip));
     }
+    cand->addAssociatedVs(); // Could be useful for VH topology
   }
 
   candList.push_back(cand);
