@@ -127,7 +127,7 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
   }
 
   if (Q<=0){
-    std::cout << "Scaling fails, defaulting to dynamic scheme m3456 " << std::endl;
+    cout << "Scaling fails, defaulting to dynamic scheme m3456 " << endl;
     TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
     Q = fabs(pTotal.M());
   }
@@ -149,24 +149,27 @@ void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multipl
     mynloop = 1;
     hasReset=true;
 	}
-	if(mypartons.compare("Default")!=0 && mypartons.compare("cteq6_l")!=0 && mypartons.compare("cteq6l1")!=0){
-		cout << "Only default :: cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting to Default..." << endl;
-		mypartons = "Default";
-	}
-
   if (!hasReset){
     Q_ren *= multiplier_ren;
     Q_fac *= multiplier_fac;
   }
 
-	bool nflav_is_same = (nflav_.nflav == mynflav);
+  /***** JHUGen Alpha_S *****/
+  // To be implemented
+
+  /***** MCFM Alpha_S *****/
+  bool nflav_is_same = (nflav_.nflav == mynflav);
   scale_.scale = Q_ren;
   scale_.musq = Q_ren*Q_ren;
   facscale_.facscale = Q_fac;
   nlooprun_.nlooprun = mynloop;
 
-// From pdfwrapper_linux.f:
-	if(mypartons.compare("cteq6_l")==0) couple_.amz = 0.118;
+  if (mypartons.compare("Default")!=0 && mypartons.compare("cteq6_l")!=0 && mypartons.compare("cteq6l1")!=0){
+    cout << "Only default :: cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting to Default..." << endl;
+    mypartons = "Default";
+  }
+  // From pdfwrapper_linux.f:
+  if (mypartons.compare("cteq6_l")==0) couple_.amz = 0.118;
 	else if(mypartons.compare("cteq6l1")==0 || mypartons.compare("Default")==0) couple_.amz = 0.130;
 	else couple_.amz = 0.118; // Add pdf as appropriate
 
@@ -204,11 +207,11 @@ void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember){
 void SetJHUGenHiggsMassWidth(double MReso, double GaReso){
   MReso /= 100.; // GeV units in JHUGen
   GaReso /= 100.; // GeV units in JHUGen
-  __modparameters_MOD_sethiggsmasswidth(&MReso, &GaReso);
+  __modjhugenmela_MOD_sethiggsmasswidth(&MReso, &GaReso);
 }
 void SetJHUGenDistinguishWWCouplings(bool doAllow){
   int iAllow = (doAllow ? 1 : 0);
-  __modparameters_MOD_setdistinguishwwcouplingsflag(&iAllow);
+  __modjhugenmela_MOD_setdistinguishwwcouplingsflag(&iAllow);
 }
 void SetMCFMSpinZeroVVCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], double Hwwcoupl[SIZE_HVV][2]){
   if (!useBSM){
@@ -557,20 +560,20 @@ void SetMCFMSpinZeroVVCouplings(bool useBSM, double Hvvcoupl[SIZE_HVV][2], doubl
 void SetJHUGenSpinZeroVVCouplings(double Hvvcoupl[SIZE_HVV][2], int Hvvcoupl_cqsq[3], double HvvLambda_qsq[4][3], bool useWWcoupl){
   int iWWcoupl = (useWWcoupl ? 1 : 0);
   for (int c=0; c<4; c++){ for (int k=0; k<3; k++) HvvLambda_qsq[c][k] /= 100.; } // GeV units in JHUGen
-  __modparameters_MOD_setspinzerovvcouplings(Hvvcoupl, Hvvcoupl_cqsq, HvvLambda_qsq, &iWWcoupl);
+  __modjhugenmela_MOD_setspinzerovvcouplings(Hvvcoupl, Hvvcoupl_cqsq, HvvLambda_qsq, &iWWcoupl);
 }
 void SetJHUGenSpinZeroVVCouplings_NoGamma(double Hvvcoupl[SIZE_HVV_VBF][2], int Hvvcoupl_cqsq[3], double HvvLambda_qsq[4][3], bool useWWcoupl){
   int iWWcoupl = (useWWcoupl ? 1 : 0);
   for (int c=0; c<4; c++){ for (int k=0; k<3; k++) HvvLambda_qsq[c][k] /= 100.; } // GeV units in JHUGen
-  __modparameters_MOD_setspinzerovvcouplings_nogamma(Hvvcoupl, Hvvcoupl_cqsq, HvvLambda_qsq, &iWWcoupl);
+  __modjhugenmela_MOD_setspinzerovvcouplings_nogamma(Hvvcoupl, Hvvcoupl_cqsq, HvvLambda_qsq, &iWWcoupl);
 }
-void SetJHUGenSpinZeroGGCouplings(double Hggcoupl[SIZE_HGG][2]){ __modparameters_MOD_setspinzeroggcouplings(Hggcoupl); }
-void SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]){ __modparameters_MOD_setspinzeroqqcouplings(Hqqcoupl); }
-void SetJHUGenSpinOneCouplings(double Zqqcoupl[SIZE_ZQQ][2], double Zvvcoupl[SIZE_ZVV][2]){ __modparameters_MOD_setspinonecouplings(Zqqcoupl, Zvvcoupl); }
-void SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]){ __modparameters_MOD_setspintwocouplings(Gacoupl, Gbcoupl, qLeftRightcoupl); }
+void SetJHUGenSpinZeroGGCouplings(double Hggcoupl[SIZE_HGG][2]){ __modjhugenmela_MOD_setspinzeroggcouplings(Hggcoupl); }
+void SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]){ __modjhugenmela_MOD_setspinzeroqqcouplings(Hqqcoupl); }
+void SetJHUGenSpinOneCouplings(double Zqqcoupl[SIZE_ZQQ][2], double Zvvcoupl[SIZE_ZVV][2]){ __modjhugenmela_MOD_setspinonecouplings(Zqqcoupl, Zvvcoupl); }
+void SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]){ __modjhugenmela_MOD_setspintwocouplings(Gacoupl, Gbcoupl, qLeftRightcoupl); }
 
 
-bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, std::vector<int> id_dau, std::vector<int> id_associated){
+bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, vector<int> id_dau, vector<int> id_associated){
   unsigned int ndau = id_dau.size();
   unsigned int naparts = id_associated.size();
   unsigned int najets = 0;
@@ -861,8 +864,8 @@ double SumMatrixElementPDF(
 
   //Convert TLorentzVector into 4xNPart Matrix
   //reverse sign of incident partons
-  for(int ipar=0;ipar<2;ipar++){    
-    if(mela_event.pMothers.at(ipar).second.T()>0){
+  for(int ipar=0;ipar<2;ipar++){
+    if(mela_event.pMothers.at(ipar).second.T()>0.){
       p4[0][ipar] = -mela_event.pMothers.at(ipar).second.X();
       p4[1][ipar] = -mela_event.pMothers.at(ipar).second.Y();
       p4[2][ipar] = -mela_event.pMothers.at(ipar).second.Z();
@@ -879,7 +882,7 @@ double SumMatrixElementPDF(
   }
 
   //initialize decayed particles
-  for (int ipar=2; ipar<std::min(NPart, mela_event.pDaughters.size()+mela_event.pAssociated.size()+2); ipar++){
+  for (int ipar=2; ipar<min(NPart, mela_event.pDaughters.size()+mela_event.pAssociated.size()+2); ipar++){
     TLorentzVector* momTmp;
     if (ipar<mela_event.pDaughters.size()+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
     else momTmp=&(mela_event.pAssociated.at(ipar-2).second);
@@ -890,7 +893,7 @@ double SumMatrixElementPDF(
     MomStore[ipar]=*momTmp;
   }
 
-  //for (int i=0; i<NPart; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << std::endl;
+  //for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
   
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
@@ -969,7 +972,7 @@ double SumMatrixElementPDF(
   }
 
   if (msqjk != msqjk || flux!=flux){
-    std::cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << " flux="<< *flux << std::endl;
+    cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << " flux="<< *flux << endl;
     msqjk=0;
     *flux=0;
   }
@@ -981,32 +984,15 @@ double SumMatrixElementPDF(
 }
 
 
-double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* RcdME){
-  const double GeV=1./100.;
-  double p4[6][4]={ { 0. } };
-  double MatElSq=0;
-  int MYIDUP_tmp[4]={ 0 }; // Initial assignment array. 0==Unassigned
-  int MYIDUP[4]={ 0 }; // The one that is actually used
-  int idfirst[2]={ 0 };
-  int idsecond[2]={ 0 };
-  vector<int> idarray[4];
+double JHUGenMatEl(
+  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  event_scales_type* event_scales, MelaIO* RcdME,
+  double EBEAM
+  ){
+  const double GeV=1./100.; // JHUGen mom. scale factor
+  double MatElSq=0; // Return value
 
-  // Notice that partIncCode is specific for this subroutine
-  int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
-  simple_event_record mela_event;
-  GetBoostedParticleVectors(
-    RcdME->melaCand,
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    mela_event.intermediateVid,
-    partIncCode
-    );
-  if (mela_event.pDaughters.size()<2 || mela_event.intermediateVid.size()!=2){
-    cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
-    return 0.;
-  }
-
+  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::JHUGenMatEl: Non-JHUGen MEs are not supported" << endl; return MatElSq; }
   bool isSpinZero = (
     process == TVar::HSMHiggs
     || process == TVar::H0minus
@@ -1038,24 +1024,52 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* R
     || process == TVar::H2_g10
     || process == TVar::SelfDefine_spin2
     );
+  if (!(isSpinZero || isSpinOne || isSpinTwo)){ cerr << "TUtil::JHUGenMatEl: Process " << process << " not supported." << endl; return MatElSq; }
 
-  int NPart = 6;
+  double msq[nmsq][nmsq]={ 0 }; // ME**2[parton2][parton1] for each incoming parton 1 and 2, used in RcdME
+  int MYIDUP_tmp[4]={ 0 }; // Initial assignment array, unconverted. 0==Unassigned
+  vector<int> idarray[4]; // All possible ids for each daughter based on the value of MYIDUP_tmp[0:3] and the desired V ids taken from mela_event.intermediateVid.at(0:1)
+  int MYIDUP[4]={ 0 }; // "Working" assignment, converted
+  int idfirst[2]={ 0 }; // Used to set DecayMode1, = MYIDUP[0:1]
+  int idsecond[2]={ 0 }; // Used to set DecayMode2, = MYIDUP[2:3]
+  double p4[6][4]={ { 0 } }; // Mom (*GeV) to pass into JHUGen
+  TLorentzVector MomStore[mxpart]; // Mom (in natural units) to compute alphaS (FIXME: SETALPHAS)
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
+
+  // Notice that partIncCode is specific for this subroutine
+  int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    mela_event.intermediateVid,
+    partIncCode
+    );
+  if (mela_event.pDaughters.size()<2 || mela_event.intermediateVid.size()!=2){
+    cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
+    return MatElSq;
+  }
+
   // p(i,0:3) = (E(i),px(i),py(i),pz(i))
-  // i=0,1: glu1,glu2 (outgoing convention)
+  // i=0,1: g1,g2 or q1, qb2 (outgoing convention)
   // i=2,3: correspond to MY_IDUP(0),MY_IDUP(1)
   // i=4,5: correspond to MY_IDUP(2),MY_IDUP(3)
   for (int ipar=0; ipar<2; ipar++){
-    if (mela_event.pMothers.at(ipar).second.T()>0){
+    if (mela_event.pMothers.at(ipar).second.T()>0.){
       p4[ipar][0] = -mela_event.pMothers.at(ipar).second.T()*GeV;
       p4[ipar][1] = -mela_event.pMothers.at(ipar).second.X()*GeV;
       p4[ipar][2] = -mela_event.pMothers.at(ipar).second.Y()*GeV;
       p4[ipar][3] = -mela_event.pMothers.at(ipar).second.Z()*GeV;
+      MomStore[ipar] = mela_event.pMothers.at(ipar).second;
     }
     else{
       p4[ipar][0] = mela_event.pMothers.at(ipar).second.T()*GeV;
       p4[ipar][1] = mela_event.pMothers.at(ipar).second.X()*GeV;
       p4[ipar][2] = mela_event.pMothers.at(ipar).second.Y()*GeV;
       p4[ipar][3] = mela_event.pMothers.at(ipar).second.Z()*GeV;
+      MomStore[ipar] = -mela_event.pMothers.at(ipar).second;
     }
     // From Markus: 
     // Note that the momentum no.2, p(1:4, 2), is a dummy which is not used in case production==TVar::ZZINDEPENDENT.
@@ -1068,13 +1082,14 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* R
       int* idtmp = &(mela_event.pDaughters.at(ipar).first);
 
       int arrindex = ipar;
-      if (PDGHelpers::isAPhoton(*idtmp) && ipar==1) arrindex=2;
+      if (PDGHelpers::isAPhoton(*idtmp) && ipar==1) arrindex=2; // In GG
       if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[arrindex] = *idtmp;
       else MYIDUP_tmp[ipar] = 0;
       p4[arrindex+2][0] = momTmp->T()*GeV;
       p4[arrindex+2][1] = momTmp->X()*GeV;
       p4[arrindex+2][2] = momTmp->Y()*GeV;
       p4[arrindex+2][3] = momTmp->Z()*GeV;
+      MomStore[arrindex+2] = *momTmp;
     }
   }
   else{
@@ -1089,6 +1104,7 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* R
         p4[ipar+2][1] = momTmp->X()*GeV;
         p4[ipar+2][2] = momTmp->Y()*GeV;
         p4[ipar+2][3] = momTmp->Z()*GeV;
+        MomStore[ipar+2] = *momTmp;
       }
       else MYIDUP_tmp[ipar] = -9000; // No need to set p4, which is already 0 by initialization
       // __modparameters_MOD_not_a_particle__?
@@ -1096,27 +1112,21 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* R
     cout << "MYIDUP_tmp[" << ipar << "]=" << MYIDUP_tmp[ipar] << endl;
   }
 
-  // In case the ordering happens to be antiparticle-particle or invalid-photon, swap momenta
-  for (int iv=0; iv<2; iv++){
-    int ivd_i = 2*iv+0;
-    int ivd_j = 2*iv+1;
-    if (
-      (MYIDUP_tmp[ivd_i]<0 && MYIDUP_tmp[ivd_j]>0)
-      ||
-      (MYIDUP_tmp[ivd_i]==-9000 && PDGHelpers::isAPhoton(MYIDUP_tmp[ivd_j]))
-      ){
-      MYIDUP_tmp[ivd_i] = MYIDUP_tmp[ivd_i] + MYIDUP_tmp[ivd_j];
-      MYIDUP_tmp[ivd_j] = MYIDUP_tmp[ivd_i] - MYIDUP_tmp[ivd_j];
-      MYIDUP_tmp[ivd_i] = MYIDUP_tmp[ivd_i] - MYIDUP_tmp[ivd_j];
-      for (int ix=0; ix<4; ix++){
-        p4[ivd_i][ix] = p4[ivd_i][ix] + p4[ivd_j][ix];
-        p4[ivd_j][ix] = p4[ivd_i][ix] - p4[ivd_j][ix];
-        p4[ivd_i][ix] = p4[ivd_i][ix] - p4[ivd_j][ix];
-      }
-    }
-  }
-
   for (int idau=0; idau<4; idau++) cout << "MYIDUP_tmp[" << idau << "]=" << MYIDUP_tmp[idau] << endl;
+
+  // FIXME: SETALPHAS DOES NOT MODIFY JHUGENMELA
+  // Set alphas
+  double defaultRenScale = scale_.scale;
+  double defaultFacScale = facscale_.facscale;
+  //  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+  int defaultNloop = nlooprun_.nlooprun;
+  int defaultNflav = nflav_.nflav;
+  string defaultPdflabel = pdlabel_.pdlabel;
+  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+  //  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+  //  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
   for (int idau=0; idau<4; idau++){
     // If is is known, just assign it.
@@ -1191,72 +1201,117 @@ double JHUGenMatEl(TVar::Process process, TVar::Production production, MelaIO* R
     }
   }
 
-  double nNonZero=0.;
+  int nNonZero=0;
   for (int d1=0; d1<idarray[0].size(); d1++){
     for (int d2=0; d2<idarray[1].size(); d2++){
       for (int d3=0; d1<idarray[2].size(); d3++){
         for (int d4=0; d1<idarray[3].size(); d4++){
+          if (
+            (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && idarray[0].at(d1)!=-idarray[1].at(d2))
+            ||
+            (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)) && idarray[2].at(d3)!=-idarray[2].at(d4))
+            ) continue;
           // Convert the particles
           MYIDUP[0] = convertLHEreverse(&(idarray[0].at(d1)));
           MYIDUP[1] = convertLHEreverse(&(idarray[1].at(d2)));
           MYIDUP[2] = convertLHEreverse(&(idarray[2].at(d3)));
           MYIDUP[3] = convertLHEreverse(&(idarray[3].at(d4)));
           // TEST: Print particles
+          cout << "TUtil::JHUGenMatEl: d1-d4=\t" << d1 << '\t' << d2 << '\t' << d3 << '\t' << d4 << endl;
           for (int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl;
           // Determine M_V and Ga_V in JHUGen, needed for g1 vs everything else.
           for (int ip=0; ip<2; ip++){ idfirst[ip]=MYIDUP[ip]; idsecond[ip]=MYIDUP[ip+2]; }
-          __modparameters_MOD_setdecaymodes(idfirst, idsecond); // Set M_V and Ga_V in JHUGen
+          __modjhugenmela_MOD_setdecaymodes(idfirst, idsecond); // Set M_V and Ga_V in JHUGen
 
           double MatElTmp=0.;
-          if (production == TVar::ZZGG){
-            if (isSpinZero){
-              //__modkinematics_MOD_evalalphas();
-              __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
+          int idIntermediate[2]={ mela_event.intermediateVid.at(0), mela_event.intermediateVid.at(1) };
+          if (
+            (PDGHelpers::isAWBoson(idIntermediate[0]) && PDGHelpers::isAWBoson(idIntermediate[1]))
+            ||
+            (
+            (PDGHelpers::isAZBoson(idIntermediate[0]) || PDGHelpers::isAPhoton(idIntermediate[0]))
+            &&
+            (PDGHelpers::isAZBoson(idIntermediate[1]) || PDGHelpers::isAPhoton(idIntermediate[1]))
+            )
+            ){
+            if (production == TVar::ZZGG){
+              if (isSpinZero){
+                //__modkinematics_MOD_evalalphas();
+                __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
+              }
+              else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElTmp);
             }
-            else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElTmp);
+            else if (production == TVar::ZZQQB){
+              if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, MYIDUP, &MatElTmp);
+              else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, MYIDUP, &MatElTmp);
+            }
+            else if (production == TVar::ZZINDEPENDENT){
+              if (isSpinZero) __modhiggs_MOD_evalamp_h_vv(p4, MYIDUP, &MatElTmp);
+              else if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(p4, MYIDUP, &MatElTmp);
+              else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
+            }
+            // Add CKM elements since they are not included
+            if (PDGHelpers::isAWBoson(idIntermediate[0])) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(d1)), &(idarray[1].at(d2)))/__modparameters_MOD_scalefactor(&(idarray[0].at(d1)), &(idarray[1].at(d2))), 2);
+            if (PDGHelpers::isAWBoson(idIntermediate[1])) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[2].at(d3)), &(idarray[3].at(d4)))/__modparameters_MOD_scalefactor(&(idarray[2].at(d3)), &(idarray[3].at(d4))), 2);
           }
-          else if (production == TVar::ZZQQB){
-            if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, MYIDUP, &MatElTmp);
-            else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, MYIDUP, &MatElTmp);
-          }
-          else if (production == TVar::ZZINDEPENDENT){
-            if (isSpinZero) __modhiggs_MOD_evalamp_h_vv(p4, MYIDUP, &MatElTmp);
-            else if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(p4, MYIDUP, &MatElTmp);
-            else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
-          }
+
+          cout << "TUtil::JHUGenMatEl: MatElTmp = " << MatElTmp << endl;
           MatElSq += MatElTmp;
-          if (MatElTmp>0.) nNonZero += 1.;
+          if (MatElTmp>0.) nNonZero++;
         }
       }
     }
   }
-  MatElSq /= nNonZero;
-  cout << "Number of matrix element instances computed: " << nNonZero << endl;
-
-/*
-  printf("\n ");
-  std::cout << "resonance = " << MReso *100. << ", width = " << GaReso*100. << std::endl;
-  for (int i=0; i<NPart; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]*100. << '\t' << p4[i][2]*100. << '\t' << p4[i][3]*100. << '\t' << p4[i][0]*100. << std::endl;
-  printf("MEsq: %20.17e", MatElSq);
-  std::cout << std::endl;
-*/
-  // 
+  if (nNonZero>0) MatElSq /= ((double)nNonZero);
+  cout << "TUtil::JHUGenMatEl: Number of matrix element instances computed: " << nNonZero << endl;
   // This constant is needed to account for the different units used in 
   // JHUGen compared to the MCFM
-  // 
   double constant = 1.45e-8;
-  if (isSpinZero && production!=TVar::ZZINDEPENDENT) constant = 4.46162946e-4; // == 1.45e-8/pow(0.13229060/(3.*3.141592653589793238462643383279502884197*2.4621845810181631), 2), constant was 1.45e-8 before with alpha_s=0.13229060, vev=2.4621845810181631/GeV
+  if (isSpinZero && production!=TVar::ZZINDEPENDENT) constant = 4.46162946e-4;
+  MatElSq *= constant;
+  // == 1.45e-8/pow(0.13229060/(3.*3.141592653589793238462643383279502884197*2.4621845810181631), 2), constant was 1.45e-8 before with alpha_s=0.13229060, vev=2.4621845810181631/GeV
+
+  // Set RcdME information for ME and parton distributions, taking into account the mothers if id!=0 (i.e. if not unknown).
+  if (mela_event.pMothers.at(0).first!=0 && mela_event.pMothers.at(1).first!=0){
+    int ix=0, iy=0;
+    if (abs(mela_event.pMothers.at(0).first)<6) ix=mela_event.pMothers.at(0).first;
+    if (abs(mela_event.pMothers.at(1).first)<6) iy=mela_event.pMothers.at(1).first;
+    msq[iy][ix]=MatElSq; // Note that SumMEPdf receives a transposed msq
+  }
+  else{
+    if (production == TVar::ZZGG || production == TVar::ZZINDEPENDENT) msq[5][5]=MatElSq;
+    else if (production == TVar::ZZQQB){
+      for (int ix=0; ix<5; ix++){ msq[ix][ix+6]=MatElSq; msq[ix+6][ix]=MatElSq; }
+    }
+  }
+  if (production!=TVar::ZZINDEPENDENT) SumMEPDF(p4[0], p4[1], msq, RcdME, TVar::ERROR, EBEAM);
+  else{ // If production is ZZINDEPENDENT, only set gg index with fx1,2[g,g]=1.
+    double fx_dummy[nmsq]={ 0 }; fx_dummy[5]=1.;
+    RcdME->setPartonWeights(fx_dummy, fx_dummy);
+    RcdME->setMEArray(msq, true);
+    RcdME->computeWeightedMEArray();
+  }
+
+/*
+  for (int i=0; i<6; i++) cout << "p4["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]*100. << '\t' << p4[i][2]*100. << '\t' << p4[i][3]*100. << '\t' << p4[i][0]*100. << endl;
+  cout << "MatElSq=" << endl;
+*/
+
+  // Reset alphas
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
   //cout << "TUtil::MatElSq = " << MatElSq << endl;
-  return MatElSq*constant;
+  return MatElSq;
 }
 
 double HJJMatEl(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement, event_scales_type* event_scales, MelaIO* RcdME,
-  const TLorentzVector p[5], TVar::VerbosityLevel verbosity, double EBEAM
+  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  event_scales_type* event_scales,
+  MelaIO* RcdME,
+  TVar::VerbosityLevel verbosity,
+  double EBEAM
   ){
-  TLorentzVector MomStore[mxpart];
-  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
-
+  const double GeV=1./100.; // JHUGen mom. scale factor
+  double sum_msqjk = 0;
   // by default assume only gg productions 
   // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
   //     parton flavor bbar cbar sbar ubar dbar g d u s c b
@@ -1264,105 +1319,569 @@ double HJJMatEl(
   //2-D matrix is reversed in fortran                                                                                                           
   // msq[ parton2 ] [ parton1 ]      
   //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
-  double MatElsq[nmsq][nmsq] ={ { 0 } };
-  double MatElsq_swap[nmsq][nmsq] ={ { 0 } }; // Temporary solution
+  double MatElsq[nmsq][nmsq]={ { 0 } };
+  double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
-  // input unit = GeV/100 such that 125GeV is 1.25 in the code
-  // this needs to be applied for all the p4
-  if (matrixElement==TVar::JHUGen){
-    double p4[5][4];
-    for (int i = 0; i < 5; i++) {
-      p4[i][0] = p[i].Energy()/100.;
-      p4[i][1] = p[i].Px()/100.;
-      p4[i][2] = p[i].Py()/100.;
-      p4[i][3] = p[i].Pz()/100.;
+  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::HJJMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
+  if (!(production == TVar::JJGG || production == TVar::JJVBF || production == TVar::JH)){ cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
-      if (i<2) MomStore[i].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T());
-      else{
-        if (production == TVar::JJGG || production == TVar::JJVBF){
-          // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
-          if (i!=4) MomStore[i+4].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T());
-          else MomStore[5].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T());
-        }
-        else if (production == TVar::JH) MomStore[i+3].SetXYZT(p[i].X(), p[i].Y(), p[i].Z(), p[i].T());
-      }
-    }
-    if (verbosity >= TVar::DEBUG){
-      for (int i=0; i<5; i++) std::cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]*100. << '\t' << p4[i][2]*100. << '\t' << p4[i][3]*100. << '\t' << p4[i][0]*100. << std::endl;
-    }
+  // Notice that partIncCode is specific for this subroutine
+  int partIncCode=TVar::kUseAssociated_Jets; // Only use associated partons in the pT=0 frame boost
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    mela_event.intermediateVid,
+    partIncCode
+    );
+  if (mela_event.pAssociated.size()==0){ cerr << "TUtil::HJJMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
 
-    if (production == TVar::JJGG){
-      __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa(p4, MatElsq);
-      for (int ic=0; ic<4; ic++){ // Temporary solution
-        double tmp = p4[2][ic];
-        p4[2][ic] = p4[3][ic];
-        p4[3][ic] = tmp;
-      }
-      __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa(p4, MatElsq_swap); // Temporary solution
-      for (int ix=0; ix<nmsq; ix++){ // Temporary solution
-        for (int iy=0; iy<nmsq; iy++) MatElsq[ix][iy] = (MatElsq[ix][iy] + MatElsq_swap[ix][iy])/2.;
-      }
+  int MYIDUP_tmp[4]={ 0 }; // "Incoming" partons 1, 2, "outgoing" partons 3, 4
+  double p4[5][4]={ { 0 } };
+  double pOneJet[4][4] ={ { 0 } }; // For HJ
+  TLorentzVector MomStore[mxpart];
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
+
+  // p4(0:4,i) = (E(i),px(i),py(i),pz(i))
+  // i=0,1: g1,g2 or q1, qb2 (outgoing convention)
+  // i=2,3: J1, J2 in outgoing convention when possible
+  // i=4: H
+  for (int ipar=0; ipar<2; ipar++){
+    TLorentzVector* momTmp = &(mela_event.pMothers.at(ipar).second);
+    int* idtmp = &(mela_event.pMothers.at(ipar).first);
+    if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[ipar] = *idtmp;
+    else MYIDUP_tmp[ipar] = 0;
+    if (momTmp->T()>0.){
+      p4[ipar][0] = momTmp->T()*GeV;
+      p4[ipar][1] = momTmp->X()*GeV;
+      p4[ipar][2] = momTmp->Y()*GeV;
+      p4[ipar][3] = momTmp->Z()*GeV;
+      MomStore[ipar] = (*momTmp);
     }
-    else if (production == TVar::JJVBF){
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa(p4, MatElsq);
-      for (int ic=0; ic<4; ic++){ // Temporary solution
-        double tmp = p4[2][ic];
-        p4[2][ic] = p4[3][ic];
-        p4[3][ic] = tmp;
-      }
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa(p4, MatElsq_swap); // Temporary solution
-      for (int ix=0; ix<nmsq; ix++){ // Temporary solution
-        for (int iy=0; iy<nmsq; iy++) MatElsq[ix][iy] = (MatElsq[ix][iy] + MatElsq_swap[ix][iy])/2.;
-      }
-    }
-    else if (production == TVar::JH) {
-      double pOneJet[4][4] ={ { 0 } };
-      for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; // Revert back to lab-frame momenta
-      }
-      __modhiggsj_MOD_evalamp_hj(pOneJet, MatElsq);
+    else{
+      p4[ipar][0] = -momTmp->T()*GeV;
+      p4[ipar][1] = -momTmp->X()*GeV;
+      p4[ipar][2] = -momTmp->Y()*GeV;
+      p4[ipar][3] = -momTmp->Z()*GeV;
+      MomStore[ipar] = -(*momTmp);
+      MYIDUP_tmp[ipar] = -MYIDUP_tmp[ipar];
     }
   }
+  for (int ipar=0; ipar<2; ipar++){
+    if (ipar<mela_event.pAssociated.size()){
+      TLorentzVector* momTmp = &(mela_event.pAssociated.at(ipar).second);
+      int* idtmp = &(mela_event.pAssociated.at(ipar).first);
+      if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[ipar+2] = *idtmp;
+      else MYIDUP_tmp[ipar+2] = 0;
+      p4[ipar+2][0] = momTmp->T()*GeV;
+      p4[ipar+2][1] = momTmp->X()*GeV;
+      p4[ipar+2][2] = momTmp->Y()*GeV;
+      p4[ipar+2][3] = momTmp->Z()*GeV;
+      MomStore[ipar+6] = (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+    }
+    else MYIDUP_tmp[ipar+2] = -9000; // No need to set p4, which is already 0 by initialization
+  }
+  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
+    p4[4][0] += momTmp->T()*GeV;
+    p4[4][1] += momTmp->X()*GeV;
+    p4[4][2] += momTmp->Y()*GeV;
+    p4[4][3] += momTmp->Z()*GeV;
+    MomStore[5] = MomStore[5] + (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+  // Momenta for HJ
+  for (int i = 0; i < 4; i++) {
+    if (i<3){ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2 J1
+    else{ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i+1][j]; } // H
+  }
+  if (verbosity >= TVar::DEBUG){
+    for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << endl;
+  }
+
+  double defaultRenScale = scale_.scale;
+  double defaultFacScale = facscale_.facscale;
+  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+  int defaultNloop = nlooprun_.nlooprun;
+  int defaultNflav = nflav_.nflav;
+  string defaultPdflabel = pdlabel_.pdlabel;
+  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+
+  // NOTE ON CHANNEL HASHES:
+  // THEY ONLY RETURN ISEL>=JSEL CASES. ISEL<JSEL NEEDS TO BE DONE MANUALLY.
+  if (production == TVar::JH){ // Computation is already for all possible qqb/qg/qbg/gg, and incoming q, qb and g flavor have 1-1 correspondence to the outgoing jet flavor.
+    __modhiggsj_MOD_evalamp_hj(pOneJet, MatElsq_tmp);
+    for (int isel=-5; isel<=5; isel++){
+      if (MYIDUP_tmp[0]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel)) continue;
+      for (int jsel=-5; jsel<=5; jsel++){
+        if (MYIDUP_tmp[1]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel)) continue;
+        int rsel;
+        if (isel!=0 && jsel!=0) rsel=0; // Covers qqb->Hg
+        else if (isel==0) rsel=jsel; // Covers gg->Hg, gq->Hq, gqb->Hqb
+        else rsel=isel; // Covers qg->Hq, qbg->Hqb
+        if (MYIDUP_tmp[2]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel)) continue;
+        MatElsq[jsel][isel] = MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+      }
+    }
+  }
+  else if (production==TVar::JJGG){
+    int ijsel[3][121];
+    int nijchannels=77;
+    __modhiggsjj_MOD_get_hjjchannelhash_nosplit(ijsel, &nijchannels);
+    for (int ic=0; ic<nijchannels; ic++){
+      // Emulate EvalWeighted_HJJ_test
+      int isel = ijsel[0][ic];
+      int jsel = ijsel[1][ic];
+      int code = ijsel[2][ic];
+      // Default assignments
+      int rsel=isel;
+      int ssel=jsel;
+      if (
+        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        &&
+        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        ){ // Do it this way to be able to swap isel and jsel later
+
+        if (isel==0 && jsel==0){ // gg->?
+          if (code==2){ // gg->qqb
+            // Only compute u-ub. The amplitude is multiplied by nf=5
+            rsel=1;
+            ssel=-1;
+            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+            if (
+              (MYIDUP_tmp[2]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0))
+              &&
+              (MYIDUP_tmp[3]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+            if (
+              (MYIDUP_tmp[2]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
+              &&
+              (MYIDUP_tmp[3]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+          }
+          else{ // gg->gg
+            // rsel=ssel=g already
+            if (
+              (MYIDUP_tmp[2]==0 || (PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0))
+              &&
+              (MYIDUP_tmp[3]==0 || (PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0))
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+            }
+          }
+        }
+        else if (isel==0 || jsel==0){ // qg/qbg/gq/gqb->qg/qbg/gq/gqb
+          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+          if (
+            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
+            &&
+            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+          if (
+            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
+            &&
+            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+        }
+        else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
+          if (code==1){ // qqb/qbq->gg
+            rsel=0; ssel=0;
+            if (
+              (MYIDUP_tmp[2]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[2]))
+              &&
+              (MYIDUP_tmp[3]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+            }
+          }
+          else if (code==2){ // qQb/qbQ->qQb/qbQ
+            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+          }
+          else{ // qqb->QQb
+            if (abs(isel)!=1){ rsel=1; ssel=-1; } // Make sure rsel, ssel are not of same flavor as isel, jsel
+            else{ rsel=2; ssel=-2; }
+            // The amplitude is aready multiplied by nf-1, so no need to calculate everything (nf-1) times.
+            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+          }
+        }
+        else{
+          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+          if (
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+          if (
+            rsel!=ssel
+            &&
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+        }
+      } // End unswapped isel>=jsel cases
+      if (isel==jsel) continue;
+      isel = ijsel[1][ic];
+      jsel = ijsel[0][ic];
+      // Reset to default assignments
+      rsel=isel;
+      ssel=jsel;
+      if (
+        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        &&
+        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        ){
+        // isel==jsel==0 is already eliminated by isel!=jsel condition
+        if (isel==0 || jsel==0){ // qg/qbg/gq/gqb->qg/qbg/gq/gqb
+          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+          if (
+            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
+            &&
+            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+          if (
+            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
+            &&
+            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+        }
+        else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
+          if (code==1){ // qqb/qbq->gg
+            rsel=0; ssel=0;
+            if (
+              (MYIDUP_tmp[2]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[2]))
+              &&
+              (MYIDUP_tmp[3]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+            }
+          }
+          else if (code==2){ // qQb/qbQ->qQb/qbQ
+            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+          }
+          else{ // qqb->QQb
+            if (abs(isel)!=1){ rsel=1; ssel=-1; } // Make sure rsel, ssel are not of same flavor as isel, jsel
+            else{ rsel=2; ssel=-2; }
+            // The amplitude is aready multiplied by nf-1, so no need to calculate everything (nf-1) times.
+            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+            if (
+              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              &&
+              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              ){
+              __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            }
+          }
+        }
+        else{
+          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+          if (
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+          if (
+            rsel!=ssel
+            &&
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            ){
+            __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+        }
+      } // End swapped isel<jsel cases
+    } // End loop over ic<nijchannels
+  } // End production==TVar::JJGG
+  else if (production==TVar::JJVBF){
+    int ijsel[3][121];
+    int nijchannels=68;
+    __modhiggsjj_MOD_get_vbfchannelhash_nosplit(ijsel, &nijchannels);
+    for (int ic=0; ic<nijchannels; ic++){
+      // Emulate EvalWeighted_HJJ_test
+      int isel = ijsel[0][ic];
+      int jsel = ijsel[1][ic];
+      int code = ijsel[2][ic];
+      // Default assignments
+      int rsel=isel;
+      int ssel=jsel;
+      if (
+        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        &&
+        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        ){ // Do it this way to be able to swap isel and jsel later
+        if (code==1){ // Only ZZ->H possible
+          // rsel=isel and ssel=jsel already
+          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+          if (
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            ){
+            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+          if (
+            rsel!=ssel
+            &&
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            ){
+            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+        }
+        else{ // code==0 means WW->H is also possible with no interference to ZZ->H, and code==2 means the same except interference to ZZ->H could occur for some outgoing quark flavors.
+          vector<int> possible_rsel;
+          vector<int> possible_ssel;
+          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
+              ssel=possible_ssel.at(ix)*TMath::Sign(1, jsel);
+              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+              if (
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                ){
+                __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              }
+              if (
+                rsel!=ssel
+                &&
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                ){
+                __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              }
+            }
+          }
+        }
+      } // End unswapped isel>=jsel cases
+      if (isel==jsel) continue;
+      isel = ijsel[1][ic];
+      jsel = ijsel[0][ic];
+      // Reset to default assignments
+      rsel=isel;
+      ssel=jsel;
+      if (
+        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        &&
+        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        ){
+        // isel==jsel==0 is already eliminated by isel!=jsel condition
+        if (code==1){ // Only ZZ->H possible
+          // rsel=isel and ssel=jsel already
+          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+          if (
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            ){
+            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+          if (
+            rsel!=ssel
+            &&
+            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            &&
+            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            ){
+            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+          }
+        }
+        else{ // code==0 means WW->H is also possible with no interference to ZZ->H, and code==2 means the same except interference to ZZ->H could occur for some outgoing quark flavors.
+          vector<int> possible_rsel;
+          vector<int> possible_ssel;
+          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
+              ssel=possible_ssel.at(ix)*TMath::Sign(1, jsel);
+              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+              if (
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                ){
+                __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
+                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              }
+              if (
+                rsel!=ssel
+                &&
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                ){
+                __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
+                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              }
+            }
+          }
+        }
+      } // End swapped isel<jsel cases
+    } // End loop over ic<nijchannels
+  } // End production==TVar::JJVBF
+
   //    FOTRAN convention    -5    -4   -3   -2   -1    0   1   2   3  4  5
   //     parton flavor      bbar  cbar  sbar ubar dbar  g   d   u   s  c  b
   //      C++ convention     0      1    2    3    4    5   6   7   8  9  10
+  for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++){ if (verbosity >= TVar::DEBUG) cout<< "MatElsq: " << ii-5 << " " << jj-5 << " " << MatElsq[jj][ii] << endl; } }
 
-  for(int ii = 0; ii < nmsq; ii++){
-    for(int jj = 0; jj < nmsq; jj++){
-      if ( verbosity >= TVar::DEBUG )
-        std::cout<< "MatElsq: " << ii-5 << " " << jj-5 << " " << MatElsq[jj][ii] << std::endl;
-    }
-  }
-  
-  double sum_msqjk=0;
-  if (production == TVar::JJGG || production == TVar::JJVBF || production == TVar::JH){
-    double defaultRenScale = scale_.scale;
-    double defaultFacScale = facscale_.facscale;
-    //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
-    int defaultNloop = nlooprun_.nlooprun;
-    int defaultNflav = nflav_.nflav;
-    string defaultPdflabel = pdlabel_.pdlabel;
-    double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-    //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
-    double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-    //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-    SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  sum_msqjk = SumMEPDF(p[0], p[1], MatElsq, RcdME, verbosity, EBEAM);
 
-    sum_msqjk = SumMEPDF(p[0], p[1], MatElsq, RcdME, verbosity, EBEAM);
-
-    //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-    SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-    //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  }
-  else std::cerr << "TUtil::HJJMatEl: Production is not supported!" << std::endl;
+  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
+  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   return sum_msqjk;
 }
 
 double VHiggsMatEl(
-  TVar::Process process, TVar::Production production, event_scales_type* event_scales, MelaIO* RcdME,
-  TLorentzVector p[5], TLorentzVector pHdaughter[4], int Vdecay_id[6],
-  TVar::VerbosityLevel verbosity, double EBEAM
+  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  event_scales_type* event_scales, MelaIO* RcdME,
+  // TLorentzVector p[5], TLorentzVector pHdaughter[4], int Vdecay_id[6],
+  TVar::VerbosityLevel verbosity,
+  double EBEAM
   ){
+  const double GeV=1./100.; // JHUGen mom. scale factor
+  double sum_msqjk = 0;
+  // by default assume only gg productions 
+  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
+  //     parton flavor bbar cbar sbar ubar dbar g d u s c b
+  // C++ convention     0     1   2    3    4   5 6 7 8 9 10
+  //2-D matrix is reversed in fortran                                                                                                           
+  // msq[ parton2 ] [ parton1 ]      
+  //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
+  double MatElsq[nmsq][nmsq]={ { 0 } };
+  double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
+
+  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
+  if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH)){ cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
+
+  // Notice that partIncCode is specific for this subroutine
+  int partIncCode;
+  if (production == TVar::Had_ZH || production == TVar::Had_WH) partIncCode=TVar::kUseAssociated_Jets; // Only use associated partons
+  else if (production == TVar::Lep_ZH || production == TVar::Lep_WH) partIncCode=TVar::kUseAssociated_Leptons; // Only use associated leptons(+)neutrinos
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    mela_event.intermediateVid,
+    partIncCode
+    );
+  if (mela_event.pAssociated.size()==0){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
+
+  // LEFT HERE
+
   TLorentzVector MomStore[mxpart];
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
 
@@ -1459,8 +1978,8 @@ double VHiggsMatEl(
 //  cout << "id5: " << vh_ids[5] << "\tid6: " << vh_ids[6] << endl;
 
   if ( verbosity >= TVar::DEBUG ) {
-    for(int i=0;i<9;i++) std::cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
-//    for(int i=0;i<9;i++) std::cout << "id(" << i << ") = "  << vh_ids[i] << endl;
+    for(int i=0;i<9;i++) cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
+//    for(int i=0;i<9;i++) cout << "id(" << i << ") = "  << vh_ids[i] << endl;
   }
 
   const double allowed_helicities[2] = { -1, 1 };
@@ -1616,7 +2135,14 @@ double VHiggsMatEl(
 }
 
 
-double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], double MReso, double GaReso, double MFerm, double GaFerm, int topDecay, int topProcess, TVar::VerbosityLevel verbosity){
+double TTHiggsMatEl(
+  TVar::Production production,
+  const TLorentzVector p[11],
+  double MReso, double GaReso,
+  double MFerm, double GaFerm,
+  int topDecay, int topProcess,
+  TVar::VerbosityLevel verbosity
+  ){
   double sumME=0;
   double p4[13][4]={ { 0 } };
 
@@ -1640,9 +2166,9 @@ double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], dou
 
   if (verbosity >= TVar::DEBUG){
     for (int i=0; i<11; i++){
-      std::cout << "p4[" << i << "] = ";
-      for (int jj=0; jj<4; jj++) std::cout << p4[i][jj] << '\t';
-      std::cout << std::endl;
+      cout << "p4[" << i << "] = ";
+      for (int jj=0; jj<4; jj++) cout << p4[i][jj] << '\t';
+      cout << endl;
     }
   }
 
@@ -1655,6 +2181,7 @@ double TTHiggsMatEl(TVar::Production production, const TLorentzVector p[11], dou
 }
 
 
+// CheckPartonMomFraction computes xx[0:1] based on p0, p1
 bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], TVar::VerbosityLevel verbosity, double EBEAM){
   //Make sure parton Level Energy fraction is [0,1]
   //phase space function already makes sure the parton energy fraction between [min,1]
@@ -1667,7 +2194,7 @@ bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, do
   //if(sysPt_sqr>=1.0E-10)  sysE=TMath::Sqrt(sysE*sysE-sysPt_sqr);
   xx[0]=(sysE+sysPz)/EBEAM/2.;
   xx[1]=(sysE-sysPz)/EBEAM/2.;
-  if (verbosity >= TVar::DEBUG) std::cout << "xx[0]: " << xx[0] << ", xx[1] = " << xx[1] << '\n';
+  if (verbosity >= TVar::DEBUG) cout << "xx[0]: " << xx[0] << ", xx[1] = " << xx[1] << '\n';
 
   if (
     xx[0] > 1.0 || xx[0]<=xmin_.xmin
@@ -1676,7 +2203,7 @@ bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, do
     ) return false;
   else return true;
 }
-
+// ComputePDF does the PDF computation
 void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], TVar::VerbosityLevel verbosity, double EBEAM){
   double xx[2]={ 0 };
   bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, verbosity, EBEAM);
@@ -1688,37 +2215,38 @@ void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nms
     fdist_(&density_.ih2, &xx[1], &facscale_.facscale, fx2);
   }
 }
-
-
-// Below code sums over all production parton flavors according to PDF 
+// SumMEPDF sums over all production parton flavors according to PDF and calls ComputePDF
 double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, TVar::VerbosityLevel verbosity, double EBEAM){
   double fx1[nmsq]={ 0 };
   double fx2[nmsq]={ 0 };
-  double wgt_msq[nmsq][nmsq]={ { 0 } };
+  //double wgt_msq[nmsq][nmsq]={ { 0 } };
 
   ComputePDF(p0, p1, fx1, fx2, verbosity, EBEAM);
   RcdME->setPartonWeights(fx1, fx2);
   RcdME->setMEArray(msq,true);
   RcdME->computeWeightedMEArray();
-  RcdME->getWeightedMEArray(wgt_msq);
+  //RcdME->getWeightedMEArray(wgt_msq);
   return RcdME->getSumME();
 }
 
-
-void GetBoostedParticleVectors( // Should be put inside TUtil since different types of associated particles would need to be used (use gammas vs jets etc.)
+// GetBoostedParticleVectors decomposes the MELACandidate object melaCand into mothers, daughters, and associated particles in the pT=0 frame for the particular the useAssociatedCode, which is a product of TVar::kUseAssociated* (prime numbers)
+// If no mothers are present, it assigns mothers as Z>0, Z<0. If they are present, it orders them as "incoming" qbar-q / qbar-g / g-q / g-g
+// Associated particles passed are different based on the useAssociatedCode!=1. If useAssociatedCode==1, no associated particles are passed.
+// intermediateVids are needed to keep track of the decay mode. TVar::Process or TVar::Production do not keep track of V/f decay modes.
+void GetBoostedParticleVectors(
   MELACandidate* melaCand,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pDaughters,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pAssociated,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>& pMothers,
-  std::vector<int>& intermediateVid,
+  pair<vector<int>, vector<TLorentzVector>>& pDaughters,
+  pair<vector<int>, vector<TLorentzVector>>& pAssociated,
+  pair<vector<int>, vector<TLorentzVector>>& pMothers,
+  vector<int>& intermediateVid,
   int useAssociatedCode
   ){
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> daughters;
-  std::vector<int> idVstar;
+  pair<vector<int>, vector<TLorentzVector>> daughters;
+  vector<int> idVstar;
   if (melaCand->getNDaughters()==0){
     // Undecayed Higgs has V1=H, V2=empty, no sortedDaughters!
     daughters.push_back(
-      std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->id, melaCand->p4)
+      pair<vector<int>, vector<TLorentzVector>>(melaCand->id, melaCand->p4)
       );
     idVstar.push_back(melaCand->id);
   }
@@ -1734,36 +2262,36 @@ void GetBoostedParticleVectors( // Should be put inside TUtil since different ty
         for (int ivd=0; ivd<Vdau->getNDaughters(); ivd++){
           MELAParticle* Vdau_i = Vdau->getDaughter(ivd);
           if (Vdau_i!=0) daughters.push_back(
-            std::pair<std::vector<int>, std::vector<TLorentzVector>>(Vdau_i->id, Vdau_i->p4)
+            pair<vector<int>, vector<TLorentzVector>>(Vdau_i->id, Vdau_i->p4)
             );
         }
         if (idtmp!=0 || Vdau->getNDaughters()>0){ // Avoid "empty" intermediate Vs of the MELACandidate object
-          if (Vdau->getNDaughters()>=2 && isAPhoton(idtmp)) idtmp=23; // Special case to avoid V->2f with HVVmass==Zeromass setting (could happen by mistake)
+          if (Vdau->getNDaughters()>=2 && PDGHelpers::isAPhoton(idtmp)) idtmp=23; // Special case to avoid V->2f with HVVmass==Zeromass setting (could happen by mistake)
           idVstar.push_back(idtmp);
         }
       }
     }
   }
 
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> associated;
+  pair<vector<int>, vector<TLorentzVector>> associated;
   if (code%TVar::kUseAssociated_Leptons){
     for (int ip=0; ip<melaCand->getNAssociatedLeptons(); ip++){
       if (melaCand->getAssociatedLepton(ip)!=0) associated.push_back(
-        std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedLepton(ip)->id, melaCand->getAssociatedLepton(ip)->p4)
+        pair<vector<int>, vector<TLorentzVector>>(melaCand->getAssociatedLepton(ip)->id, melaCand->getAssociatedLepton(ip)->p4)
         );
     }
   }
   if (code%TVar::kUseAssociated_Photons){
     for (int ip=0; ip<melaCand->getNAssociatedPhotons(); ip++){
       if (melaCand->getAssociatedPhoton(ip)!=0) associated.push_back(
-        std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedPhoton(ip)->id, melaCand->getAssociatedPhoton(ip)->p4)
+        pair<vector<int>, vector<TLorentzVector>>(melaCand->getAssociatedPhoton(ip)->id, melaCand->getAssociatedPhoton(ip)->p4)
         );
     }
   }
   if (code%TVar::kUseAssociated_Jets){
     for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
       if (melaCand->getAssociatedJet(ip)!=0) associated.push_back(
-        std::pair<std::vector<int>, std::vector<TLorentzVector>>(melaCand->getAssociatedJet(ip)->id, melaCand->getAssociatedJet(ip)->p4)
+        pair<vector<int>, vector<TLorentzVector>>(melaCand->getAssociatedJet(ip)->id, melaCand->getAssociatedJet(ip)->p4)
         );
     }
   }
@@ -1786,11 +2314,19 @@ void GetBoostedParticleVectors( // Should be put inside TUtil since different ty
   double sysE = pTotal.T();
   double pz0 = (sysE+sysPz)/2.;
   double pz1 = -(sysE-sysPz)/2.;
+  int motherId[2]={ 0, 0 };
   if (melaCand->getNMothers()==2){
-    if ((melaCand->getMother(0)->p4).Z()<0.){
+    if ((melaCand->getMother(0)->p4).Z()<0.){ // Swap by Z to get the correct momentum matching default M1, M2
       double pztmp = pz1;
       pz1=pz0;
       pz0=pztmp;
+    }
+    for (int ip=0; ip<2; ip++) motherId[ip]=melaCand->getMother(ip)->id;
+    if (motherId[0]<0){ // Swap to achieve ordering as "incoming" q-qbar
+      double pztmp = pz1;
+      pz1=pz0;
+      pz0=pztmp;
+      for (int ip=0; ip<2; ip++) motherId[1-ip]=melaCand->getMother(ip)->id;
     }
   }
   TLorentzVector pM[2];
@@ -1806,9 +2342,9 @@ void GetBoostedParticleVectors( // Should be put inside TUtil since different ty
   pMothers.clear();
   for (unsigned int ip=0; ip<2; ip++){
     int idmother = 0; // In case it is unknown.
-    if (melaCand->getNMothers()==2) idmother = melaCand->getMother(ip)->id;
+    if (melaCand->getNMothers()==2) idmother = motherId[ip];
     pMothers.push_back(
-      std::pair<std::vector<int>, std::vector<TLorentzVector>>(idmother, pM[ip])
+      pair<vector<int>, vector<TLorentzVector>>(idmother, pM[ip])
       );
   }
 }

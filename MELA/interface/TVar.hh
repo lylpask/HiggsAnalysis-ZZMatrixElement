@@ -48,10 +48,12 @@ public:
     JJGG = 6, // SBF
     JJVBF = 7, // WBF
     JH = 8, // H + 1 jet
-    ZH = 9, // ZH
-    WH = 10, // W(+/-)H
-    ttH = 11, // ttH
-    bbH = 12 // bbH
+    Lep_ZH = 9, // ZH, Z->ll/nunu
+    Lep_WH = 10, // W(+/-)H, W->lnu
+    Had_ZH = 11, // ZH, Z->uu/dd
+    Had_WH = 12, // W(+/-)H, W->ud
+    ttH = 13, // ttH
+    bbH = 14 // bbH
     //
   };
   enum LeptonInterference{

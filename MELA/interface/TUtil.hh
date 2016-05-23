@@ -17,13 +17,15 @@
 #include <TFile.h>
 #include <TF1.h>
 #include "TVar.hh"
-// JHUGenMELA
-#include "TModJHUGen.hh"
-#include "TModKinematics.hh"
-// NNPDF Driver for JHUGen
-#include "TNNPDFDriver.hh"
 // Mod_Parameters
 #include "TModParameters.hh"
+// NNPDF Driver for JHUGen
+#include "TNNPDFDriver.hh"
+// Mod Kinematics
+#include "TModKinematics.hh"
+// JHUGenMELA
+#include "TModJHUGen.hh"
+#include "TModJHUGenMELA.hh"
 // Higgs + 0 jet
 #include "TModHiggsMatEl.hh"
 #include "TModGravitonMatEl.hh"
