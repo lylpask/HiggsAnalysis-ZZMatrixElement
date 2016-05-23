@@ -963,7 +963,7 @@ double SumMatrixElementPDF(
     // C++ convention     0     1   2    3    4   5 6 7 8 9 10
     //
     */
-    double msqjk_sum = SumMEPDF(mcfm_event->p[0], mcfm_event->p[1], msq, RcdME, TVar::ERROR, EBEAM);
+    double msqjk_sum = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, TVar::ERROR, EBEAM);
     if (process==TVar::bkgZZ && (production == TVar::ZZQQB || production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU || production ==TVar::ZZINDEPENDENT)) msqjk = msq[3][7] + msq[7][3]; // all of the unweighted MEs are the same
     else if ((process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ) && production==TVar::JJVBF) msqjk = msqjk_sum; // MCFM VVH sum
     else msqjk = msq[5][5]; // gg-only
@@ -1284,7 +1284,7 @@ double JHUGenMatEl(
       for (int ix=0; ix<5; ix++){ msq[ix][ix+6]=MatElSq; msq[ix+6][ix]=MatElSq; }
     }
   }
-  if (production!=TVar::ZZINDEPENDENT) SumMEPDF(p4[0], p4[1], msq, RcdME, TVar::ERROR, EBEAM);
+  if (production!=TVar::ZZINDEPENDENT) SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, TVar::ERROR, EBEAM);
   else{ // If production is ZZINDEPENDENT, only set gg index with fx1,2[g,g]=1.
     double fx_dummy[nmsq]={ 0 }; fx_dummy[5]=1.;
     RcdME->setPartonWeights(fx_dummy, fx_dummy);
@@ -1835,7 +1835,7 @@ double HJJMatEl(
   //      C++ convention     0      1    2    3    4    5   6   7   8  9  10
   for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++){ if (verbosity >= TVar::DEBUG) cout<< "MatElsq: " << ii-5 << " " << jj-5 << " " << MatElsq[jj][ii] << endl; } }
 
-  sum_msqjk = SumMEPDF(p[0], p[1], MatElsq, RcdME, verbosity, EBEAM);
+  sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
 
   //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
@@ -1846,7 +1846,6 @@ double HJJMatEl(
 double VHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  // TLorentzVector p[5], TLorentzVector pHdaughter[4], int Vdecay_id[6],
   TVar::VerbosityLevel verbosity,
   double EBEAM
   ){
@@ -1860,7 +1859,6 @@ double VHiggsMatEl(
   // msq[ parton2 ] [ parton1 ]      
   //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
   double MatElsq[nmsq][nmsq]={ { 0 } };
-  double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
   if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH)){ cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
@@ -1878,241 +1876,140 @@ double VHiggsMatEl(
     mela_event.intermediateVid,
     partIncCode
     );
-  if (mela_event.pAssociated.size()==0){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
+  if (mela_event.pAssociated.size()!=2){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
 
-  // LEFT HERE
-
+  int MYIDUP_prod[4]={ 0 }; // "Incoming" partons 1, 2, "outgoing" partons 3, 4
+  int MYIDUP_dec[2]={ 0 }; // "Outgoing" partons 1, 2
+  double p4[9][4] ={ { 0 } };
+  double helicities[9] ={ 0 };
+  int vh_ids[9] ={ 0 };
   TLorentzVector MomStore[mxpart];
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
 
-// Inputs to Fortran
-// The dimensionality [9] should change to [11] once H->4l or 2l2nu is added to the amplitude.
-  double p4[9][4] = { { 0 } };
-  double helicities[9] = { 0 };
-  int vh_ids[9] = { 0 };
-  int n_HiggsFermions=0;
-
-  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
-  //     parton flavor bbar cbar sbar ubar dbar g d u s c b
-  // C++ convention     0     1   2    3    4   5 6 7 8 9 10
-  //2-D matrix is reversed in fortran                                                                                                           
-  // msq[ parton2 ] [ parton1 ]      
-  //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
-  double MatElsq[nmsq][nmsq];
-  for ( int i = 0; i < nmsq; i++) {
-    for ( int j = 0; j < nmsq; j++ ) MatElsq[i][j] = 0;
-  }
-/*
-	0 + 1 -> 2 (V*) -> 3 (V->5+6) + 4 (H->7+8)
-	
-	p[0]:=0
-	p[1]:=1
-	p[2]:=4 (H)
-	p[3]:=5
-	p[4]:=6
-*/
-  TLorentzVector pVH[9];
-//  TLorentzVector pVH[11];
-  TLorentzVector nullVector(0,0,0,0);
-  for (int i = 0; i < 2; i++) pVH[i] = p[i];
-  pVH[2] = p[0] + p[1]; // V*
-  pVH[4] = p[2]; // H
-  pVH[3] = pVH[2] - pVH[4]; // V
-  pVH[5] = p[3]; // 5
-  pVH[6] = p[4]; // 6
-  if (
-	  pHdaughter[0] != nullVector
-	  && pHdaughter[1] != nullVector
-	  && pHdaughter[2] == nullVector
-	  && pHdaughter[3] == nullVector
-	  ){
-	  for (int i = 7; i < 9; i++) pVH[i] = pHdaughter[i-7]; // Higgs decay to 2 jets, variables.F90::H_DK=.true. should be set.
-//	  for (int i = 9; i < 11; i++) pVH[i] = nullVector;
-	  for (int i = 7; i < 9; i++) vh_ids[i] = Vdecay_id[i-5];
-	  n_HiggsFermions=2;
-  }
-  else if (
-	  pHdaughter[0] != nullVector
-	  && pHdaughter[1] != nullVector
-	  && pHdaughter[2] != nullVector
-	  && pHdaughter[3] != nullVector
-	  ){
-	  for (int i = 7; i < 9; i++) pVH[i] = pHdaughter[2*(i-6)-2]+pHdaughter[2*(i-6)-1]; // Not yet supported fully
-//	  for (int i = 9; i < 11; i++) pVH[i] = pHdaughter[i-7]; // Higgs decay to 4l, variables.F90::H_DK=.true. should be set.
-	  for (int i = 7; i < 9; i++) vh_ids[i] = Vdecay_id[i-5];
-//	  for (int i = 7; i < 11; i++) vh_ids[i] = Vdecay_id[i-5];
-	  n_HiggsFermions=4;
-  }
-  else{
-	  for (int i = 7; i < 9; i++) pVH[i] = pVH[4] * 0.5; // No Higgs decay is assumed, but conserve momentum in case of any mistake on variables.F90::H_DK=.false.
-//	  for (int i = 7; i < 11; i++) pVH[i] = pVH[4] * 0.25; // No Higgs decay is assumed, but conserve momentum in case of any mistake on variables.F90::H_DK=.false.
-  }
-
-  // input unit = GeV/100 such that 125GeV is 1.25 in the code
-  // this needs to be applied for all the p4
-  for (int i = 0; i < 9; i++) {
-    p4[i][0] = pVH[i].Energy()/100.;
-    p4[i][1] = pVH[i].Px()/100.;
-    p4[i][2] = pVH[i].Py()/100.;
-    p4[i][3] = pVH[i].Pz()/100.;
-
-    if (i<2) MomStore[i].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
-    else if (i==4) MomStore[5].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
-    else if (i==5 || i==6) MomStore[i+1].SetXYZT(pVH[i].X(), pVH[i].Y(), pVH[i].Z(), pVH[i].T());
-
-    // DO NOT Use out-going convention for the incoming particles for SumMEPDF
-	  // VH exclusively takes lab-frame momenta, and p1 and p2 are used with a (-) sign.
-/*
-    if ( i < 2 ) {
-      for ( int j = 0; j < 4; j++ ) {
-        p4[i][j] = - p4[i][j];
-		  }
+  // p4(0:8,i) = (E(i),px(i),py(i),pz(i))
+  // i=0,1: q1, qb2 (outgoing convention)
+  // i=2,3: V*, V
+  // i=4: H
+  // i=5,6: f, fb from V
+  // i=7,8: b, bb from H
+  for (int ipar=0; ipar<2; ipar++){
+    TLorentzVector* momTmp = &(mela_event.pMothers.at(ipar).second);
+    int* idtmp = &(mela_event.pMothers.at(ipar).first);
+    if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_prod[ipar] = *idtmp;
+    else MYIDUP_prod[ipar] = 0;
+    if (momTmp->T()>0.){
+      p4[ipar][0] = momTmp->T()*GeV;
+      p4[ipar][1] = momTmp->X()*GeV;
+      p4[ipar][2] = momTmp->Y()*GeV;
+      p4[ipar][3] = momTmp->Z()*GeV;
+      MomStore[ipar] = (*momTmp);
     }
-*/
+    else{
+      p4[ipar][0] = -momTmp->T()*GeV;
+      p4[ipar][1] = -momTmp->X()*GeV;
+      p4[ipar][2] = -momTmp->Y()*GeV;
+      p4[ipar][3] = -momTmp->Z()*GeV;
+      MomStore[ipar] = -(*momTmp);
+      MYIDUP_prod[ipar] = -MYIDUP_prod[ipar];
+    }
+  }
+  // Associated particles
+  for (int ipar=0; ipar<2; ipar++){
+    TLorentzVector* momTmp = &(mela_event.pAssociated.at(ipar).second);
+    int* idtmp = &(mela_event.pAssociated.at(ipar).first);
+    if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_prod[ipar+2] = *idtmp;
+    else MYIDUP_prod[ipar+2] = 0;
+    p4[ipar+5][0] = momTmp->T()*GeV;
+    p4[ipar+5][1] = momTmp->X()*GeV;
+    p4[ipar+5][2] = momTmp->Y()*GeV;
+    p4[ipar+5][3] = momTmp->Z()*GeV;
+    MomStore[ipar+6] = (*momTmp);
   }
 
+  if (PDGHelpers::isAGluon(MYIDUP_prod[0]) || PDGHelpers::isAGluon(MYIDUP_prod[1])){ cerr << "TUtil::VHiggsMatEl: Initial state gluons are not permitted!" << endl; return sum_msqjk; }
+  if (PDGHelpers::isAGluon(MYIDUP_prod[2]) || PDGHelpers::isAGluon(MYIDUP_prod[3])){ cerr << "TUtil::VHiggsMatEl: Final state gluons are not permitted!" << endl; return sum_msqjk; }
+
+  // Decay V/f ids
+  for (int iv=0; iv<2; iv++){
+    int idtmp = mela_event.intermediateVid.at(iv);
+    if (!PDGHelpers::isAnUnknownJet(idtmp)) MYIDUP_dec[iv] = idtmp;
+    else MYIDUP_dec[iv] = 0;
+  }
+  // Decay daughters
+  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
+    if (mela_event.pDaughters.size()==1){
+      p4[ipar+7][0] = momTmp->T()*GeV;
+      p4[ipar+7][1] = momTmp->X()*GeV;
+      p4[ipar+7][2] = momTmp->Y()*GeV;
+      p4[ipar+7][3] = momTmp->Z()*GeV;
+      MomStore[5] = (*momTmp); // 5
+    }
+    else if (mela_event.pDaughters.size()==2){
+      p4[ipar+7][0] = momTmp->T()*GeV;
+      p4[ipar+7][1] = momTmp->X()*GeV;
+      p4[ipar+7][2] = momTmp->Y()*GeV;
+      p4[ipar+7][3] = momTmp->Z()*GeV;
+      MomStore[2*ipar+2] = (*momTmp); // 2,4
+    }
+    else if (mela_event.pDaughters.size()==3){
+      if (ipar<2){
+        p4[7][0] += momTmp->T()*GeV;
+        p4[7][1] += momTmp->X()*GeV;
+        p4[7][2] += momTmp->Y()*GeV;
+        p4[7][3] += momTmp->Z()*GeV;
+      }
+      else{
+        p4[8][0] = momTmp->T()*GeV;
+        p4[8][1] = momTmp->X()*GeV;
+        p4[8][2] = momTmp->Y()*GeV;
+        p4[8][3] = momTmp->Z()*GeV;
+      }
+      MomStore[ipar+2] = (*momTmp); // 2,3,4
+    }
+    else if (mela_event.pDaughters.size()==4){
+      if (ipar<2){
+        p4[7][0] += momTmp->T()*GeV;
+        p4[7][1] += momTmp->X()*GeV;
+        p4[7][2] += momTmp->Y()*GeV;
+        p4[7][3] += momTmp->Z()*GeV;
+      }
+      else{
+        p4[8][0] += momTmp->T()*GeV;
+        p4[8][1] += momTmp->X()*GeV;
+        p4[8][2] += momTmp->Y()*GeV;
+        p4[8][3] += momTmp->Z()*GeV;
+      }
+      MomStore[ipar+2] = (*momTmp); // 2,3,4,5
+    }
+    else{ // Should never happen
+      p4[7][0] += momTmp->T()*GeV;
+      p4[7][1] += momTmp->X()*GeV;
+      p4[7][2] += momTmp->Y()*GeV;
+      p4[7][3] += momTmp->Z()*GeV;
+      MomStore[5] = MomStore[5] + (*momTmp);
+    }
+  }
+  for (int ix=0; ix<4; ix++){
+    p4[3][ix] = p4[5][ix] + p4[6][ix];
+    p4[4][ix] = p4[7][ix] + p4[8][ix];
+    p4[2][ix] = p4[3][ix] + p4[4][ix];
+  }
 
   vh_ids[4] = 25;
-  vh_ids[5] = Vdecay_id[0]; // Handle jet-inclusive ME outside this function
-  vh_ids[6] = Vdecay_id[1];
-//  cout << "id5: " << vh_ids[5] << "\tid6: " << vh_ids[6] << endl;
+  if (production==TVar::Lep_ZH || production==TVar::Had_ZH) vh_ids[2] = 23;
+  else if (production==TVar::Lep_WH || production==TVar::Had_WH) vh_ids[2] = 24;
+  vh_ids[3] = vh_ids[2];
+
+  // H->ffb decay is turned off, so no need to loop over helicities[7]=helicities[8]=+-1
+  vh_ids[7] = 5; helicities[7] = 1;
+  vh_ids[8] = 5; helicities[8] = 1;
 
   if ( verbosity >= TVar::DEBUG ) {
-    for(int i=0;i<9;i++) cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
-//    for(int i=0;i<9;i++) cout << "id(" << i << ") = "  << vh_ids[i] << endl;
+    for (int i=0; i<9; i++) cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
+    for (int i=0; i<9; i++) cout << "id(" << i << ") = "  << vh_ids[i] << endl;
   }
 
-  const double allowed_helicities[2] = { -1, 1 };
-  double sumME=0;
-  //    FOTRAN convention    -5    -4   -3   -2   -1    0   1   2   3  4  5
-  //     parton flavor      bbar  cbar  sbar ubar dbar  g   d   u   s  c  b
-  //      C++ convention     0      1    2    3    4    5   6   7   8  9  10
-  for (int h0 = 0; h0 < 2; h0++){
-	  helicities[0] = allowed_helicities[h0];
-	  for (int h1 = 0; h1 < 2; h1++){
-		  helicities[1] = allowed_helicities[h1];
-		  for (int h5 = 0; h5 < 2; h5++){
-			  helicities[5] = allowed_helicities[h5];
-			  helicities[6] = -helicities[5];
-			  for (int incoming1 = -nf; incoming1 <= nf; incoming1++){
-				  if (production == TVar::ZH){
-					  if(incoming1<=0) continue;
-					  vh_ids[0] = incoming1;
-					  vh_ids[1] = -incoming1;
-					  vh_ids[2] = 23;
-					  vh_ids[3] = 23;
-					  double msq=0;
-					  if(n_HiggsFermions==0) __modvhiggs_MOD_evalamp_vhiggs(vh_ids,helicities,p4,&msq);
-					  else if(n_HiggsFermions==2){
-						  for (int out1h = 0; out1h < 2; out1h++){
-							  helicities[7] = allowed_helicities[out1h];
-							  helicities[8] = helicities[7];
-							  double msqtemp = 0;
-							  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msqtemp);
-							  msq += msqtemp;
-						  }
-					  }
-					  else if(n_HiggsFermions==4){
-						  for (int out1h = 0; out1h < 2; out1h++){
-							  for (int out2h = 0; out2h < 2; out2h++){
-								  helicities[7] = allowed_helicities[out1h];
-								  helicities[8] = allowed_helicities[out2h];
-								  double msqtemp = 0;
-								  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msqtemp);
-								  msq += msqtemp;
-							  }
-						  }
-					  }
-					  MatElsq[incoming1+5][-incoming1+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-					  MatElsq[-incoming1+5][incoming1+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-				  }
-				  else if (production == TVar::WH){
-					  if(incoming1==0) continue;
-
-					  bool useWminus=false;
-					  //bool decaysToJets=false;
-
-					  if( vh_ids[5] == -12 || vh_ids[5] == -14 || vh_ids[5] == -16 || vh_ids[5] == -2 || vh_ids[5] == -4 || vh_ids[6] == -2 || vh_ids[6] == -4 ) useWminus=true; // l- nu-bar or anti-up down -type quarks
-					  //if( abs(vh_ids[5])<=(nf+1) || abs(vh_ids[6])<=(nf+1) ) decaysToJets=true;
-
-					  if (!useWminus){
-						  if (incoming1 == 2 || incoming1 == 4){ // u or c to d-bar, b-bar or s-bar
-							  for (int incoming2 = -nf; incoming2 < 0; incoming2++){
-								  if( abs(incoming2)==abs(incoming1) ) continue;
-								  vh_ids[0] = incoming1;
-								  vh_ids[1] = incoming2;
-								  vh_ids[2] = 24;
-								  vh_ids[3] = 24;
-								  double msq=0;
-								  if(n_HiggsFermions==0) __modvhiggs_MOD_evalamp_vhiggs(vh_ids,helicities,p4,&msq);
-								  else if(n_HiggsFermions==2){
-									  for (int out1h = 0; out1h < 2; out1h++){
-										  helicities[7] = allowed_helicities[out1h];
-										  helicities[8] = helicities[7];
-										  double msqtemp = 0;
-										  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msqtemp);
-										  msq += msqtemp;
-									  }
-								  }
-								  else if(n_HiggsFermions==4){
-									  for (int out1h = 0; out1h < 2; out1h++){
-										  for (int out2h = 0; out2h < 2; out2h++){
-											  helicities[7] = allowed_helicities[out1h];
-											  helicities[8] = allowed_helicities[out2h];
-											  double msqtemp = 0;
-											  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msqtemp);
-											  msq += msqtemp;
-										  }
-									  }
-								  }
-								  MatElsq[incoming1+5][incoming2+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-								  MatElsq[incoming2+5][incoming1+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-							  }
-						  }
-						  else continue;
-					  }
-					  else{
-						  if (incoming1 == -2 || incoming1 == -4){ // u-bar or c-bar to d, b or s
-							  for (int incoming2 = 1; incoming2 < nf+1; incoming2++){
-								  if( abs(incoming2)==abs(incoming1) ) continue;
-								  vh_ids[0] = incoming1;
-								  vh_ids[1] = incoming2;
-								  vh_ids[2] = 24;
-								  vh_ids[3] = 24;
-								  double msq=0;
-								  if(n_HiggsFermions==0) __modvhiggs_MOD_evalamp_vhiggs(vh_ids,helicities,p4,&msq);
-								  else if(n_HiggsFermions==2){
-									  for (int out1h = 0; out1h < 2; out1h++){
-										  helicities[7] = allowed_helicities[out1h];
-										  helicities[8] = helicities[7];
-										  double msqtemp = 0;
-										  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msqtemp);
-										  msq += msqtemp;
-									  }
-								  }
-								  else if(n_HiggsFermions==4){
-									  for (int out1h = 0; out1h < 2; out1h++){
-										  for (int out2h = 0; out2h < 2; out2h++){
-											  helicities[7] = allowed_helicities[out1h];
-											  helicities[8] = allowed_helicities[out2h];
-											  double msqtemp = 0;
-											  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msqtemp);
-											  msq += msqtemp;
-										  }
-									  }
-								  }
-								  MatElsq[incoming1+5][incoming2+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-								  MatElsq[incoming2+5][incoming1+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-							  }
-						  }
-						  else continue;
-					  }
-				  }
-			  }
-		  }
-	  }
-  }
-	
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
   //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
@@ -2125,31 +2022,90 @@ double VHiggsMatEl(
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
-  sumME = SumMEPDF(p[0], p[1], MatElsq, RcdME, verbosity, EBEAM);
+  const double allowed_helicities[2] = { -1, 1 }; // L,R
+  double sumME=0;
+  for (int h01 = 0; h01 < 2; h01++){
+    helicities[0] = allowed_helicities[h01];
+    helicities[1] = -helicities[0];
+    for (int h56 = 0; h56 < 2; h56++){
+      helicities[5] = allowed_helicities[h56];
+      helicities[6] = -helicities[5];
+      for (int incoming1 = -nf; incoming1 <= nf; incoming1++){
+        if (incoming1==0) continue;
+        if (production==TVar::Lep_ZH || production==TVar::Had_ZH){
+          vh_ids[0] = incoming1;
+          vh_ids[1] = -incoming1;
+          if (
+            (MYIDUP_prod[0]!=0 && MYIDUP_prod[0]!=vh_ids[0])
+            ||
+            (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1])
+            ) continue;
+
+          for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+            vh_ids[5] = outgoing1;
+            vh_ids[6] = -outgoing1;
+            if (
+              (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
+              ||
+              (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
+              ) continue;
+
+            double msq=0;
+            __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+            MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+          } // End loop over outgoing1=-outgoing2
+        } // End ZH case
+        else if (production==TVar::Lep_WH || production==TVar::Had_WH){
+          vh_ids[0] = incoming1;
+          if (MYIDUP_prod[0]!=0 && MYIDUP_prod[0]!=vh_ids[0]) continue;
+
+          for (int incoming2 = -nf; incoming2 < 0; incoming2++){
+            if (abs(incoming2)==abs(incoming1) || TMath::Sign(1, incoming1)==TMath::Sign(1, incoming2)) continue;
+
+            vh_ids[1] = incoming2;
+            if (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1]) continue;
+
+            for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+              for (int outgoing2=-nf; outgoing2<=nf; outgoing2++){
+                if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2)) continue;
+
+                vh_ids[5] = outgoing1;
+                vh_ids[6] = outgoing2;
+                if (
+                  (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
+                  ||
+                  (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
+                  ) continue;
+
+                double msq=0;
+                __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              } // End loop over outgoing2
+            } // End loop over outgoing1
+          } // End loop over incoming2
+        } // End WH case
+      } // End loop over incoming1
+    } // End loop over h56
+  } // End loop over h01
+
+  sumME = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
 
   //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
   //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  
   return sumME;
 }
 
 
+// LEFT HERE: NEED TO MERGE OLD AND NEW FORTRAN CODE, MOST NOTABLY ADDING EVALXSEC_PP*
 double TTHiggsMatEl(
   TVar::Production production,
   const TLorentzVector p[11],
-  double MReso, double GaReso,
-  double MFerm, double GaFerm,
   int topDecay, int topProcess,
   TVar::VerbosityLevel verbosity
   ){
   double sumME=0;
   double p4[13][4]={ { 0 } };
-
-  MReso /= 100.;
-  MFerm /= 100.;
-  GaReso /= 100.;
-  GaFerm /= 100.;
 
   for (int i = 0; i < 2; i++){
     p4[i][0] = -p[i].Energy()/100.;
@@ -2172,7 +2128,7 @@ double TTHiggsMatEl(
     }
   }
 
-  __modttbh_MOD_initprocess_ttbh(&MReso, &MFerm);
+  __modttbh_MOD_initprocess_ttbh();
   if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, &topDecay, &topProcess, &sumME);
   else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, &topProcess, &sumME);
 //  __modttbh_MOD_exitprocess_ttbh();
