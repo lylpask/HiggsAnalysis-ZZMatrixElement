@@ -28,12 +28,14 @@ public:
   bool passSelection;
   int genStatus;
   double lifetime;
+  int topTag; // +6 to use in t, -6 to use in tb, 1 to use in either, 0 means do not use.
 
 
   // Member functions
   void setSelected(bool isSelected=true){ passSelection = isSelected; }
   void setGenStatus(int status_){ genStatus=status_; }
   void setLifetime(int life_){ lifetime=life_; }
+  void tagTop(int tag_){ if (tag_==1 || tag_==6 || tag_==-6 || tag_==0) topTag=tag_; }
 
   void addMother(MELAParticle* myParticle);
   void addDaughter(MELAParticle* myParticle);

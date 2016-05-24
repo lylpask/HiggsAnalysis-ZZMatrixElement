@@ -1080,9 +1080,9 @@ void TEvtProb::SetHiggsMass(double mass, float wHiggs){
 
 
 MELACandidate* TEvtProb::ConvertVectorFormat(
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>* pDaughters,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>* pAssociated,
-  std::pair<std::vector<int>, std::vector<TLorentzVector>>* pMothers,
+  std::vector<std::pair<int, TLorentzVector>>* pDaughters,
+  std::vector<std::pair<int, TLorentzVector>>* pAssociated,
+  std::vector<std::pair<int, TLorentzVector>>* pMothers,
   ){
   MELACandidate* cand=0;
 
@@ -1093,9 +1093,9 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
   else if (pAssociated!=0 && idAssociated!=0 && pAssociated->size()!=idAssociated->size()){ cerr << "TEvtProb::ConvertVectorFormat: Associated momentum size (" << pAssociated->size() << ") != associated id size (" << idAssociated->size() << ")!" << endl; return cand; }
   if (pMothers!=0 && pMothers->size()!=2){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") is not supported!" << endl; /*return cand;*/ }
 
-  std::vector<MELAParticle* daughters;
-  std::vector<MELAParticle* aparticles;
-  std::vector<MELAParticle* mothers;
+  std::vector<MELAParticle>* daughters;
+  std::vector<MELAParticle>* aparticles;
+  std::vector<MELAParticle>* mothers;
 
   for (unsigned int ip=0; ip<pDaughters->size(); ip++){
     MELAParticle* onePart = new MELAParticle((pDaughters->at(ip)).first, (pDaughters->at(ip)).second);
@@ -1189,20 +1189,21 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
       else if (PDGHelpers::isAJet(partId)) cand->addAssociatedJets(aparticles.at(ip));
     }
     cand->addAssociatedVs(); // Could be useful for VH topology
+    //cand->addAssociatedTops(); // Could be useful for ttH/tqH topology
   }
 
   candList.push_back(cand);
   return cand;
 }
 void TEvtProb::SetInputEvent(
-  std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
-  std::vector<TLorentzVector>* pAssociated, std::vector<int>* idAssociated,
-  std::vector<TLorentzVector>* pMothers, std::vector<int>* idMothers
+  std::vector<std::pair<int, TLorentzVector>>* pDaughters,
+  std::vector<std::pair<int, TLorentzVector>>* pAssociated,
+  std::vector<std::pair<int, TLorentzVector>>* pMothers,
   ){
   melaCand = ConvertVectorFormat(
-    pDaughters, idDaughters,
-    pAssociated, idAssociated,
-    pMothers, idMothers
+    pDaughters,
+    pAssociated,
+    pMothers
     );
 }
 

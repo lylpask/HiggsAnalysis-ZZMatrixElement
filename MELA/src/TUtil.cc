@@ -1876,7 +1876,7 @@ double VHiggsMatEl(
     mela_event.intermediateVid,
     partIncCode
     );
-  if (mela_event.pAssociated.size()!=2){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
+  if (mela_event.pAssociated.size()<2){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
 
   int MYIDUP_prod[4]={ 0 }; // "Incoming" partons 1, 2, "outgoing" partons 3, 4
   int MYIDUP_dec[2]={ 0 }; // "Outgoing" partons 1, 2
@@ -2107,16 +2107,100 @@ double TTHiggsMatEl(
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
   double MatElsq[nmsq][nmsq]={ { 0 } };
-  double p4[13][4]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
   if (production!=TVar::ttH && production!=TVar::bbH){ cerr << "TUtil::TTHiggsMatEl: Only ttH or bbH are supported." << endl; return sum_msqjk; }
 
+  int partIncCode;
+  if (production==TVar::ttH && topDecay>0) partIncCode=TVar::kUseAssociated_Tops; // Only use associated tops
+  else if (production==TVar::bbH || (production==TVar::ttH && topDecay==0)) partIncCode=TVar::kUseAssociated_Jets; // Only use associated jets
+  else{ cerr << "TUtil::TTHiggsMatEl: Invalid process specification!" << endl; return sum_msqjk; }
+  simple_event_record mela_event;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event.pDaughters,
+    mela_event.pAssociated,
+    mela_Event.pMothers,
+    mela_event.intermediateVid,
+    partIncCode
+    );
+  if (mela_event.pAssociated.size()<2 && production==TVar::bbH){ cerr << "TUtil::TTHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") in bbH process is not 2!" << endl; return sum_msqjk; }
+  else if (!((mela_event.pAssociated.size()>=2 && topDecay==0) || (mela_event.pAssociated.size()>=6 && topDecay>0)) && production==TVar::ttH){ cerr << "TUtil::TTHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") in ttH process is not 2 or 6!" << endl; return sum_msqjk; }
+
+  vector<pair<int, TLorentzVector>> topDaughters;
+  bool hasF=false;
+  bool hasFB=false;
+  if (production==TVar::ttH && topDecay==0){ // Pick stable tops
+    for (unsigned int idau=0; idau<mela_event.pAssociated.size(); idau++){
+      pair<int, TLorentzVector> topDau = mela_event.pAssociated.at(idau);
+      if (topDau.first==6 && !hasF){ topDaughters.push_back(topDau); hasF=true; }
+      else if (topDau.first==-6 && !hasFB){ topDaughters.push_back(topDau); hasFB=true; }
+      else if (hasFB && hasF) break;
+    }
+  }
+  else if (production==TVar::ttH){ // Pick unstable tops
+    for (unsigned int idau=0; idau<mela_event.pAssociated.size(); idau++){
+      pair<int, TLorentzVector> topDau = mela_event.pAssociated.at(idau);
+      // LEFT HERE: Need to pick one top and one atop only!
+      if (topDau.first==6 && !hasF){ topDaughters.push_back(topDau); hasF=true; }
+      else if (topDau.first==-6 && !hasFB){ topDaughters.push_back(topDau); hasFB=true; }
+      else if (hasFB && hasF) break;
+    }
+
+
+  }
 
   // 0,1: p1 p2
   // 2-4: H,tb,t
   // 5-8: bb,W-,f,fb
   // 9-12: b,W+,fb,f
+  double p4[13][4]={ { 0 } };
+  MYIDUP_prod[2]={ 0 };
+  TLorentzVector MomStore[mxpart];
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
+  for (int ipar=0; ipar<2; ipar++){
+    TLorentzVector* momTmp = &(mela_event.pMothers.at(ipar).second);
+    int* idtmp = &(mela_event.pMothers.at(ipar).first);
+    if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_prod[ipar] = *idtmp;
+    else MYIDUP_prod[ipar] = 0;
+    if (momTmp->T()>0.){
+      p4[ipar][0] = -momTmp->T()*GeV;
+      p4[ipar][1] = -momTmp->X()*GeV;
+      p4[ipar][2] = -momTmp->Y()*GeV;
+      p4[ipar][3] = -momTmp->Z()*GeV;
+      MomStore[ipar] = (*momTmp);
+    }
+    else{
+      p4[ipar][0] = momTmp->T()*GeV;
+      p4[ipar][1] = momTmp->X()*GeV;
+      p4[ipar][2] = momTmp->Y()*GeV;
+      p4[ipar][3] = momTmp->Z()*GeV;
+      MomStore[ipar] = -(*momTmp);
+      MYIDUP_prod[ipar] = -MYIDUP_prod[ipar];
+    }
+  }
+
+  bool forceStable=(mela_event.pAssociated.size()==2);
+  for (int ipar=0; ipar<2; ipar++){
+      TLorentzVector* momTmp = &(mela_event.pAssociated.at(ipar).second);
+      int* idtmp = &(mela_event.pAssociated.at(ipar).first);
+      if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[ipar+2] = *idtmp;
+      else MYIDUP_tmp[ipar+2] = 0;
+      p4[ipar+2][0] = momTmp->T()*GeV;
+      p4[ipar+2][1] = momTmp->X()*GeV;
+      p4[ipar+2][2] = momTmp->Y()*GeV;
+      p4[ipar+2][3] = momTmp->Z()*GeV;
+      MomStore[ipar+6] = (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
+    p4[4][0] += momTmp->T()*GeV;
+    p4[4][1] += momTmp->X()*GeV;
+    p4[4][2] += momTmp->Y()*GeV;
+    p4[4][3] += momTmp->Z()*GeV;
+    MomStore[5] = MomStore[5] + (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+
   for (int i = 0; i < 2; i++){
     p4[i][0] = -p[i].Energy()/100.;
     p4[i][1] = -p[i].Px()/100.;
@@ -2219,9 +2303,9 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
 // intermediateVids are needed to keep track of the decay mode. TVar::Process or TVar::Production do not keep track of V/f decay modes.
 void GetBoostedParticleVectors(
   MELACandidate* melaCand,
-  pair<vector<int>, vector<TLorentzVector>>& pDaughters,
-  pair<vector<int>, vector<TLorentzVector>>& pAssociated,
-  pair<vector<int>, vector<TLorentzVector>>& pMothers,
+  vector<pair<int, TLorentzVector>>& pDaughters,
+  vector<pair<int, TLorentzVector>>& pAssociated,
+  vector<pair<int, TLorentzVector>>& pMothers,
   vector<int>& intermediateVid,
   int useAssociatedCode
   ){
@@ -2246,7 +2330,7 @@ void GetBoostedParticleVectors(
         for (int ivd=0; ivd<Vdau->getNDaughters(); ivd++){
           MELAParticle* Vdau_i = Vdau->getDaughter(ivd);
           if (Vdau_i!=0) daughters.push_back(
-            pair<vector<int>, vector<TLorentzVector>>(Vdau_i->id, Vdau_i->p4)
+            pair<int, TLorentzVector>(Vdau_i->id, Vdau_i->p4)
             );
         }
         if (idtmp!=0 || Vdau->getNDaughters()>0){ // Avoid "empty" intermediate Vs of the MELACandidate object
@@ -2257,26 +2341,51 @@ void GetBoostedParticleVectors(
     }
   }
 
-  pair<vector<int>, vector<TLorentzVector>> associated;
-  if (code%TVar::kUseAssociated_Leptons){
+  pair<int, TLorentzVector> associated;
+  bool requestTops = (code%TVar::kUseAssociated_Tops==0);
+  vector<MELAParticle*> topDaughters;
+  if (requestTops){
+    for (int itop=0; itop<melaCand->getNAssociatedTops(); itop++){
+      MELAParticle* theTop = melaCand->getAssociatedTop(ip);
+      if (theTop!=0){
+        if (abs(theTop->topTag)!=6) continue;
+        for (int idau=0; idau<theTop->getNDaughters(); idau++){
+          MELAParticle* part = theTop->getDaughter(idau);
+          topDaughters.push_back(part);
+          //associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
+        }
+      }
+    }
+    // LEFT HERE: Need to order tops as top, top... atop, atop...
+  }
+  if (code%TVar::kUseAssociated_Leptons==0){
     for (int ip=0; ip<melaCand->getNAssociatedLeptons(); ip++){
-      if (melaCand->getAssociatedLepton(ip)!=0) associated.push_back(
-        pair<vector<int>, vector<TLorentzVector>>(melaCand->getAssociatedLepton(ip)->id, melaCand->getAssociatedLepton(ip)->p4)
-        );
+      MELAParticle* part = melaCand->getAssociatedLepton(ip);
+      bool doSkip=false;
+      if (requestTops){ // Skip top-tagged associated particles if relevant
+        for (unsigned int itd=0; itd<topDaughters.size(); itd++){
+          if (topDaughters.at(itd)==part){ doSkip=true; break; }
+        }
+      }
+      if (part!=0 && !doSkip) associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
     }
   }
-  if (code%TVar::kUseAssociated_Photons){
+  if (code%TVar::kUseAssociated_Photons==0){
     for (int ip=0; ip<melaCand->getNAssociatedPhotons(); ip++){
-      if (melaCand->getAssociatedPhoton(ip)!=0) associated.push_back(
-        pair<vector<int>, vector<TLorentzVector>>(melaCand->getAssociatedPhoton(ip)->id, melaCand->getAssociatedPhoton(ip)->p4)
-        );
+      MELAParticle* part = melaCand->getAssociatedPhoton(ip);
+      if (part!=0) associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
     }
   }
-  if (code%TVar::kUseAssociated_Jets){
+  if (code%TVar::kUseAssociated_Jets==0){
     for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
-      if (melaCand->getAssociatedJet(ip)!=0) associated.push_back(
-        pair<vector<int>, vector<TLorentzVector>>(melaCand->getAssociatedJet(ip)->id, melaCand->getAssociatedJet(ip)->p4)
-        );
+      MELAParticle* part = melaCand->getAssociatedJet(ip);
+      bool doSkip=false;
+      if (requestTops){ // Skip top-tagged associated particles if relevant
+        for (unsigned int itd=0; itd<topDaughters.size(); itd++){
+          if (topDaughters.at(itd)==part){ doSkip=true; break; }
+        }
+      }
+      if (part!=0 && !doSkip) associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
     }
   }
 
@@ -2328,7 +2437,7 @@ void GetBoostedParticleVectors(
     int idmother = 0; // In case it is unknown.
     if (melaCand->getNMothers()==2) idmother = motherId[ip];
     pMothers.push_back(
-      pair<vector<int>, vector<TLorentzVector>>(idmother, pM[ip])
+      pair<int, TLorentzVector>(idmother, pM[ip])
       );
   }
 }

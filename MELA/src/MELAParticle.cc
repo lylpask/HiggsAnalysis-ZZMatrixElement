@@ -11,7 +11,8 @@ MELAParticle::MELAParticle():
 id(0),
 passSelection(true),
 genStatus(-2),
-lifetime(0)
+lifetime(0),
+topTag(0)
 {
   p4.SetXYZT(0, 0, 0, 0);
 }
@@ -20,7 +21,8 @@ MELAParticle::MELAParticle(int id_, TLorentzVector p4_) :
 id(id_),
 passSelection(true),
 genStatus(-2),
-lifetime(0)
+lifetime(0),
+topTag(0)
 {
   p4.SetXYZT(p4_.X(), p4_.Y(), p4_.Z(), p4_.T());
 }
@@ -28,7 +30,8 @@ MELAParticle::MELAParticle(const MELAParticle& particle_) :
 id(particle_.id),
 passSelection(particle_.passSelection),
 genStatus(particle_.genStatus),
-lifetime(particle_.lifetime)
+lifetime(particle_.lifetime),
+topTag(particle_.topTag)
 {
   p4.SetXYZT(particle_.p4.X(), particle_.p4.Y(), particle_.p4.Z(), particle_.p4.T());
   for (int index=0; index<particle_.getNMothers(); index++) addMother(particle_.getMother(index));
@@ -39,6 +42,7 @@ MELAParticle& MELAParticle::operator=(const MELAParticle& particle_){
   passSelection=particle_.passSelection;
   genStatus=particle_.genStatus;
   lifetime=particle_.lifetime;
+  topTag=particle_.topTag;
   for (int index=0; index<particle_.getNMothers(); index++) addMother(particle_.getMother(index));
   for (int index=0; index<particle_.getNDaughters(); index++) addDaughter(particle_.getDaughter(index));
   return *this;

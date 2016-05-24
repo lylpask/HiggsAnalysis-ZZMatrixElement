@@ -26,7 +26,8 @@ public:
     kNoAssociated=1,
     kUseAssociated_Leptons=2, // l or nu
     kUseAssociated_Photons=3,
-    kUseAssociated_Jets=5
+    kUseAssociated_Jets=5,
+    kUseAssociated_Tops=7
   };
   enum VerbosityLevel {
     ERROR = 0,
@@ -219,9 +220,9 @@ static const TString branch_format_particle =
 
 struct simple_event_record{
   std::vector<int> intermediateVid; // Origin of daughters, not associated particles
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> pDaughters;
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> pAssociated;
-  std::pair<std::vector<int>, std::vector<TLorentzVector>> pMothers;
+  std::vector<std::pair<int, TLorentzVector>> pDaughters;
+  std::vector<std::pair<int, TLorentzVector>> pAssociated;
+  std::vector<std::pair<int, TLorentzVector>> pMothers;
 };
 
 /*
