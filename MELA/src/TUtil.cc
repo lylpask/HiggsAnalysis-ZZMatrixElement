@@ -2016,9 +2016,9 @@ double VHiggsMatEl(
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
-  double renQ = InterpretScaleScheme(production, TVar::JHUGen, event_scales->renomalizationScheme, MomStore);
+  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
-  double facQ = InterpretScaleScheme(production, TVar::JHUGen, event_scales->factorizationScheme, MomStore);
+  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
@@ -2088,24 +2088,31 @@ double VHiggsMatEl(
     } // End loop over h56
   } // End loop over h01
 
-  sumME = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
+  sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
 
   //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
   //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  return sumME;
+  return sum_msqjk;
 }
 
 
 // LEFT HERE: NEED TO MERGE OLD AND NEW FORTRAN CODE, MOST NOTABLY ADDING EVALXSEC_PP*
 double TTHiggsMatEl(
-  TVar::Production production,
-  const TLorentzVector p[11],
-  int topDecay, int topProcess,
-  TVar::VerbosityLevel verbosity
+  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  event_scales_type* event_scales, MelaIO* RcdME,
+  TVar::VerbosityLevel verbosity,
+  double EBEAM,
+  int topDecay, int topProcess
   ){
-  double sumME=0;
+  double sum_msqjk=0;
+  double MatElsq[nmsq][nmsq]={ { 0 } };
   double p4[13][4]={ { 0 } };
+
+  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
+  if (production!=TVar::ttH && production!=TVar::bbH){ cerr << "TUtil::TTHiggsMatEl: Only ttH or bbH are supported." << endl; return sum_msqjk; }
+
+  // LEFT HERE
 
   for (int i = 0; i < 2; i++){
     p4[i][0] = -p[i].Energy()/100.;
@@ -2113,6 +2120,7 @@ double TTHiggsMatEl(
     p4[i][2] = -p[i].Py()/100.;
     p4[i][3] = -p[i].Pz()/100.;
   }
+  // 2-10 are what?
   for (int i = 2; i < 11; i++){
     p4[i][0] = p[i].Energy()/100.;
     p4[i][1] = p[i].Px()/100.;
@@ -2128,12 +2136,29 @@ double TTHiggsMatEl(
     }
   }
 
-  __modttbh_MOD_initprocess_ttbh();
-  if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, &topDecay, &topProcess, &sumME);
-  else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, &topProcess, &sumME);
-//  __modttbh_MOD_exitprocess_ttbh();
+  double defaultRenScale = scale_.scale;
+  double defaultFacScale = facscale_.facscale;
+  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+  int defaultNloop = nlooprun_.nlooprun;
+  int defaultNflav = nflav_.nflav;
+  string defaultPdflabel = pdlabel_.pdlabel;
+  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
-  return sumME;
+
+  if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
+  else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, &topProcess, MatElsq);
+
+
+  sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
+
+  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
+  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  return sum_msqjk;
 }
 
 

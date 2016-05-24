@@ -1,0 +1,61 @@
+GFORTRAN module version '6' created from mod_Graviton.F90 on Sat May 21 16:30:25 2016
+MD5:58368a3a2c76d736a4b2cea5b84cf846 -- If you edit this, you'll get what you deserve.
+
+(() () () () () () () () () () () () () () () () () () () () () () ()
+() () () ())
+
+()
+
+()
+
+()
+
+()
+
+()
+
+(2 'evalamp_g_vv' 'modgraviton' 'evalamp_g_vv' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 3 0 (4 5 6) () 0 () () () 0 0)
+7 'evalamp_gg_g_vv' 'modgraviton' 'evalamp_gg_g_vv' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 8 0 (9 10 11) () 0 () () () 0 0)
+12 'evalamp_qqb_g_vv' 'modgraviton' 'evalamp_qqb_g_vv' 1 ((PROCEDURE
+UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN 0 0 SUBROUTINE) (UNKNOWN 0 0 0
+UNKNOWN ()) 13 0 (14 15 16) () 0 () () () 0 0)
+9 'p' '' 'p' 8 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DIMENSION
+DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (INTEGER 4 0
+0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '4') (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '6')) 0 () () () 0 0)
+10 'my_idup' '' 'my_idup' 8 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0
+0 DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1 0 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '6') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '9')) 0 () () () 0 0)
+11 'sum' '' 'sum' 8 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+DUMMY) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
+14 'p' '' 'p' 13 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+DIMENSION DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0
+'4') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0
+0 INTEGER ()) 0 '6')) 0 () () () 0 0)
+15 'my_idup' '' 'my_idup' 13 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN
+0 0 DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1 0 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '6') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '9')) 0 () () () 0 0)
+16 'sum' '' 'sum' 13 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+DUMMY) (REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
+6 'sum' '' 'sum' 3 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
+(REAL 8 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
+5 'my_idup' '' 'my_idup' 3 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0
+0 DIMENSION DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () (1 0 EXPLICIT (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '6') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '9')) 0 () () () 0 0)
+4 'p' '' 'p' 3 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DIMENSION
+DUMMY) (REAL 8 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (INTEGER 4 0
+0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '4') (
+CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER 4 0 0
+INTEGER ()) 0 '6')) 0 () () () 0 0)
+)
+
+('evalamp_g_vv' 0 2 'evalamp_gg_g_vv' 0 7 'evalamp_qqb_g_vv' 0 12)

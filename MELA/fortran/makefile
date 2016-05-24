@@ -57,7 +57,7 @@ all:    libs
 #	mv *.o $(OBJECTS)
 #	mv *.mod $(MODULES)
 
-libs: NNPDFDriver.o mod_Parameters.o mod_Misc.o mod_Kinematics.o mod_JHUGen.o mod_Higgs.o mod_Graviton.o mod_Zprime.o mod_HiggsJJ.o mod_HiggsJ.o mod_VHiggs.o mod_Topdecay.o mod_TTBHiggs.o mod_THiggs.o
+libs: NNPDFDriver.o mod_Parameters.o mod_Misc.o mod_Kinematics.o mod_JHUGenMELA.o mod_JHUGen.o mod_Higgs.o mod_Graviton.o mod_Zprime.o mod_HiggsJJ.o mod_HiggsJ.o mod_VHiggs.o mod_Topdecay.o mod_TTBHiggs.o mod_THiggs.o
 
 NNPDFDriver.o: ./pdfs/NNPDFDriver.f
 	@echo " "
@@ -75,6 +75,11 @@ mod_Parameters.o: mod_Parameters.F90
 	@echo " "
 	@echo " compiling mod_Parameters.F90 with "$(Comp)
 	$(fcomp) -c mod_Parameters.F90
+
+mod_JHUGenMELA.o: mod_JHUGenMELA.F90
+	@echo " "
+	@echo " compiling mod_JHUGenMELA.F90 with "$(Comp)
+	$(fcomp) -c mod_JHUGenMELA.F90
 
 mod_Misc.o: mod_Misc.F90
 	@echo " "

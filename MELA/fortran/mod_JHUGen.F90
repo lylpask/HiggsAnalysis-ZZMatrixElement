@@ -1,5 +1,6 @@
 MODULE ModJHUGen
    use ModParameters
+   use ModJHUGenMELA
    use ModKinematics
 #if compiler==1
    use ifport
