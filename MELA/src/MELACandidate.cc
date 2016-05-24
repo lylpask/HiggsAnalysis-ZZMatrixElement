@@ -37,6 +37,10 @@ MELAParticle* MELACandidate::getSortedV(int index) const{
   if ((int)sortedVs.size()>index) return sortedVs.at(index);
   else return 0;
 }
+MELAParticle* MELACandidate::getSortedTop(int index) const{
+  if ((int)sortedTops.size()>index) return sortedTops.at(index);
+  else return 0;
+}
 MELAParticle* MELACandidate::getAssociatedLepton(int index)const{
   if ((int)associatedLeptons.size()>index) return associatedLeptons.at(index);
   else return 0;
@@ -349,6 +353,8 @@ void MELACandidate::addAssociatedJets(MELAParticle* myParticle){
 void MELACandidate::addByHighestPt(MELAParticle* myParticle, std::vector<MELAParticle*>& particleArray){
   bool inserted = checkParticleExists(myParticle, particleArray); // Test if the particle is already in the vector
   if (!inserted){
+    if (!associatedByHighestPt){ particleArray.push_back(myParticle); return; }
+
     for (std::vector<MELAParticle*>::iterator it = particleArray.begin(); it<particleArray.end(); it++){
       if ((*it)->pt()<myParticle->pt()){
         inserted=true;
@@ -363,6 +369,7 @@ void MELACandidate::addAssociatedVs(){
   createAssociatedVs(associatedJets);
   createAssociatedVs(associatedLeptons);
 }
+void MELACandidate::addAssociatedTops(){ createAssociatedTops(); }
 void MELACandidate::createAssociatedVs(std::vector<MELAParticle*>& particleArray){
   for (unsigned int i = 0; i<particleArray.size(); i++){
     double Qi = particleArray.at(i)->charge();
@@ -402,6 +409,39 @@ void MELACandidate::createAssociatedVs(std::vector<MELAParticle*>& particleArray
         boson->addDaughter(particleArray.at(firstdaughter));
         boson->addDaughter(particleArray.at(seconddaughter));
         addSortedV(boson);
+      }
+    }
+  }
+}
+void MELACandidate::createAssociatedTops(){
+  for (unsigned int i = 0; i<sortedVs.size(); i++){
+    double Qi = sortedVs.at(i)->charge();
+    int id_i = sortedVs.at(i)->id;
+    if (id_i==23) continue;
+
+
+    for (unsigned int j = 0; j<associatedJets.size(); j++){
+      double Qj = associatedJets.at(j)->charge();
+      int id_j = associatedJets.at(j)->id;
+      bool isUnique=true;
+      for(int idau=0; idau<sortedVs.at(i)->getNDaughters(); idau++){
+        MELAParticle* Vdaughter = sortedVs.at(i)->getDaughter(idau);
+        if (Vdaughter==associatedJets.at(j)){ isUnique=false; break; }
+      }
+      if (!isUnique) continue;
+
+      int topId = -1;
+      if ((Qi+Qj)==0 || id_i==0 || id_j==0) topId = 0;
+      else if ((Qi+Qj)<0) topId=-6;
+      else if ((Qi+Qj)>0) topId=6;
+
+
+      if (topId!=-1){
+        TLorentzVector pV = sortedVs.at(i)->p4+associatedJets.at(j)->p4;
+        MELAParticle* theTop = new MELAParticle(topId, pV);
+        boson->addDaughter(sortedVs.at(i));
+        boson->addDaughter(associatedJets.at(j));
+        addSortedTop(theTop);
       }
     }
   }

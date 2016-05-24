@@ -148,7 +148,7 @@ void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multipl
     Q_fac = Q_ren;
     mynloop = 1;
     hasReset=true;
-	}
+        }
   if (!hasReset){
     Q_ren *= multiplier_ren;
     Q_fac *= multiplier_fac;
@@ -170,31 +170,31 @@ void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multipl
   }
   // From pdfwrapper_linux.f:
   if (mypartons.compare("cteq6_l")==0) couple_.amz = 0.118;
-	else if(mypartons.compare("cteq6l1")==0 || mypartons.compare("Default")==0) couple_.amz = 0.130;
-	else couple_.amz = 0.118; // Add pdf as appropriate
+        else if(mypartons.compare("cteq6l1")==0 || mypartons.compare("Default")==0) couple_.amz = 0.130;
+        else couple_.amz = 0.118; // Add pdf as appropriate
 
 // For proper pdfwrapper_linux.f execution (alpha_s computation does not use pdf but examines the pdf name to initialize amz.)
-	if(!nflav_is_same){
-		nflav_.nflav = mynflav;
+        if(!nflav_is_same){
+                nflav_.nflav = mynflav;
 
-		if(mypartons.compare("Default")!=0) sprintf(pdlabel_.pdlabel,"%s",mypartons.c_str());
-		else sprintf(pdlabel_.pdlabel,"%s","cteq6l1"); // Default pdf is cteq6l1
-		coupling2_();
-	}
-	else{
-		qcdcouple_.as = alphas_(&(scale_.scale),&(couple_.amz),&(nlooprun_.nlooprun));
-	}
+                if(mypartons.compare("Default")!=0) sprintf(pdlabel_.pdlabel,"%s",mypartons.c_str());
+                else sprintf(pdlabel_.pdlabel,"%s","cteq6l1"); // Default pdf is cteq6l1
+                coupling2_();
+        }
+        else{
+                qcdcouple_.as = alphas_(&(scale_.scale),&(couple_.amz),&(nlooprun_.nlooprun));
+        }
 
-	qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
-	qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
-	qcdcouple_.ason4pi = qcdcouple_.as/(4.0*TMath::Pi());
+        qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
+        qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
+        qcdcouple_.ason4pi = qcdcouple_.as/(4.0*TMath::Pi());
 
 // TEST RUNNING SCALE PER EVENT:
 /*
-	if(verbosity >= TVar::DEBUG){
-		cout << "My pdf is: " << pdlabel_.pdlabel << endl;
-		cout << "My Q_ren: " << Q_ren << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
-			<< "Nflav: " << nflav_.nflav << endl;
+        if(verbosity >= TVar::DEBUG){
+                cout << "My pdf is: " << pdlabel_.pdlabel << endl;
+                cout << "My Q_ren: " << Q_ren << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
+                        << "Nflav: " << nflav_.nflav << endl;
 */
 }
 
@@ -640,7 +640,7 @@ bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::Lept
     if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
       //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
       vsymfact_.vsymfact=0.125; // MELA FACTOR (0.25 in MCFM 6.8)  --->   Result of just removing if(bw34_56) statements in FORTRAN code and not doing anything else
-      //		vsymfact_.vsymfact=0.25; // MELA FACTOR (Same 0.25 in MCFM 6.7)
+      //                vsymfact_.vsymfact=0.25; // MELA FACTOR (Same 0.25 in MCFM 6.7)
       interference_.interference=true;
     }
 
@@ -777,7 +777,7 @@ bool My_masscuts(double s[][mxpart],TVar::Process process){
    if(s[2][3]< minZmassSqr) return true;
    if(s[4][5]< minZmassSqr) return true;
  }
- return false;	 
+ return false;
 
 }
 
@@ -786,8 +786,8 @@ bool My_smalls(double s[][mxpart],int npart){
 
 // Reject event if any s(i,j) is too small
 // cutoff is defined in technical.Dat
-	
-      if ( 
+
+      if (
        npart == 3 &&
        (
         (-s[5-1][1-1]< cutoff_.cutoff)  //gamma p1
@@ -799,12 +799,12 @@ bool My_smalls(double s[][mxpart],int npart){
      || (+s[5-1][4-1]< cutoff_.cutoff)  //gamma e+
      || (+s[5-1][3-1]< cutoff_.cutoff)  //gamma nu
      || (+s[4-1][3-1]< cutoff_.cutoff)  //e+    nu
-	)	 
-      ) 
+        )
+      )
         return true;
-     
+
      else if (
-       npart == 4 &&     
+       npart == 4 &&
       (
         (-s[5-1][1-1]< cutoff_.cutoff)  //e-    p1
      || (-s[5-1][2-1]< cutoff_.cutoff)  //e-    p2
@@ -814,9 +814,9 @@ bool My_smalls(double s[][mxpart],int npart){
        )
 
      )
-       
+
       return true;
-     
+
      return false;
 }
 
@@ -894,7 +894,7 @@ double SumMatrixElementPDF(
   }
 
   //for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
-  
+
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
 //  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
@@ -915,7 +915,7 @@ double SumMatrixElementPDF(
       s[kdx][jdx]=s[jdx][kdx];
     }
   }
-  
+
   bool passMassCuts=true;
   if (passMassCuts){
     if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
@@ -932,9 +932,9 @@ double SumMatrixElementPDF(
       qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
     }
     //if( process==TVar::HZZ_4l)     qqb_hzz_(p4[0],msq[0]);
-    // the subroutine for the calculations including the interfenrence             
-    // ME =  sig + inter (sign, bkg)              
-    // 1161 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6)) [including gg->ZZ intf.]' 'L'  
+    // the subroutine for the calculations including the interfenrence
+    // ME =  sig + inter (sign, bkg)
+    // 1161 '  f(p1)+f(p2) --> H(--> Z^0(mu^-(p3)+mu^+(p4)) + Z^0(e^-(p5)+e^+(p6)) [including gg->ZZ intf.]' 'L'
     if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 MCFM 6.6 version
     if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::MCFM) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
     if (process==TVar::HSMHiggs && production == TVar::ZZGG) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
@@ -957,8 +957,8 @@ double SumMatrixElementPDF(
       }//ii
     //cout<<"\n";
     }//jj
-    // by default assume only gg productions 
-    // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
+    // by default assume only gg productions
+    // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5
     //     parton flavor bbar cbar sbar ubar dbar g d u s c b
     // C++ convention     0     1   2    3    4   5 6 7 8 9 10
     //
@@ -1071,7 +1071,7 @@ double JHUGenMatEl(
       p4[ipar][3] = mela_event.pMothers.at(ipar).second.Z()*GeV;
       MomStore[ipar] = -mela_event.pMothers.at(ipar).second;
     }
-    // From Markus: 
+    // From Markus:
     // Note that the momentum no.2, p(1:4, 2), is a dummy which is not used in case production==TVar::ZZINDEPENDENT.
     if (ipar==1 && production==TVar::ZZINDEPENDENT){ for (int ix=0; ix<4; ix++){ p4[0][ix] += p4[ipar][ix]; p4[ipar][ix]=0.; } }
   }
@@ -1264,7 +1264,7 @@ double JHUGenMatEl(
   }
   if (nNonZero>0) MatElSq /= ((double)nNonZero);
   cout << "TUtil::JHUGenMatEl: Number of matrix element instances computed: " << nNonZero << endl;
-  // This constant is needed to account for the different units used in 
+  // This constant is needed to account for the different units used in
   // JHUGen compared to the MCFM
   double constant = 1.45e-8;
   if (isSpinZero && production!=TVar::ZZINDEPENDENT) constant = 4.46162946e-4;
@@ -1312,13 +1312,13 @@ double HJJMatEl(
   ){
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
-  // by default assume only gg productions 
-  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
+  // by default assume only gg productions
+  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5
   //     parton flavor bbar cbar sbar ubar dbar g d u s c b
   // C++ convention     0     1   2    3    4   5 6 7 8 9 10
-  //2-D matrix is reversed in fortran                                                                                                           
-  // msq[ parton2 ] [ parton1 ]      
-  //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
+  //2-D matrix is reversed in fortran
+  // msq[ parton2 ] [ parton1 ]
+  //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];
   double MatElsq[nmsq][nmsq]={ { 0 } };
   double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
@@ -1851,13 +1851,13 @@ double VHiggsMatEl(
   ){
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
-  // by default assume only gg productions 
-  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5 
+  // by default assume only gg productions
+  // FOTRAN convention -5    -4   -3  -2    -1  0 1 2 3 4 5
   //     parton flavor bbar cbar sbar ubar dbar g d u s c b
   // C++ convention     0     1   2    3    4   5 6 7 8 9 10
-  //2-D matrix is reversed in fortran                                                                                                           
-  // msq[ parton2 ] [ parton1 ]      
-  //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];   
+  //2-D matrix is reversed in fortran
+  // msq[ parton2 ] [ parton1 ]
+  //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];
   double MatElsq[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
@@ -2097,7 +2097,6 @@ double VHiggsMatEl(
 }
 
 
-// LEFT HERE: NEED TO MERGE OLD AND NEW FORTRAN CODE, MOST NOTABLY ADDING EVALXSEC_PP*
 double TTHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
@@ -2105,15 +2104,19 @@ double TTHiggsMatEl(
   double EBEAM,
   int topDecay, int topProcess
   ){
-  double sum_msqjk=0;
+  const double GeV=1./100.; // JHUGen mom. scale factor
+  double sum_msqjk = 0;
   double MatElsq[nmsq][nmsq]={ { 0 } };
   double p4[13][4]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
   if (production!=TVar::ttH && production!=TVar::bbH){ cerr << "TUtil::TTHiggsMatEl: Only ttH or bbH are supported." << endl; return sum_msqjk; }
 
-  // LEFT HERE
 
+  // 0,1: p1 p2
+  // 2-4: H,tb,t
+  // 5-8: bb,W-,f,fb
+  // 9-12: b,W+,fb,f
   for (int i = 0; i < 2; i++){
     p4[i][0] = -p[i].Energy()/100.;
     p4[i][1] = -p[i].Px()/100.;
