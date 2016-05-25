@@ -835,18 +835,19 @@ double SumMatrixElementPDF(
   ){
 
   int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
+  int nRequested_AssociatedJets = 0;
   if (
     ((process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ) && production==TVar::JJVBF)
-    ) partIncCode=TVar::kUseAssociated_Jets; // Use asociated jets in the pT=0 frame boost
-
+    ){ // Use asociated jets in the pT=0 frame boost
+    partIncCode=TVar::kUseAssociated_Jets;
+    nRequested_AssociatedJets = 2;
+  }
   simple_event_record mela_event;
+  mela_event.AssociationCode=partIncCode;
+  mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    mela_event.intermediateVid,
-    partIncCode
+    mela_event
     );
 
   double xx[2]={ 0 };
@@ -1039,13 +1040,10 @@ double JHUGenMatEl(
   // Notice that partIncCode is specific for this subroutine
   int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
   simple_event_record mela_event;
+  mela_event.AssociationCode=partIncCode;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    mela_event.intermediateVid,
-    partIncCode
+    mela_event
     );
   if (mela_event.pDaughters.size()<2 || mela_event.intermediateVid.size()!=2){
     cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
@@ -1323,18 +1321,18 @@ double HJJMatEl(
   double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::HJJMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
-  if (!(production == TVar::JJGG || production == TVar::JJVBF || production == TVar::JH)){ cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
+  if (!(production==TVar::JJGG || production==TVar::JJVBF || production==TVar::JH)){ cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
   // Notice that partIncCode is specific for this subroutine
+  int nRequested_AssociatedJets=2;
+  if (production == TVar::JH) nRequested_AssociatedJets=1;
   int partIncCode=TVar::kUseAssociated_Jets; // Only use associated partons in the pT=0 frame boost
   simple_event_record mela_event;
+  mela_event.AssociationCode=partIncCode;
+  mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    mela_event.intermediateVid,
-    partIncCode
+    mela_event
     );
   if (mela_event.pAssociated.size()==0){ cerr << "TUtil::HJJMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
 
@@ -1863,17 +1861,28 @@ double VHiggsMatEl(
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
   if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH)){ cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
-  // Notice that partIncCode is specific for this subroutine
+  int nRequested_AssociatedJets=0;
+  int nRequested_AssociatedLeptons=0;
+  int AssociationVCompatibility=0;
   int partIncCode;
-  if (production == TVar::Had_ZH || production == TVar::Had_WH) partIncCode=TVar::kUseAssociated_Jets; // Only use associated partons
-  else if (production == TVar::Lep_ZH || production == TVar::Lep_WH) partIncCode=TVar::kUseAssociated_Leptons; // Only use associated leptons(+)neutrinos
+  if (production == TVar::Had_ZH || production == TVar::Had_WH){ // Only use associated partons
+    partIncCode=TVar::kUseAssociated_Jets;
+    nRequested_AssociatedJets=2;
+  }
+  else if (production == TVar::Lep_ZH || production == TVar::Lep_WH){ // Only use associated leptons(+)neutrinos
+    partIncCode=TVar::kUseAssociated_Leptons;
+    nRequested_AssociatedLeptons=2;
+  }
+  if (production==TVar::Lep_WH || production==TVar::Had_WH)) AssociationVCompatibility=24;
+  else if (production==TVar::Lep_ZH || production==TVar::Had_ZH)) AssociationVCompatibility=23;
   simple_event_record mela_event;
+  mela_event.AssociationCode=partIncCode;
+  mela_event.AssociationVCompatibility=AssociationVCompatibility;
+  mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
+  mela_event.nRequested_AssociatedLeptons=nRequested_AssociatedLeptons;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    mela_event.intermediateVid,
+    mela_event,
     partIncCode
     );
   if (mela_event.pAssociated.size()<2){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
@@ -2109,25 +2118,29 @@ double TTHiggsMatEl(
   double MatElsq[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
-  if (production!=TVar::ttH && production!=TVar::bbH){ cerr << "TUtil::TTHiggsMatEl: Only ttH or bbH are supported." << endl; return sum_msqjk; }
+  if (production!=TVar::ttH){ cerr << "TUtil::TTHiggsMatEl: Only ttH is supported." << endl; return sum_msqjk; }
 
   int partIncCode;
-  if (production==TVar::ttH && topDecay>0) partIncCode=TVar::kUseAssociated_Tops; // Only use associated tops
-  else if (production==TVar::bbH || (production==TVar::ttH && topDecay==0)) partIncCode=TVar::kUseAssociated_Jets; // Only use associated jets
-  else{ cerr << "TUtil::TTHiggsMatEl: Invalid process specification!" << endl; return sum_msqjk; }
+  int nRequested_Tops=1;
+  int nRequested_Antitops=1;
+  if (topDecay>0) partIncCode=TVar::kUseAssociated_UnstableTops; // Look for unstable tops
+  else partIncCode=TVar::kUseAssociated_StableTops; // Look for unstable tops
+
   simple_event_record mela_event;
+  mela_event.AssociationCode=partIncCode;
+  mela_event.nRequested_Tops=nRequested_Tops;
+  mela_event.nRequested_Antitops=nRequested_Antitops;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event.pDaughters,
-    mela_event.pAssociated,
-    mela_Event.pMothers,
-    mela_event.intermediateVid,
-    partIncCode
+    mela_event
     );
-  if (mela_event.pAssociated.size()<2 && production==TVar::bbH){ cerr << "TUtil::TTHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") in bbH process is not 2!" << endl; return sum_msqjk; }
-  else if (!((mela_event.pAssociated.size()>=2 && topDecay==0) || (mela_event.pAssociated.size()>=6 && topDecay>0)) && production==TVar::ttH){ cerr << "TUtil::TTHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") in ttH process is not 2 or 6!" << endl; return sum_msqjk; }
+
+  // LEFT HERE
+  //if (mela_event.pTopDaughters.size()==0 /*Revise*/ ){ cerr << "TUtil::TTHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") in ttH process is not 2 or 6!" << endl; return sum_msqjk; }
 
   vector<pair<int, TLorentzVector>> topDaughters;
+  vector<pair<int, TLorentzVector>> topbarDaughters;
+  // LEFT HERE
   bool hasF=false;
   bool hasFB=false;
   if (production==TVar::ttH && topDecay==0){ // Pick stable tops
@@ -2300,15 +2313,14 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
 // GetBoostedParticleVectors decomposes the MELACandidate object melaCand into mothers, daughters, and associated particles in the pT=0 frame for the particular the useAssociatedCode, which is a product of TVar::kUseAssociated* (prime numbers)
 // If no mothers are present, it assigns mothers as Z>0, Z<0. If they are present, it orders them as "incoming" qbar-q / qbar-g / g-q / g-g
 // Associated particles passed are different based on the useAssociatedCode!=1. If useAssociatedCode==1, no associated particles are passed.
-// intermediateVids are needed to keep track of the decay mode. TVar::Process or TVar::Production do not keep track of V/f decay modes.
+// mela_event.intermediateVids are needed to keep track of the decay mode. TVar::Process or TVar::Production do not keep track of V/f decay modes.
 void GetBoostedParticleVectors(
   MELACandidate* melaCand,
-  vector<pair<int, TLorentzVector>>& pDaughters,
-  vector<pair<int, TLorentzVector>>& pAssociated,
-  vector<pair<int, TLorentzVector>>& pMothers,
-  vector<int>& intermediateVid,
-  int useAssociatedCode
+  simple_event_record& mela_event,
   ){
+  int code = mela_event.AssociationCode;
+  int aVhypo = mela_event.AssociationVCompatibility;
+
   pair<vector<int>, vector<TLorentzVector>> daughters;
   vector<int> idVstar;
   if (melaCand->getNDaughters()==0){
@@ -2341,57 +2353,215 @@ void GetBoostedParticleVectors(
     }
   }
 
+  int nsatisfied_jets=0;
+  int nsatisfied_lnus=0;
+  int nsatisfied_gammas=0;
+
+  vector<MELAParticle*> candidateVs; // Used if aVhypo!=0
   pair<int, TLorentzVector> associated;
-  bool requestTops = (code%TVar::kUseAssociated_Tops==0);
-  vector<MELAParticle*> topDaughters;
-  if (requestTops){
-    for (int itop=0; itop<melaCand->getNAssociatedTops(); itop++){
-      MELAParticle* theTop = melaCand->getAssociatedTop(ip);
-      if (theTop!=0){
-        if (abs(theTop->topTag)!=6) continue;
-        for (int idau=0; idau<theTop->getNDaughters(); idau++){
-          MELAParticle* part = theTop->getDaughter(idau);
-          topDaughters.push_back(part);
-          //associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
+  if (aVhypo!=0){
+
+    for (int iv=2; iv<melaCand->getNSortedVs(); iv++){ // Loop over associated Vs
+      MELAParticle* Vdau = melaCand->getSortedV(iv);
+      if (Vdau!=0){
+        bool doAdd=false;
+        int idV = Vdau->id;
+        if ((abs(idV)==aVhypo || idV==0) && Vdau->getNDaughters()>0){ // If the V is unknown or compatible with the requested hypothesis
+          doAdd=true;
+          for (int ivd=0; ivd<Vdau->getNDaughters(); ivd++){ // Loop over the daughters of V
+            MELAParticle* Vdau_i = Vdau->getDaughter(ivd);
+            if (Vdau_i==0){ doAdd=false; break; }
+            else if (
+              (mela_event.nRequested_AssociatedLeptons==0 && (PDGHelpers::isALepton(Vdau_i->id) || PDGHelpers::isANeutrino(Vdau_i->id)))
+              ||
+              (mela_event.nRequested_AssociatedJets==0 && PDGHelpers::isAJet(Vdau_i->id))
+              ){
+              doAdd=false; break;
+            }
+          }
+        }
+        if (doAdd) candidateVs.push_back(Vdau);
+      }
+    } // End loop over associated Vs
+
+    cout << "TUtil::GetBoostedParticleVectors: candidateVs size = " << candidateVs.size() << endl;
+    // Pick however many candidates necessary to fill up the requested number of jets or lepton(+)neutrinos
+    for (unsigned int iv=0; iv<candidateVs.size(); iv++){
+      MELAParticle* Vdau = candidateVs.at(iv);
+      for (int ivd=0; ivd<Vdau->getNDaughters(); ivd++){ // Loop over the daughters of V
+        MELAParticle* part = Vdau->getDaughter(ivd);
+        if ((PDGHelpers::isALepton(part->id) || PDGHelpers::isANeutrino(part->id)) && nsatisfied_lnus<mela_event.nRequested_AssociatedLeptons){
+          nsatisfied_lnus++;
+          associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
+        }
+        else if (PDGHelpers::isAJet(part->id) && nsatisfied_jets<mela_event.nRequested_AssociatedJets){
+          nsatisfied_jets++;
+          associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
         }
       }
     }
-    // LEFT HERE: Need to order tops as top, top... atop, atop...
+
   }
-  if (code%TVar::kUseAssociated_Leptons==0){
-    for (int ip=0; ip<melaCand->getNAssociatedLeptons(); ip++){
-      MELAParticle* part = melaCand->getAssociatedLepton(ip);
-      bool doSkip=false;
-      if (requestTops){ // Skip top-tagged associated particles if relevant
-        for (unsigned int itd=0; itd<topDaughters.size(); itd++){
-          if (topDaughters.at(itd)==part){ doSkip=true; break; }
+  else{ // Could be split to aVhypo==0 and aVhypo<0 if associated V+jets is needed
+
+    if (code%TVar::kUseAssociated_Leptons==0){
+      for (int ip=0; ip<melaCand->getNAssociatedLeptons(); ip++){
+        MELAParticle* part = melaCand->getAssociatedLepton(ip);
+        if (part!=0 && nsatisfied_lnus<mela_event.nRequested_AssociatedLeptons){
+          nsatisfied_lnus++;
+          associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
         }
+        else break;
       }
-      if (part!=0 && !doSkip) associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
     }
-  }
+    if (code%TVar::kUseAssociated_Jets==0){
+      for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
+        MELAParticle* part = melaCand->getAssociatedJet(ip);
+        if (part!=0 && nsatisfied_jets<mela_event.nRequested_AssociatedJets){
+          nsatisfied_jets++;
+          associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
+        }
+        else break;
+      }
+    }
+
+  } // End if(aVhypo!=0)-else statement
+
   if (code%TVar::kUseAssociated_Photons==0){
     for (int ip=0; ip<melaCand->getNAssociatedPhotons(); ip++){
       MELAParticle* part = melaCand->getAssociatedPhoton(ip);
-      if (part!=0) associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
-    }
-  }
-  if (code%TVar::kUseAssociated_Jets==0){
-    for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
-      MELAParticle* part = melaCand->getAssociatedJet(ip);
-      bool doSkip=false;
-      if (requestTops){ // Skip top-tagged associated particles if relevant
-        for (unsigned int itd=0; itd<topDaughters.size(); itd++){
-          if (topDaughters.at(itd)==part){ doSkip=true; break; }
-        }
+      if (part!=0 && nsatisfied_gammas<mela_event.nRequested_AssociatedPhotons){
+        nsatisfied_gammas++;
+        associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
       }
-      if (part!=0 && !doSkip) associated.push_back(pair<int, TLorentzVector>(part->id, part->p4));
+      else break;
     }
   }
 
+  // Handle tops
+  int nsatisfied_tops=0;
+  int nsatisfied_antitops=0;
+  vector<vector<pair<int, TLorentzVector>>> topDaughters;
+  vector<vector<pair<int, TLorentzVector>>> antitopDaughters;
+  vector<pair<int, TLorentzVector>> stableTops;
+  vector<pair<int, TLorentzVector>> stableAntiTops;
+
+  vector<MELATopCandidate*> tops;
+  vector<MELATopCandidate*> topbars;
+  vector<MELATopCandidate*> unknowntops;
+  if (code%TVar::kUseAssociated_StableTops==0 && code%TVar::kUseAssociated_UnstableTops==0){ cerr << "TUtil::GetBoostedParticleVectors: Stable and unstable tops ar not supported at the same time!"  << endl; }
+  else if (code%TVar::kUseAssociated_StableTops==0 || code%TVar::kUseAssociated_UnstableTops==0){
+
+    for (int itop=0; itop<melaCand->getNAssociatedTops(); itop++){
+      MELATopCandidate* theTop = melaCand->getAssociatedTop(ip);
+      if (theTop!=0){
+        vector<MELATopCandidate*>* particleArray;
+        if (theTop->id==6) particleArray = &tops;
+        else if (theTop->id==-6) particleArray = &topbars;
+        else particleArray = &unknowntops;
+        if (
+          (theTop->getNDaughters()==0 && code%TVar::kUseAssociated_StableTops==0)
+          ||
+          (theTop->getNDaughters()==3 && code%TVar::kUseAssociated_UnstableTops==0)
+          ) particleArray->push_back((MELATopCandidate*)theTop);
+      }
+    }
+
+    for (unsigned int itop=0; itop<tops.size(); itop++){
+      MELATopCandidate* theTop = tops.at(itop);
+      if (theTop->getNDaughters()==0 && nsatisfied_tops<mela_event.nRequested_Tops){
+        nsatisfied_tops++;
+        stableTops.push_back(pair<int, TLorentzVector>(theTop->id, theTop->p4));
+      }
+      else if (theTop->getNDaughters()==3 && nsatisfied_tops<mela_event.nRequested_Tops){
+        nsatisfied_tops++;
+        vector<pair<int, TLorentzVector>> vdaughters;
+
+        MELAParticle* bottom = theTop->getLightQuark();
+        MELAParticle* Wf = theTop->getWFermion();
+        MELAParticle* Wfb = theTop->getWAntifermion();
+        if (bottom!=0) vdaughters.push_back(pair<int, TLorentzVector>(bottom->id, bottom->p4));
+        if (Wf!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wf->id, Wf->p4));
+        if (Wfb!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wfb->id, Wfb->p4));
+
+        if (vdaughters.size()==3) topDaughters.push_back(vdaughters);
+      }
+      else break;
+    }
+    for (unsigned int itop=0; itop<topbars.size(); itop++){
+      MELATopCandidate* theTop = topbars.at(itop);
+      if (theTop->getNDaughters()==0 && nsatisfied_antitops<mela_event.nRequested_Antitops){
+        nsatisfied_antitops++;
+        stableAntiTops.push_back(pair<int, TLorentzVector>(theTop->id, theTop->p4));
+      }
+      else if (theTop->getNDaughters()==3 && nsatisfied_antitops<mela_event.nRequested_Antitops){
+        nsatisfied_antitops++;
+        vector<pair<int, TLorentzVector>> vdaughters;
+
+        MELAParticle* bottom = theTop->getLightQuark();
+        MELAParticle* Wf = theTop->getWFermion();
+        MELAParticle* Wfb = theTop->getWAntifermion();
+        if (bottom!=0) vdaughters.push_back(pair<int, TLorentzVector>(bottom->id, bottom->p4));
+        if (Wf!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wf->id, Wf->p4));
+        if (Wfb!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wfb->id, Wfb->p4));
+
+        if (vdaughters.size()==3) antitopDaughters.push_back(vdaughters);
+      }
+      else break;
+    }
+    if (unknowntops.size()!=0){
+      // Fill tops, then antitops from the unknown tops
+      for (unsigned int itop=0; itop<unknowntops.size(); itop++){
+        MELATopCandidate* theTop = unknowntops.at(itop);
+        if (theTop->getNDaughters()==0 && nsatisfied_tops<mela_event.nRequested_Tops){
+          nsatisfied_tops++;
+          stableTops.push_back(pair<int, TLorentzVector>(theTop->id, theTop->p4));
+        }
+        else if (theTop->getNDaughters()==0 && nsatisfied_antitops<mela_event.nRequested_Antitops){
+          nsatisfied_antitops++;
+          stableAntiTops.push_back(pair<int, TLorentzVector>(theTop->id, theTop->p4));
+        }
+        else if (theTop->getNDaughters()==3 && nsatisfied_tops<mela_event.nRequested_Tops){
+          nsatisfied_tops++;
+          vector<pair<int, TLorentzVector>> vdaughters;
+
+          MELAParticle* bottom = theTop->getLightQuark();
+          MELAParticle* Wf = theTop->getWFermion();
+          MELAParticle* Wfb = theTop->getWAntifermion();
+          if (bottom!=0) vdaughters.push_back(pair<int, TLorentzVector>(bottom->id, bottom->p4));
+          if (Wf!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wf->id, Wf->p4));
+          if (Wfb!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wfb->id, Wfb->p4));
+
+          if (vdaughters.size()==3) topDaughters.push_back(vdaughters);
+        }
+        else if (theTop->getNDaughters()==3 && nsatisfied_antitops<mela_event.nRequested_Antitops){
+          nsatisfied_antitops++;
+          vector<pair<int, TLorentzVector>> vdaughters;
+
+          MELAParticle* bottom = theTop->getLightQuark();
+          MELAParticle* Wf = theTop->getWFermion();
+          MELAParticle* Wfb = theTop->getWAntifermion();
+          if (bottom!=0) vdaughters.push_back(pair<int, TLorentzVector>(bottom->id, bottom->p4));
+          if (Wf!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wf->id, Wf->p4));
+          if (Wfb!=0) vdaughters.push_back(pair<int, TLorentzVector>(Wfb->id, Wfb->p4));
+
+          if (vdaughters.size()==3) antitopDaughters.push_back(vdaughters);
+        }
+        else break;
+      }
+    }
+
+  }
+
+
+
   TLorentzVector pTotal(0, 0, 0, 0);
   for (unsigned int ip=0; ip<daughters.size(); ip++) pTotal = pTotal + daughters.at(ip).second;
-  if (useAssociated){ for (unsigned int ip=0; ip<associated.size(); ip++) pTotal = pTotal + associated.at(ip).second; }
+  for (unsigned int ip=0; ip<associated.size(); ip++) pTotal = pTotal + associated.at(ip).second;
+  for (unsigned int ip=0; ip<stableTops.size(); ip++) pTotal = pTotal + stableTops.at(ip).second;
+  for (unsigned int ip=0; ip<stableAntiTops.size(); ip++) pTotal = pTotal + stableAntiTops.at(ip).second;
+  for (unsigned int ip=0; ip<topDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<topDaughters.at(ip).size(); ipd++) pTotal = pTotal + topDaughters.at(ip).at(ipd).second; }
+  for (unsigned int ip=0; ip<antitopDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<antitopDaughters.at(ip).size(); ipd++) pTotal = pTotal + antitopDaughters.at(ip).at(ipd).second; }
 
   double qX = pTotal.X();
   double qY = pTotal.Y();
@@ -2400,6 +2570,10 @@ void GetBoostedParticleVectors(
     TVector3 boostV(-qX/qE, -qY/qE, 0.);
     for (unsigned int ip=0; ip<daughters.size(); ip++) daughters.at(ip).second.Boost(boostV);
     for (unsigned int ip=0; ip<associated.size(); ip++) associated.at(ip).second.Boost(boostV);
+    for (unsigned int ip=0; ip<stableTops.size(); ip++) stableTops.at(ip).second.Boost(boostV);
+    for (unsigned int ip=0; ip<stableAntiTops.size(); ip++) stableAntiTops.at(ip).second.Boost(boostV);
+    for (unsigned int ip=0; ip<topDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<topDaughters.at(ip).size(); ipd++) topDaughters.at(ip).at(ipd).second.Boost(boostV); }
+    for (unsigned int ip=0; ip<antitopDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<antitopDaughters.at(ip).size(); ipd++) antitopDaughters.at(ip).at(ipd).second.Boost(boostV); }
     pTotal.Boost(boostV);
   }
 
@@ -2426,20 +2600,22 @@ void GetBoostedParticleVectors(
   pM[0].SetPxPyPzE(0., 0., pz0, TMath::Abs(pz0));
   pM[1].SetPxPyPzE(0., 0., pz1, TMath::Abs(pz1));
 
-  pDaughters.clear();
-  for (unsigned int ip=0; ip<daughters.size(); ip++) pDaughters.push_back(daughters.at(ip));
-  intermediateVid.clear();
-  for (unsigned int ip=0; ip<idVstar.size(); ip++) intermediateVid.push_back(idVstar.at(ip));
-  pAssociated.clear();
-  for (unsigned int ip=0; ip<associated.size(); ip++) pAssociated.push_back(associated.at(ip));
-  pMothers.clear();
-  for (unsigned int ip=0; ip<2; ip++){
-    int idmother = 0; // In case it is unknown.
-    if (melaCand->getNMothers()==2) idmother = motherId[ip];
-    pMothers.push_back(
-      pair<int, TLorentzVector>(idmother, pM[ip])
-      );
-  }
+  mela_event.pDaughters.clear();
+  for (unsigned int ip=0; ip<daughters.size(); ip++) mela_event.pDaughters.push_back(daughters.at(ip));
+  mela_event.intermediateVid.clear();
+  for (unsigned int ip=0; ip<idVstar.size(); ip++) mela_event.intermediateVid.push_back(idVstar.at(ip));
+  mela_event.pAssociated.clear();
+  for (unsigned int ip=0; ip<associated.size(); ip++) mela_event.pAssociated.push_back(associated.at(ip));
+  mela_event.pStableTops.clear();
+  for (unsigned int ip=0; ip<stableTops.size(); ip++) mela_event.pStableTops.push_back(stableTops.at(ip));
+  mela_event.pStableAntitops.clear();
+  for (unsigned int ip=0; ip<stableAntitops.size(); ip++) mela_event.pStableAntitops.push_back(stableAntitops.at(ip));
+  mela_event.pTopDaughters.clear();
+  for (unsigned int ip=0; ip<topDaughters.size(); ip++) mela_event.pTopDaughters.push_back(topDaughters.at(ip));
+  mela_event.pAntitopDaughters.clear();
+  for (unsigned int ip=0; ip<antitopDaughters.size(); ip++) mela_event.pAntitopDaughters.push_back(antitopDaughters.at(ip));
+  mela_event.pMothers.clear();
+  for (unsigned int ip=0; ip<2; ip++){ mela_event.pMothers.push_back(pair<int, TLorentzVector>(motherId[ip], pM[ip])); }
 }
 
 

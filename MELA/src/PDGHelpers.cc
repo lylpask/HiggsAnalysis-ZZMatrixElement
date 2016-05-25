@@ -8,11 +8,11 @@ bool PDGHelpers::isAJet(const int id){
   if (PDGHelpers::isAnUnknownJet(id) || PDGHelpers::isAQuark(id) || PDGHelpers::isAGluon(id)) return true;
   else return false;
 }
-bool isAnUnknownJet(const int id){
+bool PDGHelpers::isAnUnknownJet(const int id){
   if (id==0) return true;
   else return false;
 }
-bool isInvalid(const int id){
+bool PDGHelpers::isInvalid(const int id){
   if (id==-9000) return true;
   else return false;
 }

@@ -90,7 +90,7 @@ void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
 bool TEvtProb::CheckInputPresent(){
   if (melaCand==0 || candList.size()==0){
     cerr
-      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand
+      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand << " is nullPtr"
       << " or candList.size()==" << candList.size() << " is problematic!"
       << endl;
     if (candList.size()==0) return false;
@@ -1082,16 +1082,14 @@ void TEvtProb::SetHiggsMass(double mass, float wHiggs){
 MELACandidate* TEvtProb::ConvertVectorFormat(
   std::vector<std::pair<int, TLorentzVector>>* pDaughters,
   std::vector<std::pair<int, TLorentzVector>>* pAssociated,
-  std::vector<std::pair<int, TLorentzVector>>* pMothers,
+  std::vector<std::pair<int, TLorentzVector>>* pMothers
   ){
   MELACandidate* cand=0;
 
   if (pDaughters==0){ cerr << "TEvtProb::ConvertVectorFormat: No daughters!" << endl; return cand; }
   else if (pDaughters->size()==0){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size==0!" << endl; return cand; }
   else if (pDaughters->size()>4){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
-  if (pAssociated==0) && !(pAssociated==0 && idAssociated==0)){ cerr << "TEvtProb::ConvertVectorFormat: For associated particles, either the momentum std::vector of the id std::vector is 0!" << endl; return cand; }
-  else if (pAssociated!=0 && idAssociated!=0 && pAssociated->size()!=idAssociated->size()){ cerr << "TEvtProb::ConvertVectorFormat: Associated momentum size (" << pAssociated->size() << ") != associated id size (" << idAssociated->size() << ")!" << endl; return cand; }
-  if (pMothers!=0 && pMothers->size()!=2){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") is not supported!" << endl; /*return cand;*/ }
+  if (pMothers!=0 && pMothers->size()!=2){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") has to have had been 2! Continuing by omitting mothers." << endl; /*return cand;*/ }
 
   std::vector<MELAParticle>* daughters;
   std::vector<MELAParticle>* aparticles;
@@ -1111,7 +1109,7 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
       aparticles.push_back(onePart);
     }
   }
-  if (pMothers!=0 && pMothers->size()!=2){
+  if (pMothers!=0 && pMothers->size()==2){
     for (unsigned int ip=0; ip<pMothers->size(); ip++){
       MELAParticle* onePart = new MELAParticle((pMothers->at(ip)).first, (pMothers->at(ip)).second);
       onePart->setGenStatus(-1); // Mother status
@@ -1188,24 +1186,62 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
       else if (PDGHelpers::isAPhoton(partId)) cand->addAssociatedPhotons(aparticles.at(ip));
       else if (PDGHelpers::isAJet(partId)) cand->addAssociatedJets(aparticles.at(ip));
     }
-    cand->addAssociatedVs(); // Could be useful for VH topology
-    //cand->addAssociatedTops(); // Could be useful for ttH/tqH topology
+    cand->addAssociatedVs(); // For the VH topology
   }
-
   candList.push_back(cand);
   return cand;
 }
 void TEvtProb::SetInputEvent(
   std::vector<std::pair<int, TLorentzVector>>* pDaughters,
   std::vector<std::pair<int, TLorentzVector>>* pAssociated,
-  std::vector<std::pair<int, TLorentzVector>>* pMothers,
+  std::vector<std::pair<int, TLorentzVector>>* pMothers
   ){
-  melaCand = ConvertVectorFormat(
+  MELACandidate* cand = ConvertVectorFormat(
     pDaughters,
     pAssociated,
     pMothers
     );
+  if (cand!=0) melaCand=cand;
 }
+MELATopCandidate* TEvtProb::ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters){
+  MELATopCandidate* cand=0;
+
+  if (TopDaughters==0){ cerr << "TEvtProb::ConvertTopCandidate: No daughters!" << endl; return cand; }
+  else if (TopDaughters->size()==0){ cerr << "TEvtProb::ConvertTopCandidate: Daughter size==0!" << endl; return cand; }
+  else if (!(TopDaughters->size()==1 || TopDaughters->size()==3)){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size " << TopDaughters->size() << "!=1 or 3 is not supported!" << endl; return cand; }
+
+  if (TopDaughters->size()==1){
+    if (abs((TopDaughters->at(0)).first)==6 || (TopDaughters->at(0)).first==0){
+      cand = new MELATopCandidate((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+      topCandList.push_back(cand);
+    }
+  }
+  else if (TopDaughters->size()==3){
+    MELAParticle* bottom = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+    MELAParticle* Wf = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+    MELAParticle* Wfb = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+
+    if (Wf->id<0 || Wfb->id>0){
+      MELAParticle* parttmp = Wf;
+      Wf=Wfb;
+      Wfb=parttmp;
+    }
+
+    particleList.push_back(bottom);
+    particleList.push_back(Wf);
+    particleList.push_back(Wfb);
+
+    cand = new MELATopCandidate(bottom, Wf, Wfb);
+    topCandList.push_back(cand);
+  }
+  return cand;
+}
+void TEvtProb::AppendTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters){
+  if (!CheckInputPresent()) return;
+  MELATopCandidate* cand = ConvertTopCandidate(TopDaughters);
+  if (cand!=0) melaCand->addAssociatedTops(cand);
+}
+
 
 void TEvtProb::ResetInputEvent(){
   RcdME.melaCand = 0;
@@ -1217,6 +1253,11 @@ void TEvtProb::ResetInputEvent(){
     if (tmpCand!=0) delete tmpCand;
   }
   candList.clear();
+  for (unsigned int p=0; p<topCandList.size(); p++){
+    MELATopCandidate* tmpCand = (MELATopCandidate*)topCandList.at(p);
+    if (tmpCand!=0) delete tmpCand;
+  }
+  topCandList.clear();
   for (unsigned int p=0; p<particleList.size(); p++){
     MELAParticle* tmpPart = (MELAParticle*)particleList.at(p);
     if (tmpPart!=0) delete tmpPart;

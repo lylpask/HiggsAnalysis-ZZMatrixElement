@@ -61,15 +61,17 @@ private:
 
   HiggsCSandWidth_MELA* myCSW_;
   MELACandidate* melaCand; // Only a pointer to the top-level (input) candList object
-  std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
   std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
+  std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
+  std::vector<MELATopCandidate*> topCandList; // Container of candidate objects, for bookkeeping to delete later
 
   // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively
   MELACandidate* ConvertVectorFormat(
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>* pDaughters,
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>* pAssociated=0,
-    std::pair<std::vector<int>, std::vector<TLorentzVector>>* pMothers=0,
+    std::vector<std::pair<int, TLorentzVector>>* pDaughters,
+    std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
+    std::vector<std::pair<int, TLorentzVector>>* pMothers=0
     );
+  MELATopCandidate* ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
   // Check if at least one input candidate is present
   bool CheckInputPresent();
   void SetRcdInputEvent();
@@ -95,10 +97,11 @@ public:
   void Set_LHAgrid(const char* path, int pdfmember=0);
 
   void SetInputEvent(
-    std::vector<TLorentzVector>* pDaughters, std::vector<int>* idDaughters,
-    std::vector<TLorentzVector>* pAssociated=0, std::vector<int>* idAssociated=0,
-    std::vector<TLorentzVector>* pMothers=0, std::vector<int>* idMothers=0
+    std::vector<std::pair<int, TLorentzVector>>* pDaughters,
+    std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
+    std::vector<std::pair<int, TLorentzVector>>* pMothers=0
     );
+  void AppendTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
 
   double XsecCalc_XVV(
     TVar::Process proc, TVar::Production production,

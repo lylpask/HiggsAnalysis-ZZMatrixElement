@@ -11,7 +11,7 @@
 #include "TH2F.h"
 #include "TH1F.h"
 
-//#define EBEAM 4000.00
+
 #define fbGeV2 0.389379E12
 #define smallnumber 1e-15
 #define sixteen_2Pi_to_8 3.88650230418250561e+07
@@ -27,7 +27,8 @@ public:
     kUseAssociated_Leptons=2, // l or nu
     kUseAssociated_Photons=3,
     kUseAssociated_Jets=5,
-    kUseAssociated_Tops=7
+    kUseAssociated_UnstableTops=7,
+    kUseAssociated_StableTops=11
   };
   enum VerbosityLevel {
     ERROR = 0,
@@ -218,11 +219,37 @@ static const TString branch_format_particle =
   "Eta/D:"
   "Phi/D";
 
-struct simple_event_record{
+struct simple_event_record{ // Somewhat not-so-simple particles
+  int AssociationCode;
+  int AssociationVCompatibility; // Z=23, W+-=|+-24| or none=0
+  int nRequested_AssociatedJets;
+  int nRequested_AssociatedLeptons;
+  int nRequested_AssociatedPhotons;
+  int nRequested_Tops;
+  int nRequested_Antitops;
+
+  // Output 4-vectors
   std::vector<int> intermediateVid; // Origin of daughters, not associated particles
   std::vector<std::pair<int, TLorentzVector>> pDaughters;
   std::vector<std::pair<int, TLorentzVector>> pAssociated;
   std::vector<std::pair<int, TLorentzVector>> pMothers;
+
+  std::vector<std::vector<std::pair<int, TLorentzVector>>> pTopDaughters;
+  std::vector<std::vector<std::pair<int, TLorentzVector>>> pAntitopDaughters;
+  std::vector<std::pair<int, TLorentzVector>> pStableTops;
+  std::vector<std::pair<int, TLorentzVector>> pStableAntiTops;
+
+  // Constructor
+  simple_event_record() :
+    AssociationCode(TVar::kNoAssociated),
+    AssociationVCompatibility(0),
+    nRequested_AssociatedJets(0),
+    nRequested_AssociatedLeptons(0),
+    nRequested_AssociatedPhotons(0),
+    nRequested_Tops(0),
+    nRequested_Antitops(0)
+  {}
+
 };
 
 /*

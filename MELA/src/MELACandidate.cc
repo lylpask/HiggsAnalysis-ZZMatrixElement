@@ -1,5 +1,7 @@
 #include <ZZMatrixElement/MELA/interface/MELACandidate.h>
 
+using namespace PDGHelpers;
+
 void MELACandidate::sortDaughters(){
   if (debugVars::debugFlag) std::cout << "Starting MELACandidate::sortDaughtersInitial" << std::endl;
   sortDaughtersInitial();
@@ -37,10 +39,6 @@ MELAParticle* MELACandidate::getSortedV(int index) const{
   if ((int)sortedVs.size()>index) return sortedVs.at(index);
   else return 0;
 }
-MELAParticle* MELACandidate::getSortedTop(int index) const{
-  if ((int)sortedTops.size()>index) return sortedTops.at(index);
-  else return 0;
-}
 MELAParticle* MELACandidate::getAssociatedLepton(int index)const{
   if ((int)associatedLeptons.size()>index) return associatedLeptons.at(index);
   else return 0;
@@ -55,6 +53,10 @@ MELAParticle* MELACandidate::getAssociatedPhoton(int index)const{
 }
 MELAParticle* MELACandidate::getAssociatedJet(int index)const{
   if ((int)associatedJets.size()>index) return associatedJets.at(index);
+  else return 0;
+}
+MELATopCandidate* MELACandidate::getAssociatedTop(int index)const{
+  if ((int)associatedTops.size()>index) return associatedTops.at(index);
   else return 0;
 }
 void MELACandidate::sortDaughtersInitial(){
@@ -322,7 +324,7 @@ bool MELACandidate::daughtersInterfere()const{
     &&
     (sortedDaughters.at(1))->id == (sortedDaughters.at(3))->id
     &&
-    !isAnUnknownJet(sortedDaughters.at(0)) && !isAnUnknownJet(sortedDaughters.at(2))
+    !PDGHelpers::isAnUnknownJet(sortedDaughters.at(0)->id) && !PDGHelpers::isAnUnknownJet(sortedDaughters.at(2)->id)
     );
   return doInterfere;
 }
@@ -350,6 +352,9 @@ void MELACandidate::addAssociatedPhotons(MELAParticle* myParticle){
 void MELACandidate::addAssociatedJets(MELAParticle* myParticle){
   if (!checkDaughtership(myParticle)) addByHighestPt(myParticle, associatedJets);
 }
+void MELACandidate::addAssociatedTops(MELATopCandidate* myParticle){
+  addByHighestPt(myParticle, associatedTops);
+}
 void MELACandidate::addByHighestPt(MELAParticle* myParticle, std::vector<MELAParticle*>& particleArray){
   bool inserted = checkParticleExists(myParticle, particleArray); // Test if the particle is already in the vector
   if (!inserted){
@@ -365,11 +370,25 @@ void MELACandidate::addByHighestPt(MELAParticle* myParticle, std::vector<MELAPar
     if (!inserted) particleArray.push_back(myParticle);
   }
 }
+void MELACandidate::addByHighestPt(MELATopCandidate* myParticle, std::vector<MELATopCandidate*>& particleArray){
+  bool inserted = checkTopCandidateExists(myParticle, particleArray); // Test if the particle is already in the vector
+  if (!inserted){
+    if (!associatedByHighestPt){ particleArray.push_back(myParticle); return; }
+
+    for (std::vector<MELATopCandidate*>::iterator it = particleArray.begin(); it<particleArray.end(); it++){
+      if ((*it)->pt()<myParticle->pt()){
+        inserted=true;
+        particleArray.insert(it, myParticle);
+        break;
+      }
+    }
+    if (!inserted) particleArray.push_back(myParticle);
+  }
+}
 void MELACandidate::addAssociatedVs(){
   createAssociatedVs(associatedJets);
   createAssociatedVs(associatedLeptons);
 }
-void MELACandidate::addAssociatedTops(){ createAssociatedTops(); }
 void MELACandidate::createAssociatedVs(std::vector<MELAParticle*>& particleArray){
   for (unsigned int i = 0; i<particleArray.size(); i++){
     double Qi = particleArray.at(i)->charge();
@@ -413,99 +432,6 @@ void MELACandidate::createAssociatedVs(std::vector<MELAParticle*>& particleArray
     }
   }
 }
-void MELACandidate::createAssociatedTops(){
-  for (unsigned int i = 2; i<sortedVs.size(); i++){
-    double Qi = sortedVs.at(i)->charge();
-    int id_i = sortedVs.at(i)->id;
-    if (id_i==23 || id_i==21) continue; // Skip definite Z or gamma
-    if (sortedVs.at(i)->getNDaughters()<2) continue; // Skip in case the intermediate V has no daughters
-    MELAParticle* Vdau[2]={ 0 };
-    for (int idau=0; idau<2; idau++) Vdau[idau] = sortedVs.at(i)->getDaughter(idau);
-    if (Vdau[0]==0 || Vdau[1]==0) continue; // Pass empty particles
-    if (Vdau[0]->topTag==0 || Vdau[1]->topTag==0 || Vdau[0]->topTag!=Vdau[1]->topTag) continue; // Ensure to use the same top-tagged fermions, leptons
-    int Vtoptag = Vdau[0]->topTag;
-    if ((Vtoptag==6 && Qi<0) || (Vtoptag==-6 && Qi>0)) continue; // Ensure that the top tag is consistent with the W+- charge
-    if (Vdau[0]->id==6 || Vdau[1]->id==6 || Vdau[0]->id==-6 || Vdau[1]->id==-6) continue; // Veto Ws with tops as daughters, such tops should be standalone
-
-    for (unsigned int j = 0; j<associatedJets.size(); j++){
-      MELAParticle* theBot = associatedJets.at(j);
-      double Qj = theBot->charge();
-      int id_j = theBot->id;
-      if (PDGHelpers::isUpTypeQuark(id_j)) continue; // Up-type quarks cannot come from top decays
-      // Veto untagged ones, inconsistent charges, and those with incompatible tags with the tag of the "W"
-      if (theBot->topTag==0 || (theBot->topTag==6 && Qj>0) || (theBot->topTag==-6 && Qj<0) || !(theBot->topTag==Vtoptag || theBot->topTag==1 || Vtoptag==1)) continue;
-      bool isUnique = !(Vdau[0]==theBot || Vdau[1]==theBot);
-      if (!isUnique) continue;
-
-      int topId = -1;
-      if ((Qi+Qj)==0 || id_i==0 || id_j==0){
-         topId = 0;
-         if (topTag==6) topId=6;
-         else if (topTag==-6) topId=-6;
-      }
-      else if ((Qi+Qj)<0) topId=-6;
-      else if ((Qi+Qj)>0) topId=6;
-
-
-      if (topId!=-1){
-        TLorentzVector pV = sortedVs.at(i)->p4+associatedJets.at(j)->p4;
-        MELAParticle* theTop = new MELAParticle(topId, pV);
-        theTop->addDaughter(Vdau[0]);
-        theTop->addDaughter(Vdau[1]);
-        theTop->addDaughter(theBot);
-        int theTopTag;
-        if (Vtoptag==1 || theBot->topTag==1) theTopTag=1;
-        else theTopTag = Vtoptag;
-        theTop->tagTop(theTopTag);
-        bool success = addSortedTop(theTop);
-        if (!success) delete theTop; // Avoid memory leak if adding to the array is not successful.
-      }
-    }
-  }
-}
-void MELACandidate::addSortedTop(MELAParticle* myParticle){
-  bool foundEquivalent=false;
-  for (unsigned int itop=0; itop<sortedTops.size(); itop++){
-    MELAParticle* existingTop = sortedTops.at(itop);
-    if (existingTop->getNDaughters()!=myParticle->getNDaughters()) continue;
-    int nidentical=0;
-    for (int idau=0; idau<existingTop->getNDaughters(); idau++){
-      bool dauIdentical=false;
-      for (int jdau=0; jdau<myParticle->getNDaughters(); jdau++){
-        if (myParticle->getDaughter(jdau)==existingTop->getDaughter(idau)){ dauIdentical=true; break; }
-      }
-      if (dauIdentical) nidentical++;
-    }
-    if (nidentical==existingTop->getNDaughters()){ foundEquivalent=true; break; } // If all daughters are identical, myParticle is just a different permutation.
-  }
-  if (!foundEquivalent) sortedTops.push_back(myParticle);
-  return (!foundEquivalent);
-}
-void MELACandidate::tagAsTopDaughter(int collection, int position, int tag){
-// collection=0 for jet, =1 for lepton, =2 for neutrino;  position specifies which particle in the array
-// Notice that lepton and neutrino are handled separately, differing from how neutrinos are also leptons here.
-// The reasoning is that the user should not have to deal with how leptons are defined.
-// Neutrinos are defined as leptons here for convenience in iteration.
-  if (collection<0 || collection>2) return;
-
-  std::vector<MELAParticle*>* particleArray;
-  if (collection==0) particleArray = &associatedJets;
-  else particleArray = &associatedLeptons;
-
-  int postracker=-1;
-  for (int ip=0; ip<particleArray->size(); ip++){
-    int idtmp = particleArray->at(ip)->id;
-    if (
-      PDGHelpers::isAJet(idtmp)
-      ||
-      (collection==1 && PDGHelpers::isALepton(idtmp))
-      ||
-      (collection==2 && PDGHelpers::isANeutrino(idtmp))
-      ) postracker++;
-    if (postracker==position){ particleArray->at(ip)->tagTop(tag); break; }
-  }
-}
-
 
 void MELACandidate::testPreSelectedDaughters(){
   for (int i = 0; i<getNDaughters(); i++){
@@ -516,4 +442,11 @@ void MELACandidate::testPreSelectedDaughters(){
   }
 }
 
+
+bool MELACandidate::checkTopCandidateExists(MELATopCandidate* myParticle, std::vector<MELATopCandidate*>& particleArray){
+  for (std::vector<MELATopCandidate*>::iterator it = particleArray.begin(); it<particleArray.end(); it++){
+    if ((*it)==myParticle) return true;
+  }
+  return false;
+}
 
