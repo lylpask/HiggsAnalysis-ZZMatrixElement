@@ -41,41 +41,6 @@
 // Class TEvtProb
 //----------------------------------------
 class TEvtProb : public TObject {
-private:
-  //--------------------
-  // Variables
-  //--------------------
-  TVar::Process _process;
-  TVar::MatrixElement _matrixElement;
-  TVar::Production _production;
-  TVar::LeptonInterference _leptonInterf;
-  double _hmass;
-  double _hwidth;
-  double EBEAM;
-  event_scales_type event_scales;
-
-  SpinZeroCouplings selfDSpinZeroCoupl;
-  SpinOneCouplings selfDSpinOneCoupl;
-  SpinTwoCouplings selfDSpinTwoCoupl;
-  MelaIO RcdME;
-
-  HiggsCSandWidth_MELA* myCSW_;
-  MELACandidate* melaCand; // Only a pointer to the top-level (input) candList object
-  std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
-  std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
-  std::vector<MELATopCandidate*> topCandList; // Container of candidate objects, for bookkeeping to delete later
-
-  // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively
-  MELACandidate* ConvertVectorFormat(
-    std::vector<std::pair<int, TLorentzVector>>* pDaughters,
-    std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
-    std::vector<std::pair<int, TLorentzVector>>* pMothers=0
-    );
-  MELATopCandidate* ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
-  // Check if at least one input candidate is present
-  bool CheckInputPresent();
-  void SetRcdInputEvent();
-
 public:
   //---------------------------------------------------------------------------
   // Constructors and Destructor
@@ -91,7 +56,8 @@ public:
   void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
   void SetProduction(TVar::Production tmp){ _production = tmp; }
   void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
-  void SetCurrentCandidate(unsigned int icand){ if (candList.size()>icand) melaCand = candList.at(icand); else std::cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << std::endl; }
+  void SetCurrentCandidate(unsigned int icand);
+  void SetCurrentCandidate(MELACandidate* cand);
   void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void Set_LHAgrid(const char* path, int pdfmember=0);
@@ -152,8 +118,43 @@ public:
   SpinOneCouplings* GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
   SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
   MelaIO* GetIORecord(){ return RcdME.getRef(); };
+  MELACandidate* GetCurrentCandidate();
 
 private:
+  //--------------------
+  // Variables
+  //--------------------
+  TVar::Process _process;
+  TVar::MatrixElement _matrixElement;
+  TVar::Production _production;
+  TVar::LeptonInterference _leptonInterf;
+  double _hmass;
+  double _hwidth;
+  double EBEAM;
+  event_scales_type event_scales;
+
+  SpinZeroCouplings selfDSpinZeroCoupl;
+  SpinOneCouplings selfDSpinOneCoupl;
+  SpinTwoCouplings selfDSpinTwoCoupl;
+  MelaIO RcdME;
+
+  HiggsCSandWidth_MELA* myCSW_;
+  MELACandidate* melaCand; // Only a pointer to the top-level (input) candList object
+  std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
+  std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
+  std::vector<MELATopCandidate*> topCandList; // Container of candidate objects, for bookkeeping to delete later
+
+  // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively
+  MELACandidate* ConvertVectorFormat(
+    std::vector<std::pair<int, TLorentzVector>>* pDaughters,
+    std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
+    std::vector<std::pair<int, TLorentzVector>>* pMothers=0
+    );
+  MELATopCandidate* ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
+  // Check if at least one input candidate is present
+  bool CheckInputPresent();
+  void SetRcdInputEvent();
+
 
   ClassDef(TEvtProb,0);
 };

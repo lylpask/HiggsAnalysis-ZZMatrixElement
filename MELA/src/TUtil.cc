@@ -138,7 +138,7 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
 void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
   bool hasReset=false;
   if (multiplier_ren<=0 || multiplier_fac<=0){
-    cout << "Invalid scale multipliers" << endl;
+    cerr << "Invalid scale multipliers" << endl;
     return;
   }
   if (Q_ren<=1 || Q_fac<=1 || mynloop<=0 || mypartons.compare("Default")==0){
@@ -148,7 +148,7 @@ void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multipl
     Q_fac = Q_ren;
     mynloop = 1;
     hasReset=true;
-        }
+  }
   if (!hasReset){
     Q_ren *= multiplier_ren;
     Q_fac *= multiplier_fac;
@@ -165,37 +165,35 @@ void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multipl
   nlooprun_.nlooprun = mynloop;
 
   if (mypartons.compare("Default")!=0 && mypartons.compare("cteq6_l")!=0 && mypartons.compare("cteq6l1")!=0){
-    cout << "Only default :: cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting to Default..." << endl;
+    cout << "Only default=cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting mypartons to Default..." << endl;
     mypartons = "Default";
   }
   // From pdfwrapper_linux.f:
   if (mypartons.compare("cteq6_l")==0) couple_.amz = 0.118;
-        else if(mypartons.compare("cteq6l1")==0 || mypartons.compare("Default")==0) couple_.amz = 0.130;
-        else couple_.amz = 0.118; // Add pdf as appropriate
+  else if (mypartons.compare("cteq6l1")==0 || mypartons.compare("Default")==0) couple_.amz = 0.130;
+  else couple_.amz = 0.118; // Add pdf as appropriate
 
-// For proper pdfwrapper_linux.f execution (alpha_s computation does not use pdf but examines the pdf name to initialize amz.)
-        if(!nflav_is_same){
-                nflav_.nflav = mynflav;
+  // For proper pdfwrapper_linux.f execution (alpha_s computation does not use pdf but examines the pdf name to initialize amz.)
+  if (!nflav_is_same){
+    nflav_.nflav = mynflav;
 
-                if(mypartons.compare("Default")!=0) sprintf(pdlabel_.pdlabel,"%s",mypartons.c_str());
-                else sprintf(pdlabel_.pdlabel,"%s","cteq6l1"); // Default pdf is cteq6l1
-                coupling2_();
-        }
-        else{
-                qcdcouple_.as = alphas_(&(scale_.scale),&(couple_.amz),&(nlooprun_.nlooprun));
-        }
+    if (mypartons.compare("Default")!=0) sprintf(pdlabel_.pdlabel, "%s", mypartons.c_str());
+    else sprintf(pdlabel_.pdlabel, "%s", "cteq6l1"); // Default pdf is cteq6l1
+    coupling2_();
+  }
+  else qcdcouple_.as = alphas_(&(scale_.scale), &(couple_.amz), &(nlooprun_.nlooprun));
 
-        qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
-        qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
-        qcdcouple_.ason4pi = qcdcouple_.as/(4.0*TMath::Pi());
+  qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
+  qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
+  qcdcouple_.ason4pi = qcdcouple_.as/(4.0*TMath::Pi());
 
-// TEST RUNNING SCALE PER EVENT:
-/*
-        if(verbosity >= TVar::DEBUG){
-                cout << "My pdf is: " << pdlabel_.pdlabel << endl;
-                cout << "My Q_ren: " << Q_ren << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
-                        << "Nflav: " << nflav_.nflav << endl;
-*/
+  // TEST RUNNING SCALE PER EVENT:
+  /*
+  if(verbosity >= TVar::DEBUG){
+  cout << "My pdf is: " << pdlabel_.pdlabel << endl;
+  cout << "My Q_ren: " << Q_ren << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
+  << "Nflav: " << nflav_.nflav << endl;
+  */
 }
 
 void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember){
@@ -769,57 +767,55 @@ bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::Lept
   return true;
 }
 
-bool My_masscuts(double s[][mxpart],TVar::Process process){
+bool My_masscuts(double s[][mxpart], TVar::Process process){
 
- double minZmassSqr=10*10;
+  double minZmassSqr=10*10;
 
- if(process==TVar::bkgZZ){
-   if(s[2][3]< minZmassSqr) return true;
-   if(s[4][5]< minZmassSqr) return true;
- }
- return false;
+  if (process==TVar::bkgZZ){
+    if (s[2][3]<minZmassSqr || s[4][5]<minZmassSqr) return true;
+  }
+  return false;
 
 }
 
 
-bool My_smalls(double s[][mxpart],int npart){
+bool My_smalls(double s[][mxpart], int npart){
 
-// Reject event if any s(i,j) is too small
-// cutoff is defined in technical.Dat
+  // Reject event if any s(i,j) is too small
+  // cutoff is defined in technical.Dat
 
-      if (
-       npart == 3 &&
-       (
-        (-s[5-1][1-1]< cutoff_.cutoff)  //gamma p1
-     || (-s[5-1][2-1]< cutoff_.cutoff)  //gamma p2
-     || (-s[4-1][1-1]< cutoff_.cutoff)  //e+    p1
-     || (-s[4-1][2-1]< cutoff_.cutoff)  //e-    p2
-     || (-s[3-1][1-1]< cutoff_.cutoff)  //nu    p1
-     || (-s[3-1][2-1]< cutoff_.cutoff)  //nu    p2
-     || (+s[5-1][4-1]< cutoff_.cutoff)  //gamma e+
-     || (+s[5-1][3-1]< cutoff_.cutoff)  //gamma nu
-     || (+s[4-1][3-1]< cutoff_.cutoff)  //e+    nu
-        )
-      )
-        return true;
+  if (
+    npart == 3 &&
+    (
+    (-s[5-1][1-1]< cutoff_.cutoff)  //gamma p1
+    || (-s[5-1][2-1]< cutoff_.cutoff)  //gamma p2
+    || (-s[4-1][1-1]< cutoff_.cutoff)  //e+    p1
+    || (-s[4-1][2-1]< cutoff_.cutoff)  //e-    p2
+    || (-s[3-1][1-1]< cutoff_.cutoff)  //nu    p1
+    || (-s[3-1][2-1]< cutoff_.cutoff)  //nu    p2
+    || (+s[5-1][4-1]< cutoff_.cutoff)  //gamma e+
+    || (+s[5-1][3-1]< cutoff_.cutoff)  //gamma nu
+    || (+s[4-1][3-1]< cutoff_.cutoff)  //e+    nu
+    )
+    )
+    return true;
 
-     else if (
-       npart == 4 &&
-      (
-        (-s[5-1][1-1]< cutoff_.cutoff)  //e-    p1
-     || (-s[5-1][2-1]< cutoff_.cutoff)  //e-    p2
-     || (-s[6-1][1-1]< cutoff_.cutoff)  //nb    p1
-     || (-s[6-1][2-1]< cutoff_.cutoff)  //nb    p2
-     || (+s[6-1][5-1]< cutoff_.cutoff)  //e-    nb
-       )
+  else if (
+    npart == 4 &&
+    (
+    (-s[5-1][1-1]< cutoff_.cutoff)  //e-    p1
+    || (-s[5-1][2-1]< cutoff_.cutoff)  //e-    p2
+    || (-s[6-1][1-1]< cutoff_.cutoff)  //nb    p1
+    || (-s[6-1][2-1]< cutoff_.cutoff)  //nb    p2
+    || (+s[6-1][5-1]< cutoff_.cutoff)  //e-    nb
+    )
 
-     )
+    )
 
-      return true;
+    return true;
 
-     return false;
+  return false;
 }
-
 
 
 
@@ -1127,7 +1123,7 @@ double JHUGenMatEl(
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
   for (int idau=0; idau<4; idau++){
-    // If is is known, just assign it.
+    // If id is known, just assign it.
     if (MYIDUP_tmp[idau]!=0) idarray[idau].push_back(MYIDUP_tmp[idau]);
     else{
       if (idau<2 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))){ // Z->ffb
@@ -1279,7 +1275,7 @@ double JHUGenMatEl(
   else{
     if (production == TVar::ZZGG || production == TVar::ZZINDEPENDENT) msq[5][5]=MatElSq;
     else if (production == TVar::ZZQQB){
-      for (int ix=0; ix<5; ix++){ msq[ix][ix+6]=MatElSq; msq[ix+6][ix]=MatElSq; }
+      for (int ix=0; ix<5; ix++){ msq[ix][10-ix]=MatElSq; msq[10-ix][ix]=MatElSq; }
     }
   }
   if (production!=TVar::ZZINDEPENDENT) SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, TVar::ERROR, EBEAM);
@@ -1423,7 +1419,7 @@ double HJJMatEl(
         else if (isel==0) rsel=jsel; // Covers gg->Hg, gq->Hq, gqb->Hqb
         else rsel=isel; // Covers qg->Hq, qbg->Hqb
         if (MYIDUP_tmp[2]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel)) continue;
-        MatElsq[jsel][isel] = MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+        MatElsq[jsel+5][isel+5] = MatElsq_tmp[jsel+5][isel+5]; // Assign only those that match gen. info, if present at all.
       }
     }
   }
@@ -1457,7 +1453,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
             if (
               (MYIDUP_tmp[2]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
@@ -1465,7 +1461,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
           }
           else{ // gg->gg
@@ -1476,7 +1472,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || (PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]; // Assign only those that match gen. info, if present at all.
             }
           }
         }
@@ -1488,7 +1484,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
           if (
             (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
@@ -1496,7 +1492,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
         }
         else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
@@ -1508,7 +1504,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]; // Assign only those that match gen. info, if present at all.
             }
           }
           else if (code==2){ // qQb/qbQ->qQb/qbQ
@@ -1519,7 +1515,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
             if (
               (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
@@ -1527,7 +1523,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
           }
           else{ // qqb->QQb
@@ -1541,7 +1537,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
             if (
               (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
@@ -1549,7 +1545,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
           }
         }
@@ -1561,7 +1557,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
           if (
             rsel!=ssel
@@ -1571,7 +1567,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
         }
       } // End unswapped isel>=jsel cases
@@ -1595,7 +1591,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
           if (
             (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
@@ -1603,7 +1599,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
         }
         else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
@@ -1615,7 +1611,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]; // Assign only those that match gen. info, if present at all.
             }
           }
           else if (code==2){ // qQb/qbQ->qQb/qbQ
@@ -1626,7 +1622,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
             if (
               (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
@@ -1634,7 +1630,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
           }
           else{ // qqb->QQb
@@ -1648,7 +1644,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
             if (
               (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
@@ -1656,7 +1652,7 @@ double HJJMatEl(
               (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-              MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+              MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
             }
           }
         }
@@ -1668,7 +1664,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
           if (
             rsel!=ssel
@@ -1678,7 +1674,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
         }
       } // End swapped isel<jsel cases
@@ -1710,7 +1706,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
           if (
             rsel!=ssel
@@ -1720,7 +1716,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
         }
         else{ // code==0 means WW->H is also possible with no interference to ZZ->H, and code==2 means the same except interference to ZZ->H could occur for some outgoing quark flavors.
@@ -1741,7 +1737,7 @@ double HJJMatEl(
                 (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
                 ){
                 __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
               }
               if (
                 rsel!=ssel
@@ -1751,7 +1747,7 @@ double HJJMatEl(
                 (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
                 ){
                 __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
               }
             }
           }
@@ -1778,7 +1774,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
           if (
             rsel!=ssel
@@ -1788,7 +1784,7 @@ double HJJMatEl(
             (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-            MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+            MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
           }
         }
         else{ // code==0 means WW->H is also possible with no interference to ZZ->H, and code==2 means the same except interference to ZZ->H could occur for some outgoing quark flavors.
@@ -1809,7 +1805,7 @@ double HJJMatEl(
                 (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
                 ){
                 __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, MatElsq_tmp);
-                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
               }
               if (
                 rsel!=ssel
@@ -1819,7 +1815,7 @@ double HJJMatEl(
                 (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
                 ){
                 __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, MatElsq_tmp);
-                MatElsq[jsel][isel] += MatElsq_tmp[jsel][isel]*avgfac; // Assign only those that match gen. info, if present at all.
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
               }
             }
           }
@@ -2050,19 +2046,29 @@ double VHiggsMatEl(
             (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1])
             ) continue;
 
-          for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
-            vh_ids[5] = outgoing1;
-            vh_ids[6] = -outgoing1;
-            if (
-              (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
-              ||
-              (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
-              ) continue;
+          if (production==TVar::Had_ZH){
+            for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+              vh_ids[5] = outgoing1;
+              vh_ids[6] = -outgoing1;
+              if (
+                (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
+                ||
+                (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
+                ) continue;
+
+              double msq=0;
+              __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+              MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+            } // End loop over outgoing1=-outgoing2
+          }
+          else{
+            vh_ids[5] = MYIDUP_prod[2];
+            vh_ids[6] = MYIDUP_prod[3];
 
             double msq=0;
             __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
             MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-          } // End loop over outgoing1=-outgoing2
+          } // End check on Had vs Lep
         } // End ZH case
         else if (production==TVar::Lep_WH || production==TVar::Had_WH){
           vh_ids[0] = incoming1;
@@ -2074,23 +2080,49 @@ double VHiggsMatEl(
             vh_ids[1] = incoming2;
             if (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1]) continue;
 
-            for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
-              for (int outgoing2=-nf; outgoing2<=nf; outgoing2++){
-                if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2)) continue;
+            if (production==TVar::Had_WH){
+              for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+                for (int outgoing2=-nf; outgoing2<=nf; outgoing2++){
+                  if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2)) continue;
 
-                vh_ids[5] = outgoing1;
-                vh_ids[6] = outgoing2;
-                if (
-                  (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
-                  ||
-                  (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
-                  ) continue;
+                  // Determine whether the decay is from a W+ or a W-
+                  if (
+                    (PDGHelpers::isUpTypeQuark(outgoing1) && outgoing1>0)
+                    ||
+                    (PDGHelpers::isUpTypeQuark(outgoing2) && outgoing2>0)
+                    ) vh_ids[2]=24;
+                  else vh_ids[2]=-24;
 
-                double msq=0;
-                __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-              } // End loop over outgoing2
-            } // End loop over outgoing1
+                  vh_ids[5] = outgoing1;
+                  vh_ids[6] = outgoing2;
+                  if (
+                    (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
+                    ||
+                    (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
+                    ) continue;
+
+                  double msq=0;
+                  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                  MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                } // End loop over outgoing2
+              } // End loop over outgoing1
+            }
+            else{
+              // Determine whether the decay is from a W+ or a W-
+              if (
+                (PDGHelpers::isANeutrino(outgoing1) && outgoing1>0)
+                ||
+                (PDGHelpers::isANeutrino(outgoing2) && outgoing2>0)
+                ) vh_ids[2]=24;
+              else vh_ids[2]=-24;
+
+              vh_ids[5] = MYIDUP_prod[2];
+              vh_ids[6] = MYIDUP_prod[3];
+
+              double msq=0;
+              __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+              MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+            } // End check on Had vs Lep
           } // End loop over incoming2
         } // End WH case
       } // End loop over incoming1
@@ -2106,6 +2138,7 @@ double VHiggsMatEl(
 }
 
 
+// ttH
 double TTHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
@@ -2116,6 +2149,7 @@ double TTHiggsMatEl(
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
   double MatElsq[nmsq][nmsq]={ { 0 } };
+  double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
   if (production!=TVar::ttH){ cerr << "TUtil::TTHiggsMatEl: Only ttH is supported." << endl; return sum_msqjk; }
@@ -2135,34 +2169,47 @@ double TTHiggsMatEl(
     mela_event
     );
 
-  // LEFT HERE
-  //if (mela_event.pTopDaughters.size()==0 /*Revise*/ ){ cerr << "TUtil::TTHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") in ttH process is not 2 or 6!" << endl; return sum_msqjk; }
+
+  if (topDecay>0 && mela_event.pTopDaughters.size()<1 && mela_event.pAntitopDaughters.size()<1){
+    cerr
+      << "TUtil::TTHiggsMatEl: Number of set of top daughters (" << mela_event.pTopDaughters.size() << ")"
+      << "and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
+      <<" in ttH process is not 1!" << endl;
+    return sum_msqjk;
+  }
+  else if (topDecay>0 && mela_event.pTopDaughters.at(0).size()!=3 && mela_event.pAntitopDaughters.at(0).size()!=3){
+    cerr
+      << "TUtil::TTHiggsMatEl: Number of top daughters (" << mela_event.pTopDaughters.at(0).size() << ")"
+      << "and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
+      <<" in ttH process is not 3!" << endl;
+    return sum_msqjk;
+  }
+  else if (topDecay==0 && mela_event.pStableTops.size()<1 && mela_event.pStableAntitops.size()<1){
+    cerr
+      << "TUtil::TTHiggsMatEl: Number of stable tops (" << mela_event.pStableTops.size() << ")"
+      << "and number of sstable antitops (" << mela_event.pStableAntitops.size() << ")"
+      <<" in ttH process is not 1!" << endl;
+    return sum_msqjk;
+  }
 
   vector<pair<int, TLorentzVector>> topDaughters;
   vector<pair<int, TLorentzVector>> topbarDaughters;
-  // LEFT HERE
-  bool hasF=false;
-  bool hasFB=false;
-  if (production==TVar::ttH && topDecay==0){ // Pick stable tops
-    for (unsigned int idau=0; idau<mela_event.pAssociated.size(); idau++){
-      pair<int, TLorentzVector> topDau = mela_event.pAssociated.at(idau);
-      if (topDau.first==6 && !hasF){ topDaughters.push_back(topDau); hasF=true; }
-      else if (topDau.first==-6 && !hasFB){ topDaughters.push_back(topDau); hasFB=true; }
-      else if (hasFB && hasF) break;
-    }
+  bool isUnknown[2]; isUnknown[0]=true; isUnknown[1]=true;
+
+  if (topDecay>0){
+    // Daughters are assumed to have been ordered as b, Wf, Wfb already.
+    for (int itd=0; itd<mela_event.pTopDaughters.at(0).size(); itd++) topDaughter.push_back(mela_event.pTopDaughters.at(0).at(itd));
+    for (int itd=0; itd<mela_event.pAntitopDaughters.at(0).size(); itd++) topbarDaughters.push_back(mela_event.pAntitopDaughters.at(0).at(itd));
   }
-  else if (production==TVar::ttH){ // Pick unstable tops
-    for (unsigned int idau=0; idau<mela_event.pAssociated.size(); idau++){
-      pair<int, TLorentzVector> topDau = mela_event.pAssociated.at(idau);
-      // LEFT HERE: Need to pick one top and one atop only!
-      if (topDau.first==6 && !hasF){ topDaughters.push_back(topDau); hasF=true; }
-      else if (topDau.first==-6 && !hasFB){ topDaughters.push_back(topDau); hasFB=true; }
-      else if (hasFB && hasF) break;
-    }
-
-
+  else{
+    for (int itop=0; itop<mela_event.pStableTops.size(); itop++) topDaughter.push_back(mela_event.pStableTops.at(itop));
+    for (int itop=0; itop<mela_event.pStableAntitops.size(); itop++) topbarDaughters.push_back(mela_event.pStableAntitops.at(itop));
   }
+  // Check if either top is definitely identified
+  for (int itd=0; itd<topDaughter.size(); itd++){ if (topDaughter.at(itd).first!=0){ isUnknown[0]=false; break; } }
+  for (int itd=0; itd<topbarDaughters.size(); itd++){ if (topbarDaughters.at(itd).first!=0){ isUnknown[1]=false; break; } }
 
+  // Start assigning the momenta
   // 0,1: p1 p2
   // 2-4: H,tb,t
   // 5-8: bb,W-,f,fb
@@ -2193,47 +2240,97 @@ double TTHiggsMatEl(
     }
   }
 
-  bool forceStable=(mela_event.pAssociated.size()==2);
-  for (int ipar=0; ipar<2; ipar++){
-      TLorentzVector* momTmp = &(mela_event.pAssociated.at(ipar).second);
-      int* idtmp = &(mela_event.pAssociated.at(ipar).first);
-      if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[ipar+2] = *idtmp;
-      else MYIDUP_tmp[ipar+2] = 0;
-      p4[ipar+2][0] = momTmp->T()*GeV;
-      p4[ipar+2][1] = momTmp->X()*GeV;
-      p4[ipar+2][2] = momTmp->Y()*GeV;
-      p4[ipar+2][3] = momTmp->Z()*GeV;
-      MomStore[ipar+6] = (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  // Assign top momenta
+  for (unsigned int ipar=0; ipar<topDaughter.size(); ipar++){
+    TLorentzVector* momTmp = &(topDaughter.at(ipar).second);
+    if (topDaughter.size()==1){
+      p4[4][0] = momTmp->T()*GeV;
+      p4[4][1] = momTmp->X()*GeV;
+      p4[4][2] = momTmp->Y()*GeV;
+      p4[4][3] = momTmp->Z()*GeV;
+    }
+    // size==3
+    else if (ipar==0){ // b
+      p4[9][0] = momTmp->T()*GeV;
+      p4[9][1] = momTmp->X()*GeV;
+      p4[9][2] = momTmp->Y()*GeV;
+      p4[9][3] = momTmp->Z()*GeV;
+    }
+    else if (ipar==2){ // Wfb
+      p4[11][0] = momTmp->T()*GeV;
+      p4[11][1] = momTmp->X()*GeV;
+      p4[11][2] = momTmp->Y()*GeV;
+      p4[11][3] = momTmp->Z()*GeV;
+      p4[10][0] += p4[11][0];
+      p4[10][1] += p4[11][1];
+      p4[10][2] += p4[11][2];
+      p4[10][3] += p4[11][3];
+    }
+    else/* if (ipar==1)*/{ // Wf
+      p4[12][0] = momTmp->T()*GeV;
+      p4[12][1] = momTmp->X()*GeV;
+      p4[12][2] = momTmp->Y()*GeV;
+      p4[12][3] = momTmp->Z()*GeV;
+      p4[10][0] += p4[12][0];
+      p4[10][1] += p4[12][1];
+      p4[10][2] += p4[12][2];
+      p4[10][3] += p4[12][3];
+    }
+    MomStore[6] = MomStore[6] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
+  if (topDaughter.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=9; ip<=10; ip++) p4[4][ix] = p4[ip][ix]; } }
+
+  // Assign antitop momenta
+  for (unsigned int ipar=0; ipar<antitopDaughter.size(); ipar++){
+    TLorentzVector* momTmp = &(antitopDaughter.at(ipar).second);
+    if (antitopDaughter.size()==1){
+      p4[3][0] = momTmp->T()*GeV;
+      p4[3][1] = momTmp->X()*GeV;
+      p4[3][2] = momTmp->Y()*GeV;
+      p4[3][3] = momTmp->Z()*GeV;
+    }
+    // size==3
+    else if (ipar==0){ // bb
+      p4[5][0] = momTmp->T()*GeV;
+      p4[5][1] = momTmp->X()*GeV;
+      p4[5][2] = momTmp->Y()*GeV;
+      p4[5][3] = momTmp->Z()*GeV;
+    }
+    else if (ipar==1){ // Wf
+      p4[7][0] = momTmp->T()*GeV;
+      p4[7][1] = momTmp->X()*GeV;
+      p4[7][2] = momTmp->Y()*GeV;
+      p4[7][3] = momTmp->Z()*GeV;
+      p4[6][0] += p4[7][0];
+      p4[6][1] += p4[7][1];
+      p4[6][2] += p4[7][2];
+      p4[6][3] += p4[7][3];
+    }
+    else/* if (ipar==1)*/{ // Wfb
+      p4[8][0] = momTmp->T()*GeV;
+      p4[8][1] = momTmp->X()*GeV;
+      p4[8][2] = momTmp->Y()*GeV;
+      p4[8][3] = momTmp->Z()*GeV;
+      p4[6][0] += p4[8][0];
+      p4[6][1] += p4[8][1];
+      p4[6][2] += p4[8][2];
+      p4[6][3] += p4[8][3];
+    }
+    MomStore[7] = MomStore[7] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+  if (antitopDaughter.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=5; ip<=6; ip++) p4[3][ix] = p4[ip][ix]; } }
+
   for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
-    p4[4][0] += momTmp->T()*GeV;
-    p4[4][1] += momTmp->X()*GeV;
-    p4[4][2] += momTmp->Y()*GeV;
-    p4[4][3] += momTmp->Z()*GeV;
+    p4[2][0] += momTmp->T()*GeV;
+    p4[2][1] += momTmp->X()*GeV;
+    p4[2][2] += momTmp->Y()*GeV;
+    p4[2][3] += momTmp->Z()*GeV;
     MomStore[5] = MomStore[5] + (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
 
-  for (int i = 0; i < 2; i++){
-    p4[i][0] = -p[i].Energy()/100.;
-    p4[i][1] = -p[i].Px()/100.;
-    p4[i][2] = -p[i].Py()/100.;
-    p4[i][3] = -p[i].Pz()/100.;
-  }
-  // 2-10 are what?
-  for (int i = 2; i < 11; i++){
-    p4[i][0] = p[i].Energy()/100.;
-    p4[i][1] = p[i].Px()/100.;
-    p4[i][2] = p[i].Py()/100.;
-    p4[i][3] = p[i].Pz()/100.;
-  }
-
   if (verbosity >= TVar::DEBUG){
-    for (int i=0; i<11; i++){
-      cout << "p4[" << i << "] = ";
-      for (int jj=0; jj<4; jj++) cout << p4[i][jj] << '\t';
-      cout << endl;
-    }
+    for (int ii=0; ii<13; ii++){ cout << "p4[" << ii << "] = "; for (int jj=0; jj<4; jj++) cout << p4[ii][jj]/GeV << '\t'; cout << endl; }
   }
 
   double defaultRenScale = scale_.scale;
@@ -2248,10 +2345,19 @@ double TTHiggsMatEl(
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
-
-  if (production == TVar::ttH)     __modttbh_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
-  else if (production ==TVar::bbH) __modttbh_MOD_evalxsec_pp_bbbh(p4, &topProcess, MatElsq);
-
+  __modjhugenmela_MOD_settopdecays(&topDecay);
+  __modttbh_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
+  if (isUnknown[0] && isUnknown[1]){
+    Swap_Momenta(p4[3], p4[4]);
+    Swap_Momenta(p4[5], p4[9]);
+    Swap_Momenta(p4[6], p4[10]);
+    Swap_Momenta(p4[7], p4[12]);
+    Swap_Momenta(p4[8], p4[11]);
+    __modttbh_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq_tmp);
+    for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
+  }
+  int defaultTopDecay=-1;
+  __modjhugenmela_MOD_settopdecays(&defaultTopDecay); // reset top decay
 
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
 
@@ -2261,6 +2367,145 @@ double TTHiggsMatEl(
   return sum_msqjk;
 }
 
+// bbH
+double BBHiggsMatEl(
+  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  event_scales_type* event_scales, MelaIO* RcdME,
+  TVar::VerbosityLevel verbosity,
+  double EBEAM,
+  int topProcess
+  ){
+  const double GeV=1./100.; // JHUGen mom. scale factor
+  double sum_msqjk = 0;
+  double MatElsq[nmsq][nmsq]={ { 0 } };
+
+  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::BBHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
+  if (production!=TVar::bbH){ cerr << "TUtil::BBHiggsMatEl: Only bbH is supported." << endl; return sum_msqjk; }
+
+  int partIncCode=TVar::kUseAssociated_Jets; // Look for jets
+  int nRequested_AssociatedJets=2;
+
+  simple_event_record mela_event;
+  mela_event.AssociationCode=partIncCode;
+  mela_event.kUseAssociated_Jets=nRequested_Tops;
+  GetBoostedParticleVectors(
+    RcdME->melaCand,
+    mela_event
+    );
+
+  if (mela_event.pAssociated.size()<2){
+    cerr
+      << "TUtil::BBHiggsMatEl: Number of stable bs (" << mela_event.pAssociated.size() << ")"
+      <<" in bbH process is not 2!" << endl;
+    return sum_msqjk;
+  }
+
+  vector<pair<int, TLorentzVector>> topDaughters;
+  vector<pair<int, TLorentzVector>> topbarDaughters;
+  bool isUnknown[2]; isUnknown[0]=false; isUnknown[1]=false;
+
+  if (pAssociated.at(0).first>=0){ topDaughter.push_back(mela_event.pAssociated.at(0)); isUnknown[0]=(PDGHelpers::isAnUnknownJet(pAssociated.at(0).first)); }
+  else antitopDaughter.push_back(mela_event.pAssociated.at(0));
+  if (pAssociated.at(1).first<=0){ antitopDaughter.push_back(mela_event.pAssociated.at(1)); isUnknown[1]=(PDGHelpers::isAnUnknownJet(pAssociated.at(1).first)); }
+  else topDaughter.push_back(mela_event.pAssociated.at(1));
+
+  // Start assigning the momenta
+  // 0,1: p1 p2
+  // 2-4: H,tb,t
+  // 5-8: bb,W-,f,fb
+  // 9-12: b,W+,fb,f
+  double p4[13][4]={ { 0 } };
+  MYIDUP_prod[2]={ 0 };
+  TLorentzVector MomStore[mxpart];
+  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
+  for (int ipar=0; ipar<2; ipar++){
+    TLorentzVector* momTmp = &(mela_event.pMothers.at(ipar).second);
+    int* idtmp = &(mela_event.pMothers.at(ipar).first);
+    if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_prod[ipar] = *idtmp;
+    else MYIDUP_prod[ipar] = 0;
+    if (momTmp->T()>0.){
+      p4[ipar][0] = -momTmp->T()*GeV;
+      p4[ipar][1] = -momTmp->X()*GeV;
+      p4[ipar][2] = -momTmp->Y()*GeV;
+      p4[ipar][3] = -momTmp->Z()*GeV;
+      MomStore[ipar] = (*momTmp);
+    }
+    else{
+      p4[ipar][0] = momTmp->T()*GeV;
+      p4[ipar][1] = momTmp->X()*GeV;
+      p4[ipar][2] = momTmp->Y()*GeV;
+      p4[ipar][3] = momTmp->Z()*GeV;
+      MomStore[ipar] = -(*momTmp);
+      MYIDUP_prod[ipar] = -MYIDUP_prod[ipar];
+    }
+  }
+
+  // Assign top momenta
+  for (unsigned int ipar=0; ipar<topDaughter.size(); ipar++){
+    TLorentzVector* momTmp = &(topDaughter.at(ipar).second);
+    p4[4][0] = momTmp->T()*GeV;
+    p4[4][1] = momTmp->X()*GeV;
+    p4[4][2] = momTmp->Y()*GeV;
+    p4[4][3] = momTmp->Z()*GeV;
+    MomStore[6] = MomStore[6] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+
+  // Assign antitop momenta
+  for (unsigned int ipar=0; ipar<antitopDaughter.size(); ipar++){
+    TLorentzVector* momTmp = &(antitopDaughter.at(ipar).second);
+    p4[3][0] = momTmp->T()*GeV;
+    p4[3][1] = momTmp->X()*GeV;
+    p4[3][2] = momTmp->Y()*GeV;
+    p4[3][3] = momTmp->Z()*GeV;
+    MomStore[7] = MomStore[7] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+
+  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
+    p4[2][0] += momTmp->T()*GeV;
+    p4[2][1] += momTmp->X()*GeV;
+    p4[2][2] += momTmp->Y()*GeV;
+    p4[2][3] += momTmp->Z()*GeV;
+    MomStore[5] = MomStore[5] + (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
+  }
+
+  if (verbosity >= TVar::DEBUG){
+    for (int ii=0; ii<13; ii++){ cout << "p4[" << ii << "] = "; for (int jj=0; jj<4; jj++) cout << p4[ii][jj]/GeV << '\t'; cout << endl; }
+  }
+
+  double defaultRenScale = scale_.scale;
+  double defaultFacScale = facscale_.facscale;
+  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
+  int defaultNloop = nlooprun_.nlooprun;
+  int defaultNflav = nflav_.nflav;
+  string defaultPdflabel = pdlabel_.pdlabel;
+  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
+  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+
+  __modbbbh_MOD_evalxsec_pp_bbbh(p4, &topProcess, MatElsq);
+  if (isUnknown[0] && isUnknown[1]){
+    Swap_Momenta(p4[3], p4[4]);
+    __modttbh_MOD_evalxsec_pp_bbbh(p4, &topProcess, MatElsq_tmp);
+    for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
+  }
+  sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, verbosity, EBEAM);
+
+  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
+  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  return sum_msqjk;
+}
+
+void Swap_Momenta(double(&p)[4], double(&q)[4]){
+  for (int ix=0; ix<4; ix++){
+    double tmp=p[ix];
+    p[ix]=q[ix];
+    q[ix]=tmp;
+  }
+}
 
 // CheckPartonMomFraction computes xx[0:1] based on p0, p1
 bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], TVar::VerbosityLevel verbosity, double EBEAM){

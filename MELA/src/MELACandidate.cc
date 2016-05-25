@@ -155,7 +155,7 @@ void MELACandidate::sortDaughtersByBestZ1(){
         ||
         (isAJet(sortedDaughters.at(0)->id) && isAJet(sortedDaughters.at(1)->id) && isAJet(sortedDaughters.at(2)->id) && isAJet(sortedDaughters.at(3)->id))
         )
-         ) dauDiffType=false;
+        ) dauDiffType=false;
     }
 
     if (
@@ -271,20 +271,32 @@ void MELACandidate::createSortedVs(){
     V1id=25;
   }
   else{
+    double Vcharge[2]={ 0 };
     for (int d=0; d<icutoff; d++){
       if (sortedDaughters.at(d)!=0){
         pZ1 = pZ1 + sortedDaughters.at(d)->p4;
-        if (icutoff==2) V1id=VID;
+        if (icutoff==2){
+          V1id=VID;
+          Vcharge[0] += sortedDaughters.at(d)->charge();
+        }
         else if (icutoff==1) V1id=sortedDaughters.at(d)->id;
       }
     }
     for (int d=icutoff; d<imax; d++){
       if (sortedDaughters.at(d)!=0){
         pZ2 = pZ2 + sortedDaughters.at(d)->p4;
-        if ((imax-icutoff)==2) V2id=VID;
+        if ((imax-icutoff)==2){
+          V2id=VID;
+          Vcharge[1] += sortedDaughters.at(d)->charge();
+        }
         else if ((imax-icutoff)==1) V2id=sortedDaughters.at(d)->id;
       }
     }
+    // Override HVVmass if charges indicate some other final state
+    if (fabs(Vcharge[0]-1.)<0.001) V1id=24;
+    else if (fabs(Vcharge[0]+1.)<0.001) V1id=-24;
+    if (fabs(Vcharge[1]-1.)<0.001) V2id=24;
+    else if (fabs(Vcharge[1]+1.)<0.001) V2id=-24;
   }
 
   // If the number of Zs is less than 2, should still create empty particles

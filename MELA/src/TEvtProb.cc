@@ -519,7 +519,6 @@ double TEvtProb::XsecCalc_XVV(
 
 double TEvtProb::XsecCalc_VVXVV(
   TVar::Process proc, TVar::Production production,
-  const hzz4l_event_type &hzz4l_event,
   TVar::VerbosityLevel verbosity
   ){
   ResetIORecord();
@@ -1139,7 +1138,7 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
     cand->sortDaughters();
     PDGHelpers::setHVVmass(defaultHVVmass);
   }
-  // ZG
+  // ZG / WG
   else if (daughters.size()==3){
     MELAParticle* F1 = daughters.at(0);
     MELAParticle* F2 = daughters.at(1);
@@ -1154,23 +1153,29 @@ MELACandidate* TEvtProb::ConvertVectorFormat(
       F2 = gamma;
       gamma = tmp;
     }
-    TLorentzVector pH = F1->p4+F2->p4;
+    TLorentzVector pH = F1->p4+F2->p4+gamma->p4;
+    double charge = F1->charge()+F2->charge()+gamma->charge();
     cand = new MELACandidate(25, pH);
     cand->addDaughter(F1);
     cand->addDaughter(F2);
     cand->addDaughter(gamma);
     double defaultHVVmass = PDGHelpers::HVVmass;
-    PDGHelpers::setHVVmass(PDGHelpers::Zmass);
+    if (fabs(charge)<0.01) PDGHelpers::setHVVmass(PDGHelpers::Zmass); // ZG
+    else PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WG,GW (?), un-tested
     cand->sortDaughters();
     PDGHelpers::setHVVmass(defaultHVVmass);
   }
-  // ZZ / WW
+  // ZZ / WW / ZW
   else/* if (daughters.size()==4)*/{
     TLorentzVector pH(0, 0, 0, 0);
-    for (int ip=0; ip<4; ip++) pH = pH + (daughters.at(ip))->p4;
+    double charge = 0.;
+    for (int ip=0; ip<4; ip++){ pH = pH + (daughters.at(ip))->p4; charge += (daughters.at(ip))->charge(); }
     cand = new MELACandidate(25, pH);
     for (int ip=0; ip<4; ip++) cand->addDaughter(daughters.at(ip));
+    double defaultHVVmass = PDGHelpers::HVVmass;
+    if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
     cand->sortDaughters();
+    PDGHelpers::setHVVmass(defaultHVVmass);
   }
   /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
   if (mothers.size()>0){ // ==2
@@ -1264,6 +1269,20 @@ void TEvtProb::ResetInputEvent(){
   }
   particleList.clear();
 }
+
+void TEvtProb::SetCurrentCandidate(unsigned int icand){
+  if (candList.size()>icand) melaCand = candList.at(icand);
+  else cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << endl;
+}
+void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
+  melaCand = cand;
+  bool isFound=false;
+  for (unsigned int icand=0; icand<candList.size(); icand++){
+    if (candList.at(icand)==cand){ isFound=true; break; }
+  }
+  if (!isFound) cout << "TEvtProb::SetCurrentCandidate: The candidate set is non-standard." << endl;
+}
+MELACandidate* TEvtProb::GetCurrentCandidate(){ return melaCand; }
 
 
 
