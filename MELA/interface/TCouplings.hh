@@ -5,7 +5,6 @@
 // Coupling array sizes
 //---------------------------------
 #define SIZE_HVV 39
-#define SIZE_HVV_VBF 32
 #define SIZE_HGG 3
 #define SIZE_ZQQ 2
 #define SIZE_ZVV 2
@@ -30,12 +29,10 @@ public:
 
     for (int im=0; im<2; im++){
       for (int ic=0; ic<SIZE_HVV; ic++){
-        if (ic<SIZE_HVV_VBF){
-          Hzzcoupl_NoGamma[ic][im] = 0;
-          Hwwcoupl_NoGamma[ic][im] = 0;
-        }
         Hzzcoupl[ic][im] = 0;
         Hwwcoupl[ic][im] = 0;
+        H2zzcoupl[ic][im] = 0;
+        H2wwcoupl[ic][im] = 0;
       }
       for (int ic=0; ic<SIZE_HGG; ic++) Hggcoupl[ic][im]=0;
       for (int ic=0; ic<SIZE_HQQ; ic++) Hqqcoupl[ic][im]=0;
@@ -45,16 +42,18 @@ public:
     Hggcoupl[0][0] = 1.0;
     Hzzcoupl[0][0] = 1.0;
     Hwwcoupl[0][0] = 1.0;
-    Hzzcoupl_NoGamma[0][0] = 1.0;
-    Hwwcoupl_NoGamma[0][0] = 1.0;
     */
     for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) Hvvcoupl_freenorm[ic]=0;
     for (int ik=0; ik<3; ik++){
       HzzCLambda_qsq[ik]=0;
       HwwCLambda_qsq[ik]=0;
+      H2zzCLambda_qsq[ik]=0;
+      H2wwCLambda_qsq[ik]=0;
       for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
         HzzLambda_qsq[ic][ik] = 100.;
         HwwLambda_qsq[ic][ik] = 100.;
+        H2zzLambda_qsq[ic][ik] = 100.;
+        H2wwLambda_qsq[ic][ik] = 100.;
       }
     }
   };
@@ -62,10 +61,6 @@ public:
     allow_WWZZSeparation(other.separateWWZZcouplings);
     for (int im=0; im<2; im++){
       for (int ic=0; ic<SIZE_HVV; ic++){
-        if (ic<SIZE_HVV_VBF){
-          Hzzcoupl_NoGamma[ic][im] = (other.Hzzcoupl_NoGamma)[ic][im];
-          Hwwcoupl_NoGamma[ic][im] = (other.Hwwcoupl_NoGamma)[ic][im];
-        }
         Hzzcoupl[ic][im] = (other.Hzzcoupl)[ic][im];
         Hwwcoupl[ic][im] = (other.Hwwcoupl)[ic][im];
       }
@@ -88,23 +83,12 @@ public:
     if (index>=SIZE_HVV_FREENORM) cerr << "Cannot set index " << index <<  " for the freenorm coupling, out of range." << endl;
     else Hvvcoupl_freenorm[index] = cval;
   };
-  void SetHVVCouplings(unsigned int index, double c_real, double c_imag, bool useNoGamma=false, bool setWW = false){
+  void SetHVVCouplings(unsigned int index, double c_real, double c_imag, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
-    if ((useNoGamma && index>=SIZE_HVV_VBF) || (!useNoGamma && index>=SIZE_HVV)){
-      cerr << "Cannot set index " << index << ", out of range for the type requested." << endl;
-    }
+    if (index>=SIZE_HVV){ cerr << "Cannot set index " << index << ", out of range for the type requested." << endl; }
+    else if (whichResonance<0 || whichResonance>2) cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << endl;
     else{
-      if (useNoGamma){
-        if (setWW){
-          Hwwcoupl_NoGamma[index][0] = c_real;
-          Hwwcoupl_NoGamma[index][1] = c_imag;
-        }
-        else{
-          Hzzcoupl_NoGamma[index][0] = c_real;
-          Hzzcoupl_NoGamma[index][1] = c_imag;
-        }
-      }
-      else{
+      if (whichResonance==1){ // First resonance
         if (setWW){
           Hwwcoupl[index][0] = c_real;
           Hwwcoupl[index][1] = c_imag;
@@ -114,23 +98,47 @@ public:
           Hzzcoupl[index][1] = c_imag;
         }
       }
+      else{ // Second resonance
+        if (setWW){
+          H2wwcoupl[index][0] = c_real;
+          H2wwcoupl[index][1] = c_imag;
+        }
+        else{
+          H2zzcoupl[index][0] = c_real;
+          H2zzcoupl[index][1] = c_imag;
+        }
+      }
     }
   };
-  void SetHVVLambdaQ2(unsigned int gType, unsigned int index, double lambda, bool setWW = false){
+  void SetHVVLambdaQ2(unsigned int gType, unsigned int index, double lambda, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
     if (index>=3 || gType>=4) cerr << "Cannot set index " << index <<  " for g" << (gType+1) << "_dyn, out of range." << endl;
+    else if (whichResonance<0 || whichResonance>2) cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << endl;
     else{
-      if (setWW) HwwLambda_qsq[gType][index] = lambda;
-      else HzzLambda_qsq[gType][index] = lambda;
+      if (whichResonance==1){
+        if (setWW) HwwLambda_qsq[gType][index] = lambda;
+        else HzzLambda_qsq[gType][index] = lambda;
+      }
+      else{
+        if (setWW) H2wwLambda_qsq[gType][index] = lambda;
+        else H2zzLambda_qsq[gType][index] = lambda;
+      }
     }
   };
-  void SetHVVSignCQ2(unsigned int index, int csign, bool setWW = false){
+  void SetHVVSignCQ2(unsigned int index, int csign, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
     if (index>=3) cerr << "Cannot set index " << index << " for the c(z/w)qsq sign, out of range." << endl;
     else if (csign>1 || csign<-1) cerr << "Invalid csign argument. It has to be in the range [-1,1] with default to 0." << endl;
+    else if (whichResonance<0 || whichResonance>2) cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << endl;
     else{
-      if (setWW) HwwCLambda_qsq[index] = csign;
-      else HzzCLambda_qsq[index] = csign;
+      if (whichResonance==1){
+        if (setWW) HwwCLambda_qsq[index] = csign;
+        else HzzCLambda_qsq[index] = csign;
+      }
+      else{
+        if (setWW) H2wwCLambda_qsq[index] = csign;
+        else H2zzCLambda_qsq[index] = csign;
+      }
     }
   };
   void SetHGGCouplings(unsigned int index, double c_real, double c_imag){
@@ -154,13 +162,17 @@ public:
 
   double Hzzcoupl[SIZE_HVV][2];
   double Hwwcoupl[SIZE_HVV][2];
-  double Hzzcoupl_NoGamma[SIZE_HVV_VBF][2];
-  double Hwwcoupl_NoGamma[SIZE_HVV_VBF][2];
-
   double HzzLambda_qsq[4][3];
   double HwwLambda_qsq[4][3];
   int HzzCLambda_qsq[3];
   int HwwCLambda_qsq[3];
+
+  double H2zzcoupl[SIZE_HVV][2];
+  double H2wwcoupl[SIZE_HVV][2];
+  double H2zzLambda_qsq[4][3];
+  double H2wwLambda_qsq[4][3];
+  int H2zzCLambda_qsq[3];
+  int H2wwCLambda_qsq[3];
 
   bool separateWWZZcouplings;
 

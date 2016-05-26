@@ -35,18 +35,30 @@ TEvtProb::TEvtProb(
   myCSW_ = new HiggsCSandWidth_MELA(path_string);
   //std::cout << path << std::endl;
   SetLeptonInterf(TVar::DefaultLeptonInterf);
+
+  // First resonance constant parameters
   spinzerohiggs_anomcoupl_.LambdaBSM=1000;
   spinzerohiggs_anomcoupl_.Lambda_z1=10000;
   spinzerohiggs_anomcoupl_.Lambda_z2=10000;
   spinzerohiggs_anomcoupl_.Lambda_z3=10000;
   spinzerohiggs_anomcoupl_.Lambda_z4=10000;
+  spinzerohiggs_anomcoupl_.Lambda_zgs1=10000;
   spinzerohiggs_anomcoupl_.Lambda_Q=10000;
+  // Second resonance constant parameters
+  spinzerohiggs_anomcoupl_.Lambda2BSM=1000;
+  spinzerohiggs_anomcoupl_.Lambda2_z1=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_z2=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_z3=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_z4=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_zgs1=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_Q=10000;
 
   InitJHUGenMELA(pathtoPDFSet, PDFMember);
 
   ResetCouplings();
   ResetRenFacScaleMode();
   ResetInputEvent();
+  SetHiggsMass(125., 4.07e-3, -1);
 }
 
 
@@ -112,8 +124,9 @@ double TEvtProb::XsecCalc_XVV(
   TVar::Process proc, TVar::Production production,
   TVar::VerbosityLevel verbosity
   ){
+  double dXsec=0;
   ResetIORecord();
-  if(!CheckInputPresent()) return 0.;
+  if (!CheckInputPresent()) return dXsec;
 
   //Initialize Process
   SetProcess(proc);
@@ -128,9 +141,11 @@ double TEvtProb::XsecCalc_XVV(
       if ((selfDSpinZeroCoupl.Hzzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hzzcoupl)[vv][0] != 0){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
-    SetMCFMSpinZeroVVCouplings(needBSMHiggs, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hzzcoupl));
-    calculateME = MCFM_chooser(_process, _production, _leptonInterf, melaCand->getDaughterIds(), melaCand->getAssociatedParticleIds());
+    SetMCFMSpinZeroVVCouplings(needBSMHiggs, &selfDSpinZeroCoupl, true);
+    calculateME = MCFM_chooser(_process, _production, _leptonInterf, melaCand);
   }
+  if (forceUseMCFM && !calculateME) return dXsec;
+
 
   //constants
   double sqrts = 2.*EBEAM;
@@ -138,11 +153,10 @@ double TEvtProb::XsecCalc_XVV(
 
   //Weight calculation
   double flux=1.;
-  double dXsec=0.;
 
   //event selections in Lab Frame
   double msqjk=0;
-  if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, _matrixElement, &event_scales, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
+  if (forceUseMCFM) msqjk = SumMatrixElementPDF(_process, _production, &event_scales, &RcdME, &flux, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm));
   else if (_matrixElement == TVar::JHUGen){
     AllowSeparateWWCouplings(false); // HZZ couplings are used for both in spin-0
     // all the possible couplings
@@ -521,15 +535,16 @@ double TEvtProb::XsecCalc_VVXVV(
   TVar::Process proc, TVar::Production production,
   TVar::VerbosityLevel verbosity
   ){
+  double dXsec=0;
   ResetIORecord();
+  if (!CheckInputPresent()) return dXsec;
 
   //Initialize Process
   SetProcess(proc);
   SetProduction(production);
   bool forceUseMCFM = (_matrixElement == TVar::MCFM || _process == TVar::bkgZZ_SMHiggs);
-
-  int flavor = abs(hzz4l_event.PdgCode[0]) == abs(hzz4l_event.PdgCode[2]) ? 1 : 3;
   bool needBSMHiggs=false;
+  bool calculateME=true;
   // _process == TVar::bkgZZ_SMHiggs && _matrixElement == TVar::JHUGen is still MCFM
   if (forceUseMCFM){ // Always uses MCFM
     for (int vv = 0; vv < SIZE_HVV; vv++){
@@ -539,9 +554,10 @@ double TEvtProb::XsecCalc_VVXVV(
         ){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
-    SetMCFMSpinZeroVVCouplings(needBSMHiggs, (selfDSpinZeroCoupl.Hzzcoupl), (selfDSpinZeroCoupl.Hwwcoupl));
-    MCFM_chooser(_process, _production, _leptonInterf, flavor);
+    SetMCFMSpinZeroVVCouplings(needBSMHiggs, &selfDSpinZeroCoupl, false);
+    calculateME = MCFM_chooser(_process, _production, _leptonInterf, melaCand);
   }
+  if (forceUseMCFM && !calculateME) return dXsec;
 
   //constants
   double sqrts = 2.*EBEAM;
@@ -549,7 +565,6 @@ double TEvtProb::XsecCalc_VVXVV(
 
   //Weight calculation
   double flux=1.;
-  double dXsec=0.;
 
   mcfm_event_type mcfm_event;
   // assign the right initial momentum
@@ -1063,18 +1078,49 @@ void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVa
 // this appears to be some kind of
 // way of setting MCFM parameters through
 // an interface defined in TMCFM.hh
-void TEvtProb::SetHiggsMass(double mass, float wHiggs){
-  _hmass = mass;
-  masses_mcfm_.hmass = _hmass;
-  if (wHiggs < 0.){
-    _hwidth = myCSW_->HiggsWidth(0, min(mass, 1000.));
+void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
+  // Regular, first resonance
+  if (whichResonance==1 || whichResonance==-1){
+    if (mass<0.){
+      _hmass = -1;
+      _hwidth = 0;
+    }
+    else if (wHiggs<0.){
+      _hmass = mass;
+      _hwidth = myCSW_->HiggsWidth(0, min(_hmass, 1000.));
+    }
+    else{
+      _hmass = mass;
+      _hwidth = wHiggs;
+    }
+    masses_mcfm_.hmass = _hmass;
     masses_mcfm_.hwidth = _hwidth;
+
+    if (_hmass<0.) SetJHUGenHiggsMassWidth(0., _hwidth);
+    else SetJHUGenHiggsMassWidth(_hmass, _hwidth);
   }
-  else{
-    _hwidth = wHiggs;
-    masses_mcfm_.hwidth = _hwidth;
+
+  // Second resonance
+  if (whichResonance==2){
+    if (wHiggs<=0. || mass<0.){
+      _h2mass = -1;
+      _h2width = 0;
+    }
+    else{
+      _h2mass = mass;
+      _h2width = wHiggs;
+    }
+    spinzerohiggs_anomcoupl_.h2mass = _h2mass;
+    spinzerohiggs_anomcoupl_.h2width = _h2width;
+    //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
   }
-  SetJHUGenHiggsMassWidth(_hmass, _hwidth);
+  else if (whichResonance==-1){
+    _h2mass = -1;
+    _h2width = 0;
+    spinzerohiggs_anomcoupl_.h2mass = _h2mass;
+    spinzerohiggs_anomcoupl_.h2width = _h2width;
+    //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
+  }
 }
 
 

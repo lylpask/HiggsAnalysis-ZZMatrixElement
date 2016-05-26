@@ -128,8 +128,17 @@ extern "C" {
 
 
  extern struct{
-   double LambdaBSM, Lambda_z1, Lambda_z2, Lambda_z3, Lambda_z4;
-   double Lambda_Q;
+
+   int cz_q1sq, cz_q2sq, cz_q12sq;
+   int cw_q1sq, cw_q2sq, cw_q12sq;
+   int c2z_q1sq, c2z_q2sq, c2z_q12sq;
+   int c2w_q1sq, c2w_q2sq, c2w_q12sq;
+
+   double LambdaBSM, Lambda_Q;
+   double Lambda_z1, Lambda_z2, Lambda_z3, Lambda_z4;
+   double Lambda_z11, Lambda_z21, Lambda_z31, Lambda_z41;
+   double Lambda_z12, Lambda_z22, Lambda_z32, Lambda_z42;
+   double Lambda_z10, Lambda_z20, Lambda_z30, Lambda_z40;
 
    double ghz1[2]; double ghz2[2]; double ghz3[2]; double ghz4[2]; // No additional q2 dependence
    double ghz1_prime[2]; double ghz2_prime[2]; double ghz3_prime[2]; double ghz4_prime[2]; // Dipole ansatz
@@ -140,7 +149,16 @@ extern "C" {
    double ghz1_prime6[2]; double ghz2_prime6[2]; double ghz3_prime6[2]; double ghz4_prime6[2]; // q1**4 - q2**4
    double ghz1_prime7[2]; double ghz2_prime7[2]; double ghz3_prime7[2]; double ghz4_prime7[2]; // |q1**2| * |q2**2|
 
+
+   double Lambda_zgs1;
+   double ghzgs1_prime2[2]; double ghzgs2[2]; double ghzgs3[2]; double ghzgs4[2];
+   double ghgsgs2[2]; double ghgsgs3[2]; double ghgsgs4[2];
+
    double Lambda_w1, Lambda_w2, Lambda_w3, Lambda_w4;
+   double Lambda_w11, Lambda_w21, Lambda_w31, Lambda_w41;
+   double Lambda_w12, Lambda_w22, Lambda_w32, Lambda_w42;
+   double Lambda_w10, Lambda_w20, Lambda_w30, Lambda_w40;
+
    double ghw1[2]; double ghw2[2]; double ghw3[2]; double ghw4[2]; // No additional q2 dependence
    double ghw1_prime[2]; double ghw2_prime[2]; double ghw3_prime[2]; double ghw4_prime[2]; // Dipole ansatz
    double ghw1_prime2[2]; double ghw2_prime2[2]; double ghw3_prime2[2]; double ghw4_prime2[2]; // |q1**2| + |q2**2|
@@ -150,7 +168,43 @@ extern "C" {
    double ghw1_prime6[2]; double ghw2_prime6[2]; double ghw3_prime6[2]; double ghw4_prime6[2]; // q1**4 - q2**4
    double ghw1_prime7[2]; double ghw2_prime7[2]; double ghw3_prime7[2]; double ghw4_prime7[2]; // |q1**2| * |q2**2|
 
-   bool AllowAnomalousCouplings;
+   double h2mass, h2width;
+
+   double Lambda2BSM, Lambda2_Q;
+   double Lambda2_z1, Lambda2_z2, Lambda2_z3, Lambda2_z4;
+   double Lambda2_z11, Lambda2_z21, Lambda2_z31, Lambda2_z41;
+   double Lambda2_z12, Lambda2_z22, Lambda2_z32, Lambda2_z42;
+   double Lambda2_z10, Lambda2_z20, Lambda2_z30, Lambda2_z40;
+
+   double gh2z1[2]; double gh2z2[2]; double gh2z3[2]; double gh2z4[2]; // No additional q2 dependence
+   double gh2z1_prime[2]; double gh2z2_prime[2]; double gh2z3_prime[2]; double gh2z4_prime[2]; // Dipole ansatz
+   double gh2z1_prime2[2]; double gh2z2_prime2[2]; double gh2z3_prime2[2]; double gh2z4_prime2[2]; // |q1**2| + |q2**2|
+   double gh2z1_prime3[2]; double gh2z2_prime3[2]; double gh2z3_prime3[2]; double gh2z4_prime3[2]; // |q1**2| - |q2**2|
+   double gh2z1_prime4[2]; double gh2z2_prime4[2]; double gh2z3_prime4[2]; double gh2z4_prime4[2]; // (q1 + q2)**2
+   double gh2z1_prime5[2]; double gh2z2_prime5[2]; double gh2z3_prime5[2]; double gh2z4_prime5[2]; // q1**4 + q2**4
+   double gh2z1_prime6[2]; double gh2z2_prime6[2]; double gh2z3_prime6[2]; double gh2z4_prime6[2]; // q1**4 - q2**4
+   double gh2z1_prime7[2]; double gh2z2_prime7[2]; double gh2z3_prime7[2]; double gh2z4_prime7[2]; // |q1**2| * |q2**2|
+
+   double Lambda2_zgs1;
+   double gh2zgs1_prime2[2]; double gh2zgs2[2]; double gh2zgs3[2]; double gh2zgs4[2];
+   double gh2gsgs2[2]; double gh2gsgs3[2]; double gh2gsgs4[2];
+
+   double Lambda2_w1, Lambda2_w2, Lambda2_w3, Lambda2_w4;
+   double Lambda2_w11, Lambda2_w21, Lambda2_w31, Lambda2_w41;
+   double Lambda2_w12, Lambda2_w22, Lambda2_w32, Lambda2_w42;
+   double Lambda2_w10, Lambda2_w20, Lambda2_w30, Lambda2_w40;
+
+   double gh2w1[2]; double gh2w2[2]; double gh2w3[2]; double gh2w4[2]; // No additional q2 dependence
+   double gh2w1_prime[2]; double gh2w2_prime[2]; double gh2w3_prime[2]; double gh2w4_prime[2]; // Dipole ansatz
+   double gh2w1_prime2[2]; double gh2w2_prime2[2]; double gh2w3_prime2[2]; double gh2w4_prime2[2]; // |q1**2| + |q2**2|
+   double gh2w1_prime3[2]; double gh2w2_prime3[2]; double gh2w3_prime3[2]; double gh2w4_prime3[2]; // |q1**2| - |q2**2|
+   double gh2w1_prime4[2]; double gh2w2_prime4[2]; double gh2w3_prime4[2]; double gh2w4_prime4[2]; // (q1 + q2)**2
+   double gh2w1_prime5[2]; double gh2w2_prime5[2]; double gh2w3_prime5[2]; double gh2w4_prime5[2]; // q1**4 + q2**4
+   double gh2w1_prime6[2]; double gh2w2_prime6[2]; double gh2w3_prime6[2]; double gh2w4_prime6[2]; // q1**4 - q2**4
+   double gh2w1_prime7[2]; double gh2w2_prime7[2]; double gh2w3_prime7[2]; double gh2w4_prime7[2]; // |q1**2| * |q2**2|
+
+   bool AllowAnomalousCouplings; bool distinguish_HWWcouplings;
+
  } spinzerohiggs_anomcoupl_;
 
 

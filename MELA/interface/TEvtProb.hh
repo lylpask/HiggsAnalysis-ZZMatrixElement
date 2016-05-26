@@ -103,7 +103,7 @@ public:
   // this appears to be some kind of
   // way of setting MCFM parameters through
   // an interface defined in TMCFM.hh
-  void SetHiggsMass(double mass, float wHiggs=-1);
+  void SetHiggsMass(double mass, double wHiggs=-1., int whichResonance=-1);
 
   void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
   void ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); };
@@ -130,6 +130,8 @@ private:
   TVar::LeptonInterference _leptonInterf;
   double _hmass;
   double _hwidth;
+  double _h2mass;
+  double _h2width;
   double EBEAM;
   event_scales_type event_scales;
 
