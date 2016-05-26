@@ -69,45 +69,47 @@ bool MCFM_smalls(double s[][mxpart], int npart);
 double SumMatrixElementPDF(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double* flux, double EBEAM, double coupling[SIZE_HVV_FREENORM]
+  double EBEAM,
+  double coupling[SIZE_HVV_FREENORM],
+  TVar::VerbosityLevel verbosity
   );
 double JHUGenMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM
+  double EBEAM,
+  TVar::VerbosityLevel verbosity
   );
 double HJJMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
-  event_scales_type* event_scales,
-  MelaIO* RcdME,
-  TVar::VerbosityLevel verbosity,
-  double EBEAM
+  event_scales_type* event_scales, MelaIO* RcdME,
+  double EBEAM,
+  TVar::VerbosityLevel verbosity
   );
 double VHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  TVar::VerbosityLevel verbosity,
-  double EBEAM
+  double EBEAM,
+  TVar::VerbosityLevel verbosity
   );
 double TTHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  TVar::VerbosityLevel verbosity,
   double EBEAM,
-  int topDecay, int topProcess
+  int topDecay, int topProcess,
+  TVar::VerbosityLevel verbosity
   );
 double BBHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  TVar::VerbosityLevel verbosity,
   double EBEAM,
-  int topProcess
+  int botProcess,
+  TVar::VerbosityLevel verbosity
   );
 
 void Swap_Momenta(double(&p)[4], double(&q)[4]);
-bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], TVar::VerbosityLevel verbosity, double EBEAM);
-void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], TVar::VerbosityLevel verbosity, double EBEAM);
-double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, TVar::VerbosityLevel verbosity, double EBEAM);
+bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity);
+void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity);
+double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity);
 
 // Boost the particles with or without associated ones to pT=0 frame and return std::vectors filled with (id, momentum) pairs
 void GetBoostedParticleVectors(

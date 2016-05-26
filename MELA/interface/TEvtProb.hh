@@ -65,7 +65,8 @@ public:
   void SetInputEvent(
     std::vector<std::pair<int, TLorentzVector>>* pDaughters,
     std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
-    std::vector<std::pair<int, TLorentzVector>>* pMothers=0
+    std::vector<std::pair<int, TLorentzVector>>* pMothers=0,
+    bool isGen=false
     );
   void AppendTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
 
@@ -150,12 +151,13 @@ private:
   MELACandidate* ConvertVectorFormat(
     std::vector<std::pair<int, TLorentzVector>>* pDaughters,
     std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
-    std::vector<std::pair<int, TLorentzVector>>* pMothers=0
+    std::vector<std::pair<int, TLorentzVector>>* pMothers=0,
+    bool isGen
     );
   MELATopCandidate* ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
   // Check if at least one input candidate is present
   bool CheckInputPresent();
-  void SetRcdInputEvent();
+  void SetRcdCandPtr();
 
 
   ClassDef(TEvtProb,0);

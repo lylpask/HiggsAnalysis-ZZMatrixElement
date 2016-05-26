@@ -18,6 +18,9 @@
 #define eight_2Pi_to_5 7.83410393050320417e+04
 #define four_2Pi_to_2 39.478417604357432
 
+// typedefs for use in simple_event_record
+typedef std::pair<int, TLorentzVector> SimpleParticle_t;
+typedef std::vector<simpleParticle_t> SimpleParticleCollection_t;
 
 class TVar{
 public:
@@ -200,14 +203,14 @@ public:
 
 
 struct branch_particle {
-  int   PdgCode   ;
-  int   Charge    ;
-  double Px       ;
-  double Py       ;
-  double Pz       ;
-  double E        ;
-  double Eta      ;
-  double Phi      ;
+  int PdgCode;
+  int Charge;
+  double Px;
+  double Py;
+  double Pz;
+  double E;
+  double Eta;
+  double Phi;
 };
 static const TString branch_format_particle =
   "PdgCode/I:"
@@ -230,14 +233,14 @@ struct simple_event_record{ // Somewhat not-so-simple particles
 
   // Output 4-vectors
   std::vector<int> intermediateVid; // Origin of daughters, not associated particles
-  std::vector<std::pair<int, TLorentzVector>> pDaughters;
-  std::vector<std::pair<int, TLorentzVector>> pAssociated;
-  std::vector<std::pair<int, TLorentzVector>> pMothers;
+  SimpleParticleCollection_t pDaughters;
+  SimpleParticleCollection_t pAssociated;
+  SimpleParticleCollection_t pMothers;
 
-  std::vector<std::vector<std::pair<int, TLorentzVector>>> pTopDaughters;
-  std::vector<std::vector<std::pair<int, TLorentzVector>>> pAntitopDaughters;
-  std::vector<std::pair<int, TLorentzVector>> pStableTops;
-  std::vector<std::pair<int, TLorentzVector>> pStableAntiTops;
+  std::vector<SimpleParticleCollection_t> pTopDaughters;
+  std::vector<SimpleParticleCollection_t> pAntitopDaughters;
+  SimpleParticleCollection_t pStableTops;
+  SimpleParticleCollection_t pStableAntiTops;
 
   // Constructor
   simple_event_record() :
@@ -252,30 +255,6 @@ struct simple_event_record{ // Somewhat not-so-simple particles
 
 };
 
-/*
-struct hzz4l_event_type{
-  int PdgCode[4];
-  TLorentzVector p[4];
-  int extraParticle_PdgCode[2];
-  TLorentzVector extraParticle_p[2];
-};
-struct vh_event_type{ // ME is 2 -> 3
-  int PdgCode[3];
-  TLorentzVector p[3]; // H, V-daughter 1, V-daughter 2
-  TLorentzVector pHdecay[4]; // H-daughter 1, H-daughter 2; optional: H-daughter 3, H-daughter 4
-  int PdgCode_Hdecay[4];
-};
-struct tth_event_type{ // ME is 2 -> 8
-  int PdgCode_tdecay[2][3];
-  TLorentzVector p[7]; // H, tbar-daughters 1-3, t-daughters 1-3
-};
-struct mcfm_event_type{
-  int PdgCode[8];
-  TLorentzVector p[8];
-  double pswt;
-};
-*/
-
 struct event_scales_type{
   TVar::EventScaleScheme renomalizationScheme;
   TVar::EventScaleScheme factorizationScheme;
@@ -283,18 +262,6 @@ struct event_scales_type{
   double fac_scale_factor;
 };
 
-
-struct event_type{
-  TLorentzVector p1,p2,ep,em,nu,nb;
-  double PSWeight;
-};
-struct anomcoup{
-  double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z_,tevscale;
-};
-struct EffHist{
-  TH2F* els_eff_mc;
-  TH2F* mus_eff_mc;
-};
 
 
 #endif
