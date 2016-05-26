@@ -777,6 +777,7 @@ double TEvtProb::XsecCalc_TTX(
   ){
   double dXsec = 0;
   ResetIORecord();
+  if (!CheckInputPresent()) return dXsec;
 
   //Initialize Process
   SetProcess(proc);
@@ -787,13 +788,13 @@ double TEvtProb::XsecCalc_TTX(
 
   if (_matrixElement == TVar::JHUGen){
     // By default set the spin-0 couplings for SM case
-    Hqqcoupl[0][0]=1.0;  Hqqcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
+    Hqqcoupl[0][0]=1;  Hqqcoupl[0][1]=0;   // first/second number is the real/imaginary part
     for (int i = 1; i<SIZE_HQQ; i++){ for (int com=0; com<2; com++) Hqqcoupl[i][com] = 0; }
 
     // 0-
     if (_process == TVar::H0minus) {
-      Hqqcoupl[0][0] = 0.0;
-      Hqqcoupl[1][0] = 1.0;
+      Hqqcoupl[0][0] = 0;
+      Hqqcoupl[1][0] = 1;
     }
     else if (_process == TVar::SelfDefine_spin0){
       for (int i=0; i<SIZE_HQQ; i++){ for (int j=0; j<2; j++) Hqqcoupl[i][j] = (selfDSpinZeroCoupl.Hqqcoupl)[i][j]; }
@@ -808,7 +809,7 @@ double TEvtProb::XsecCalc_TTX(
 
   ResetCouplings();
   ResetRenFacScaleMode();
-  return msq;
+  return dXsec;
 }
 
 
