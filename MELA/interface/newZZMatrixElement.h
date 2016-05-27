@@ -22,13 +22,7 @@ public:
   /// Compute KD from masses and angles.
   /// The user must ensure that the order of m1/m2 matches the order of theta1/theta2.
   // flavor 1 for 4e, 2 for 4m, 3 for 2e2mu
-  void computeXS(float mZZ, float mZ1, float mZ2,
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phistar1,
-    float phi,
-    int flavor,
+  void computeXS(
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
@@ -36,10 +30,6 @@ public:
     );
 
   void computeProdXS_VVHVV(
-    TLorentzVector jet[2],
-    TLorentzVector Higgs_daughter[4],
-    int jet_pdgid[2],
-    int Higgs_daughter_pdgid[4],
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
@@ -47,8 +37,6 @@ public:
     );
 
   void computeProdXS_JJH(TLorentzVector jet1,
-    TLorentzVector jet2,
-    TLorentzVector higgs,
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
@@ -56,7 +44,6 @@ public:
     );
 
   void computeProdXS_JH(TLorentzVector singleJet,
-    TLorentzVector higgs,
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
@@ -64,31 +51,25 @@ public:
     );
 
   void computeProdXS_VH(
-    TLorentzVector V_daughter[2],
-    TLorentzVector Higgs_daughter[4],
-    int V_daughter_pdgid[2],
-    int Higgs_daughter_pdgid[4],
-    bool includeHiggsDecay,
+    TVar::Process process_,
+    TVar::MatrixElement me_,
+    TVar::Production production_,
+    float &mevalue,
+    bool includeHiggsDecay=false
+    );
+
+  void computeProdXS_ttH(
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
     float &mevalue
+    int topProcess,
+    int topDecay=0
     );
 
-  void computeProdXS_ttH(
-    TLorentzVector vTTH[6],
-    TLorentzVector Higgs,
-    int ttbar_daughters_pdgid[6],
-    int topDecay,
-    int topProcess,
-    TVar::Process process_,
-    TVar::MatrixElement me_,
-    TVar::Production production_,
-    float &mevalue);
-
   void set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_);
-  void set_mHiggs(float myPoleMass);
-  void set_wHiggs(float myPoleWidth);
+  void set_mHiggs(float mh_, int index);
+  void set_wHiggs(float gah_, int index);
   void set_LeptonInterference(TVar::LeptonInterference myLepInterf);
   void set_LHAgrid(const char* path, int pdfmember=0);
   void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
@@ -101,18 +82,6 @@ public:
     double selfDHggcoupl[SIZE_HGG][2],
     double selfDHzzcoupl[SIZE_HVV][2],
     double selfDHwwcoupl[SIZE_HVV][2],
-    double selfDHzzLambda_qsq[4][3],
-    double selfDHwwLambda_qsq[4][3],
-    int selfDHzzCLambda_qsq[3],
-    int selfDHwwCLambda_qsq[3],
-    bool diffHWW = false
-    );
-  void set_SpinZeroCouplings_NoGamma(
-    double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
-    double selfDHqqcoupl[SIZE_HQQ][2],
-    double selfDHggcoupl[SIZE_HGG][2],
-    double selfDHzzcoupl[SIZE_HVV_VBF][2],
-    double selfDHwwcoupl[SIZE_HVV_VBF][2],
     double selfDHzzLambda_qsq[4][3],
     double selfDHwwLambda_qsq[4][3],
     int selfDHzzCLambda_qsq[3],
@@ -137,18 +106,20 @@ public:
 
 private:
   
-  TVar::VerbosityLevel verb;
-  TEvtProb Xcal2;
-  hzz4l_event_type hzz4l_event;
-  vh_event_type vh_event;
-  tth_event_type tth_event;
-  float mHiggs;
-  float wHiggs;
+  enum{
+    nSupportedHiggses=2
+  };
+
+  TVar::VerbosityLevel processVerbosity;
+  TVar::LeptonInterference processLeptonInterference;
+  TVar::Process processModel;
+  TVar::MatrixElement processME;
+  TVar::Production processProduction;
+
   double EBEAM;
-  TVar::Process myModel;
-  TVar::MatrixElement myME;
-  TVar::Production myProduction;
-  TVar::LeptonInterference myLeptonInterference;
+  double mHiggs[nSupportedHiggses];
+  double wHiggs[nSupportedHiggses];
+  TEvtProb Xcal2;
 
   SpinZeroCouplings* selfD_SpinZeroCouplings;
   SpinOneCouplings* selfD_SpinOneCouplings;

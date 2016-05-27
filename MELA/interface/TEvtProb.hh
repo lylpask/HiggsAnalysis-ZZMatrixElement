@@ -50,14 +50,17 @@ public:
   ~TEvtProb();
 
   //----------------------
-  // Function
+  // Functions
   //----------------------
-  void SetProcess(TVar::Process tmp) { _process = tmp; }
-  void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
-  void SetProduction(TVar::Production tmp){ _production = tmp; }
-  void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
+  void SetProcess(TVar::Process tmp) { process = tmp; }
+  void SetMatrixElement(TVar::MatrixElement tmp){ matrixElement = tmp; }
+  void SetProduction(TVar::Production tmp){ production = tmp; }
+  void SetVerbosity(TVar::VerbosityLevel tmp){ verbosity = tmp; }
+  void SetLeptonInterf(TVar::LeptonInterference tmp){ leptonInterf = tmp; }
+
   void SetCurrentCandidate(unsigned int icand);
   void SetCurrentCandidate(MELACandidate* cand);
+
   void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void Set_LHAgrid(const char* path, int pdfmember=0);
@@ -71,34 +74,34 @@ public:
   void AppendTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
 
   double XsecCalc_XVV(
-    TVar::Process proc, TVar::Production production,
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalc_VVXVV(
-    TVar::Process proc, TVar::Production production,
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalcXJJ(
-    TVar::Process proc, TVar::Production production,
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalcXJ(
-    TVar::Process proc, TVar::Production production,
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalc_VX(
-    TVar::Process proc, TVar::Production production,
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalc_TTX(
-    TVar::Process proc, TVar::Production production,
-    int topDecay, int topProcess,
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_,
+    int topProcess, int topDecay
     );
 
   // this appears to be some kind of
@@ -120,20 +123,23 @@ public:
   SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
   MelaIO* GetIORecord(){ return RcdME.getRef(); };
   MELACandidate* GetCurrentCandidate();
+  int GetCurrentCandidateIndex();
 
 private:
   //--------------------
   // Variables
   //--------------------
-  TVar::Process _process;
-  TVar::MatrixElement _matrixElement;
-  TVar::Production _production;
-  TVar::LeptonInterference _leptonInterf;
+  TVar::Process process;
+  TVar::MatrixElement matrixElement;
+  TVar::Production production;
+  TVar::VerbosityLevel verbosity;
+  TVar::LeptonInterference leptonInterf;
   double _hmass;
   double _hwidth;
   double _h2mass;
   double _h2width;
   double EBEAM;
+  HiggsCSandWidth_MELA* myCSW_;
   event_scales_type event_scales;
 
   SpinZeroCouplings selfDSpinZeroCoupl;
@@ -141,7 +147,6 @@ private:
   SpinTwoCouplings selfDSpinTwoCoupl;
   MelaIO RcdME;
 
-  HiggsCSandWidth_MELA* myCSW_;
   MELACandidate* melaCand; // Only a pointer to the top-level (input) candList object
   std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
   std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later

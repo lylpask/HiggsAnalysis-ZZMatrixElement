@@ -97,19 +97,15 @@ Mela::Mela(int LHCsqrts, float mh)
   spin2Model = new TensorPdfFactory_HVV(measurables_, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll);
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel","qqZZmodel",*z1mass_rrv,*z2mass_rrv,*costheta1_rrv,*costheta2_rrv,*phi_rrv,*costhetastar_rrv,*phi1_rrv,*mzz_rrv,*upFrac_rrv);
 
- //edm::FileInPath HiggsWidthFile("Higgs/Higgs_CS_and_Width/txtFiles/8TeV-ggH.txt");
-// edm::FileInPath HiggsWidthFile("Higgs/Higgs_CS_and_Width/txtFiles/YR3/8TeV-ggH.txt");
   edm::FileInPath HiggsWidthFile("ZZMatrixElement/MELA/data/HiggsTotalWidth.txt");
   std::string path = HiggsWidthFile.fullPath();
-  //std::cout << path.substr(0,path.length()-12) << std::endl;
- // ZZME = new  newZZMatrixElement(path.substr(0,path.length()-12 ).c_str(),1000.*LHCsqrts/2.,TVar::INFO);
   edm::FileInPath path_nnpdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
   char path_nnpdf_c[] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
   int pdfmember = 0;
   symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
-  ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., TVar::INFO);
-  ZZME->set_mHiggs(mh);
-  ZZME->set_wHiggs(-1);
+  ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., TVar::ERROR);
+  ZZME->set_mHiggs(125., 0); ZZME->set_wHiggs(-1., 0);
+  ZZME->set_mHiggs(-1., 1); ZZME->set_wHiggs(0., 1);
   ZZME->set_LeptonInterference(TVar::DefaultLeptonInterf);
 
   // 
