@@ -10,13 +10,15 @@
 // K. Burkett (burkett@fnal.gov)
 //-----------------------------------------------------------------------------
 
-#include "ZZMatrixElement/MELA/interface/TVar.hh"
-#include "ZZMatrixElement/MELA/interface/TEvtProb.hh"
+#include <ZZMatrixElement/MELA/interface/TEvtProb.hh>
 
 
 ClassImp(TEvtProb)
 
+
 using namespace std;
+using namespace TUtil;
+
 
 //-----------------------------------------------------------------------------
 // Constructors and Destructor
@@ -140,15 +142,17 @@ void TEvtProb::ResetInputEvent(){
   particleList.clear();
 }
 void TEvtProb::SetCurrentCandidate(unsigned int icand){
-  if (candList.size()>icand) melaCand = candList.at(icand);
+  if (candList.size()>icand && icand>=0) melaCand = candList.at(icand);
   else cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << endl;
 }
 void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
   melaCand = cand;
-  if (GetCurrentCandidateIndex()==-1) cout << "TEvtProb::SetCurrentCandidate: The current candidate is not in the list of candidates. It is the users' responsibility to delete this candidate and all of its associated particles." << endl;
+  if (verbosity>=TVar::INFO && melaCand==0) cout << "TEvtProb::SetCurrentCandidate: BE CAREFUL! melaCand==0!" << endl;
+  if (verbosity>=TVar::INFO && GetCurrentCandidateIndex()<0) cout << "TEvtProb::SetCurrentCandidate: The current candidate is not in the list of candidates. It is the users' responsibility to delete this candidate and all of its associated particles." << endl;
 }
 MELACandidate* TEvtProb::GetCurrentCandidate(){ return melaCand; }
 int TEvtProb::GetCurrentCandidateIndex(){
+  if (melaCand==0) return -1;
   for (unsigned int icand=0; icand<candList.size(); icand++){
     if (candList.at(icand)==melaCand) return (int)icand;
   }
@@ -880,180 +884,32 @@ void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
 }
 
 
-MELACandidate* TEvtProb::ConvertVectorFormat(
-  std::vector<std::pair<int, TLorentzVector>>* pDaughters,
-  std::vector<std::pair<int, TLorentzVector>>* pAssociated,
-  std::vector<std::pair<int, TLorentzVector>>* pMothers,
-  bool isGen
-  ){
-  MELACandidate* cand=0;
-
-  if (pDaughters==0){ cerr << "TEvtProb::ConvertVectorFormat: No daughters!" << endl; return cand; }
-  else if (pDaughters->size()==0){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size==0!" << endl; return cand; }
-  else if (pDaughters->size()>4){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
-  if (pMothers!=0 && pMothers->size()!=2){ cerr << "TEvtProb::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") has to have had been 2! Continuing by omitting mothers." << endl; /*return cand;*/ }
-
-  std::vector<MELAParticle>* daughters;
-  std::vector<MELAParticle>* aparticles;
-  std::vector<MELAParticle>* mothers;
-
-  for (unsigned int ip=0; ip<pDaughters->size(); ip++){
-    MELAParticle* onePart = new MELAParticle((pDaughters->at(ip)).first, (pDaughters->at(ip)).second);
-    onePart->setGenStatus(1); // Final state status
-    particleList.push_back(onePart);
-    daughters.push_back(onePart);
-  }
-  if (pAssociated!=0){
-    for (unsigned int ip=0; ip<pAssociated->size(); ip++){
-      MELAParticle* onePart = new MELAParticle((pAssociated->at(ip)).first, (pAssociated->at(ip)).second);
-      onePart->setGenStatus(1); // Final state status
-      particleList.push_back(onePart);
-      aparticles.push_back(onePart);
-    }
-  }
-  if (pMothers!=0 && pMothers->size()==2){
-    for (unsigned int ip=0; ip<pMothers->size(); ip++){
-      MELAParticle* onePart = new MELAParticle((pMothers->at(ip)).first, (pMothers->at(ip)).second);
-      onePart->setGenStatus(-1); // Mother status
-      particleList.push_back(onePart);
-      mothers.push_back(onePart);
-    }
-  }
-
-  /***** Adaptation of LHEAnalyzer::Event::constructVVCandidates *****/
-  /*
-  The assumption is that the daughters make sense for either ffb, gamgam, Zgam, ZZ or WW.
-  No checking is done on whether particle-antiparticle pairing is correct when necessary.
-  If not, you will get a seg. fault!
-  */
-  // Undecayed Higgs
-  if (daughters.size()==1) cand = new MELACandidate(25, (daughters.at(0))->p4); // No sorting!
-  // GG / ff final states
-  else if (daughters.size()==2){
-    MELAParticle* F1 = daughters.at(0);
-    MELAParticle* F2 = daughters.at(1);
-    TLorentzVector pH = F1->p4+F2->p4;
-    cand = new MELACandidate(25, pH);
-    cand->addDaughter(F1);
-    cand->addDaughter(F2);
-    double defaultHVVmass = PDGHelpers::HVVmass;
-    PDGHelpers::setHVVmass(Zeromass);
-    cand->sortDaughters();
-    PDGHelpers::setHVVmass(defaultHVVmass);
-  }
-  // ZG / WG
-  else if (daughters.size()==3){
-    MELAParticle* F1 = daughters.at(0);
-    MELAParticle* F2 = daughters.at(1);
-    MELAParticle* gamma = daughters.at(2);
-    if (PDGHelpers::isAPhoton(F1->id)){
-      MELAParticle* tmp = F1;
-      F1 = gamma;
-      gamma = tmp;
-    }
-    else if (PDGHelpers::isAPhoton(F2->id)){
-      MELAParticle* tmp = F2;
-      F2 = gamma;
-      gamma = tmp;
-    }
-    TLorentzVector pH = F1->p4+F2->p4+gamma->p4;
-    double charge = F1->charge()+F2->charge()+gamma->charge();
-    cand = new MELACandidate(25, pH);
-    cand->addDaughter(F1);
-    cand->addDaughter(F2);
-    cand->addDaughter(gamma);
-    double defaultHVVmass = PDGHelpers::HVVmass;
-    if (fabs(charge)<0.01) PDGHelpers::setHVVmass(PDGHelpers::Zmass); // ZG
-    else PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WG,GW (?), un-tested
-    cand->sortDaughters();
-    PDGHelpers::setHVVmass(defaultHVVmass);
-  }
-  // ZZ / WW / ZW
-  else/* if (daughters.size()==4)*/{
-    TLorentzVector pH(0, 0, 0, 0);
-    double charge = 0.;
-    for (int ip=0; ip<4; ip++){ pH = pH + (daughters.at(ip))->p4; charge += (daughters.at(ip))->charge(); }
-    cand = new MELACandidate(25, pH);
-    for (int ip=0; ip<4; ip++) cand->addDaughter(daughters.at(ip));
-    double defaultHVVmass = PDGHelpers::HVVmass;
-    if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
-    cand->sortDaughters();
-    PDGHelpers::setHVVmass(defaultHVVmass);
-  }
-  /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
-  if (mothers.size()>0){ // ==2
-    for (int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));
-    if (isGen) cand->setGenStatus(-1); // Candidate is a gen. particle!
-  }
-  /***** Adaptation of LHEAnalyzer::Event::addVVCandidateAppendages *****/
-  if (aparticles.size()>0){ // ==2
-    for (int ip=0; ip<aparticles.size(); ip++){
-      const int partId = (aparticles.at(ip))->id;
-      if (PDGHelpers::isALepton(partId)) cand->addAssociatedLeptons(aparticles.at(ip));
-      else if (PDGHelpers::isANeutrino(partId)) cand->addAssociatedNeutrinos(aparticles.at(ip)); // Be careful: Neutrinos are neutrinos, but also "leptons" in MELACandidate!
-      else if (PDGHelpers::isAPhoton(partId)) cand->addAssociatedPhotons(aparticles.at(ip));
-      else if (PDGHelpers::isAJet(partId)) cand->addAssociatedJets(aparticles.at(ip));
-    }
-    cand->addAssociatedVs(); // For the VH topology
-  }
-  candList.push_back(cand);
-  return cand;
-}
 void TEvtProb::SetInputEvent(
-  std::vector<std::pair<int, TLorentzVector>>* pDaughters,
-  std::vector<std::pair<int, TLorentzVector>>* pAssociated,
-  std::vector<std::pair<int, TLorentzVector>>* pMothers,
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
   bool isGen
   ){
   MELACandidate* cand = ConvertVectorFormat(
     pDaughters,
     pAssociated,
     pMothers,
-    isGen
+    isGen,
+    &particleList, &candList // push_back is done automatically
     );
   if (cand!=0) melaCand=cand;
 }
-MELATopCandidate* TEvtProb::ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters){
-  MELATopCandidate* cand=0;
-
-  if (TopDaughters==0){ cerr << "TEvtProb::ConvertTopCandidate: No daughters!" << endl; return cand; }
-  else if (TopDaughters->size()==0){ cerr << "TEvtProb::ConvertTopCandidate: Daughter size==0!" << endl; return cand; }
-  else if (!(TopDaughters->size()==1 || TopDaughters->size()==3)){ cerr << "TEvtProb::ConvertVectorFormat: Daughter size " << TopDaughters->size() << "!=1 or 3 is not supported!" << endl; return cand; }
-
-  if (TopDaughters->size()==1){
-    if (abs((TopDaughters->at(0)).first)==6 || (TopDaughters->at(0)).first==0){
-      cand = new MELATopCandidate((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
-      topCandList.push_back(cand);
-    }
+void TEvtProb::AppendTopCandidate(SimpleParticleCollection_t* TopDaughters){
+  if (!CheckInputPresent()){
+    cerr << "TEvtProb::AppendTopCandidate: No MELACandidates are present to append this top!" << endl;
+    return;
   }
-  else if (TopDaughters->size()==3){
-    MELAParticle* bottom = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
-    MELAParticle* Wf = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
-    MELAParticle* Wfb = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
-
-    if (Wf->id<0 || Wfb->id>0){
-      MELAParticle* parttmp = Wf;
-      Wf=Wfb;
-      Wfb=parttmp;
-    }
-
-    particleList.push_back(bottom);
-    particleList.push_back(Wf);
-    particleList.push_back(Wfb);
-
-    cand = new MELATopCandidate(bottom, Wf, Wfb);
-    topCandList.push_back(cand);
-  }
-  return cand;
-}
-void TEvtProb::AppendTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters){
-  if (!CheckInputPresent()) return;
-  MELATopCandidate* cand = ConvertTopCandidate(TopDaughters);
+  MELATopCandidate* cand = ConvertTopCandidate(
+    TopDaughters,
+    &particleList, &topCandList // push_back is done automatically
+    );
   if (cand!=0) melaCand->addAssociatedTops(cand);
 }
-
-
-
 
 
 

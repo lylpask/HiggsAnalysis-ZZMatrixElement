@@ -2,23 +2,23 @@
 #define newZZMatrixElement_newZZMatrixElement_h
 
 #include <vector>
-#include <TLorentzVector.h>
-#include "ZZMatrixElement/MELA/interface/TVar.hh"
-#include "ZZMatrixElement/MELA/interface/TEvtProb.hh"
+#include "TLorentzVector.h"
+#include <ZZMatrixElement/MELA/interface/TVar.hh>
+#include <ZZMatrixElement/MELA/interface/TEvtProb.hh>
 
 
 class  newZZMatrixElement{
 public:
-  //pathtoHiggsCSandWidth: path to the textfiles of the HiggsCSandWidth package
+
   newZZMatrixElement(
     const char* pathtoPDFSet,
     int PDFMember,
-    const char* pathtoHiggsCSandWidth,
+    const char* pathtoHiggsCSandWidth, // path to the textfiles of the HiggsCSandWidth package
     double ebeam,
     TVar::VerbosityLevel verbosity
     );
 
-  ~newZZMatrixElement(){ /*std::cout << "End of newZZME" << std::endl;*/ };
+  ~newZZMatrixElement();
   /// Compute KD from masses and angles.
   /// The user must ensure that the order of m1/m2 matches the order of theta1/theta2.
   // flavor 1 for 4e, 2 for 4m, 3 for 2e2mu
@@ -67,14 +67,38 @@ public:
     int topDecay=0
     );
 
-  void set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_);
-  void set_mHiggs(float mh_, int index);
-  void set_wHiggs(float gah_, int index);
-  void set_LeptonInterference(TVar::LeptonInterference myLepInterf);
-  void set_LHAgrid(const char* path, int pdfmember=0);
-  void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+  // Set-functions
+  void set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_); // Sets variables in Xcal2 as well
+  void set_Verbosity(TVar::VerbosityLevel verbosity_); // Sets variables in Xcal2 as well
+  void set_LeptonInterference(TVar::LeptonInterference myLepInterf); // Sets variables in Xcal2 as well
+  //
+  void newZZMatrixElement::set_TempCandidate(
+    SimpleParticleCollection_t* pDaughters,
+    SimpleParticleCollection_t* pAssociated=0,
+    SimpleParticleCollection_t* pMothers=0,
+    bool isGen=false
+    ); // Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
+  //
+  void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf); // Sets variables exclusive to Xcal2
+  void set_LHAgrid(const char* path, int pdfmember=0); // Sets variable exclusive to Xcal2
+  void set_CurrentCandidate(unsigned int icand); // Sets variables exclusive to Xcal2
+  void set_CurrentCandidate(MELACandidate* cand); // Sets variables exclusive to Xcal2
+  void set_InputEvent(
+    SimpleParticleCollection_t* pDaughters,
+    SimpleParticleCollection_t* pAssociated=0,
+    SimpleParticleCollection_t* pMothers=0,
+    bool isGen=false
+    ); // Sets variables exclusive to Xcal2
+  void append_TopCandidate(SimpleParticleCollection_t* TopDaughters); // Sets variable exclusive to Xcal2
+  //
+  void set_mHiggs(double mh_, int index); // Does not set any variables in Xcal2!
+  void set_wHiggs(double gah_, int index); // Does not set any variables in Xcal2!
+  void set_mHiggs_wHiggs(double mh_, gah_, int index); // Does not set any variables in Xcal2!
+
+  // Reset-functions
   void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
-  void resetPerEvent();
+  void resetPerEvent(); // Resets variables and owned objects that are per-event
+  void reset_InputEvent(); // Resets all candidates in Xcal2, to be called at the end of each event after all computations are done
 
   void set_SpinZeroCouplings(
     double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
@@ -103,13 +127,12 @@ public:
 
   // Get-functions
   MelaIO* get_IORecord();
+  MELACandidate* get_CurrentCandidate();
+  int get_CurrentCandidateIndex();
+  std::vector<MELATopCandidate*>* get_TopCandidateCollection(); // Just so that the user can set MELATopCandidate::passSelection=true or false to omit some tops, in case tere are more than two
 
-private:
+protected:
   
-  enum{
-    nSupportedHiggses=2
-  };
-
   TVar::VerbosityLevel processVerbosity;
   TVar::LeptonInterference processLeptonInterference;
   TVar::Process processModel;
@@ -124,6 +147,12 @@ private:
   SpinZeroCouplings* selfD_SpinZeroCouplings;
   SpinOneCouplings* selfD_SpinOneCouplings;
   SpinTwoCouplings* selfD_SpinTwoCouplings;
+
+  MELACandidate* melaCand; // Pointer to current candidate object of Xcal2
+  std::vector<MELAParticle*> tmpPartList; // Vector of pointers to the owned, temporary MELAParticles
+  // Having a temporary top candidate list does not make much sense at the moment
+  //std::vector<MELATopCandidate*> tmpTopCandList; // Vector of pointers to the owned, temporary MELATopCandidates
+  std::vector<MELACandidate*> tmpCandList; // Vector of pointers to the owned, temporary MELACandidates
 
 };
 #endif

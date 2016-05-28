@@ -12,11 +12,12 @@
 //
 //----------------------------------------------------------
 // MCFM parameters
-// nflavors constants.f 
-enum {nf=5};
-// maxpart constants.f 
-enum {mxpart=14}; // MCFM 6.8+: CAUTION!!! IMPORTANT TO CHECK WHEN UPDATING MCFM!!!
-//enum {mxpart=12}; // MCFM 6.7
+enum {nSupportedHiggses=2}; // This is not actually an integer parameter in MCFM. As of migration to MCFM 7.0, this is the total number of Higgses supported, at most.
+// constants.f 
+enum {nf=5}; // nflavors of "pdf" quarks
+// constants.f 
+enum {mxpart=14}; // maxpart, max. number of particles. MCFM 6.8+: CAUTION!!! IMPORTANT TO CHECK WHEN UPDATING MCFM!!!
+//enum {mxpart=12}; // maxpart, max. number of particles. MCFM 6.7
 //mxdim.f
 enum {ndims=22};
 

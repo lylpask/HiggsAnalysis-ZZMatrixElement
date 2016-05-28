@@ -4,9 +4,11 @@
 #include <cmath>
 #include <TMath.h>
 
+
 using namespace std;
 
-void SetEwkCouplingParameters(){
+
+void TUtil::SetEwkCouplingParameters(){
   ewscheme_.ewscheme = 3; // Switch ewscheme to full control, default is 1
 
 /*
@@ -46,7 +48,7 @@ void SetEwkCouplingParameters(){
   ewinput_.xw_inp=0.22264585341299625;
 */
 }
-double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]){
+double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]){
   double Q=0;
   TLorentzVector nullFourVector(0, 0, 0, 0);
   if (scheme == TVar::Fixed_mH) Q = masses_mcfm_.hmass;
@@ -130,7 +132,7 @@ double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement mat
   }
   return Q;
 }
-void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
+void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
   bool hasReset=false;
   if (multiplier_ren<=0 || multiplier_fac<=0){
     cerr << "Invalid scale multipliers" << endl;
@@ -190,7 +192,7 @@ void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multipl
   << "Nflav: " << nflav_.nflav << endl;
   */
 }
-bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand){
+bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand){
   MELAPArticle* V1 = cand->getSorteV(0);
   MELAPArticle* V2 = cand->getSorteV(1);
   if (V1==0 || V2==0) return false;
@@ -379,23 +381,23 @@ bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::Lept
   return true;
 }
 
-void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember){
+void TUtil::InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember){
   char path_pdf_c[200];
   sprintf(path_pdf_c, "%s", pathtoPDFSet);
   int pathpdfLength = strlen(path_pdf_c);
   __modjhugen_MOD_initfirsttime(path_pdf_c, &pathpdfLength, &PDFMember);
 }
-void SetJHUGenHiggsMassWidth(double MReso, double GaReso){
+void TUtil::SetJHUGenHiggsMassWidth(double MReso, double GaReso){
   const double GeV = 1./100.;
   MReso *= GeV; // GeV units in JHUGen
   GaReso *= GeV; // GeV units in JHUGen
   __modjhugenmela_MOD_sethiggsmasswidth(&MReso, &GaReso);
 }
-void SetJHUGenDistinguishWWCouplings(bool doAllow){
+void TUtil::SetJHUGenDistinguishWWCouplings(bool doAllow){
   int iAllow = (doAllow ? 1 : 0);
   __modjhugenmela_MOD_setdistinguishwwcouplingsflag(&iAllow);
 }
-void SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ){
+void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ){
   if (!useBSM){
     spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = false;
     spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = false;
@@ -965,18 +967,18 @@ void SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool
     /***** END SECOND RESONANCE *****/
   }
 }
-void SetJHUGenSpinZeroVVCouplings(double Hvvcoupl[SIZE_HVV][2], int Hvvcoupl_cqsq[3], double HvvLambda_qsq[4][3], bool useWWcoupl){
+void TUtil::SetJHUGenSpinZeroVVCouplings(double Hvvcoupl[SIZE_HVV][2], int Hvvcoupl_cqsq[3], double HvvLambda_qsq[4][3], bool useWWcoupl){
   const double GeV = 1./100.;
   int iWWcoupl = (useWWcoupl ? 1 : 0);
   for (int c=0; c<4; c++){ for (int k=0; k<3; k++) HvvLambda_qsq[c][k] *= GeV; } // GeV units in JHUGen
   __modjhugenmela_MOD_setspinzerovvcouplings(Hvvcoupl, Hvvcoupl_cqsq, HvvLambda_qsq, &iWWcoupl);
 }
-void SetJHUGenSpinZeroGGCouplings(double Hggcoupl[SIZE_HGG][2]){ __modjhugenmela_MOD_setspinzeroggcouplings(Hggcoupl); }
-void SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]){ __modjhugenmela_MOD_setspinzeroqqcouplings(Hqqcoupl); }
-void SetJHUGenSpinOneCouplings(double Zqqcoupl[SIZE_ZQQ][2], double Zvvcoupl[SIZE_ZVV][2]){ __modjhugenmela_MOD_setspinonecouplings(Zqqcoupl, Zvvcoupl); }
-void SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]){ __modjhugenmela_MOD_setspintwocouplings(Gacoupl, Gbcoupl, qLeftRightcoupl); }
+void TUtil::SetJHUGenSpinZeroGGCouplings(double Hggcoupl[SIZE_HGG][2]){ __modjhugenmela_MOD_setspinzeroggcouplings(Hggcoupl); }
+void TUtil::SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]){ __modjhugenmela_MOD_setspinzeroqqcouplings(Hqqcoupl); }
+void TUtil::SetJHUGenSpinOneCouplings(double Zqqcoupl[SIZE_ZQQ][2], double Zvvcoupl[SIZE_ZVV][2]){ __modjhugenmela_MOD_setspinonecouplings(Zqqcoupl, Zvvcoupl); }
+void TUtil::SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]){ __modjhugenmela_MOD_setspintwocouplings(Gacoupl, Gbcoupl, qLeftRightcoupl); }
 
-bool MCFM_masscuts(double s[][mxpart], TVar::Process process){
+bool TUtil::MCFM_masscuts(double s[][mxpart], TVar::Process process){
   double minZmassSqr=10*10;
   if (
     process==TVar::bkgZZ
@@ -985,7 +987,7 @@ bool MCFM_masscuts(double s[][mxpart], TVar::Process process){
     ) return true;
   return false;
 }
-bool MCFM_smalls(double s[][mxpart], int npart){
+bool TUtil::MCFM_smalls(double s[][mxpart], int npart){
 
   // Reject event if any s(i,j) is too small
   // cutoff is defined in technical.Dat
@@ -1028,7 +1030,7 @@ bool MCFM_smalls(double s[][mxpart], int npart){
 // 2. PartonEnergy Fraction minimum<x0,x1<1
 // 3. number of final state particle is defined
 //
-double SumMatrixElementPDF(
+double TUtil::SumMatrixElementPDF(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
@@ -1187,7 +1189,7 @@ double SumMatrixElementPDF(
 }
 
 
-double JHUGenMatEl(
+double TUtil::JHUGenMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
@@ -1504,7 +1506,7 @@ double JHUGenMatEl(
   return MatElSq;
 }
 
-double HJJMatEl(
+double TUtil::HJJMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
@@ -2043,7 +2045,7 @@ double HJJMatEl(
   return sum_msqjk;
 }
 
-double VHiggsMatEl(
+double TUtil::VHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
@@ -2345,7 +2347,7 @@ double VHiggsMatEl(
 
 
 // ttH
-double TTHiggsMatEl(
+double TUtil::TTHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
@@ -2574,7 +2576,7 @@ double TTHiggsMatEl(
 }
 
 // bbH
-double BBHiggsMatEl(
+double TUtil::BBHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
@@ -2705,7 +2707,7 @@ double BBHiggsMatEl(
   return sum_msqjk;
 }
 
-void Swap_Momenta(double(&p)[4], double(&q)[4]){
+void TUtil::Swap_Momenta(double(&p)[4], double(&q)[4]){
   for (int ix=0; ix<4; ix++){
     double tmp=p[ix];
     p[ix]=q[ix];
@@ -2714,7 +2716,7 @@ void Swap_Momenta(double(&p)[4], double(&q)[4]){
 }
 
 // CheckPartonMomFraction computes xx[0:1] based on p0, p1
-bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity){
+bool TUtil::CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity){
   //Make sure parton Level Energy fraction is [0,1]
   //phase space function already makes sure the parton energy fraction between [min,1]
   //  x0 EBeam =>   <= -x1 EBeam
@@ -2736,7 +2738,7 @@ bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, do
   else return true;
 }
 // ComputePDF does the PDF computation
-void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity){
+void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity){
   double xx[2]={ 0 };
   bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, verbosity, EBEAM);
   if (passPartonErgFrac){
@@ -2748,7 +2750,7 @@ void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nms
   }
 }
 // SumMEPDF sums over all production parton flavors according to PDF and calls ComputePDF
-double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity){
+double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity){
   double fx1[nmsq]={ 0 };
   double fx2[nmsq]={ 0 };
   //double wgt_msq[nmsq][nmsq]={ { 0 } };
@@ -2767,7 +2769,7 @@ double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nms
 // Associated particles passed are different based on the code. If code==1, no associated particles are passed.
 // mela_event.intermediateVids are needed to keep track of the decay mode. TVar::Process or TVar::Production do not keep track of the V/f decay modes.
 // This is the major replacement functionality of the TVar lepton flavors.
-void GetBoostedParticleVectors(
+void TUtil::GetBoostedParticleVectors(
   MELACandidate* melaCand,
   simple_event_record& mela_event
   ){
@@ -3103,5 +3105,172 @@ void GetBoostedParticleVectors(
   // This is the end of one long function.
 }
 
+// Convert vectors of simple particles to MELAParticles and create a MELACandidate
+// The output lists could be members of TEvtProb directly.
+MELACandidate* TUtil::ConvertVectorFormat(
+  // Inputs
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen,
+  // Outputs
+  std::vector<MELAParticle*>* particleList,
+  std::vector<MELACandidate*>* candList
+  ){
+  MELACandidate* cand=0;
+
+  if (pDaughters==0){ cerr << "TUtil::ConvertVectorFormat: No daughters!" << endl; return cand; }
+  else if (pDaughters->size()==0){ cerr << "TUtil::ConvertVectorFormat: Daughter size==0!" << endl; return cand; }
+  else if (pDaughters->size()>4){ cerr << "TUtil::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
+  if (pMothers!=0 && pMothers->size()!=2){ cerr << "TUtil::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") has to have had been 2! Continuing by omitting mothers." << endl; /*return cand;*/ }
+
+  std::vector<MELAParticle>* daughters;
+  std::vector<MELAParticle>* aparticles;
+  std::vector<MELAParticle>* mothers;
+
+  for (unsigned int ip=0; ip<pDaughters->size(); ip++){
+    MELAParticle* onePart = new MELAParticle((pDaughters->at(ip)).first, (pDaughters->at(ip)).second);
+    onePart->setGenStatus(1); // Final state status
+    particleList->push_back(onePart);
+    daughters.push_back(onePart);
+  }
+  if (pAssociated!=0){
+    for (unsigned int ip=0; ip<pAssociated->size(); ip++){
+      MELAParticle* onePart = new MELAParticle((pAssociated->at(ip)).first, (pAssociated->at(ip)).second);
+      onePart->setGenStatus(1); // Final state status
+      particleList->push_back(onePart);
+      aparticles.push_back(onePart);
+    }
+  }
+  if (pMothers!=0 && pMothers->size()==2){
+    for (unsigned int ip=0; ip<pMothers->size(); ip++){
+      MELAParticle* onePart = new MELAParticle((pMothers->at(ip)).first, (pMothers->at(ip)).second);
+      onePart->setGenStatus(-1); // Mother status
+      particleList->push_back(onePart);
+      mothers.push_back(onePart);
+    }
+  }
+
+  /***** Adaptation of LHEAnalyzer::Event::constructVVCandidates *****/
+  /*
+  The assumption is that the daughters make sense for either ffb, gamgam, Zgam, ZZ or WW.
+  No checking is done on whether particle-antiparticle pairing is correct when necessary.
+  If not, you will get a seg. fault!
+  */
+  // Undecayed Higgs
+  if (daughters.size()==1) cand = new MELACandidate(25, (daughters.at(0))->p4); // No sorting!
+  // GG / ff final states
+  else if (daughters.size()==2){
+    MELAParticle* F1 = daughters.at(0);
+    MELAParticle* F2 = daughters.at(1);
+    TLorentzVector pH = F1->p4+F2->p4;
+    cand = new MELACandidate(25, pH);
+    cand->addDaughter(F1);
+    cand->addDaughter(F2);
+    double defaultHVVmass = PDGHelpers::HVVmass;
+    PDGHelpers::setHVVmass(Zeromass);
+    cand->sortDaughters();
+    PDGHelpers::setHVVmass(defaultHVVmass);
+  }
+  // ZG / WG
+  else if (daughters.size()==3){
+    MELAParticle* F1 = daughters.at(0);
+    MELAParticle* F2 = daughters.at(1);
+    MELAParticle* gamma = daughters.at(2);
+    if (PDGHelpers::isAPhoton(F1->id)){
+      MELAParticle* tmp = F1;
+      F1 = gamma;
+      gamma = tmp;
+    }
+    else if (PDGHelpers::isAPhoton(F2->id)){
+      MELAParticle* tmp = F2;
+      F2 = gamma;
+      gamma = tmp;
+    }
+    TLorentzVector pH = F1->p4+F2->p4+gamma->p4;
+    double charge = F1->charge()+F2->charge()+gamma->charge();
+    cand = new MELACandidate(25, pH);
+    cand->addDaughter(F1);
+    cand->addDaughter(F2);
+    cand->addDaughter(gamma);
+    double defaultHVVmass = PDGHelpers::HVVmass;
+    if (fabs(charge)<0.01) PDGHelpers::setHVVmass(PDGHelpers::Zmass); // ZG
+    else PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WG,GW (?), un-tested
+    cand->sortDaughters();
+    PDGHelpers::setHVVmass(defaultHVVmass);
+  }
+  // ZZ / WW / ZW
+  else/* if (daughters.size()==4)*/{
+    TLorentzVector pH(0, 0, 0, 0);
+    double charge = 0.;
+    for (int ip=0; ip<4; ip++){ pH = pH + (daughters.at(ip))->p4; charge += (daughters.at(ip))->charge(); }
+    cand = new MELACandidate(25, pH);
+    for (int ip=0; ip<4; ip++) cand->addDaughter(daughters.at(ip));
+    double defaultHVVmass = PDGHelpers::HVVmass;
+    if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
+    cand->sortDaughters();
+    PDGHelpers::setHVVmass(defaultHVVmass);
+  }
+  /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
+  if (mothers.size()>0){ // ==2
+    for (int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));
+    if (isGen) cand->setGenStatus(-1); // Candidate is a gen. particle!
+  }
+  /***** Adaptation of LHEAnalyzer::Event::addVVCandidateAppendages *****/
+  if (aparticles.size()>0){ // ==2
+    for (int ip=0; ip<aparticles.size(); ip++){
+      const int partId = (aparticles.at(ip))->id;
+      if (PDGHelpers::isALepton(partId)) cand->addAssociatedLeptons(aparticles.at(ip));
+      else if (PDGHelpers::isANeutrino(partId)) cand->addAssociatedNeutrinos(aparticles.at(ip)); // Be careful: Neutrinos are neutrinos, but also "leptons" in MELACandidate!
+      else if (PDGHelpers::isAPhoton(partId)) cand->addAssociatedPhotons(aparticles.at(ip));
+      else if (PDGHelpers::isAJet(partId)) cand->addAssociatedJets(aparticles.at(ip));
+    }
+    cand->addAssociatedVs(); // For the VH topology
+  }
+  candList->push_back(cand);
+  return cand;
+}
+
+// Convert the vector of top daughters (as simple particles) to MELAParticles and create a MELATopCandidate
+// The output lists could be members of TEvtProb directly.
+MELATopCandidate* TUtil::ConvertTopCandidate(
+  // Input
+  SimpleParticleCollection_t* TopDaughters,
+  // Outputs
+  std::vector<MELAParticle*>* particleList,
+  std::vector<MELATopCandidate*>* topCandList
+  ){
+  MELATopCandidate* cand=0;
+
+  if (TopDaughters==0){ cerr << "TUtil::ConvertTopCandidate: No daughters!" << endl; return cand; }
+  else if (TopDaughters->size()==0){ cerr << "TUtil::ConvertTopCandidate: Daughter size==0!" << endl; return cand; }
+  else if (!(TopDaughters->size()==1 || TopDaughters->size()==3)){ cerr << "TUtil::ConvertVectorFormat: Daughter size " << TopDaughters->size() << "!=1 or 3 is not supported!" << endl; return cand; }
+
+  if (TopDaughters->size()==1){
+    if (abs((TopDaughters->at(0)).first)==6 || (TopDaughters->at(0)).first==0){
+      cand = new MELATopCandidate((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+      topCandList->push_back(cand);
+    }
+  }
+  else if (TopDaughters->size()==3){
+    MELAParticle* bottom = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+    MELAParticle* Wf = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+    MELAParticle* Wfb = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+
+    if (Wf->id<0 || Wfb->id>0){
+      MELAParticle* parttmp = Wf;
+      Wf=Wfb;
+      Wfb=parttmp;
+    }
+
+    particleList->push_back(bottom);
+    particleList->push_back(Wf);
+    particleList->push_back(Wfb);
+
+    cand = new MELATopCandidate(bottom, Wf, Wfb);
+    topCandList->push_back(cand);
+  }
+  return cand;
+}
 
 

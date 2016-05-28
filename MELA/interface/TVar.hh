@@ -20,7 +20,7 @@
 
 // typedefs for use in simple_event_record
 typedef std::pair<int, TLorentzVector> SimpleParticle_t;
-typedef std::vector<simpleParticle_t> SimpleParticleCollection_t;
+typedef std::vector<SimpleParticle_t> SimpleParticleCollection_t;
 
 class TVar{
 public:

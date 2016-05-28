@@ -9,17 +9,23 @@
 // Feb 21 2011
 // Sergo Jindariani
 // Yanyan Gao
+// 
+// June 2016
+// Ulascan Sarica
+//
 //-----------------------------------------------------------------------------
+//
+// STD includes
+#include <iostream>
 #include <sstream>
 #include <cstdio>
 #include <vector>
 #include <string>
-
-#include <iostream>
 #include <iomanip>
 #include <ostream>
 #include <fstream>
-
+#include <cassert>
+// ROOT includes
 #include "TObject.h"
 #include "TLorentzVector.h"
 #include "TMath.h"
@@ -27,9 +33,8 @@
 #include "TChain.h"
 #include "TFile.h"
 #include "TString.h"
-#include "assert.h"
 #include "TROOT.h"
-// ME related
+// ME related includes
 #include "TMCFM.hh"
 #include "TCouplings.hh"
 #include "TVar.hh"
@@ -40,7 +45,7 @@
 //----------------------------------------
 // Class TEvtProb
 //----------------------------------------
-class TEvtProb : public TObject {
+class TEvtProb : public TObject{
 public:
   //---------------------------------------------------------------------------
   // Constructors and Destructor
@@ -65,13 +70,15 @@ public:
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void Set_LHAgrid(const char* path, int pdfmember=0);
 
+  // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively.
+  // Also set melaCand to this candidsate if it is valid.
   void SetInputEvent(
-    std::vector<std::pair<int, TLorentzVector>>* pDaughters,
-    std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
-    std::vector<std::pair<int, TLorentzVector>>* pMothers=0,
+    SimpleParticleCollection_t* pDaughters,
+    SimpleParticleCollection_t* pAssociated=0,
+    SimpleParticleCollection_t* pMothers=0,
     bool isGen=false
     );
-  void AppendTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
+  void AppendTopCandidate(SimpleParticleCollection_t* TopDaughters);
 
   double XsecCalc_XVV(
     TVar::Process process_, TVar::Production production_,
@@ -123,9 +130,10 @@ public:
   SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
   MelaIO* GetIORecord(){ return RcdME.getRef(); };
   MELACandidate* GetCurrentCandidate();
-  int GetCurrentCandidateIndex();
+  int GetCurrentCandidateIndex(); // Return the index of current melaCand in the candList array, or -1 if it does not exist
+  std::vector<MELATopCandidate*>* GetTopCandidates(){ return &topCandList; }
 
-private:
+protected:
   //--------------------
   // Variables
   //--------------------
@@ -152,20 +160,12 @@ private:
   std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
   std::vector<MELATopCandidate*> topCandList; // Container of candidate objects, for bookkeeping to delete later
 
-  // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively
-  MELACandidate* ConvertVectorFormat(
-    std::vector<std::pair<int, TLorentzVector>>* pDaughters,
-    std::vector<std::pair<int, TLorentzVector>>* pAssociated=0,
-    std::vector<std::pair<int, TLorentzVector>>* pMothers=0,
-    bool isGen
-    );
-  MELATopCandidate* ConvertTopCandidate(std::vector<std::pair<int, TLorentzVector>>* TopDaughters);
   // Check if at least one input candidate is present
   bool CheckInputPresent();
   void SetRcdCandPtr();
 
 
-  ClassDef(TEvtProb,0);
+  ClassDef(TEvtProb, 0);
 };
 
 #endif
