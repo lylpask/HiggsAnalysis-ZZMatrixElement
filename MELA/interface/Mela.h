@@ -38,16 +38,41 @@ class Mela{
 public:
 
   // Mela(){};
-  Mela(int LHCsqrts=13, float mh=125); // higgs mass for supermela
+  Mela(double LHCsqrts_=13., double mh_=125.); // higgs mass for supermela
   ~Mela();
 
   void setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Production myProduction);
-  void setMelaHiggsMass(double myHiggsMass, int index=0);
-  void setMelaHiggsWidth(double myHiggsWidth=-1, int index=0);
+  void setVerbosity(TVar::VerbosityLevel verbosity_=TVar::ERROR);
   void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf=TVar::DefaultLeptonInterf);
   void setRemoveLeptonMasses(bool MasslessLeptonSwitch=true);
-  void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
+  void setMelaHiggsMass(double myHiggsMass, int index=0);
+  void setMelaHiggsWidth(double myHiggsWidth=-1, int index=0);
+  void setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index);
   void setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+  void setCurrentCandidate(unsigned int icand); // Switches to another candidate
+  void setCurrentCandidate(MELACandidate* cand); // Switches to another candidate
+  void setInputEvent(
+    SimpleParticleCollection_t* pDaughters,
+    SimpleParticleCollection_t* pAssociated=0,
+    SimpleParticleCollection_t* pMothers=0,
+    bool isGen=false
+    ); // Adds another candidate
+  void setTempCandidate(
+    SimpleParticleCollection_t* pDaughters,
+    SimpleParticleCollection_t* pAssociated=0,
+    SimpleParticleCollection_t* pMothers=0,
+    bool isGen=false
+    ); // Adds a temp. candidate
+  void setTempCandidate(
+    std::vector<MELAPArticle*>& pDaughters,
+    std::vector<MELAPArticle*>& pAssociated,
+    std::vector<MELAPArticle*>& pMothers,
+    bool isGen=false
+    ); // Adds a temp. candidate constructed from pre-existing objects
+  void appendTopCandidate(SimpleParticleCollection_t* TopDaughters); // Adds a top
+
+  // Function to set EW parameters in MCFM/JHUGen
+  void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
 
 
   MelaIO* getIORecord(); // Full parton-by-parton ME record
@@ -59,6 +84,17 @@ public:
   float getConstant(bool useOldggZZConstants=false);
   float getConstant_m4l(bool useOldggZZConstants=false);
   void get_PAux(float& prob); // SuperProb
+
+  void computeDecayAngles(
+    float& qH,
+    float& m1,
+    float& m2,
+    float& costheta1,
+    float& costheta2,
+    float& Phi,
+    float& costhetastar,
+    float& Phi1
+    );
 
   void computeP_selfDspin0(
     double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
@@ -110,6 +146,8 @@ public:
 
   //****VVH Spin-0****//
   void computeProdDecP(
+    double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+    double selfDHwwcoupl_input[nSupportedHiggses][SIZE_HVV][2],
     float& prob,
     bool useConstant=true
     );
@@ -132,19 +170,20 @@ public:
     );
 
   //****VH Spin-0****//
-  void computeProdP(
+  void computeProdP_VH(
     double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
     float& prob,
+    bool includeHiggsDecay=false,
     bool useConstant=true
     );
-  void computeProdP(
+  void computeProdP_VH(
     float& prob,
     bool includeHiggsDecay=false,
     bool useConstant=true
     );
 
   //***ttH Spin-0****//
-  void computeProdP(
+  void computeProdP_ttH(
     float& prob,
     int topDecay=0,
     int topProcess=2,
@@ -254,10 +293,12 @@ protected:
   // data memmbers 
   // 
   bool usePowhegTemplate_;
-  int LHCsqrts;
+  double LHCsqrts;
   TVar::Process myModel_;
   TVar::MatrixElement myME_;
   TVar::Production myProduction_;
+  TVar::VerbosityLevel myVerbosity_;
+
   newZZMatrixElement* ZZME;
 
   float auxiliaryProb;

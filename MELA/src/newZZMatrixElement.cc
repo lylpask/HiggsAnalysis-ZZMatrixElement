@@ -37,20 +37,24 @@ vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx, double 
   phi1=TMath::Pi()-Phi1;
   phi2=Phi1+Phi;
 
-  double gamma1, gamma2, beta1, beta2;
+  double gamma1=1, gamma2=1, beta1=0, beta2=0;
 
-  gamma1=(Mx*Mx+M1*M1-M2*M2)/(2*Mx*M1);
-  gamma2=(Mx*Mx-M1*M1+M2*M2)/(2*Mx*M2);
-  beta1=sqrt(1-1/(gamma1*gamma1));
-  beta2=sqrt(1-1/(gamma2*gamma2));
+  if (M1>0. && Mx>0.){
+    gamma1=(Mx*Mx+M1*M1-M2*M2)/(2*Mx*M1);
+    beta1=sqrt(1.-1./(gamma1*gamma1));
+  }
+  if (M2>0. && Mx>0.){
+    gamma2=(Mx*Mx-M1*M1+M2*M2)/(2*Mx*M2);
+    beta2=sqrt(1.-1./(gamma2*gamma2));
+  }
 
   //gluon 4 vectors
   TLorentzVector p1CM(0, 0, Mx/2, Mx/2);
   TLorentzVector p2CM(0, 0, -Mx/2, Mx/2);
 
   //vector boson 4 vectors
-  TLorentzVector kZ1(gamma1*M1*sin(theta)*beta1, 0, gamma1*M1*cos(theta)*beta1, gamma1*M1*1);
-  TLorentzVector kZ2(-gamma2*M2*sin(theta)*beta2, 0, -gamma2*M2*cos(theta)*beta2, gamma2*M2*1);
+  TLorentzVector kZ1(gamma1*M1*sin(theta)*beta1, 0, gamma1*M1*cos(theta)*beta1, gamma1*M1);
+  TLorentzVector kZ2(-gamma2*M2*sin(theta)*beta2, 0, -gamma2*M2*cos(theta)*beta2, gamma2*M2);
 
   //Rotation and Boost matrices. Note gamma1*beta1*M1=gamma2*beta2*M2.
 
@@ -116,6 +120,44 @@ void newZZMatrixElement::set_InputEvent(
     isGen
     );
 }
+// Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2
+void newZZMatrixElement::set_TempCandidate(
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen
+  ){
+  MELACandidate* cand = ConvertVectorFormat(
+    pDaughters,
+    pAssociated,
+    pMothers,
+    isGen,
+    &tmpPartList, &tmpCandList // push_back is done automatically
+    );
+  if (cand!=0){
+    melaCand=cand;
+    set_CurrentCandidate(melaCand);
+  }
+}
+void newZZMatrixElement::set_TempCandidate(
+  std::vector<MELAPArticle*>& pDaughters,
+  std::vector<MELAPArticle*>& pAssociated,
+  std::vector<MELAPArticle*>& pMothers,
+  bool isGen
+  ){
+  MELACandidate* cand = ConvertVectorFormat(
+    pDaughters,
+    pAssociated,
+    pMothers,
+    isGen
+    );// push_back is NOT done automatically, and originating objects are NOT owned either!
+  if (cand!=0){
+    tmpCandList.push_back(cand);
+    melaCand=cand;
+    set_CurrentCandidate(melaCand);
+  }
+}
+// Adds a top candidate
 void newZZMatrixElement::append_TopCandidate(SimpleParticleCollection_t* TopDaughters){ Xcal2.AppendTopCandidate(TopDaughters); }
 // Set-functions that do not set anything that belongs to Xcal2
 void newZZMatrixElement::set_mHiggs(double mh_, int index){
@@ -160,31 +202,11 @@ void newZZMatrixElement::resetPerEvent(){
 // Resets all candidates in Xcal2, to be called at the end of each event after all computations are done
 void newZZMatrixElement::reset_InputEvent(){ Xcal2.ResetInputEvent(); }
 
+
 MelaIO* newZZMatrixElement::get_IORecord(){ return Xcal2.GetIORecord(); }
 MELACandidate* newZZMatrixElement::get_CurrentCandidate(){ Xcal2.GetCurrentCandidate(); }
 int newZZMatrixElement::get_CurrentCandidateIndex(){ return Xcal2.GetCurrentCandidateIndex(); }
 vector<MELATopCandidate*>* newZZMatrixElement::get_TopCandidateCollection(){ return Xcal2.GetTopCandidates(); }
-
-
-// Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2
-void newZZMatrixElement::set_TempCandidate(
-  SimpleParticleCollection_t* pDaughters,
-  SimpleParticleCollection_t* pAssociated,
-  SimpleParticleCollection_t* pMothers,
-  bool isGen
-  ){
-  MELACandidate* cand = ConvertVectorFormat(
-    pDaughters,
-    pAssociated,
-    pMothers,
-    isGen,
-    &tmpPartList, &tmpCandList // push_back is done automatically
-    );
-  if (cand!=0){
-    melaCand=cand;
-    set_CurrentCandidate(melaCand);
-  }
-}
 
 
 void newZZMatrixElement::set_SpinZeroCouplings(

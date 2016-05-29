@@ -93,8 +93,8 @@ void mela::computeAngles(
   cout << p4M22.X() << "\t" << p4M22.Y() << "\t" << p4M22.Z() << "\t" << p4M22.T() << endl;
   */
   if (mela::forbidMassiveLeptons){
-    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==22 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==22 || fabs(Z1_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M11, p4M12);
-    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==22 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==22 || fabs(Z2_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M21, p4M22);
+    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==22 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==22 || fabs(Z1_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M11, p4M12);
+    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==22 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==22 || fabs(Z2_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M21, p4M22);
   }
   /*
   cout << "a.b.:\n";
@@ -245,8 +245,8 @@ void mela::computeAnglesCS(
   float& Phi1
   ){
   if (mela::forbidMassiveLeptons){
-    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==22 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==22 || fabs(Z1_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M11, p4M12);
-    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==22 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==22 || fabs(Z2_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M21, p4M22);
+    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==22 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==22 || fabs(Z1_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M11, p4M12);
+    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==22 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==22 || fabs(Z2_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M21, p4M22);
   }
 
   TVector3 LabXaxis(1.0, 0.0, 0.0);
@@ -451,8 +451,8 @@ void mela::computeVBFangles(
   ){
 
   if (mela::forbidMassiveLeptons){
-    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M11, p4M12);
-    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M21, p4M22);
+    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M11, p4M12);
+    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M21, p4M22);
   }
 
   TLorentzVector jet1massless, jet2massless;
@@ -570,8 +570,8 @@ void mela::computeVHangles(
   //cout << p4M21.X() << '\t' << p4M21.Y() << '\t' << p4M21.Z() << '\t' << p4M21.T() << endl;
   //cout << p4M22.X() << '\t' << p4M22.Y() << '\t' << p4M22.Z() << '\t' << p4M22.T() << endl;
   if (mela::forbidMassiveLeptons){
-    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M11, p4M12);
-    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==25)) melaHelpers::constrainedRemoveLeptonMass(p4M21, p4M22);
+    if (!(fabs(Z1_lept1Id)==23 || fabs(Z1_lept1Id)==24 || fabs(Z1_lept1Id)==21 || fabs(Z1_lept1Id)==25 || fabs(Z1_lept2Id)==23 || fabs(Z1_lept2Id)==24 || fabs(Z1_lept2Id)==21 || fabs(Z1_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M11, p4M12);
+    if (!(fabs(Z2_lept1Id)==23 || fabs(Z2_lept1Id)==24 || fabs(Z2_lept1Id)==21 || fabs(Z2_lept1Id)==25 || fabs(Z2_lept2Id)==23 || fabs(Z2_lept2Id)==24 || fabs(Z2_lept2Id)==21 || fabs(Z2_lept2Id)==25)) mela::constrainedRemoveLeptonMass(p4M21, p4M22);
   }
   //cout << endl;
   //cout << p4M11.X() << '\t' << p4M11.Y() << '\t' << p4M11.Z() << '\t' << p4M11.T() << endl;

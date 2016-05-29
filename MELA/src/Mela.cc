@@ -48,13 +48,15 @@ Please adhere to the following coding conventions:
 using namespace RooFit;
 
 Mela::Mela(
-  int LHCsqrts,
-  float mh
+  double LHCsqrts_,
+  double mh_
   ) :
+  LHCsqrts(LHCsqrts_),
   melaCand(0)
 {
-  const int maxSqrts = 8;
+  const double maxSqrts = 8.;
   //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing fermion masses
+  setVerbosity(TVar::ERROR);
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing fermion masses to compute MEs that expect massless fermions properly
 
   // Create symlinks to the required files, if these are not already present (do nothing otherwse)
@@ -74,7 +76,7 @@ Mela::Mela(
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
-  mzz_rrv = new RooRealVar("mzz", "m_{ZZ}", (double)mh, 0., 1000.);
+  mzz_rrv = new RooRealVar("mzz", "m_{ZZ}", mh_, 0., 1000.);
   z1mass_rrv = new RooRealVar("z1mass", "m_{Z1}", 0., 160.);
   z2mass_rrv = new RooRealVar("z2mass", "m_{Z2}", 0., 200.);
   costhetastar_rrv = new RooRealVar("costhetastar", "cos#theta^{*}", -1., 1.);
@@ -108,7 +110,7 @@ Mela::Mela(
   char path_nnpdf_c[] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
   int pdfmember = 0;
   symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
-  ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., TVar::ERROR);
+  ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
   setMelaHiggsMass(125., 0); setMelaHiggsMass(-1., 1);
   setMelaHiggsWidth(-1., 0); setMelaHiggsWidth(0., 1);
   setMelaLeptonInterference(TVar::DefaultLeptonInterf);
@@ -147,7 +149,7 @@ Mela::Mela(
 
   int superMELA_LHCsqrts = LHCsqrts;
   if (superMELA_LHCsqrts > maxSqrts) superMELA_LHCsqrts = maxSqrts;
-  super = new SuperMELA(mh, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
+  super = new SuperMELA(mh_, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
   char cardpath[500];
   sprintf(cardpath, "ZZMatrixElement/MELA/data/CombinationInputs/SM_inputs_%dTeV/inputs_4mu.txt", superMELA_LHCsqrts);
   //std::cout << "before supermela, pathToCards: " <<cardpath<< std::endl;
@@ -201,28 +203,57 @@ Mela::~Mela(){
 //  std::cout << "end destructor" << std::endl;
 }
 
+// Set-functions
 void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Production myProduction)
 {
   myModel_ = myModel;
   myME_ = myME;
   myProduction_ = myProduction;
 }
-
+void Mela::setVerbosity(TVar::VerbosityLevel verbosity_=TVar::ERROR){ myVerbosity_=verbosity_; ZZME->set_Verbosity(myVerbosity_); }
 // Should be called per-event
 void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myHiggsMass, index); }
 void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(myHiggsWidth, index); }
+void Mela::setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index){ ZZME->set_mHiggs_wHiggs(myHiggsMass, myHiggsWidth, index); }
 void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){ ZZME->set_LeptonInterference(myLepInterf); }
+void Mela::setCurrentCandidate(unsigned int icand){ ZZME->set_CurrentCandidate(icand); }
+void Mela::setCurrentCandidate(MELACandidate* cand){ ZZME->set_CurrentCandidate(cand); }
+void Mela::setInputEvent(
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen
+  ){
+  ZZME->set_InputEvent(
+    pDaughters,
+    pAssociated,
+    pMothers,
+    isGen
+    );
+}
+void Mela::setTempCandidate(
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen
+  ){ ZZME->set_TempCandidate(pDaughters, pAssociated, pMothers); }
+void Mela::setTempCandidate(
+  std::vector<MELAPArticle*>& pDaughters,
+  std::vector<MELAPArticle*>& pAssociated,
+  std::vector<MELAPArticle*>& pMothers,
+  bool isGen=false
+  ){ ZZME->set_TempCandidate(pDaughters, pAssociated, pMothers); }
+void appendTopCandidate(SimpleParticleCollection_t* TopDaughters){ ZZME->append_TopCandidate(TopDaughters); }
+
+
 
 void Mela::resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   ZZME->reset_MCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }
-
 void Mela::setRemoveLeptonMasses(bool MasslessLeptonSwitch){ mela::applyLeptonMassCorrection(MasslessLeptonSwitch); }
-
 void Mela::setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
   ZZME->set_RenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
-
 std::vector<TLorentzVector> Mela::calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi){
 	return ZZME->Calculate4Momentum(Mx, M1, M2, theta, theta1, theta2, Phi1, Phi);
 }
@@ -530,6 +561,49 @@ float Mela::getConstant_m4l(bool useOldggZZConstants){
 void Mela::get_PAux(float& prob){ prob = auxiliaryProb; }
 void Mela::reset_PAux(){ auxiliaryProb=1.; } // SuperProb reset
 
+// Angle computation script of Mela to convert MELACandidates to m1, m2 etc.
+void Mela::computeDecayAngles(
+  float& qH,
+  float& m1,
+  float& m2,
+  float& costheta1,
+  float& costheta2,
+  float& Phi,
+  float& costhetastar,
+  float& Phi1
+  ){
+  qH=0; m1=0; m2=0; costheta1=0; costheta2=0; phi=0; costhetastar=0; phi1=0;
+
+  if (melaCand==0) melaCand = getCurrentCandidateIndex();
+  if (melaCand!=0){
+    qH = melaCand->m();
+    m1 = melaCand->getSortedV(0)->m();
+    m2 = melaCand->getSortedV(1)->m();
+
+    if (melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
+      MELAParticle* dau[2][2]={ { 0 } };
+      for (int vv=0; vv<2; vv++){
+        MELAParticle* Vi = melaCand->getSortedV(vv);
+        for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
+      }
+      mela::computeAngles(
+        (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
+        (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
+        (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
+        (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
+        costhetastar, costheta1, costheta2, phi, phi1
+        );
+    }
+    // Protect against NaN
+    if (!(costhetastar==costhetastar)) costhetastar=0;
+    if (!(costheta1==costheta1)) costheta1=0;
+    if (!(costheta2==costheta2)) costheta2=0;
+    if (!(phi==phi)) phi=0;
+    if (!(phi1==phi1)) phi1=0;
+  }
+  else if (myVerbosity_>=TVar::DEBUG) cerr << "Mela::computeDecayAngles: No possible melaCand in TEvtProb to compute angles." << endl;
+}
+
 // Regular probabilities
 void Mela::computeP_selfDspin0(
   double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
@@ -560,7 +634,7 @@ void Mela::computeP_selfDspin0(
   reset_PAux();
   if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){ cerr << "Mela::computeP_selfDspin0: This method only applies to spin0, set Process to SelfDefine_spin0 or ME to MCFM!" << endl; return; }
 
-  melaCand = get_CurrentCandidate();
+  melaCand = getCurrentCandidateIndex();
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
       ZZME->set_SpinZeroCouplings(
@@ -584,28 +658,12 @@ void Mela::computeP_selfDspin0(
     }
     else if (myME_ == TVar::ANALYTICAL){ // Needs further generalization!
       TLorentzVector nullVector(0, 0, 0, 0);
-      float costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
-      if (melaCand!=0 && melaCand->getNSortedVs()>=2 && melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
-        MELAParticle* dau[2][2]={ { 0 } };
-        for (int vv=0; vv<2; vv++){
-          MELAParticle* Vi = melaCand->getSortedV(vv);
-          for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
-        }
-        mela::computeAngles(
-          (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
-          (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
-          (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
-          (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
-          costhetastar, costheta1, costheta2, phi, phi1
-          );
-      }
-      // Protect against NaN
-      if (!(costhetastar==costhetastar)) costhetastar=0;
-      if (!(costheta1==costheta1)) costheta1=0;
-      if (!(costheta2==costheta2)) costheta2=0;
-      if (!(phi==phi)) phi=0;
-      if (!(phi1==phi1)) phi1=0;
-
+      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      computeDecayAngles(
+        mZZ, mZ1, mZ2,
+        costheta1, costheta2, Phi,
+        costhetastar, Phi1
+        );
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
@@ -661,7 +719,7 @@ void Mela::computeP_selfDspin1(
 
   if (myModel_ != TVar::SelfDefine_spin1){ cerr << "Mela::computeP_selfDspin1: This method only applies to spin1, set Process to SelfDefine_spin1!" << endl; return; }
 
-  melaCand = get_CurrentCandidate();
+  melaCand = getCurrentCandidateIndex();
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen){
       ZZME->set_SpinOneCouplings(selfDZqqcoupl, selfDZvvcoupl);
@@ -674,28 +732,12 @@ void Mela::computeP_selfDspin1(
     }
     else if (myME_ == TVar::ANALYTICAL){ // Needs generalization!
       TLorentzVector nullVector(0, 0, 0, 0);
-      float costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
-      if (melaCand!=0 && melaCand->getNSortedVs()>=2 && melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
-        MELAParticle* dau[2][2]={ { 0 } };
-        for (int vv=0; vv<2; vv++){
-          MELAParticle* Vi = melaCand->getSortedV(vv);
-          for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
-        }
-        mela::computeAngles(
-          (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
-          (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
-          (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
-          (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
-          costhetastar, costheta1, costheta2, phi, phi1
-          );
-      }
-      // Protect against NaN
-      if (!(costhetastar==costhetastar)) costhetastar=0;
-      if (!(costheta1==costheta1)) costheta1=0;
-      if (!(costheta2==costheta2)) costheta2=0;
-      if (!(phi==phi)) phi=0;
-      if (!(phi1==phi1)) phi1=0;
-
+      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      computeDecayAngles(
+        mZZ, mZ1, mZ2,
+        costheta1, costheta2, Phi,
+        costhetastar, Phi1
+        );
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
@@ -764,7 +806,7 @@ void Mela::computeP_selfDspin2(
 
   if (myModel_ != TVar::SelfDefine_spin2){ cerr << "Mela::computeP_selfDspin2: This method only applies to spin2, set Process to SelfDefine_spin2!" << endl; return; }
 
-  melaCand = get_CurrentCandidate();
+  melaCand = getCurrentCandidateIndex();
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen){
       ZZME->set_SpinTwoCouplings(selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
@@ -777,28 +819,12 @@ void Mela::computeP_selfDspin2(
     }
     else if (myME_ == TVar::ANALYTICAL){
       TLorentzVector nullVector(0, 0, 0, 0);
-      float costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
-      if (melaCand!=0 && melaCand->getNSortedVs()>=2 && melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
-        MELAParticle* dau[2][2]={ { 0 } };
-        for (int vv=0; vv<2; vv++){
-          MELAParticle* Vi = melaCand->getSortedV(vv);
-          for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
-        }
-        mela::computeAngles(
-          (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
-          (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
-          (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
-          (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
-          costhetastar, costheta1, costheta2, phi, phi1
-          );
-      }
-      // Protect against NaN
-      if (!(costhetastar==costhetastar)) costhetastar=0;
-      if (!(costheta1==costheta1)) costheta1=0;
-      if (!(costheta2==costheta2)) costheta2=0;
-      if (!(phi==phi)) phi=0;
-      if (!(phi1==phi1)) phi1=0;
-
+      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      computeDecayAngles(
+        mZZ, mZ1, mZ2,
+        costheta1, costheta2, Phi,
+        costhetastar, Phi1
+        );
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
@@ -837,167 +863,171 @@ void Mela::computeP_selfDspin2(
 }
 
 void Mela::computeP(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
   double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
-  float& prob
+  float& prob,
+  bool useConstant
   ){
-  reset_PAux();
-
   selfDHqqcoupl[0][0] = 1.0;
   selfDHggcoupl[0][0] = 1.0;
   selfDHzzcoupl[0][0] = 1.0;
   selfDHwwcoupl[0][0] = 1.0;
-
-  if ((myME_==TVar::JHUGen || myME_==TVar::MCFM) && myModel_==TVar::bkgZZ_SMHiggs){
-    ZZME->set_SpinZeroCouplings(
-      selfDHvvcoupl_freenorm,
-      selfDHqqcoupl,
-      selfDHggcoupl,
-      selfDHzzcoupl,
-      selfDHwwcoupl,
-      selfDHzzLambda_qsq,
-      selfDHwwLambda_qsq,
-      selfDHzzCLambda_qsq,
-      selfDHwwCLambda_qsq,
-      differentiate_HWW_HZZ
-      );
-
-    float constant=1.;
-    //initialize variables
-    checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
-    ZZME->computeXS(
-      mZZ, mZ1, mZ2,
-      costhetastar, costheta1, costheta2,
-      phi, phi1, flavor,
-      myModel_, myME_, myProduction_,
-      prob
-      );
-
-    constant = getConstant(flavor, mZZ, true);
-    prob *= constant;
-
-    reset_SelfDCouplings();
-  }
-  else computeP(mZZ, mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1, flavor, prob);
+  for (int ig=0; ig<SIZE_HVV_FREENORM; ig++) selfDHvvcoupl_freenorm[ig] = selfDHvvcoupl_freenorm_input[ig];
+  computeP(prob, useConstant);
 }
-
 void Mela::computeP(
-  TLorentzVector Z1_lept1, int Z1_lept1Id, // input 4-vectors
-  TLorentzVector Z1_lept2, int Z1_lept2Id,
-  TLorentzVector Z2_lept1, int Z2_lept1Id,
-  TLorentzVector Z2_lept2, int Z2_lept2Id,
-  float& prob // output probability
+  float& prob,
+  bool useConstant
   ){
+  reset_PAux();
 
-  // get flavor type
-  // NEED TO INCLUDE SOME PROTECTION SO THAT USER CANT                  
-  // PASS FOUR-VECTORS IN WRONG ORDER.  FOR NOW ASSUMING                
-  // THEY ARE PASSED AS e-,e+,mu-,mu+                                   
-  // ------------------ channel ------------------------                
+  melaCand = getCurrentCandidateIndex();
+  if (melaCand!=0){
+    TLorentzVector nullVector(0, 0, 0, 0);
+    float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
 
-  if (mela::forbidMassiveLeptons){
-    mela::constrainedRemoveLeptonMass(Z1_lept1, Z1_lept2);
-    mela::constrainedRemoveLeptonMass(Z2_lept1, Z2_lept2);
-  }
+    if (myME_ == TVar::ANALYTICAL){
+      computeDecayAngles(
+        mZZ, mZ1, mZ2,
+        costheta1, costheta2, Phi,
+        costhetastar, Phi1
+        );
+      costhetastar_rrv->setVal(costhetastar);
+      costheta1_rrv->setVal(costheta1);
+      costheta2_rrv->setVal(costheta2);
+      phi_rrv->setVal(phi);
+      phi1_rrv->setVal(phi1);
+      z1mass_rrv->setVal(mZ1);
+      z2mass_rrv->setVal(mZ2);
+      mzz_rrv->setVal(mZZ);
 
-  int flavor;
+      configureAnalyticalPDFs();
 
-  if (abs(Z1_lept1Id)==abs(Z1_lept2Id)&&
-    abs(Z1_lept1Id)==abs(Z2_lept1Id)&&
-    abs(Z1_lept1Id)==abs(Z2_lept2Id)){
-    if (abs(Z1_lept1Id)==11) flavor=1;
-    else flavor=2;
-  }
-  else flavor=3;
-
-  //compute angles  
-  float m1=(Z1_lept1 + Z1_lept2).M();
-  float m2=(Z2_lept1 + Z2_lept2).M();
-
-  TLorentzVector ZZ = (Z1_lept1 + Z1_lept2 + Z2_lept1 + Z2_lept2);
-  float mzz = ZZ.M();
-
-  float costhetastar, costheta1, costheta2, phi, phi1;
-
-  mela::computeAngles(
-    Z1_lept1, Z1_lept1Id, Z1_lept2, Z1_lept2Id,
-    Z2_lept1, Z2_lept1Id, Z2_lept2, Z2_lept2Id,
-    costhetastar, costheta1, costheta2, phi, phi1
-    );
-
-  computeP(
-    mzz, m1, m2,
-    costhetastar,
-    costheta1,
-    costheta2,
-    phi, phi1,
-    flavor,
-    prob
-    );
-}
-
-void Mela::computeP( // This is actually a wrapper!
-  TLorentzVector Z1_lept1, int Z1_lept1Id, // input 4-vectors
-  TLorentzVector Z1_lept2, int Z1_lept2Id, 
-  TLorentzVector Z2_lept1, int Z2_lept1Id,
-  TLorentzVector Z2_lept2, int Z2_lept2Id,
-  double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
-  float& prob // output probability
-  ){
-
-  if (mela::forbidMassiveLeptons){
-    mela::constrainedRemoveLeptonMass(Z1_lept1, Z1_lept2);
-    mela::constrainedRemoveLeptonMass(Z2_lept1, Z2_lept2);
-  }
-
-  if (myME_==TVar::JHUGen && myModel_==TVar::bkgZZ_SMHiggs){
-    int flavor;
-
-    if (abs(Z1_lept1Id)==abs(Z1_lept2Id)&&
-      abs(Z1_lept1Id)==abs(Z2_lept1Id)&&
-      abs(Z1_lept1Id)==abs(Z2_lept2Id)){
-      if (abs(Z1_lept1Id)==11) flavor=1;
-      else flavor=2;
+      if (myProduction_==TVar::ZZINDEPENDENT){
+        RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+        prob = integral->getVal();
+        delete integral;
+      }
+      else prob = pdf->getVal();
     }
-    else flavor=3;
+    else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
+      if (!(myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+        ZZME->computeXS(
+          myModel_, myME_, myProduction_,
+          prob
+          );
+      }
+      else{
+        computeDecayAngles(
+          mZZ, mZ1, mZ2,
+          costheta1, costheta2, Phi,
+          costhetastar, Phi1
+          );
 
-    //compute angles  
-    TLorentzVector ZZ = (Z1_lept1 + Z1_lept2 + Z2_lept1 + Z2_lept2);
-    float m1=(Z1_lept1 + Z1_lept2).M();
-    float m2=(Z2_lept1 + Z2_lept2).M();
-    float mzz = ZZ.M();
-    float costhetastar, costheta1, costheta2, phi, phi1;
-    mela::computeAngles(Z1_lept1, Z1_lept1Id, Z1_lept2, Z1_lept2Id,
-      Z2_lept1, Z2_lept1Id, Z2_lept2, Z2_lept2Id,
-      costhetastar, costheta1, costheta2, phi, phi1);
+        if (myVerbosity_>=TVar::DEBUG){ // Notify first
+          cout << "Mela::computeP: Condition (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)." << endl;
+          vector<TLorentzVector> pDauVec = calculate4Momentum(mZZ, mZ1, mZ1, acos(costhetastar), acos(costheta1), acos(costheta2), Phi1, Phi);
+          cout
+            << "\tOriginal mZZ=" << mZZ << " "
+            << "m1=" << mZ1 << " "
+            << "m2=" << mZ2 << " "
+            << "h1=" << costheta1 << " "
+            << "h2=" << costheta2 << " "
+            << "Phi=" << Phi << " "
+            << "hs=" << costhetastar << " "
+            << "Phi1=" << Phi1 << endl;
+          cout << "\tfor daughters:" << endl;
+          for (int iv=0; iv<2; iv++){
+            for (int idau=0; idau<min(2, melaCand->getSortedV(iv)->getNDaughters()); idau++){
+              cout
+                << "id=" << melaCand->getSortedV(iv)->getDaughter(idau)->id << " "
+                << "x=" << pDauVec.at(2*iv+idau).X() << " "
+                << "y=" << pDauVec.at(2*iv+idau).Y() << " "
+                << "z=" << pDauVec.at(2*iv+idau).Z() << " "
+                << "t=" << pDauVec.at(2*iv+idau).T() << endl;
+            }
+          }
 
-    computeP(
-      mzz, m1, m2,
-      costhetastar,
-      costheta1,
-      costheta2,
-      phi, phi1,
-      flavor, selfDHvvcoupl_freenorm,
-      prob
-      );
+        }
+
+        prob = 0;
+        int gridsize_hs = 5;
+        double hs_min = 0; //-1.;
+        double hs_max = 1;
+        double hs_step = (hs_max - hs_min) / double(gridsize_hs);
+
+        int gridsize_phi1 = 5;
+        double phi1_min = 0; //-TMath::Pi();
+        double phi1_max = TMath::Pi();
+        double phi1_step = (phi1_max - phi1_min) / double(gridsize_phi1);
+
+        for (int i_hs = 0; i_hs < gridsize_hs + 1; i_hs++) {
+          double hs_val = hs_min + i_hs * hs_step;
+          for (int i_phi1 = 0; i_phi1 < gridsize_phi1 +1; i_phi1++) {
+            double phi1_val = phi1_min + i_phi1 * phi1_step;
+            float temp_prob=0;
+
+            // Get identical 4-vectors
+            SimpleParticleCollection_t daughters;
+            vector<TLorentzVector> pDauVec = calculate4Momentum(mZZ, mZ1, mZ1, acos(hs_val), acos(costheta1), acos(costheta2), phi1_val, Phi);
+            for (int iv=0; iv<2; iv++){
+              for (int idau=0; idau<min(2, melaCand->getSortedV(iv)->getNDaughters()); idau++){
+                SimpleParticle_t tmpPair(melaCand->getSortedV(iv)->getDaughter(idau)->id, pDauVec.at(2*iv+idau));
+                daughters.push_back(tmpPair);
+
+              }
+            }
+            if (myVerbosity_>=TVar::DEBUG){ // Summarize the integrated particles
+              cout << "hs, Phi1 are now " << hs_val << " " << phi1_val << endl;
+              for (unsigned int idau=0; idau<daughters.size(); idau++){
+                cout << "Dau " << idau << " "
+                  << "id=" << daughters.at(idau).first << " "
+                  << "x=" << daughters.at(idau).second.X() << " "
+                  << "y=" << daughters.at(idau).second.Y() << " "
+                  << "z=" << daughters.at(idau).second.Z() << " "
+                  << "t=" << daughters.at(idau).second.T() << endl;
+              }
+            }
+            vector<MELAParticle*> partList_tmp;
+            vector<MELACandidate*> candList_tmp;
+            MELACandidate* cand_tmp = TUtil::ConvertVectorFormat(
+              &daughters,
+              0,
+              0,
+              false,
+              &partList_tmp,
+              &candList_tmp
+              );
+            if (myVerbosity_>=TVar::ERROR && cand_tmp==0) cerr << "Mela::computeP: failed to construct temporary candidate!" << endl;
+            setCurrentCandidate(cand_tmp);
+            // calculate the ME
+            ZZME->computeXS(
+              myModel_, myME_, myProduction_,
+              temp_prob
+              );
+            // Delete the temporary particles
+            for (unsigned int ic=0; ic<candList_tmp.size(); ic++){ if (candList_tmp.at(ic)!=0) delete candList_tmp.at(ic); } // Only one candidate should really be here
+            for (unsigned int ip=0; ip<partList_tmp.size(); ip++){ if (partList_tmp.at(ip)!=0) delete partList_tmp.at(ip); }
+            setCurrentCandidate(melaCand);
+            prob += temp_prob;
+          }
+        }
+        prob =  prob / float((gridsize_hs + 1) * (gridsize_phi1 +1));
+      }
+    }
+
+    if (useConstant) prob *= getConstant(false);
   }
+
+  reset_SelfDCouplings();
+  reset_CandRef();
 }
 
 
 void Mela::computeProdDecP(
-  TLorentzVector jet[2],
-  TLorentzVector Higgs_daughter[4],
-  int jet_pdgid[2],
-  int Higgs_daughter_pdgid[4],
   double selfDHvvcoupl_input[SIZE_HVV][2],
   double selfDHwwcoupl_input[SIZE_HVV][2],
-  float& prob
+  float& prob,
+  bool useConstant
   ){
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_HVV; ic++){
@@ -1006,19 +1036,16 @@ void Mela::computeProdDecP(
     }
   }
   computeProdDecP(
-    jet, Higgs_daughter,
-    jet_pdgid, Higgs_daughter_pdgid,
-    prob);
+    prob,
+    useConstant
+    );
 }
 void Mela::computeProdDecP(
-  TLorentzVector jet[2],
-  TLorentzVector Higgs_daughter[4],
-  int jet_pdgid[2],
-  int Higgs_daughter_pdgid[4],
-  float& prob
+  float& prob,
+  bool useConstant
   ){
   reset_PAux();
-  float constant=1.;
+  melaCand = getCurrentCandidateIndex();
 
   bool hasFailed = true;
   if (myME_ != TVar::MCFM){
@@ -1029,54 +1056,28 @@ void Mela::computeProdDecP(
     cout << "Mela::computeProdDecP production mode is not supported for production " << myProduction_ << endl;
     hasFailed = true;
   }
+  if (melaCand==0) hasFailed=true;
   if (hasFailed) prob=0;
   else{
-    TLorentzVector jet1massless(0, 0, 0, 0);
-    TLorentzVector jet2massless(0, 0, 0, 0);
-    TLorentzVector higgs(0, 0, 0, 0);
-
-    if (abs(Higgs_daughter_pdgid[0]) <= 16 && abs(Higgs_daughter_pdgid[0]) >= 11 && abs(Higgs_daughter_pdgid[1]) <= 16 && abs(Higgs_daughter_pdgid[1]) >= 11){
-      if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[0], Higgs_daughter[1]);
-    }
-    if (abs(Higgs_daughter_pdgid[2]) <= 16 && abs(Higgs_daughter_pdgid[2]) >= 11 && abs(Higgs_daughter_pdgid[3]) <= 16 && abs(Higgs_daughter_pdgid[3]) >= 11){
-      if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[2], Higgs_daughter[3]);
-    }
-    mela::computeJetMassless(jet[0], jet1massless);
-    mela::computeJetMassless(jet[1], jet2massless);
-    jet[0].SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
-    jet[1].SetXYZT(jet2massless.X(), jet2massless.Y(), jet2massless.Z(), jet2massless.T());
-
-    for (int dd=0; dd<4; dd++) higgs = higgs + Higgs_daughter[dd];
-    TLorentzVector total=jet[0]+jet[1]+higgs;
-    // Preserve Z direction
-    higgs.Boost(-total.BoostVector().X(), -total.BoostVector().Y(), 0);
-    for (int dd=0; dd<4; dd++) Higgs_daughter[dd].Boost(-total.BoostVector().X(), -total.BoostVector().Y(), 0);
-    for (int dd=0; dd<2; dd++) jet[dd].Boost(-total.BoostVector().X(), -total.BoostVector().Y(), 0);
-
     ZZME->computeProdXS_VVHVV(
-      jet, Higgs_daughter,
-      jet_pdgid, Higgs_daughter_pdgid,
       myModel_, myME_, myProduction_,
       prob
       );
-
-    constant = getConstant(3, (float)higgs.M());
-    prob *= constant;
+    if(useConstant) prob *= getConstant(false);
   }
 
   reset_SelfDCouplings();
+  reset_CandRef();
 }
 
 
 void Mela::computeProdP(
-  TLorentzVector Jet1, int Jet1_Id,
-  TLorentzVector Jet2, int Jet2_Id,
-  TLorentzVector Decay1, int Decay1_Id,
-  TLorentzVector Decay2, int Decay2_Id,
   double selfDHggcoupl_input[SIZE_HGG][2],
   double selfDHvvcoupl_input[SIZE_HVV][2],
   double selfDHwwcoupl_input[SIZE_HVV][2],
-  float& prob){
+  float& prob,
+  bool useConstant
+  ){
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im] = selfDHggcoupl_input[ic][im];
     for (int ic=0; ic<SIZE_HVV; ic++){
@@ -1085,165 +1086,60 @@ void Mela::computeProdP(
     }
   }
   computeProdP(
-    Jet1, Jet1_Id,
-    Jet2, Jet2_Id,
-    Decay1, Decay1_Id,
-    Decay2, Decay2_Id,
-    prob
+    prob,
+    useConstant
     );
 }
 void Mela::computeProdP(
-  TLorentzVector Jet1, int Jet1_Id,
-  TLorentzVector Jet2, int Jet2_Id,
-  TLorentzVector Decay1, int Decay1_Id,
-  TLorentzVector Decay2, int Decay2_Id,
-  float& prob
+  float& prob,
+  bool useConstant
   ){
-  reset_PAux();
-  bool isJet2Fake = false;
+  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH) computeProdP_ttH(prob, 0, 2, useConstant);
+  else if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH) computeProdP_VH(prob, false, useConstant);
+  else{
+    reset_PAux();
+    melaCand = getCurrentCandidateIndex();
+    if (melaCand==0){ prob=0; return; }
 
-  float constant=1.;
-  TLorentzVector nullFourVector(0, 0, 0, 0);
-  TLorentzVector jet1massless(0, 0, 0, 0);
-  TLorentzVector jet2massless(0, 0, 0, 0);
-  TLorentzVector higgs;
-  if (Decay2==nullFourVector || Decay2_Id==0){
-    if (Decay1_Id==25) higgs=Decay1;
-    if (Decay1_Id!=25){
-      cout << "No Higgs event passed. Returning prob=-99." << endl;
-      prob=-99;
+    TLorentzVector nullFourVector(0, 0, 0, 0);
+    bool isJet2Fake = false;
+    // LEFT HERE
+    TLorentzVector jet1massless(0, 0, 0, 0);
+    TLorentzVector jet2massless(0, 0, 0, 0);
+    TLorentzVector higgs;
+    if (Decay2==nullFourVector || Decay2_Id==0){
+      if (Decay1_Id==25) higgs=Decay1;
+      if (Decay1_Id!=25){
+        cout << "No Higgs event passed. Returning prob=-99." << endl;
+        prob=-99;
+      }
     }
-  }
-  else higgs=Decay1+Decay2;
+    else higgs=Decay1+Decay2;
 
-  if (Jet1==nullFourVector && !(Jet2==nullFourVector)){
-    TLorentzVector JetTmp = Jet2;
-    Jet2=Jet1;
-    Jet1=JetTmp;
-  }
-  mela::computeJetMassless(Jet1, jet1massless);
-  if (!(Jet2==nullFourVector) && myProduction_ != TVar::JH){
-    mela::computeJetMassless(Jet2, jet2massless);
-  }
-  else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) {
-    mela::computeFakeJet(jet1massless, higgs, jet2massless);
-    isJet2Fake=true;
-  }
-  /*
-  cout << "MELA:"
-    << " Higgs Pz: " <<  higgs.Pz()
-    << " Higgs P: " <<  higgs.P()
-    << " Higgs E: " <<  higgs.T()
-    << " Jet 1 Pz: " <<  jet1massless.Pz()
-    << " Jet 1 P: " <<  jet1massless.P()
-    << " Jet 1 E: " <<  jet1massless.T()
-    << " Jet 2 Pz: " <<  jet2massless.Pz()
-    << " Jet 2 P: " <<  jet2massless.P()
-    << " Jet 2 E: " <<  jet2massless.T() << endl;
-  */
-
-  //if (myProduction_ == TVar::JH) cout << "Massless jet 2 E: " << jet2massless.T() << ", p: " << jet2massless.P() << endl;
-  if (isJet2Fake){
-    //cout << "Jet is fake" << endl;
-    //int n_MEcomp=0;
-
-    int nGrid=11;
-    std::vector<double> etaArray;
-    std::vector<double> pArray;
-    double eta_max = 15;
-    if (jet2massless.Pt()>0) eta_max = max(eta_max, 1.2*fabs(jet2massless.Eta()));
-    double eta_min = -eta_max;
-
-    for (int iter=0; iter<nGrid; iter++){
-      float prob_temp=-1;
-      TLorentzVector higgs_temp;
-      TLorentzVector jet1massless_temp;
-      TLorentzVector jet2massless_temp;
-      higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
-      jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
-
-      double jet2temp_eta = ((double)iter)*(eta_max-eta_min) / (((double)nGrid) - 1.) + eta_min;
-      etaArray.push_back(jet2temp_eta);
-      double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
-      double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
-      jet2massless_temp.SetZ(jet2temp_pz);
-      jet2massless_temp.SetX(jet2massless.X()); jet2massless_temp.SetY(jet2massless.Y()); jet2massless_temp.SetT(jet2massless_temp.P());
-      /*
-      cout << "MELA:"
-        << " Higgs Pz: " <<  higgs_temp.Pz()
-        << " Higgs P: " <<  higgs_temp.P()
-        << " Higgs E: " <<  higgs_temp.T()
-        << " Jet 1 Pz: " <<  jet1massless_temp.Pz()
-        << " Jet 1 P: " <<  jet1massless_temp.P()
-        << " Jet 1 E: " <<  jet1massless_temp.T()
-        << " Jet 2 Pz: " <<  jet2massless_temp.Pz()
-        << " Jet 2 P: " <<  jet2massless_temp.P()
-        << " Jet 2 Pt: " <<  jet2massless_temp.Pt()
-        << " Jet 2 E: " <<  jet2massless_temp.T() << endl;
-      */
-      TLorentzVector total_temp=jet1massless_temp+jet2massless_temp+higgs_temp;
-      jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-      jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-      higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-        selfDHvvcoupl_freenorm,
-        selfDHqqcoupl,
-        selfDHggcoupl,
-        selfDHzzcoupl,
-        selfDHwwcoupl,
-        selfDHzzLambda_qsq,
-        selfDHwwLambda_qsq,
-        selfDHzzCLambda_qsq,
-        selfDHwwCLambda_qsq,
-        differentiate_HWW_HZZ
-        );
-      ZZME->computeProdXS_JJH(
-        jet1massless_temp, jet2massless_temp, higgs_temp,
-        myModel_, myME_, myProduction_,
-        prob_temp
-        );
-      pArray.push_back((double)prob_temp);
+    if (Jet1==nullFourVector && !(Jet2==nullFourVector)){
+      TLorentzVector JetTmp = Jet2;
+      Jet2=Jet1;
+      Jet1=JetTmp;
+    }
+    mela::computeJetMassless(Jet1, jet1massless);
+    if (!(Jet2==nullFourVector) && myProduction_ != TVar::JH){
+      mela::computeJetMassless(Jet2, jet2massless);
+    }
+    else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) {
+      mela::computeFakeJet(jet1massless, higgs, jet2massless);
+      isJet2Fake=true;
     }
 
-    double* xGrid;
-    double* yGrid;
-    const double grid_precision = 0.05;
-    int ctr_iter=0;
-    for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
-      if (pArray[iG]==pArray[iG+1]) continue;
-      if (etaArray[iG]==etaArray[iG+1]) continue;
+    //if (myProduction_ == TVar::JH) cout << "Massless jet 2 E: " << jet2massless.T() << ", p: " << jet2massless.P() << endl;
+    if (isJet2Fake){
+      int nGrid=11;
+      std::vector<double> etaArray;
+      std::vector<double> pArray;
+      double eta_max = 15;
+      if (jet2massless.Pt()>0) eta_max = max(eta_max, 1.2*fabs(jet2massless.Eta()));
+      double eta_min = -eta_max;
 
-      ctr_iter++;
-
-      xGrid = new double[nGrid];
-      yGrid = new double[nGrid];
-      for (int iter=0; iter<nGrid; iter++){ // Fill the arrays
-        xGrid[iter] = (double)etaArray[iter];
-        yGrid[iter] = (double)pArray[iter];
-      }
-
-      TGraph* interpolator = new TGraph(nGrid, xGrid, yGrid);
-      double derivative_first = (yGrid[1]-yGrid[0])/(xGrid[1]-xGrid[0]);
-      double derivative_last = (yGrid[nGrid-1]-yGrid[nGrid-2])/(xGrid[nGrid-1]-xGrid[nGrid-2]);
-      TSpline3* spline = new TSpline3("spline", interpolator, "b1e1", derivative_first, derivative_last);
-      double x_middle = (xGrid[iG]+xGrid[iG+1])*0.5;
-      double y_middle = (yGrid[iG]+yGrid[iG+1])*0.5;
-      double y_sp = spline->Eval(x_middle);
-      if (y_sp<0) y_sp = 0;
-
-      std::vector<double>::iterator gridIt;
-
-      if (fabs(y_sp-y_middle)<grid_precision*fabs(y_middle) || fabs(xGrid[iG+1]-xGrid[iG])<1e-3){
-        gridIt = pArray.begin()+iG+1;
-        pArray.insert(gridIt, y_sp);
-        gridIt = etaArray.begin()+iG+1;
-        etaArray.insert(gridIt, x_middle);
-        iG++; // Pass to next bin
-      }
-      else{
-        //cout << "Spline: " << y_sp << "\tmean: " << y_middle << endl;
-        //cout << "Current precision: " << fabs(y_sp-y_middle)/fabs(y_middle) << endl;
-
+      for (int iter=0; iter<nGrid; iter++){
         float prob_temp=-1;
         TLorentzVector higgs_temp;
         TLorentzVector jet1massless_temp;
@@ -1251,9 +1147,8 @@ void Mela::computeProdP(
         higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
         jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
 
-        double jet2temp_eta = x_middle;
-        gridIt = etaArray.begin()+iG+1;
-        etaArray.insert(gridIt, x_middle);
+        double jet2temp_eta = ((double)iter)*(eta_max-eta_min) / (((double)nGrid) - 1.) + eta_min;
+        etaArray.push_back(jet2temp_eta);
         double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
         double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
         jet2massless_temp.SetZ(jet2temp_pz);
@@ -1275,128 +1170,172 @@ void Mela::computeProdP(
           selfDHwwCLambda_qsq,
           differentiate_HWW_HZZ
           );
-        ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
+        ZZME->computeProdXS_JJH(
+          jet1massless_temp, jet2massless_temp, higgs_temp,
           myModel_, myME_, myProduction_,
           prob_temp
           );
-        //if (ctr_iter>140 && ctr_iter<165){
-        //  cout << iG << '\t' << jet2temp_eta << '\t' << prob_temp << endl;
-        //}
-        //n_MEcomp++;
-        gridIt = pArray.begin()+iG+1;
-        pArray.insert(gridIt, (double)prob_temp);
-        iG--; // Do not pass to next bin, repeat until precision is achieved.
+        pArray.push_back((double)prob_temp);
       }
-      nGrid++;
 
-      delete spline;
-      delete interpolator;
-      delete xGrid;
-      delete yGrid;
-    }
+      double* xGrid;
+      double* yGrid;
+      const double grid_precision = 0.05;
+      int ctr_iter=0;
+      for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
+        if (pArray[iG]==pArray[iG+1]) continue;
+        if (etaArray[iG]==etaArray[iG+1]) continue;
 
-    auxiliaryProb = 0;
-    int iGFirst=0, iGLast=nGrid-1;
-    for (int iG=1; iG<nGrid; iG++){
-      if (pArray[iG]>0 && pArray[iG-1]==0){
-        iGFirst = iG-1;
-        break;
+        ctr_iter++;
+
+        xGrid = new double[nGrid];
+        yGrid = new double[nGrid];
+        for (int iter=0; iter<nGrid; iter++){ // Fill the arrays
+          xGrid[iter] = (double)etaArray[iter];
+          yGrid[iter] = (double)pArray[iter];
+        }
+
+        TGraph* interpolator = new TGraph(nGrid, xGrid, yGrid);
+        double derivative_first = (yGrid[1]-yGrid[0])/(xGrid[1]-xGrid[0]);
+        double derivative_last = (yGrid[nGrid-1]-yGrid[nGrid-2])/(xGrid[nGrid-1]-xGrid[nGrid-2]);
+        TSpline3* spline = new TSpline3("spline", interpolator, "b1e1", derivative_first, derivative_last);
+        double x_middle = (xGrid[iG]+xGrid[iG+1])*0.5;
+        double y_middle = (yGrid[iG]+yGrid[iG+1])*0.5;
+        double y_sp = spline->Eval(x_middle);
+        if (y_sp<0) y_sp = 0;
+
+        std::vector<double>::iterator gridIt;
+
+        if (fabs(y_sp-y_middle)<grid_precision*fabs(y_middle) || fabs(xGrid[iG+1]-xGrid[iG])<1e-3){
+          gridIt = pArray.begin()+iG+1;
+          pArray.insert(gridIt, y_sp);
+          gridIt = etaArray.begin()+iG+1;
+          etaArray.insert(gridIt, x_middle);
+          iG++; // Pass to next bin
+        }
+        else{
+          float prob_temp=-1;
+          TLorentzVector higgs_temp;
+          TLorentzVector jet1massless_temp;
+          TLorentzVector jet2massless_temp;
+          higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
+          jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
+
+          double jet2temp_eta = x_middle;
+          gridIt = etaArray.begin()+iG+1;
+          etaArray.insert(gridIt, x_middle);
+          double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
+          double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
+          jet2massless_temp.SetZ(jet2temp_pz);
+          jet2massless_temp.SetX(jet2massless.X()); jet2massless_temp.SetY(jet2massless.Y()); jet2massless_temp.SetT(jet2massless_temp.P());
+
+          TLorentzVector total_temp=jet1massless_temp+jet2massless_temp+higgs_temp;
+          jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+          jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+          higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
+          if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+            selfDHvvcoupl_freenorm,
+            selfDHqqcoupl,
+            selfDHggcoupl,
+            selfDHzzcoupl,
+            selfDHwwcoupl,
+            selfDHzzLambda_qsq,
+            selfDHwwLambda_qsq,
+            selfDHzzCLambda_qsq,
+            selfDHwwCLambda_qsq,
+            differentiate_HWW_HZZ
+            );
+          ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
+            myModel_, myME_, myProduction_,
+            prob_temp
+            );
+          gridIt = pArray.begin()+iG+1;
+          pArray.insert(gridIt, (double)prob_temp);
+          iG--; // Do not pass to next bin, repeat until precision is achieved.
+        }
+        nGrid++;
+
+        delete spline;
+        delete interpolator;
+        delete xGrid;
+        delete yGrid;
+      }
+
+      auxiliaryProb = 0;
+      int iGFirst=0, iGLast=nGrid-1;
+      for (int iG=1; iG<nGrid; iG++){
+        if (pArray[iG]>0 && pArray[iG-1]==0){
+          iGFirst = iG-1;
+          break;
+        }
+      }
+      for (int iG=nGrid-2; iG>=0; iG--){
+        if (pArray[iG]>0 && pArray[iG+1]==0){
+          iGLast = iG+1;
+          break;
+        }
+      }
+
+      double dEtaGrid = etaArray[iGLast] - etaArray[iGFirst];
+      for (int iG=iGFirst; iG<iGLast-1; iG++){
+        double dEta = etaArray[iG+1] - etaArray[iG];
+        double sumProb = pArray[iG]+pArray[iG+1];
+        sumProb *= 0.5;
+        dEta = dEta/dEtaGrid;
+        double addProb = sumProb*dEta;
+        auxiliaryProb += (float)addProb;
       }
     }
-    for (int iG=nGrid-2; iG>=0; iG--){
-      if (pArray[iG]>0 && pArray[iG+1]==0){
-        iGLast = iG+1;
-        break;
-      }
+
+
+
+    TLorentzVector total=jet1massless+jet2massless+higgs;
+    jet1massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
+    jet2massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
+    higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
+    if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
+      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+        selfDHvvcoupl_freenorm,
+        selfDHqqcoupl,
+        selfDHggcoupl,
+        selfDHzzcoupl,
+        selfDHwwcoupl,
+        selfDHzzLambda_qsq,
+        selfDHwwLambda_qsq,
+        selfDHzzCLambda_qsq,
+        selfDHwwCLambda_qsq,
+        differentiate_HWW_HZZ
+        );
+      ZZME->computeProdXS_JJH(
+        myModel_, myME_, myProduction_,
+        prob
+        ); // Higgs + 2 jets: SBF or WBF
+      if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
+    }
+    else if (myProduction_ == TVar::JH){
+      // No anomalous couplings are implemented in HJ
+      ZZME->computeProdXS_JH(
+        myModel_, myME_, myProduction_,
+        prob
+        ); // Higgs + 1 jet; only SM is supported for now.
     }
 
-    double dEtaGrid = etaArray[iGLast] - etaArray[iGFirst];
-    for (int iG=iGFirst; iG<iGLast-1; iG++){
-      double dEta = etaArray[iG+1] - etaArray[iG];
-      double sumProb = pArray[iG]+pArray[iG+1];
-      sumProb *= 0.5;
-      dEta = dEta/dEtaGrid;
-      //if (dEtaGrid<0) cout << "dEtaGrid: " << etaArray[nGrid-1] << " - " << etaArray[0] << " = " << dEtaGrid << endl;
-      //if (dEta<0) cout << "dEta: " << etaArray[iG+1] << " - " << etaArray[iG] << " / " << dEtaGrid << " = " << dEta << endl;
-      //if (sumProb<0) cout << "sumProb: " << pArray[iG] << " + " << pArray[iG+1] << " = " << sumProb << endl;
-      double addProb = sumProb*dEta;
-      auxiliaryProb += (float)addProb;
-    }
+    if (useConstant)prob *= getConstant(false);
 
-
-    //if (n_MEcomp>=1000){
-    //  cout << "N>=1000!:\n";
-    //  for (int iG=0; iG<nGrid; iG++){
-    //    cout << etaArray[iG] << '\t';
-    //  }
-    //  cout << endl;
-    //  for (int iG=0; iG<nGrid; iG++){
-    //    cout << pArray[iG] << '\t';
-    //  }
-    //  cout << '\n' << endl;
-    //}
-    //if (auxiliaryProb<=0){
-    //  cout << "aux: " << auxiliaryProb << endl;
-    //  for (int iG=0; iG<nGrid; iG++){
-    //    cout << etaArray[iG] << '\t';
-    //  }
-    //  cout << endl;
-    //  for (int iG=0; iG<nGrid; iG++){
-    //    cout << pArray[iG] << '\t';
-    //  }
-    //  cout << '\n' << endl;
-    //}
+    reset_SelfDCouplings();
+    reset_CandRef();
   }
-
-
-
-  TLorentzVector total=jet1massless+jet2massless+higgs;
-  jet1massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-  jet2massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-  higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-  if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
-    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-      selfDHvvcoupl_freenorm,
-      selfDHqqcoupl,
-      selfDHggcoupl,
-      selfDHzzcoupl,
-      selfDHwwcoupl,
-      selfDHzzLambda_qsq,
-      selfDHwwLambda_qsq,
-      selfDHzzCLambda_qsq,
-      selfDHwwCLambda_qsq,
-      differentiate_HWW_HZZ
-      );
-    ZZME->computeProdXS_JJH(jet1massless, jet2massless, higgs,
-      myModel_, myME_, myProduction_,
-      prob
-      ); // Higgs + 2 jets: SBF or WBF
-    if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
-  }
-  else if (myProduction_ == TVar::JH){
-    // No anomalous couplings are implemented in HJ
-    ZZME->computeProdXS_JH(
-      jet1massless,
-      higgs,
-      myModel_, myME_, myProduction_,
-      prob
-      ); // Higgs + 1 jet; only SM is supported for now.
-  }
-
-  constant = getConstant(3, (float)higgs.M());
-  prob *= constant;
-
-  reset_SelfDCouplings();
 }
 
 
-void Mela::computeProdP(
+void Mela::computeProdP_VH(
   double selfDHvvcoupl_input[SIZE_HVV][2],
   float& prob,
-  bool includeHiggsDecay
+  bool includeHiggsDecay,
+  bool useConstant
   ){
   // Dedicated function for VH ME
-  selfDHggcoupl[0][0] = 1.0; // Don't set this, and you might get 0 in the future fr ggVH.
+  selfDHggcoupl[0][0] = 1.0; // Don't set this, and you might get 0 in the future for ggVH.
 
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_HVV; ic++){
@@ -1406,86 +1345,57 @@ void Mela::computeProdP(
   }
   computeProdP(
     prob,
-    includeHiggsDecay
+    includeHiggsDecay,
+    useConstant
     );
 }
-void Mela::computeProdP(
+void Mela::computeProdP_VH(
   float& prob,
-  bool includeHiggsDecay
+  bool includeHiggsDecay,
+  bool useConstant
   ){
   // Dedicated function for VH ME
   reset_PAux();
 
-  if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH){
-    float constant=1;
-    if (abs(V_daughter_pdgid[0]) <= 6){
-      TLorentzVector jettmp(0, 0, 0, 0);
-      mela::computeJetMassless(V_daughter[0], jettmp);
-      V_daughter[0].SetXYZT(jettmp.X(), jettmp.Y(), jettmp.Z(), jettmp.T());
-    }
-    if (abs(V_daughter_pdgid[1]) <= 6){
-      TLorentzVector jettmp(0, 0, 0, 0);
-      mela::computeJetMassless(V_daughter[1], jettmp);
-      V_daughter[1].SetXYZT(jettmp.X(), jettmp.Y(), jettmp.Z(), jettmp.T());
-    }
+  melaCand = getCurrentCandidateIndex();
+  if (melaCand!=0){
+    if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH){
+      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+        selfDHvvcoupl_freenorm,
+        selfDHqqcoupl,
+        selfDHggcoupl,
+        selfDHzzcoupl,
+        selfDHwwcoupl,
+        selfDHzzLambda_qsq,
+        selfDHwwLambda_qsq,
+        selfDHzzCLambda_qsq,
+        selfDHwwCLambda_qsq,
+        differentiate_HWW_HZZ
+        );
+      ZZME->computeProdXS_VH(
+        myModel_,
+        myME_,
+        myProduction_,
+        prob,
+        includeHiggsDecay
+        ); // VH
 
-    if (abs(V_daughter_pdgid[0]) <= 16 && abs(V_daughter_pdgid[0]) >= 11 && abs(V_daughter_pdgid[1]) <= 16 && abs(V_daughter_pdgid[1]) >= 11){
-      if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(V_daughter[0], V_daughter[1]);
+      float mzz = (Higgs_daughter[0]+Higgs_daughter[1]+Higgs_daughter[2]+Higgs_daughter[3]).M();
+      if (useConstant) prob *= getConstant(false);
     }
-    if (abs(Higgs_daughter_pdgid[0]) <= 16 && abs(Higgs_daughter_pdgid[0]) >= 11 && abs(Higgs_daughter_pdgid[1]) <= 16 && abs(Higgs_daughter_pdgid[1]) >= 11){
-      if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[0], Higgs_daughter[1]);
-    }
-    if (abs(Higgs_daughter_pdgid[2]) <= 16 && abs(Higgs_daughter_pdgid[2]) >= 11 && abs(Higgs_daughter_pdgid[3]) <= 16 && abs(Higgs_daughter_pdgid[3]) >= 11){
-      if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[2], Higgs_daughter[3]);
-    }
-
-    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-      selfDHvvcoupl_freenorm,
-      selfDHqqcoupl,
-      selfDHggcoupl,
-      selfDHzzcoupl,
-      selfDHwwcoupl,
-      selfDHzzLambda_qsq,
-      selfDHwwLambda_qsq,
-      selfDHzzCLambda_qsq,
-      selfDHwwCLambda_qsq,
-      differentiate_HWW_HZZ
-      );
-    ZZME->computeProdXS_VH(
-      V_daughter,
-      Higgs_daughter,
-      V_daughter_pdgid,
-      Higgs_daughter_pdgid,
-      includeHiggsDecay,
-      myModel_,
-      myME_,
-      myProduction_,
-      prob
-      ); // VH
-
-    float mzz = (Higgs_daughter[0]+Higgs_daughter[1]+Higgs_daughter[2]+Higgs_daughter[3]).M();
-    constant = getConstant(3, mzz);
-    prob *= constant;
   }
 
   reset_SelfDCouplings();
+  reset_CandRef();
 }
 
 
-void Mela::computeProdP(
+
+void Mela::computeProdP_ttH(
   float& prob,
   int topDecay,
-  int topProcess
-  ){
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HQQ; ic++) selfDHqqcoupl[ic][im]=selfDHqqcoupl_input[ic][im];
-  }
-  computeProdP(vTTH, Higgs, ttbar_daughters_pdgid, prob, topDecay, topProcess);
-}
-void Mela::computeProdP(
-  float& prob,
-  int topDecay,
-  int topProcess
+  int topProcess,
+  bool useConstant
   ){
   reset_PAux();
   float constant = 1;
@@ -1510,36 +1420,6 @@ void Mela::computeProdP(
   prob *= constant;
 
   reset_SelfDCouplings();
-}
-
-void Mela::computeProdP(
-  TLorentzVector p_first, int id_first,
-  TLorentzVector p_second, int id_second,
-  TLorentzVector Higgs,
-  float& prob
-  ){
-  TLorentzVector nullFourVector(0, 0, 0, 0);
-
-  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH){
-    int ttbar_daughters_pdgid[6] ={ 0 };
-    TLorentzVector vTTH[6];
-    ttbar_daughters_pdgid[0] = id_first;
-    ttbar_daughters_pdgid[3] = id_second;
-    vTTH[0] = p_first;
-    vTTH[3] = p_second;
-    for (int vv=1; vv<3; vv++) vTTH[vv].SetXYZT(0, 0, 0, 0);
-    for (int vv=4; vv<6; vv++) vTTH[vv].SetXYZT(0, 0, 0, 0);
-    computeProdP(vTTH, Higgs, ttbar_daughters_pdgid, prob, 0, 2);
-  }
-  else if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH){
-    bool includeHiggsDecay = false;
-    int Higgs_daughter_pdgid[4] ={ 25, 0, 0, 0 }; // Pass dummy
-    TLorentzVector Higgs_daughter[4] ={ Higgs, nullFourVector, nullFourVector, nullFourVector }; // These are summed as long as includeHiggsDecay is false.
-    int V_daughter_pdgid[2] ={ id_first, id_second };
-    TLorentzVector V_daughter[2] ={ p_first, p_second };
-    computeProdP(V_daughter, Higgs_daughter, V_daughter_pdgid, Higgs_daughter_pdgid, includeHiggsDecay, prob);
-  }
-  else if (myProduction_ == TVar::JH || myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) computeProdP(p_first, id_first, p_second, id_second, Higgs, 25, nullFourVector, 0, prob);
 }
 
 
@@ -1645,93 +1525,6 @@ void Mela::computeD_CP(
     costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_2, p2);
 
   prob = pMix- p1- p2;
-}
-
-
-void Mela::computeP(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  float& prob, // output probability
-  bool useConstant
-  ){
-  reset_PAux();
-  float constant = 1;
-
-
-  if (myME_ == TVar::ANALYTICAL) {
-    costhetastar_rrv->setVal(costhetastar);
-    costheta1_rrv->setVal(costheta1);
-    costheta2_rrv->setVal(costheta2);
-    phi_rrv->setVal(phi);
-    phi1_rrv->setVal(phi1);
-    z1mass_rrv->setVal(mZ1);
-    z2mass_rrv->setVal(mZ2);
-    mzz_rrv->setVal(mZZ);
-
-    configureAnalyticalPDFs();
-
-    if (myProduction_==TVar::ZZINDEPENDENT){
-      RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-      prob = integral->getVal();
-      delete integral;
-    }
-    else prob = pdf->getVal();
-  }
-  else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
-
-    //initialize variables
-    checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
-    ZZME->computeXS(
-      mZZ, mZ1, mZ2,
-      costhetastar, costheta1, costheta2,
-      phi, phi1, flavor,
-      myModel_, myME_, myProduction_,
-      prob
-      );
-
-    if (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ){
-      prob = 0;
-      int gridsize_hs = 5;
-      double hs_min = 0; //-1.;
-      double hs_max = 1;
-      double hs_step = (hs_max - hs_min) / double(gridsize_hs);
-
-      int gridsize_phi1 = 5;
-      double phi1_min = 0; //-TMath::Pi();
-      double phi1_max = TMath::Pi();
-      double phi1_step = (phi1_max - phi1_min) / double(gridsize_phi1);
-
-      for (int i_hs = 0; i_hs < gridsize_hs + 1; i_hs++) {
-        double hs_val = hs_min + i_hs * hs_step;
-        for (int i_phi1 = 0; i_phi1 < gridsize_phi1 +1; i_phi1++) {
-          double phi1_val = phi1_min + i_phi1 * phi1_step;
-          float temp_prob(0.);
-          // calculate the ZZ using MCFM
-          ZZME->computeXS(
-            mZZ, mZ1, mZ2,
-            hs_val, costheta1, costheta2,
-            phi, phi1_val, flavor,
-            myModel_, myME_, myProduction_,
-            temp_prob
-            );
-          prob += temp_prob;
-        }
-      }
-      prob =  prob / float((gridsize_hs + 1) * (gridsize_phi1 +1));
-    }
-  }
-
-  if (useConstant){
-    constant = getConstant(flavor, mZZ, false);
-    prob *= constant;
-  }
-
-  reset_SelfDCouplings();
 }
 
 

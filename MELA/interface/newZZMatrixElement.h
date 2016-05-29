@@ -78,6 +78,13 @@ public:
     SimpleParticleCollection_t* pMothers=0,
     bool isGen=false
     ); // Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
+  void newZZMatrixElement::set_TempCandidate(
+    std::vector<MELAPArticle*>& pDaughters,
+    std::vector<MELAPArticle*>& pAssociated,
+    std::vector<MELAPArticle*>& pMothers,
+    bool isGen=false
+    ); /* Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
+       Difference of this overload is that the originating MELAParticles are not owned.*/
   //
   void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf); // Sets variables exclusive to Xcal2
   void set_LHAgrid(const char* path, int pdfmember=0); // Sets variable exclusive to Xcal2
@@ -94,6 +101,7 @@ public:
   void set_mHiggs(double mh_, int index); // Does not set any variables in Xcal2!
   void set_wHiggs(double gah_, int index); // Does not set any variables in Xcal2!
   void set_mHiggs_wHiggs(double mh_, gah_, int index); // Does not set any variables in Xcal2!
+  //
 
   // Reset-functions
   void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
