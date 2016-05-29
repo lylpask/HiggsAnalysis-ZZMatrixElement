@@ -1,7 +1,7 @@
 /*
 
 ************* CMS MELA interface to MCFM/JHUGen-MELA *************
-Last update: 19.05.2016 by U. Sarica
+Last update: 29.05.2016 by U. Sarica
 
 Notes:
 1) Each specific type of computeP* function comes with its wrapper for common use.
@@ -47,16 +47,21 @@ Please adhere to the following coding conventions:
 
 using namespace RooFit;
 
-Mela::Mela(int LHCsqrts, float mh) 
+Mela::Mela(
+  int LHCsqrts,
+  float mh
+  ) :
+  melaCand(0)
 {
   const int maxSqrts = 8;
-  setRemoveLeptonMasses(false); // Use Run I scheme for not removing lepton masses
+  //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing fermion masses
+  setRemoveLeptonMasses(true); // Use Run 2 scheme for removing fermion masses to compute MEs that expect massless fermions properly
 
   // Create symlinks to the required files, if these are not already present (do nothing otherwse)
   edm::FileInPath mcfmInput1("ZZMatrixElement/MELA/data/input.DAT");
   edm::FileInPath mcfmInput2("ZZMatrixElement/MELA/data/process.DAT");
-  edm::FileInPath mcfmInput3("ZZMatrixElement/MELA/data/Pdfdata/cteq6l1.tbl");  
-  edm::FileInPath mcfmInput4("ZZMatrixElement/MELA/data/Pdfdata/cteq6l.tbl");  
+  edm::FileInPath mcfmInput3("ZZMatrixElement/MELA/data/Pdfdata/cteq6l1.tbl");
+  edm::FileInPath mcfmInput4("ZZMatrixElement/MELA/data/Pdfdata/cteq6l.tbl");
   edm::FileInPath mcfmWarning("ZZMatrixElement/MELA/data/ffwarn.dat");
   edm::FileInPath mcfm_brsm_o("ZZMatrixElement/MELA/data/br.sm1");
   edm::FileInPath mcfm_brsm_t("ZZMatrixElement/MELA/data/br.sm2");
@@ -65,16 +70,16 @@ Mela::Mela(int LHCsqrts, float mh)
   symlink(mcfm_brsm_t.fullPath().c_str(), "br.sm2");
   symlink(mcfmInput1.fullPath().c_str(), "input.DAT");
   symlink(mcfmInput2.fullPath().c_str(), "process.DAT");
-  mkdir("Pdfdata",S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  mkdir("Pdfdata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
-  mzz_rrv = new RooRealVar("mzz","m_{ZZ}",(double)mh, 0.,1000.);
-  z1mass_rrv = new RooRealVar("z1mass","m_{Z1}",0.,160.);
-  z2mass_rrv = new RooRealVar("z2mass","m_{Z2}",0.,200.); 
-  costhetastar_rrv = new RooRealVar("costhetastar","cos#theta^{*}",-1.,1.);  
-  costheta1_rrv = new RooRealVar("costheta1","cos#theta_{1}",-1.,1.);  
-  costheta2_rrv = new RooRealVar("costheta2","cos#theta_{2}",-1.,1.);
+  mzz_rrv = new RooRealVar("mzz", "m_{ZZ}", (double)mh, 0., 1000.);
+  z1mass_rrv = new RooRealVar("z1mass", "m_{Z1}", 0., 160.);
+  z2mass_rrv = new RooRealVar("z2mass", "m_{Z2}", 0., 200.);
+  costhetastar_rrv = new RooRealVar("costhetastar", "cos#theta^{*}", -1., 1.);
+  costheta1_rrv = new RooRealVar("costheta1", "cos#theta_{1}", -1., 1.);
+  costheta2_rrv = new RooRealVar("costheta2", "cos#theta_{2}", -1., 1.);
   phi_rrv= new RooRealVar("phi", "#Phi", -TMath::Pi(), TMath::Pi());
   phi1_rrv= new RooRealVar("phi1", "#Phi_{1}", -TMath::Pi(), TMath::Pi());
   Y_rrv = new RooRealVar("Yzz", "#Y_{ZZ}", 0, -4, 4);
@@ -93,9 +98,9 @@ Mela::Mela(int LHCsqrts, float mh)
   measurables_.Y = Y_rrv;
 
   ggSpin0Model = new ScalarPdfFactory_ggH(measurables_, false, 1, 1); // 1,1==ZZ
-  spin1Model = new VectorPdfFactory(z1mass_rrv,z2mass_rrv,costhetastar_rrv,costheta1_rrv,costheta2_rrv,phi_rrv,phi1_rrv,mzz_rrv);
+  spin1Model = new VectorPdfFactory(z1mass_rrv, z2mass_rrv, costhetastar_rrv, costheta1_rrv, costheta2_rrv, phi_rrv, phi1_rrv, mzz_rrv);
   spin2Model = new TensorPdfFactory_HVV(measurables_, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll);
-  qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel","qqZZmodel",*z1mass_rrv,*z2mass_rrv,*costheta1_rrv,*costheta2_rrv,*phi_rrv,*costhetastar_rrv,*phi1_rrv,*mzz_rrv,*upFrac_rrv);
+  qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel", "qqZZmodel", *z1mass_rrv, *z2mass_rrv, *costheta1_rrv, *costheta2_rrv, *phi_rrv, *costhetastar_rrv, *phi1_rrv, *mzz_rrv, *upFrac_rrv);
 
   edm::FileInPath HiggsWidthFile("ZZMatrixElement/MELA/data/HiggsTotalWidth.txt");
   std::string path = HiggsWidthFile.fullPath();
@@ -104,42 +109,42 @@ Mela::Mela(int LHCsqrts, float mh)
   int pdfmember = 0;
   symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
   ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., TVar::ERROR);
-  ZZME->set_mHiggs(125., 0); ZZME->set_wHiggs(-1., 0);
-  ZZME->set_mHiggs(-1., 1); ZZME->set_wHiggs(0., 1);
-  ZZME->set_LeptonInterference(TVar::DefaultLeptonInterf);
+  setMelaHiggsMass(125., 0); setMelaHiggsMass(-1., 1);
+  setMelaHiggsWidth(-1., 0); setMelaHiggsWidth(0., 1);
+  setMelaLeptonInterference(TVar::DefaultLeptonInterf);
 
   // 
   // configure the JHUGEn and MCFM calculations 
   // 
   // load TGraphs for VAMCFM scale factors
   edm::FileInPath ScaleFactorFile("ZZMatrixElement/MELA/data/scaleFactors.root");
-  TFile* sf = TFile::Open(ScaleFactorFile.fullPath().c_str(),"r");
+  TFile* sf = TFile::Open(ScaleFactorFile.fullPath().c_str(), "r");
   vaScale_4e    = (TGraph*)sf->Get("scaleFactors_4e");
   vaScale_4mu   = (TGraph*)sf->Get("scaleFactors_4mu");
   vaScale_2e2mu = (TGraph*)sf->Get("scaleFactors_2e2mu");
-  sf->Close(); 
+  sf->Close();
   edm::FileInPath DggScaleFactorFile("ZZMatrixElement/MELA/data/scalefactor_DggZZ.root");
   //cout << DggScaleFactorFile.fullPath().c_str() << endl;
-  TFile* af = new TFile(DggScaleFactorFile.fullPath().c_str(),"r");
-  DggZZ_scalefactor = (TGraph*) af->Get("scalefactor");
+  TFile* af = new TFile(DggScaleFactorFile.fullPath().c_str(), "r");
+  DggZZ_scalefactor = (TGraph*)af->Get("scalefactor");
   af->Close();
   assert(vaScale_4e);
   assert(vaScale_4mu);
   assert(vaScale_2e2mu);
   assert(DggZZ_scalefactor);
-  
+
   //
   // setup supermela
   //
 
   //deactivate generation messages
   RooMsgService::instance().getStream(1).removeTopic(NumIntegration);
-  RooMsgService::instance().setStreamStatus(1,kFALSE);
-  RooMsgService::instance().setStreamStatus(0,kFALSE);// silence also the error messages, but should really be looked at.
+  RooMsgService::instance().setStreamStatus(1, kFALSE);
+  RooMsgService::instance().setStreamStatus(0, kFALSE);// silence also the error messages, but should really be looked at.
 
   myR=new TRandom3(35797);
   //  std::cout << "before supermela" << std::endl;
-  
+
   int superMELA_LHCsqrts = LHCsqrts;
   if (superMELA_LHCsqrts > maxSqrts) superMELA_LHCsqrts = maxSqrts;
   super = new SuperMELA(mh, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
@@ -149,32 +154,27 @@ Mela::Mela(int LHCsqrts, float mh)
   edm::FileInPath cardfile(cardpath);
   std::string cpath=cardfile.fullPath();
   //std::cout << cpath.substr(0,cpath.length()-14).c_str()  <<std::endl;
-  super->SetPathToCards(cpath.substr(0,cpath.length()-14).c_str() );
+  super->SetPathToCards(cpath.substr(0, cpath.length()-14).c_str());
   super->SetVerbosity(false);
   // std::cout << "starting superMELA initialization" << std::endl;
   super->init();
   //std::cout << "after supermela" << std::endl;
- 	edm::FileInPath CTotBkgFile("ZZMatrixElement/MELA/data/ZZ4l-C_TotalBkgM4lGraph.root");
-	TFile* finput_ctotbkg = TFile::Open(CTotBkgFile.fullPath().c_str(),"read");
-	for (int i=0;i<3;i++){
-		tgtotalbkg[i] = 0;
-	} 
-	setCTotalBkgGraphs(finput_ctotbkg, tgtotalbkg);
-	finput_ctotbkg->Close(); 
-  for (int i=0; i<3; i++){
-    assert(tgtotalbkg[i]);
-  }
+  edm::FileInPath CTotBkgFile("ZZMatrixElement/MELA/data/ZZ4l-C_TotalBkgM4lGraph.root");
+  TFile* finput_ctotbkg = TFile::Open(CTotBkgFile.fullPath().c_str(), "read");
+  for (int i=0; i<3; i++) tgtotalbkg[i] = 0;
+  setCTotalBkgGraphs(finput_ctotbkg, tgtotalbkg);
+  finput_ctotbkg->Close();
+  for (int i=0; i<3; i++) assert(tgtotalbkg[i]);
 
   reset_SelfDCouplings();
 }
 
 Mela::~Mela(){
 //  std::cout << "begin destructor" << std::endl;  
-  setRemoveLeptonMasses(false); // Use Run I scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
+  //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
+  setRemoveLeptonMasses(true); // Use Run 2 scheme for removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
 
-  for (int i=0; i<3; i++){
-    if (tgtotalbkg[i] != 0) delete tgtotalbkg[i];
-  }
+  for (int i=0; i<3; i++){ if (tgtotalbkg[i] != 0) delete tgtotalbkg[i]; }
   if (DggZZ_scalefactor!=0) delete DggZZ_scalefactor;
 
   // Let the derived RooFit objects come first...
@@ -208,13 +208,10 @@ void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Pro
   myProduction_ = myProduction;
 }
 
-void Mela::setMelaHiggsWidth(float myHiggsWidth){ // Should be called per-event
-	ZZME->set_wHiggs(myHiggsWidth);
-}
-
-void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){
-	ZZME->set_LeptonInterference(myLepInterf);
-}
+// Should be called per-event
+void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myHiggsMass, index); }
+void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(myHiggsWidth, index); }
+void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){ ZZME->set_LeptonInterference(myLepInterf); }
 
 void Mela::resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   ZZME->reset_MCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
@@ -226,241 +223,80 @@ void Mela::setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::E
   ZZME->set_RenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
 
-// Re-order masses and angles as needed by likelihoodDiscriminant. 
-// This follows a different convention than the usual Z1/Z2 definition!
-void Mela::checkZorder(
-  float& z1mass, float& z2mass,
-  float& costhetastar, float& costheta1,
-  float& costheta2, float& phi,
-  float& phistar1
-  ){
-
-  float tempZ1mass=z1mass;
-  float tempZ2mass=z2mass;
-  float tempH1=costheta1;
-  float tempH2=costheta2;
-  float tempHs=costhetastar;
-  float tempPhi1=phistar1;
-  float tempPhi=phi;
-
-  if (z2mass>z1mass){
-    z1mass=tempZ2mass;
-    z2mass=tempZ1mass;
-    costhetastar=-tempHs;
-    costheta1=tempH2;
-    costheta2=tempH1;
-    phi=tempPhi;
-    phistar1=-tempPhi1-tempPhi;
-    if (phistar1>3.141592) phistar1=phistar1-2*Geom::pi();
-    else if (phistar1<-3.141592) phistar1=phistar1+2*Geom::pi();
-  }
-  else return;
-}
-
 std::vector<TLorentzVector> Mela::calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi){
 	return ZZME->Calculate4Momentum(Mx, M1, M2, theta, theta1, theta2, Phi1, Phi);
 }
 
 
-void Mela::computeD_CP(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  TVar::MatrixElement myME,
-  TVar::Process myType,
-  float& prob
-  ){
-  reset_PAux();
 
-  double coupl_mix[SIZE_HVV][2] ={ { 0 } };
-  double coupl_1[SIZE_HVV][2] ={ { 0 } };
-  double coupl_2[SIZE_HVV][2] ={ { 0 } };
+// Full parton-by-parton ME record
+MelaIO* Mela::getIORecord(){ return ZZME->get_IORecord(); }
+// Candidate functions
+MELACandidate* Mela::getCurrentCandidate(){ return ZZME->get_CurrentCandidate(); }
+int Mela::getCurrentCandidateIndex(){ return ZZME->get_CurrentCandidateIndex(); }
+vector<MELATopCandidate*>* Mela::getTopCandidateCollection(){ return ZZME->get_TopCandidateCollection(); }
+void Mela::reset_CandRef(){ melaCand=0; }
 
-  switch (myType){
-  case TVar::D_g1g4:
-    coupl_mix[0][0] =1.;
-    coupl_mix[3][0] =2.521;
-    coupl_1[0][0] =1.;
-    coupl_2[3][0] =2.521;
-    break;
-  case TVar::D_g1g4_pi_2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[3][1] =2.521;
-    coupl_1[0][0] =1.;
-    coupl_2[3][1] =2.521;
-    break;
-  case TVar::D_g1g2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[1][0] = 1.638;
-    coupl_1[0][0] =1.;
-    coupl_2[1][0] = 1.638;
-    break;
-  case TVar::D_g1g2_pi_2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[1][1] = 1.638;
-    coupl_1[0][0] =1.;
-    coupl_2[1][1] = 1.638;
-    break;
-  case TVar::D_g1g1prime2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[11][0] = 12046.01;
-    coupl_1[0][0] =1.;
-    coupl_2[11][0] = 12046.01;
-    break;
-  case TVar::D_zzzg:
-    coupl_mix[0][0] =1.;
-    coupl_mix[4][0] = 0.0688;
-    coupl_1[0][0] =1.;
-    coupl_2[4][0] = 0.0688;
-    break;
-  case TVar::D_zzgg:
-    coupl_mix[0][0] =1.;
-    coupl_mix[7][0] = -0.0898;
-    coupl_1[0][0] =1.;
-    coupl_2[7][0] = -0.0898;
-    break;
-  case TVar::D_zzzg_PS:
-    coupl_mix[0][0] =1.;
-    coupl_mix[6][0] = 0.0855;
-    coupl_1[0][0] =1.;
-    coupl_2[6][0] = 0.0855;
-    break;
-  case TVar::D_zzgg_PS:
-    coupl_mix[0][0] =1.;
-    coupl_mix[9][0] = -0.0907;
-    coupl_1[0][0] =1.;
-    coupl_2[9][0] = -0.0907;
-    break;
-  case TVar::D_zzzg_g1prime2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[30][0] = -7591.914;
-    coupl_1[0][0] =1.;
-    coupl_2[30][0] = -7591.914;
-    break;
-  case TVar::D_zzzg_g1prime2_pi_2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[30][1] = -7591.914;
-    coupl_1[0][0] =1.;
-    coupl_2[30][1] = -7591.914;
-    break;
-  default:
-    cout <<"Error: Not supported!"<<endl;
-  }
-  float pMix, p1, p2;
-  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_mix, pMix);
 
-  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_1, p1);
-
-  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_2, p2);
-
-  prob = pMix- p1- p2;
-}
-
- 
-void Mela::computeP(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  float& prob, // output probability
-  bool useConstant
-  ){
-  reset_PAux();
+// Constants to normalize probabilities
+float Mela::getConstant(bool useOldggZZConstants){
   float constant = 1;
+  if (melaCand==0) return constant;
 
+  if (
+    (
+    melaCand->getSortedV(0)->getNDaughters()==0
+    &&
+    melaCand->getSortedV(1)->getNDaughters()==0
+    ) // Undecayed Higgs
+    ||
+    (
+    melaCand->getSortedV(0)->getNDaughters()==2
+    &&
+    melaCand->getSortedV(1)->getNDaughters()==2
+    &&
+    PDGHelpers::isALepton(melaCand->getSortedV(0)->getDaughter(0)->id) && PDGHelpers::isALepton(melaCand->getSortedV(0)->getDaughter(1)->id)
+    &&
+    PDGHelpers::isALepton(melaCand->getSortedV(1)->getDaughter(0)->id) && PDGHelpers::isALepton(melaCand->getSortedV(1)->getDaughter(1)->id)
+    ) // H->4l/2l2l
+    ) constant = getConstant_m4l(useOldggZZConstants);
 
-  if (myME_ == TVar::ANALYTICAL) {
-    costhetastar_rrv->setVal(costhetastar);
-    costheta1_rrv->setVal(costheta1);
-    costheta2_rrv->setVal(costheta2);
-    phi_rrv->setVal(phi);
-    phi1_rrv->setVal(phi1);
-    z1mass_rrv->setVal(mZ1);
-    z2mass_rrv->setVal(mZ2);
-    mzz_rrv->setVal(mZZ);
-
-    configureAnalyticalPDFs();
-
-    if (myProduction_==TVar::ZZINDEPENDENT){
-      RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-      prob = integral->getVal();
-      delete integral;
-    }
-    else prob = pdf->getVal();
-  }
-  else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
-
-    //initialize variables
-    checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
-    ZZME->computeXS(
-      mZZ, mZ1, mZ2,
-      costhetastar, costheta1, costheta2,
-      phi, phi1, flavor,
-      myModel_, myME_, myProduction_,
-      prob
-      );
-
-    if (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ){
-      prob = 0;
-      int gridsize_hs = 5;
-      double hs_min = 0; //-1.;
-      double hs_max = 1;
-      double hs_step = (hs_max - hs_min) / double(gridsize_hs);
-
-      int gridsize_phi1 = 5;
-      double phi1_min = 0; //-TMath::Pi();
-      double phi1_max = TMath::Pi();
-      double phi1_step = (phi1_max - phi1_min) / double(gridsize_phi1);
-
-      for (int i_hs = 0; i_hs < gridsize_hs + 1; i_hs++) {
-        double hs_val = hs_min + i_hs * hs_step;
-        for (int i_phi1 = 0; i_phi1 < gridsize_phi1 +1; i_phi1++) {
-          double phi1_val = phi1_min + i_phi1 * phi1_step;
-          float temp_prob(0.);
-          // calculate the ZZ using MCFM
-          ZZME->computeXS(
-            mZZ, mZ1, mZ2,
-            hs_val, costheta1, costheta2,
-            phi, phi1_val, flavor,
-            myModel_, myME_, myProduction_,
-            temp_prob
-            );
-          prob += temp_prob;
-        }
-      }
-      prob =  prob / float((gridsize_hs + 1) * (gridsize_phi1 +1));
-    }
-  }
-
-  if (useConstant){
-    constant = getConstant(flavor, mZZ, false);
-    prob *= constant;
-  }
-
-  reset_SelfDCouplings();
+  return constant;
 }
-
-float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
+float Mela::getConstant_m4l(bool useOldggZZConstants){
   float constant = 1;
+  if (melaCand==0) return constant;
 
-  if (myME_ == TVar::ANALYTICAL) {
+  bool is4l = melaCand->daughtersInterfere();
+  double mZZ = melaCand->m();
+
+  if (useOldggZZConstants && (myME_ == TVar::MCFM || myME_ == TVar::JHUGen) && myProduction_ == TVar::ZZGG && myModel_==TVar::bkgZZ_SMHiggs){
+
+    // note: constants are being added to ggZZ ME calculation 
+    // for the purpose of building DggZZ to separate qqZZ from
+    // ggZZ.  These constants have been tune on the unadulterated
+    // qqZZ ME calculation, so the qqZZ scale factors should be 
+    // included inorder to cancel those in the qqZZ ME calc
+    if (!is4l){
+      if (mZZ > 900.) constant = sqrt(vaScale_4e->Eval(900.)*vaScale_4mu->Eval(900.));
+      else if (mZZ < 70.) constant = sqrt(vaScale_4e->Eval(70.)*vaScale_4mu->Eval(70.));
+      else constant = vaScale_4e->Eval(mZZ);
+    }
+    else{
+      if (mZZ > 900.) constant = vaScale_2e2mu->Eval(900.);
+      else if (mZZ < 70.) constant = vaScale_2e2mu->Eval(70.);
+      else constant = vaScale_2e2mu->Eval(mZZ);
+    }
+    if (mZZ > 900.) constant /= DggZZ_scalefactor->Eval(900.);
+    else if (mZZ < 110.) constant /= DggZZ_scalefactor->Eval(110.);
+    else constant /= DggZZ_scalefactor->Eval(mZZ);
+
+  }
+  else if (myME_ == TVar::ANALYTICAL){
 
     // gg productions 
-    if (myProduction_ == TVar::ZZGG) {
-      if (flavor == 3) {
+    if (myProduction_ == TVar::ZZGG){
+      if (!is4l){
         //cout << "ANALYTICAL - GG - flavor=3" << endl;
         if (myModel_ == TVar::H0minus)  constant = 6.4;
         if (myModel_ == TVar::H0hplus)  constant = 2.2;
@@ -494,8 +330,8 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
       }
     }
     // qqb productions 
-    if (myProduction_ == TVar::ZZQQB) {
-      if (flavor == 3) {
+    if (myProduction_ == TVar::ZZQQB){
+      if (!is4l) {
         //cout << "ANALYTICAL - QQB - flavor=3" << endl;
         if (myModel_ == TVar::H1minus)  constant = 4.6e5;
         if (myModel_ == TVar::H1plus)  constant = 4.0e5;
@@ -529,8 +365,8 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
       }
     }
     // production independent calculations
-    if (myProduction_ == TVar::ZZINDEPENDENT) {
-      if (flavor == 3) {
+    if (myProduction_ == TVar::ZZINDEPENDENT){
+      if (!is4l) {
         //cout << "ANALYTICAL - INDEP - flavor=3" << endl;
         if (myModel_ == TVar::H1minus)  constant = 3.4e4;
         if (myModel_ == TVar::H1plus)  constant = 3.4e4;
@@ -561,11 +397,12 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
         if (myModel_ == TVar::H2_g10) constant = 1.55139e+10;
       }
     }
-  }
-  else if (myME_ == TVar::JHUGen) {
 
-    if (myProduction_ == TVar::ZZGG) {
-      if (flavor == 3) {
+  }
+  else if (myME_ == TVar::JHUGen){
+
+    if (myProduction_ == TVar::ZZGG){
+      if (!is4l){
         if (myModel_ == TVar::H0minus)  constant = 6.0;
         if (myModel_ == TVar::H0hplus)  constant = 2.1;
         if (myModel_ == TVar::H2_g1g5)  constant = 0.6;
@@ -595,8 +432,8 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
       }
     }
     // qqb productions 
-    if (myProduction_ == TVar::ZZQQB) {
-      if (flavor == 3) {
+    if (myProduction_ == TVar::ZZQQB){
+      if (!is4l){
         if (myModel_ == TVar::H1minus)  constant = 16.;
         if (myModel_ == TVar::H1plus)  constant = 13.;
         if (myModel_ == TVar::H2_g1g5)  constant = 13.;
@@ -626,8 +463,8 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
       }
     }
     // production independent calculations
-    if (myProduction_ == TVar::ZZINDEPENDENT) {
-      if (flavor == 3) {
+    if (myProduction_ == TVar::ZZINDEPENDENT){
+      if (!is4l){
         if (myModel_ == TVar::H1minus)  constant = 1.3e+10;
         if (myModel_ == TVar::H1plus)  constant = 1.3e+10;
         if (myModel_ == TVar::H2_g1g5)  constant = 1.6e+9;
@@ -671,111 +508,60 @@ float Mela::getConstant(int flavor, float mZZ, bool useOldggZZConstants){
   }
   else if (myME_ == TVar::MCFM){
 
-    if (flavor==1){
-      // 4e scale factors
-      // for qqZZ
-      if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
-        if (mZZ > 900) constant = vaScale_4e->Eval(900.);
-        else if (mZZ <  70) constant = vaScale_4e->Eval(70.);
-        else constant = vaScale_4e->Eval(mZZ);
+    if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+      if (!is4l){
+        if (mZZ > 900.) constant = sqrt(vaScale_4e->Eval(900.)*vaScale_4mu->Eval(900.));
+        else if (mZZ < 70.) constant = sqrt(vaScale_4e->Eval(70.)*vaScale_4mu->Eval(70.));
+        else constant = sqrt(vaScale_4e->Eval(mZZ)*vaScale_4mu->Eval(mZZ));
       }
-    }
-    else if (flavor==2){
-      // 4mu scale factors
-      // for qqZZ
-      if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
-        if (mZZ > 900) constant = vaScale_4mu->Eval(900.);
-        else if (mZZ <  70) constant = vaScale_4mu->Eval(70.);
-        else constant = vaScale_4mu->Eval(mZZ);
-      }
-    }
-    else if (flavor==3){
-      // 2e2mu scale factors
-      // for qqZZ
-      if (myProduction_ == TVar::ZZQQB || (myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
-        if (mZZ > 900) constant = vaScale_2e2mu->Eval(900.);
-        else if (mZZ <  70) constant = vaScale_2e2mu->Eval(70.);
+      else{
+        if (mZZ > 900.) constant = vaScale_2e2mu->Eval(900.);
+        else if (mZZ < 70.) constant = vaScale_2e2mu->Eval(70.);
         else constant = vaScale_2e2mu->Eval(mZZ);
       }
     }
-  }
 
-  if (useOldggZZConstants && (myME_ == TVar::MCFM || myME_ == TVar::JHUGen) && myProduction_ == TVar::ZZGG && myModel_==TVar::bkgZZ_SMHiggs){
-    // note: constants are being added to ggZZ ME calculation 
-    // for the purpose of building DggZZ to separate qqZZ from
-    // ggZZ.  These constants have been tune on the unadulterated
-    // qqZZ ME calculation, so the qqZZ scale factors should be 
-    // included inorder to cancel those in the qqZZ ME calc
-
-    constant=1.;
-    if (flavor==1){
-      // 4e scale factors
-      if (mZZ > 900) constant = vaScale_4e->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-      else if (mZZ <  110) constant = vaScale_4e->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-      else constant = vaScale_4e->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-    }
-    else if (flavor==2){
-      // 4mu scale factors
-      if (mZZ > 900) constant = vaScale_4mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-      else if (mZZ <  110) constant = vaScale_4mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-      else constant = vaScale_4mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-    }
-    else if (flavor==3){
-      // 2e2mu scale factors
-      if (mZZ > 900) constant = vaScale_2e2mu->Eval(900.)/DggZZ_scalefactor->Eval(900.);
-      else if (mZZ <  110) constant = vaScale_2e2mu->Eval(110.)/DggZZ_scalefactor->Eval(110.);
-      else constant = vaScale_2e2mu->Eval(mZZ)/DggZZ_scalefactor->Eval(mZZ);
-    }
   }
 
   return constant;
 }
 
-// Full parton-by-parton ME record
-MelaIO* Mela::getIORecord(){ return ZZME->get_IORecord(); }
+// SuperProb
+void Mela::get_PAux(float& prob){ prob = auxiliaryProb; }
+void Mela::reset_PAux(){ auxiliaryProb=1.; } // SuperProb reset
 
-void Mela::computeP(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  double selfDHvvcoupl_input[SIZE_HVV][2],
-  float& prob
+// Regular probabilities
+void Mela::computeP_selfDspin0(
+  double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+  float& prob,
+  bool useConstant
   ){
   selfDHqqcoupl[0][0] = 1.0; // Don't set these, and you will get 0.
   selfDHggcoupl[0][0] = 1.0;
 
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HVV; ic++){
-      selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
-      selfDHwwcoupl[ic][im] = selfDHvvcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+    for (int im=0; im<2; im++){
+      for (int ic=0; ic<SIZE_HVV; ic++){
+        selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
+        selfDHwwcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+      }
     }
   }
   computeP_selfDspin0(
-    mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1,
-    flavor,
-    prob
+    prob,
+    useConstant
     );
 }
 // You must absolutely know what you are doing if you are using the function below!
 void Mela::computeP_selfDspin0(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  float& prob
+  float& prob,
+  bool useConstant
   ){
   reset_PAux();
+  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){ cerr << "Mela::computeP_selfDspin0: This method only applies to spin0, set Process to SelfDefine_spin0 or ME to MCFM!" << endl; return; }
 
-  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)) cout << " Error: This method only applies to spin0, set Process to SelfDefine_spin0 or ME to MCFM!" << endl;
-  else{
+  melaCand = get_CurrentCandidate();
+  if (melaCand!=0){
     if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
       ZZME->set_SpinZeroCouplings(
         selfDHvvcoupl_freenorm,
@@ -789,17 +575,37 @@ void Mela::computeP_selfDspin0(
         selfDHwwCLambda_qsq,
         differentiate_HWW_HZZ
         );
-
-      //initialize variables
-      checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
       ZZME->computeXS(
-        mZZ, mZ1, mZ2,
-        costhetastar, costheta1, costheta2,
-        phi, phi1, flavor,
-        myModel_, myME_, myProduction_, prob
+        myModel_,
+        myME_,
+        myProduction_,
+        prob
         );
     }
-    else if (myME_ == TVar::ANALYTICAL){ // !Needs further generalization!
+    else if (myME_ == TVar::ANALYTICAL){ // Needs further generalization!
+      TLorentzVector nullVector(0, 0, 0, 0);
+      float costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      if (melaCand!=0 && melaCand->getNSortedVs()>=2 && melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
+        MELAParticle* dau[2][2]={ { 0 } };
+        for (int vv=0; vv<2; vv++){
+          MELAParticle* Vi = melaCand->getSortedV(vv);
+          for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
+        }
+        mela::computeAngles(
+          (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
+          (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
+          (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
+          (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
+          costhetastar, costheta1, costheta2, phi, phi1
+          );
+      }
+      // Protect against NaN
+      if (!(costhetastar==costhetastar)) costhetastar=0;
+      if (!(costheta1==costheta1)) costheta1=0;
+      if (!(costheta2==costheta2)) costheta2=0;
+      if (!(phi==phi)) phi=0;
+      if (!(phi1==phi1)) phi1=0;
+
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
@@ -821,22 +627,119 @@ void Mela::computeP_selfDspin0(
 
       Y_rrv->setConstant(false);
     }
-    else cout << "ERROR: this method only works for JHUGen or MCFM or ANALYTICAL" << endl;
+    else cerr << "Mela::computeP_selfDspin0: This method only works for JHUGen or MCFM or ANALYTICAL" << endl;
+
+    if (useConstant) prob *= getConstant(false);
   }
 
   reset_SelfDCouplings();
+  reset_CandRef();
 }
+
+void Mela::computeP_selfDspin1(
+  double selfDZvvcoupl_input[SIZE_ZVV][2],
+  float& prob,
+  bool useConstant
+  ){
+  // Initialize the quark_left_right couplings
+  selfDZqqcoupl[0][0]=1.0;
+  selfDZqqcoupl[1][0]=1.0;
+  for (int im=0; im<2; im++){
+    for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = selfDZvvcoupl_input[ic][im];
+  }
+
+  computeP_selfDspin1(
+    prob,
+    useConstant
+    );
+}
+void Mela::computeP_selfDspin1(
+  float& prob,
+  bool useConstant
+  ){
+  reset_PAux();
+
+  if (myModel_ != TVar::SelfDefine_spin1){ cerr << "Mela::computeP_selfDspin1: This method only applies to spin1, set Process to SelfDefine_spin1!" << endl; return; }
+
+  melaCand = get_CurrentCandidate();
+  if (melaCand!=0){
+    if (myME_ == TVar::JHUGen){
+      ZZME->set_SpinOneCouplings(selfDZqqcoupl, selfDZvvcoupl);
+      ZZME->computeXS(
+        myModel_,
+        myME_,
+        myProduction_,
+        prob
+        );
+    }
+    else if (myME_ == TVar::ANALYTICAL){ // Needs generalization!
+      TLorentzVector nullVector(0, 0, 0, 0);
+      float costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      if (melaCand!=0 && melaCand->getNSortedVs()>=2 && melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
+        MELAParticle* dau[2][2]={ { 0 } };
+        for (int vv=0; vv<2; vv++){
+          MELAParticle* Vi = melaCand->getSortedV(vv);
+          for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
+        }
+        mela::computeAngles(
+          (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
+          (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
+          (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
+          (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
+          costhetastar, costheta1, costheta2, phi, phi1
+          );
+      }
+      // Protect against NaN
+      if (!(costhetastar==costhetastar)) costhetastar=0;
+      if (!(costheta1==costheta1)) costheta1=0;
+      if (!(costheta2==costheta2)) costheta2=0;
+      if (!(phi==phi)) phi=0;
+      if (!(phi1==phi1)) phi1=0;
+
+      costhetastar_rrv->setVal(costhetastar);
+      costheta1_rrv->setVal(costheta1);
+      costheta2_rrv->setVal(costheta2);
+      phi_rrv->setVal(phi);
+      phi1_rrv->setVal(phi1);
+      z1mass_rrv->setVal(mZ1);
+      z2mass_rrv->setVal(mZ2);
+      mzz_rrv->setVal(mZZ);
+
+      bool checkImCoupl = false;
+      for (int i =0; i<SIZE_ZVV; i++){
+        if (selfDZvvcoupl[i][1]!=0){
+          cerr << "Mela::computeP_selfDspin1: MELA does not support complex coupling for the moment! " << endl;
+          checkImCoupl = true;
+          break;
+        }
+      }
+      if (!checkImCoupl){
+        configureAnalyticalPDFs();
+        spin1Model->g1Val->setVal(selfDZvvcoupl[0][0]);
+        spin1Model->g2Val->setVal(selfDZvvcoupl[1][0]);
+        if (myProduction_==TVar::ZZINDEPENDENT){
+          RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+          prob = integral->getVal();
+          delete integral;
+        }
+        else prob = pdf->getVal();
+      }
+    }
+    else cerr << "Mela::computeP_selfDspin1: This method only works for JHUGen and ANALYTICAL" << endl;
+
+    if (useConstant) prob *= getConstant(false);
+  }
+
+  reset_SelfDCouplings();
+  reset_CandRef();
+}
+
+
 void Mela::computeP_selfDspin2(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
   double selfDGggcoupl_input[SIZE_GGG][2],
   double selfDGvvcoupl_input[SIZE_GVV][2],
-  float& prob
+  float& prob,
+  bool useConstant
   ){
   selfDGqqcoupl[0][0]=1.0; // Set these incorrectly, and you see left-right asymmetries in qqG (or nothing)
   selfDGqqcoupl[1][0]=1.0;
@@ -854,33 +757,47 @@ void Mela::computeP_selfDspin2(
   //reset_SelfDCouplings();
 }
 void Mela::computeP_selfDspin2(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  float& prob
+  float& prob,
+  bool useConstant
   ){
   reset_PAux();
 
-  if (myModel_ != TVar::SelfDefine_spin2) cout << " Error: This method only applies to spin2, set Process to SelfDefine_spin2!"<<endl;
-  else{
+  if (myModel_ != TVar::SelfDefine_spin2){ cerr << "Mela::computeP_selfDspin2: This method only applies to spin2, set Process to SelfDefine_spin2!" << endl; return; }
+
+  melaCand = get_CurrentCandidate();
+  if (melaCand!=0){
     if (myME_ == TVar::JHUGen){
       ZZME->set_SpinTwoCouplings(selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
-
-      //initialize variables
-      checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
       ZZME->computeXS(
-        mZZ, mZ1, mZ2,
-        costhetastar, costheta1, costheta2,
-        phi, phi1, flavor,
-        myModel_, myME_, myProduction_,
+        myModel_,
+        myME_,
+        myProduction_,
         prob
         );
     }
     else if (myME_ == TVar::ANALYTICAL){
+      TLorentzVector nullVector(0, 0, 0, 0);
+      float costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      if (melaCand!=0 && melaCand->getNSortedVs()>=2 && melaCand->getSortedV(0)->getNDaughters()>=1 && melaCand->getSortedV(1)->getNDaughters()>=1){
+        MELAParticle* dau[2][2]={ { 0 } };
+        for (int vv=0; vv<2; vv++){
+          MELAParticle* Vi = melaCand->getSortedV(vv);
+          for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
+        }
+        mela::computeAngles(
+          (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
+          (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
+          (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
+          (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
+          costhetastar, costheta1, costheta2, phi, phi1
+          );
+      }
+      // Protect against NaN
+      if (!(costhetastar==costhetastar)) costhetastar=0;
+      if (!(costheta1==costheta1)) costheta1=0;
+      if (!(costheta2==costheta2)) costheta2=0;
+      if (!(phi==phi)) phi=0;
+      if (!(phi1==phi1)) phi1=0;
 
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
@@ -894,7 +811,7 @@ void Mela::computeP_selfDspin2(
       bool checkImCoupl=false;
       for (int i =0; i<SIZE_GVV; i++){
         if (selfDGvvcoupl[i][1]!=0){
-          cout << "Error: MELA does not support complex coupling for the moment! " << endl;
+          cerr << "Mela::computeP_selfDspin2: MELA does not support complex coupling for the moment! " << endl;
           checkImCoupl = true;
           break;
         }
@@ -910,99 +827,15 @@ void Mela::computeP_selfDspin2(
         else prob = pdf->getVal();
       }
     }
-    else cout << "ERROR: this method only works for JHUGen and ANALYTICAL" << endl;
+    else cerr << "Mela::computeP_selfDspin2: This method only works for JHUGen and ANALYTICAL" << endl;
+
+    if (useConstant) prob *= getConstant(false);
   }
 
   reset_SelfDCouplings();
+  reset_CandRef();
 }
-void Mela::computeP_selfDspin1(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  double selfDZvvcoupl_input[SIZE_ZVV][2],
-  float& prob
-  ){
-  // Initialize the quark_left_right couplings
-  selfDZqqcoupl[0][0]=1.0;
-  selfDZqqcoupl[1][0]=1.0;
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = selfDZvvcoupl_input[ic][im];
-  }
 
-  computeP_selfDspin1(
-    mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1,
-    flavor,
-    prob
-    );
-  //reset_SelfDCouplings();
-}
-void Mela::computeP_selfDspin1(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
-  float& prob
-  ){
-  reset_PAux();
-
-  if (myModel_ != TVar::SelfDefine_spin1) cout << " Error: This method only applies to spin1, set Process to SelfDefine_spin1!" << endl;
-  else{
-    if (myME_ == TVar::JHUGen){
-      ZZME->set_SpinOneCouplings(selfDZqqcoupl, selfDZvvcoupl);
-
-      //initialize variables
-      checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
-      ZZME->computeXS(
-        mZZ, mZ1, mZ2,
-        costhetastar, costheta1, costheta2,
-        phi, phi1, flavor,
-        myModel_, myME_, myProduction_,
-        prob
-        );
-    }
-    else if (myME_ == TVar::ANALYTICAL){ // !Needs generalization!
-      costhetastar_rrv->setVal(costhetastar);
-      costheta1_rrv->setVal(costheta1);
-      costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(phi);
-      phi1_rrv->setVal(phi1);
-      z1mass_rrv->setVal(mZ1);
-      z2mass_rrv->setVal(mZ2);
-      mzz_rrv->setVal(mZZ);
-
-      bool checkImCoupl = false;
-      for (int i =0; i<SIZE_ZVV; i++){
-        if (selfDZvvcoupl[i][1]!=0){
-          cout << "Error: MELA does not support complex coupling for the moment! " << endl;
-          checkImCoupl = true;
-          break;
-        }
-      }
-      if (!checkImCoupl){
-        configureAnalyticalPDFs();
-        spin1Model->g1Val->setVal(selfDZvvcoupl[0][0]);
-        spin1Model->g2Val->setVal(selfDZvvcoupl[1][0]);
-        if (myProduction_==TVar::ZZINDEPENDENT){
-          RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-          prob = integral->getVal();
-          delete integral;
-        }
-        else prob = pdf->getVal();
-      }
-    }
-    else cout << "ERROR: this method only works for JHUGen and ANALYTICAL" << endl;
-  }
-
-  reset_SelfDCouplings();
-}
 void Mela::computeP(
   float mZZ, float mZ1, float mZ2, // input kinematics
   float costhetastar,
@@ -1167,7 +1000,7 @@ void Mela::computeProdDecP(
   float& prob
   ){
   for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HVV_VBF; ic++){
+    for (int ic=0; ic<SIZE_HVV; ic++){
       selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
       selfDHwwcoupl[ic][im] = selfDHwwcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
     }
@@ -1241,14 +1074,14 @@ void Mela::computeProdP(
   TLorentzVector Decay1, int Decay1_Id,
   TLorentzVector Decay2, int Decay2_Id,
   double selfDHggcoupl_input[SIZE_HGG][2],
-  double selfDHvvcoupl_input[SIZE_HVV_VBF][2],
-  double selfDHwwcoupl_input[SIZE_HVV_VBF][2],
+  double selfDHvvcoupl_input[SIZE_HVV][2],
+  double selfDHwwcoupl_input[SIZE_HVV][2],
   float& prob){
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im] = selfDHggcoupl_input[ic][im];
-    for (int ic=0; ic<SIZE_HVV_VBF; ic++){
-      selfDHzzcoupl_NoGamma[ic][im] = selfDHvvcoupl_input[ic][im];
-      selfDHwwcoupl_NoGamma[ic][im] = selfDHwwcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+    for (int ic=0; ic<SIZE_HVV; ic++){
+      selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
+      selfDHwwcoupl[ic][im] = selfDHwwcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
     }
   }
   computeProdP(
@@ -1352,12 +1185,12 @@ void Mela::computeProdP(
       jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
       jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
       higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings_NoGamma(
+      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
         selfDHvvcoupl_freenorm,
         selfDHqqcoupl,
         selfDHggcoupl,
-        selfDHzzcoupl_NoGamma,
-        selfDHwwcoupl_NoGamma,
+        selfDHzzcoupl,
+        selfDHwwcoupl,
         selfDHzzLambda_qsq,
         selfDHwwLambda_qsq,
         selfDHzzCLambda_qsq,
@@ -1430,12 +1263,12 @@ void Mela::computeProdP(
         jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
         jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
         higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings_NoGamma(
+        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
           selfDHvvcoupl_freenorm,
           selfDHqqcoupl,
           selfDHggcoupl,
-          selfDHzzcoupl_NoGamma,
-          selfDHwwcoupl_NoGamma,
+          selfDHzzcoupl,
+          selfDHwwcoupl,
           selfDHzzLambda_qsq,
           selfDHwwLambda_qsq,
           selfDHzzCLambda_qsq,
@@ -1522,12 +1355,12 @@ void Mela::computeProdP(
   jet2massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
   higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
   if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
-    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings_NoGamma(
+    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
       selfDHvvcoupl_freenorm,
       selfDHqqcoupl,
       selfDHggcoupl,
-      selfDHzzcoupl_NoGamma,
-      selfDHwwcoupl_NoGamma,
+      selfDHzzcoupl,
+      selfDHwwcoupl,
       selfDHzzLambda_qsq,
       selfDHwwLambda_qsq,
       selfDHzzCLambda_qsq,
@@ -1558,39 +1391,27 @@ void Mela::computeProdP(
 
 
 void Mela::computeProdP(
-  TLorentzVector V_daughter[2],
-  TLorentzVector Higgs_daughter[4],
-  int V_daughter_pdgid[2],
-  int Higgs_daughter_pdgid[4],
-  bool includeHiggsDecay,
-  double selfDHvvcoupl_input[SIZE_HVV_VBF][2],
-  float& prob
+  double selfDHvvcoupl_input[SIZE_HVV][2],
+  float& prob,
+  bool includeHiggsDecay
   ){
   // Dedicated function for VH ME
   selfDHggcoupl[0][0] = 1.0; // Don't set this, and you might get 0 in the future fr ggVH.
 
   for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HVV_VBF; ic++){
-      selfDHzzcoupl_NoGamma[ic][im] = selfDHvvcoupl_input[ic][im];
-      selfDHwwcoupl_NoGamma[ic][im] = selfDHvvcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+    for (int ic=0; ic<SIZE_HVV; ic++){
+      selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
+      selfDHwwcoupl[ic][im] = selfDHvvcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
     }
   }
   computeProdP(
-    V_daughter,
-    Higgs_daughter,
-    V_daughter_pdgid,
-    Higgs_daughter_pdgid,
-    includeHiggsDecay,
-    prob
+    prob,
+    includeHiggsDecay
     );
 }
 void Mela::computeProdP(
-  TLorentzVector V_daughter[2],
-  TLorentzVector Higgs_daughter[4],
-  int V_daughter_pdgid[2],
-  int Higgs_daughter_pdgid[4],
-  bool includeHiggsDecay,
-  float& prob
+  float& prob,
+  bool includeHiggsDecay
   ){
   // Dedicated function for VH ME
   reset_PAux();
@@ -1618,12 +1439,12 @@ void Mela::computeProdP(
       if (mela::forbidMassiveLeptons) mela::constrainedRemoveLeptonMass(Higgs_daughter[2], Higgs_daughter[3]);
     }
 
-    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings_NoGamma(
+    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
       selfDHvvcoupl_freenorm,
       selfDHqqcoupl,
       selfDHggcoupl,
-      selfDHzzcoupl_NoGamma,
-      selfDHwwcoupl_NoGamma,
+      selfDHzzcoupl,
+      selfDHwwcoupl,
       selfDHzzLambda_qsq,
       selfDHwwLambda_qsq,
       selfDHzzCLambda_qsq,
@@ -1652,10 +1473,6 @@ void Mela::computeProdP(
 
 
 void Mela::computeProdP(
-  TLorentzVector vTTH[6],
-  TLorentzVector Higgs,
-  int ttbar_daughters_pdgid[6],
-  double selfDHqqcoupl_input[SIZE_HQQ][2],
   float& prob,
   int topDecay,
   int topProcess
@@ -1666,9 +1483,6 @@ void Mela::computeProdP(
   computeProdP(vTTH, Higgs, ttbar_daughters_pdgid, prob, topDecay, topProcess);
 }
 void Mela::computeProdP(
-  TLorentzVector vTTH[6],
-  TLorentzVector Higgs,
-  int ttbar_daughters_pdgid[6],
   float& prob,
   int topDecay,
   int topProcess
@@ -1678,12 +1492,12 @@ void Mela::computeProdP(
 
   selfDHggcoupl[0][0] = 1.0;
 
-  ZZME->set_SpinZeroCouplings_NoGamma(
+  ZZME->set_SpinZeroCouplings(
     selfDHvvcoupl_freenorm,
     selfDHqqcoupl,
     selfDHggcoupl,
-    selfDHzzcoupl_NoGamma,
-    selfDHwwcoupl_NoGamma,
+    selfDHzzcoupl,
+    selfDHwwcoupl,
     selfDHzzLambda_qsq,
     selfDHwwLambda_qsq,
     selfDHzzCLambda_qsq,
@@ -1727,6 +1541,199 @@ void Mela::computeProdP(
   }
   else if (myProduction_ == TVar::JH || myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) computeProdP(p_first, id_first, p_second, id_second, Higgs, 25, nullFourVector, 0, prob);
 }
+
+
+void Mela::computeD_CP(
+  float mZZ, float mZ1, float mZ2, // input kinematics
+  float costhetastar,
+  float costheta1,
+  float costheta2,
+  float phi,
+  float phi1,
+  int flavor,
+  TVar::MatrixElement myME,
+  TVar::Process myType,
+  float& prob
+  ){
+  reset_PAux();
+
+  double coupl_mix[SIZE_HVV][2] ={ { 0 } };
+  double coupl_1[SIZE_HVV][2] ={ { 0 } };
+  double coupl_2[SIZE_HVV][2] ={ { 0 } };
+
+  switch (myType){
+  case TVar::D_g1g4:
+    coupl_mix[0][0] =1.;
+    coupl_mix[3][0] =2.521;
+    coupl_1[0][0] =1.;
+    coupl_2[3][0] =2.521;
+    break;
+  case TVar::D_g1g4_pi_2:
+    coupl_mix[0][0] =1.;
+    coupl_mix[3][1] =2.521;
+    coupl_1[0][0] =1.;
+    coupl_2[3][1] =2.521;
+    break;
+  case TVar::D_g1g2:
+    coupl_mix[0][0] =1.;
+    coupl_mix[1][0] = 1.638;
+    coupl_1[0][0] =1.;
+    coupl_2[1][0] = 1.638;
+    break;
+  case TVar::D_g1g2_pi_2:
+    coupl_mix[0][0] =1.;
+    coupl_mix[1][1] = 1.638;
+    coupl_1[0][0] =1.;
+    coupl_2[1][1] = 1.638;
+    break;
+  case TVar::D_g1g1prime2:
+    coupl_mix[0][0] =1.;
+    coupl_mix[11][0] = 12046.01;
+    coupl_1[0][0] =1.;
+    coupl_2[11][0] = 12046.01;
+    break;
+  case TVar::D_zzzg:
+    coupl_mix[0][0] =1.;
+    coupl_mix[4][0] = 0.0688;
+    coupl_1[0][0] =1.;
+    coupl_2[4][0] = 0.0688;
+    break;
+  case TVar::D_zzgg:
+    coupl_mix[0][0] =1.;
+    coupl_mix[7][0] = -0.0898;
+    coupl_1[0][0] =1.;
+    coupl_2[7][0] = -0.0898;
+    break;
+  case TVar::D_zzzg_PS:
+    coupl_mix[0][0] =1.;
+    coupl_mix[6][0] = 0.0855;
+    coupl_1[0][0] =1.;
+    coupl_2[6][0] = 0.0855;
+    break;
+  case TVar::D_zzgg_PS:
+    coupl_mix[0][0] =1.;
+    coupl_mix[9][0] = -0.0907;
+    coupl_1[0][0] =1.;
+    coupl_2[9][0] = -0.0907;
+    break;
+  case TVar::D_zzzg_g1prime2:
+    coupl_mix[0][0] =1.;
+    coupl_mix[30][0] = -7591.914;
+    coupl_1[0][0] =1.;
+    coupl_2[30][0] = -7591.914;
+    break;
+  case TVar::D_zzzg_g1prime2_pi_2:
+    coupl_mix[0][0] =1.;
+    coupl_mix[30][1] = -7591.914;
+    coupl_1[0][0] =1.;
+    coupl_2[30][1] = -7591.914;
+    break;
+  default:
+    cout <<"Error: Not supported!"<<endl;
+  }
+  float pMix, p1, p2;
+  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
+  computeP(mZZ, mZ1, mZ2,
+    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_mix, pMix);
+
+  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
+  computeP(mZZ, mZ1, mZ2,
+    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_1, p1);
+
+  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
+  computeP(mZZ, mZ1, mZ2,
+    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_2, p2);
+
+  prob = pMix- p1- p2;
+}
+
+
+void Mela::computeP(
+  float mZZ, float mZ1, float mZ2, // input kinematics
+  float costhetastar,
+  float costheta1,
+  float costheta2,
+  float phi,
+  float phi1,
+  int flavor,
+  float& prob, // output probability
+  bool useConstant
+  ){
+  reset_PAux();
+  float constant = 1;
+
+
+  if (myME_ == TVar::ANALYTICAL) {
+    costhetastar_rrv->setVal(costhetastar);
+    costheta1_rrv->setVal(costheta1);
+    costheta2_rrv->setVal(costheta2);
+    phi_rrv->setVal(phi);
+    phi1_rrv->setVal(phi1);
+    z1mass_rrv->setVal(mZ1);
+    z2mass_rrv->setVal(mZ2);
+    mzz_rrv->setVal(mZZ);
+
+    configureAnalyticalPDFs();
+
+    if (myProduction_==TVar::ZZINDEPENDENT){
+      RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+      prob = integral->getVal();
+      delete integral;
+    }
+    else prob = pdf->getVal();
+  }
+  else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
+
+    //initialize variables
+    checkZorder(mZ1, mZ2, costhetastar, costheta1, costheta2, phi, phi1);
+    ZZME->computeXS(
+      mZZ, mZ1, mZ2,
+      costhetastar, costheta1, costheta2,
+      phi, phi1, flavor,
+      myModel_, myME_, myProduction_,
+      prob
+      );
+
+    if (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ){
+      prob = 0;
+      int gridsize_hs = 5;
+      double hs_min = 0; //-1.;
+      double hs_max = 1;
+      double hs_step = (hs_max - hs_min) / double(gridsize_hs);
+
+      int gridsize_phi1 = 5;
+      double phi1_min = 0; //-TMath::Pi();
+      double phi1_max = TMath::Pi();
+      double phi1_step = (phi1_max - phi1_min) / double(gridsize_phi1);
+
+      for (int i_hs = 0; i_hs < gridsize_hs + 1; i_hs++) {
+        double hs_val = hs_min + i_hs * hs_step;
+        for (int i_phi1 = 0; i_phi1 < gridsize_phi1 +1; i_phi1++) {
+          double phi1_val = phi1_min + i_phi1 * phi1_step;
+          float temp_prob(0.);
+          // calculate the ZZ using MCFM
+          ZZME->computeXS(
+            mZZ, mZ1, mZ2,
+            hs_val, costheta1, costheta2,
+            phi, phi1_val, flavor,
+            myModel_, myME_, myProduction_,
+            temp_prob
+            );
+          prob += temp_prob;
+        }
+      }
+      prob =  prob / float((gridsize_hs + 1) * (gridsize_phi1 +1));
+    }
+  }
+
+  if (useConstant){
+    constant = getConstant(flavor, mZZ, false);
+    prob *= constant;
+  }
+
+  reset_SelfDCouplings();
+}
+
 
 
 
@@ -1975,42 +1982,51 @@ void Mela::computeD_gg(float mZZ, float mZ1, float mZ2, // input kinematics
 
 // Notice that these only set the members of MELA, not TEvtProb. TEvtProb resets itself.
 void Mela::reset_SelfDCouplings(){
+  // We have a lot of them.
+
   //****Spin-0****//
   differentiate_HWW_HZZ=false;
   for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfDHvvcoupl_freenorm[ic]=0;
+
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_HQQ; ic++) selfDHqqcoupl[ic][im]=0;
     for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im]=0;
-    for (int ic=0; ic<SIZE_HVV; ic++){
-      if (ic<SIZE_HVV_VBF){
-        selfDHzzcoupl_NoGamma[ic][im] = 0;
-        selfDHwwcoupl_NoGamma[ic][im] = 0;
+  }
+
+  // Loop over the number of supported resonances
+  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
+    for (int im=0; im<2; im++){
+      for (int ic=0; ic<SIZE_HVV; ic++){
+        selfDHzzcoupl[jh][ic][im] = 0;
+        selfDHwwcoupl[jh][ic][im] = 0;
       }
-      selfDHzzcoupl[ic][im] = 0;
-      selfDHwwcoupl[ic][im] = 0;
+    }
+    for (int ik=0; ik<3; ik++){
+      selfDHzzCLambda_qsq[jh][ik]=0;
+      selfDHwwCLambda_qsq[jh][ik]=0;
+      for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
+        selfDHzzLambda_qsq[jh][ic][ik] = 100.;
+        selfDHwwLambda_qsq[jh][ic][ik] = 100.;
+      }
     }
   }
-  for (int ik=0; ik<3; ik++){
-    selfDHzzCLambda_qsq[ik]=0;
-    selfDHwwCLambda_qsq[ik]=0;
-    for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
-      selfDHzzLambda_qsq[ic][ik] = 100.;
-      selfDHwwLambda_qsq[ic][ik] = 100.;
-    }
-  }
+
   //****Spin-1****//
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = 0;
     for (int ic=0; ic<SIZE_ZQQ; ic++) selfDZqqcoupl[ic][im] = 0;
   }
+
   //****Spin-2****//
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = 0;
     for (int ic=0; ic<SIZE_GGG; ic++) selfDGggcoupl[ic][im] = 0;
     for (int ic=0; ic<SIZE_GQQ; ic++) selfDGqqcoupl[ic][im] = 0;
   }
-  // Did I tell you that is a lot of them?
+
+  // Did I tell you that we have a lot of them?
 }
+void Mela::reset_CandRef(){ melaCand=0; }
 
 void Mela::configureAnalyticalPDFs(){
   // 

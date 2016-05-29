@@ -122,13 +122,19 @@ namespace TUtil{
   // The output lists could be members of TEvtProb directly.
   MELACandidate* ConvertVectorFormat(
     // Inputs
-    SimpleParticleCollection_t* pDaughters,
-    SimpleParticleCollection_t* pAssociated,
-    SimpleParticleCollection_t* pMothers,
+    SimpleParticleCollection_t* pDaughters, // Cannot be 0
+    SimpleParticleCollection_t* pAssociated, // Allowed to be 0
+    SimpleParticleCollection_t* pMothers, // Allowed to be 0
     bool isGen,
     // Outputs
     std::vector<MELAParticle*>* particleList,
     std::vector<MELACandidate*>* candList
+    );
+  MELACandidate* ConvertVectorFormat(
+    std::vector<MELAParticle*>& daughters,
+    std::vector<MELAParticle*>& aparticles,
+    std::vector<MELAParticle*>& mothers,
+    bool isGen
     );
   // Convert the vector of top daughters (as simple particles) to MELAParticles and create a MELATopCandidate
   // The output lists could be members of TEvtProb directly.

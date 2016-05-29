@@ -191,27 +191,30 @@ void newZZMatrixElement::set_SpinZeroCouplings(
   double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
   double selfDHqqcoupl[SIZE_HQQ][2],
   double selfDHggcoupl[SIZE_HGG][2],
-  double selfDHzzcoupl[SIZE_HVV][2],
-  double selfDHwwcoupl[SIZE_HVV][2],
-  double selfDHzzLambda_qsq[4][3],
-  double selfDHwwLambda_qsq[4][3],
-  int selfDHzzCLambda_qsq[3],
-  int selfDHwwCLambda_qsq[3],
+  double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2],
+  double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2],
+  double selfDHzzLambda_qsq[nSupportedHiggses][4][3],
+  double selfDHwwLambda_qsq[nSupportedHiggses][4][3],
+  int selfDHzzCLambda_qsq[nSupportedHiggses][3],
+  int selfDHwwCLambda_qsq[nSupportedHiggses][3],
   bool diffHWW
   ){
   Xcal2.AllowSeparateWWCouplings(diffHWW);
   for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfD_SpinZeroCouplings->SetHVVFreeNormCouplings(ic, selfDHvvcoupl_freenorm[ic]);
   for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHqqcoupl[ic][0], selfDHqqcoupl[ic][1]);
   for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHggcoupl[ic][0], selfDHggcoupl[ic][1]);
-  for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[ic][0], selfDHzzcoupl[ic][1], false, false);
-  for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[ic][0], selfDHwwcoupl[ic][1], false, true);
-  for (int ik=0; ik<3; ik++){
-    for (int ig=0; ig<4; ig++){
-      selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHzzLambda_qsq[ig][ik], false);
-      selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHwwLambda_qsq[ig][ik], true);
+
+  for (int jh=1; jh<=(int)nSupportedHiggses; jh++){
+    for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[jh-1][ic][0], selfDHzzcoupl[jh-1][ic][1], false, jh);
+    for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[jh-1][ic][0], selfDHwwcoupl[jh-1][ic][1], true, jh);
+    for (int ik=0; ik<3; ik++){
+      for (int ig=0; ig<4; ig++){
+        selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHzzLambda_qsq[jh-1][ig][ik], false, jh);
+        selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHwwLambda_qsq[jh-1][ig][ik], true, jh);
+      }
+      selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHzzCLambda_qsq[jh-1][ik], false, jh);
+      selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHwwCLambda_qsq[jh-1][ik], true, jh);
     }
-    selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHzzCLambda_qsq[ik], false);
-    selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHwwCLambda_qsq[ik], true);
   }
 }
 void newZZMatrixElement::set_SpinOneCouplings(

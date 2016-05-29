@@ -90,12 +90,15 @@ void MELACandidate::sortDaughtersInitial(){
     (df[0]->id<df[1]->id && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
     ||
     (df[0]->id<df[1]->id && df[0]->id<0 && PDGHelpers::HVVmass==PDGHelpers::Wmass)
+    ||
+    ((df[0]->id*df[1]->id>0 || (df[0]->id==0 && df[1]->id==0)) && df[0]->phi()<df[1]->phi())
     )
     ){
     MELAParticle* dtmp = df[0];
     df[0] = df[1];
     df[1] = dtmp;
   }
+
   if (
     (ds[0]!=0 && ds[1]!=0)
     &&
@@ -104,13 +107,15 @@ void MELACandidate::sortDaughtersInitial(){
     (ds[0]->id<ds[1]->id && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
     ||
     (ds[0]->id<ds[1]->id && ds[0]->id<0 && PDGHelpers::HVVmass==PDGHelpers::Wmass)
+    ||
+    ((ds[0]->id*ds[1]->id>0 || (ds[0]->id==0 && ds[1]->id==0)) && ds[0]->phi()<ds[1]->phi())
     )
     ){
     MELAParticle* dtmp = ds[0];
     ds[0] = ds[1];
     ds[1] = dtmp;
   }
-  if (df[1]==0 && df[0]!=0 && ds[0]!=0 && ds[1]!=0){
+  if (df[1]==0 && df[0]!=0 && ds[0]!=0 && ds[1]!=0){ // Swap GZ to ZG
     for (int ip=0; ip<2; ip++){
       MELAParticle* dtmp = ds[ip];
       ds[ip] = df[ip];

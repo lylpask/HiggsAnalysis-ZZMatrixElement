@@ -42,129 +42,66 @@ public:
   ~Mela();
 
   void setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Production myProduction);
-  void setMelaHiggsWidth(float myHiggsWidth=-1);
-  void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf = TVar::DefaultLeptonInterf);
-  void setRemoveLeptonMasses(bool MasslessLeptonSwitch = false);
+  void setMelaHiggsMass(double myHiggsMass, int index=0);
+  void setMelaHiggsWidth(double myHiggsWidth=-1, int index=0);
+  void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf=TVar::DefaultLeptonInterf);
+  void setRemoveLeptonMasses(bool MasslessLeptonSwitch=true);
   void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
 
-  void computeP(float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    float& prob,            // output probability
+
+  MelaIO* getIORecord(); // Full parton-by-parton ME record
+  MELACandidate* getCurrentCandidate();
+  int getCurrentCandidateIndex();
+  std::vector<MELATopCandidate*>* getTopCandidateCollection();
+
+
+  float getConstant(bool useOldggZZConstants=false);
+  float getConstant_m4l(bool useOldggZZConstants=false);
+  void get_PAux(float& prob); // SuperProb
+
+  void computeP_selfDspin0(
+    double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+    float& prob,
+    bool useConstant=false
+    );
+  void computeP_selfDspin0(
+    float& prob,
+    bool useConstant=false
+    );
+
+  void computeP_selfDspin1(
+    double selfDZvvcoupl_input[SIZE_ZVV][2],
+    float& prob,
+    bool useConstant=false
+    );
+  void computeP_selfDspin1(
+    float& prob,
+    bool useConstant=false
+    );
+
+  void computeP_selfDspin2(
+    double selfDGggcoupl_input[SIZE_GGG][2],
+    double selfDGvvcoupl_input[SIZE_GVV][2],
+    float& prob,
+    bool useConstant=false
+    );
+  void computeP_selfDspin2(
+    float& prob,
+    bool useConstant=false
+    );
+
+  void computeP(
+    double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
+    float& prob,
+    bool useConstant=true
+    );
+  void computeP(
+    float& prob,
     bool useConstant=true
     );
 
-  void computeP(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    double selfDHvvcoupl_input[SIZE_HVV][2],
-    float& prob                   // output probability
-    );
-  void computeP_selfDspin0(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    float& prob
-    );
-
-
-  void computeP_selfDspin2(
-    float mZZ, float mZ1, float mZ2, // spin 2 arbitray coupling 
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    double selfDGggcoupl_input[SIZE_GGG][2],
-    double selfDGvvcoupl_input[SIZE_GVV][2],
-    float& prob
-    );
-  void computeP_selfDspin2(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    float& prob
-    );
-
-
-  void computeP_selfDspin1(
-    float mZZ, float mZ1, float mZ2, // arbitrary spin 1 coupling 
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    double selfDZvvcoupl_input[SIZE_ZVV][2],
-    float& prob
-    );
-  void computeP_selfDspin1(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    float& prob
-    );
-
-  void computeP(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
-    double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
-    float& prob                   // output probability
-    );
-
-  void computeP(
-    TLorentzVector Z1_lept1, int Z1_lept1Id,  // input 4-vectors
-    TLorentzVector Z1_lept2, int Z1_lept2Id,  // 
-    TLorentzVector Z2_lept1, int Z2_lept1Id,
-    TLorentzVector Z2_lept2, int Z2_lept2Id,
-    float& prob                             // output probability
-    );
-
-  void computeP(
-    TLorentzVector Z1_lept1, int Z1_lept1Id,  // input 4-vectors
-    TLorentzVector Z1_lept2, int Z1_lept2Id,  // 
-    TLorentzVector Z2_lept1, int Z2_lept1Id,
-    TLorentzVector Z2_lept2, int Z2_lept2Id,
-    double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
-    float& prob                             // output probability
-    );
-
   void computeD_CP(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
     TVar::MatrixElement myME,
     TVar::Process myType,
     float& prob
@@ -173,89 +110,47 @@ public:
 
   //****VVH Spin-0****//
   void computeProdDecP(
-    TLorentzVector jet[2],
-    TLorentzVector Higgs_daughter[4],
-    int jet_pdgid[2],
-    int Higgs_daughter_pdgid[4],
-    double selfDHvvcoupl_input[SIZE_HVV][2],
-    double selfDHwwcoupl_input[SIZE_HVV][2],
-    float& prob
+    float& prob,
+    bool useConstant=true
     );
   void computeProdDecP(
-    TLorentzVector jet[2],
-    TLorentzVector Higgs_daughter[4],
-    int jet_pdgid[2],
-    int Higgs_daughter_pdgid[4],
-    float& prob
+    float& prob,
+    bool useConstant=true
     );
 
   //****HJ/HJJ/VBF Spin-0****//
   void computeProdP(
-    TLorentzVector Jet1, int Jet1_Id,
-    TLorentzVector Jet2, int Jet2_Id,
-    TLorentzVector Decay1, int Decay1_Id,
-    TLorentzVector Decay2, int Decay2_Id,
     double selfDHggcoupl_input[SIZE_HGG][2],
-    double selfDHvvcoupl_input[SIZE_HVV_VBF][2],
-    double selfDHwwcoupl_input[SIZE_HVV_VBF][2],
-    float& prob
+    double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+    double selfDHwwcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+    float& prob,
+    bool useConstant=true
     );
   void computeProdP(
-    TLorentzVector Jet1, int Jet1_Id,
-    TLorentzVector Jet2, int Jet2_Id,
-    TLorentzVector Decay1, int Decay1_Id,
-    TLorentzVector Decay2, int Decay2_Id,
-    float& prob
+    float& prob,
+    bool useConstant=true
     );
 
   //****VH Spin-0****//
   void computeProdP(
-    TLorentzVector V_daughter[2],
-    TLorentzVector Higgs_daughter[4],
-    int V_daughter_pdgid[2],
-    int Higgs_daughter_pdgid[4],
-    bool includeHiggsDecay,
-    double selfDHvvcoupl_input[SIZE_HVV_VBF][2],
-    float& prob
+    double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+    float& prob,
+    bool useConstant=true
     );
   void computeProdP(
-    TLorentzVector V_daughter[2],
-    TLorentzVector Higgs_daughter[4],
-    int V_daughter_pdgid[2],
-    int Higgs_daughter_pdgid[4],
-    bool includeHiggsDecay,
-    float& prob
+    float& prob,
+    bool includeHiggsDecay=false,
+    bool useConstant=true
     );
 
   //***ttH Spin-0****//
   void computeProdP(
-    TLorentzVector vTTH[6],
-    TLorentzVector Higgs,
-    int ttbar_daughters_pdgid[6],
-    double selfDHqqcoupl_input[SIZE_HQQ][2],
     float& prob,
     int topDecay=0,
-    int topProcess=2
-    );
-  void computeProdP(
-    TLorentzVector vTTH[6],
-    TLorentzVector Higgs,
-    int ttbar_daughters_pdgid[6],
-    float& prob,
-    int topDecay=0,
-    int topProcess=2
+    int topProcess=2,
+    bool useConstant=true
     );
 
-  //****JH/JJH Spin-0 general call****//
-  void computeProdP(
-    TLorentzVector p_first, int id_first,
-    TLorentzVector p_second, int id_second,
-    TLorentzVector Higgs,
-    float& prob
-    );
-
-  void get_PAux(float& prob){ prob = auxiliaryProb; }; // SuperProb
-  MelaIO* getIORecord(); // Full parton-by-parton ME record
 
   void computePM4l(
     float mZZ,
@@ -265,40 +160,21 @@ public:
     ); //SuperMela
 
   void computePM4l(
-    TLorentzVector Z1_lept1, int Z1_lept1Id,  // input 4-vectors
-    TLorentzVector Z1_lept2, int Z1_lept2Id,  // 
-    TLorentzVector Z2_lept1, int Z2_lept1Id,
-    TLorentzVector Z2_lept2, int Z2_lept2Id,
     TVar::SuperMelaSyst syst,
     float& prob
     ); //SuperMela
 
-
-  // Ordering of Z1/Z2 according to internal convention
-  void checkZorder(float& z1mass, float& z2mass, float& costhetastar, float& costheta1, float& costheta2, float& phi, float& phistar1);
 
   // Access ZZMEs Calculate4Momentum
   std::vector<TLorentzVector> calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi);
 
   // Calculation weight to correct for lepton interference
   void computeWeight(
-    float mZZ, float mZ1, float mZ2,
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
     // return variables:
     float& w
     );
 
   void computeWeight(
-    float mZZ, float mZ1, float mZ2,
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
     double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
     // return variables:
     float& w
@@ -329,11 +205,15 @@ public:
   TGraph* vaScale_2e2mu;
   TGraph* DggZZ_scalefactor;
   void setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]);
-  void constructDggr(float mzz, int flavor, float bkg_VAMCFM_noscale, float ggzz_VAMCFM_noscale, float ggHZZ_prob_pure_noscale, float ggHZZ_prob_int_noscale, float& myDggr);
-  float getConstant(int flavor, float mZZ, bool useOldggZZConstants=false);
+  void constructDggr(
+    float mzz, float bkg_VAMCFM_noscale,
+    float ggzz_VAMCFM_noscale, float ggHZZ_prob_pure_noscale,
+    float ggHZZ_prob_int_noscale, float& myDggr
+    );
 
   TGraph* tgtotalbkg[3];
-  void computeD_gg(float mZZ, float mZ1, float mZ2, // input kinematics
+  void computeD_gg(
+    float mZZ, float mZ1, float mZ2, // input kinematics
     float costhetastar,
     float costheta1,
     float costheta2,
@@ -351,14 +231,13 @@ public:
   double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM];
   double selfDHqqcoupl[SIZE_HQQ][2];
   double selfDHggcoupl[SIZE_HGG][2];
-  double selfDHzzcoupl[SIZE_HVV][2];
-  double selfDHwwcoupl[SIZE_HVV][2];
-  double selfDHzzcoupl_NoGamma[SIZE_HVV_VBF][2];
-  double selfDHwwcoupl_NoGamma[SIZE_HVV_VBF][2];
-  double selfDHzzLambda_qsq[4][3];
-  double selfDHwwLambda_qsq[4][3];
-  int selfDHzzCLambda_qsq[3];
-  int selfDHwwCLambda_qsq[3];
+  // The first dimension (of size [nSupportedHiggses=2]) supports a second resonance present in MCFM
+  double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2];
+  double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2];
+  double selfDHzzLambda_qsq[nSupportedHiggses][4][3];
+  double selfDHwwLambda_qsq[nSupportedHiggses][4][3];
+  int selfDHzzCLambda_qsq[nSupportedHiggses][3];
+  int selfDHwwCLambda_qsq[nSupportedHiggses][3];
   bool differentiate_HWW_HZZ;
   //****Spin-1****//
   double selfDZqqcoupl[SIZE_ZQQ][2];
@@ -369,7 +248,7 @@ public:
   double selfDGvvcoupl[SIZE_GVV][2];
   // That is a lot of them!
 
-private:
+protected:
 
   // 
   // data memmbers 
@@ -383,12 +262,15 @@ private:
 
   float auxiliaryProb;
 
+  MELACandidate* melaCand; // Pointer to persistent TEvtProb object
+
   //
-  // functions
+  // Functions
   //
   void configureAnalyticalPDFs();
   void reset_SelfDCouplings();
-  void reset_PAux(){ auxiliaryProb=1.; }; // SuperProb reset
+  void reset_PAux(); // SuperProb reset
+  void reset_CandRef();
 };
 
 #endif

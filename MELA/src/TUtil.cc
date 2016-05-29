@@ -3124,21 +3124,21 @@ MELACandidate* TUtil::ConvertVectorFormat(
   else if (pDaughters->size()>4){ cerr << "TUtil::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
   if (pMothers!=0 && pMothers->size()!=2){ cerr << "TUtil::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") has to have had been 2! Continuing by omitting mothers." << endl; /*return cand;*/ }
 
-  std::vector<MELAParticle>* daughters;
-  std::vector<MELAParticle>* aparticles;
-  std::vector<MELAParticle>* mothers;
-
+  // Create mother, daughter and associated particle MELAPArticle objects
+  std::vector<MELAParticle*> daughters;
+  std::vector<MELAParticle*> aparticles;
+  std::vector<MELAParticle*> mothers;
   for (unsigned int ip=0; ip<pDaughters->size(); ip++){
     MELAParticle* onePart = new MELAParticle((pDaughters->at(ip)).first, (pDaughters->at(ip)).second);
     onePart->setGenStatus(1); // Final state status
-    particleList->push_back(onePart);
+    if (particleList!=0) particleList->push_back(onePart);
     daughters.push_back(onePart);
   }
   if (pAssociated!=0){
     for (unsigned int ip=0; ip<pAssociated->size(); ip++){
       MELAParticle* onePart = new MELAParticle((pAssociated->at(ip)).first, (pAssociated->at(ip)).second);
       onePart->setGenStatus(1); // Final state status
-      particleList->push_back(onePart);
+      if (particleList!=0) particleList->push_back(onePart);
       aparticles.push_back(onePart);
     }
   }
@@ -3146,11 +3146,23 @@ MELACandidate* TUtil::ConvertVectorFormat(
     for (unsigned int ip=0; ip<pMothers->size(); ip++){
       MELAParticle* onePart = new MELAParticle((pMothers->at(ip)).first, (pMothers->at(ip)).second);
       onePart->setGenStatus(-1); // Mother status
-      particleList->push_back(onePart);
+      if (particleList!=0) particleList->push_back(onePart);
       mothers.push_back(onePart);
     }
   }
 
+  // Create the candidate
+  cand = TUtil::ConvertVectorFormat(daughters, aparticles, mothers);
+  if (candList!=0 && cand!=0) candList->push_back(cand);
+  return cand;
+}
+MELACandidate* ConvertVectorFormat(
+  // Inputs
+  std::vector<MELAParticle*>& daughters,
+  std::vector<MELAParticle*>& aparticles,
+  std::vector<MELAParticle*>& mothers,
+  bool isGen
+  ){
   /***** Adaptation of LHEAnalyzer::Event::constructVVCandidates *****/
   /*
   The assumption is that the daughters make sense for either ffb, gamgam, Zgam, ZZ or WW.
@@ -3217,7 +3229,7 @@ MELACandidate* TUtil::ConvertVectorFormat(
     if (isGen) cand->setGenStatus(-1); // Candidate is a gen. particle!
   }
   /***** Adaptation of LHEAnalyzer::Event::addVVCandidateAppendages *****/
-  if (aparticles.size()>0){ // ==2
+  if (aparticles.size()>0){
     for (int ip=0; ip<aparticles.size(); ip++){
       const int partId = (aparticles.at(ip))->id;
       if (PDGHelpers::isALepton(partId)) cand->addAssociatedLeptons(aparticles.at(ip));
@@ -3227,9 +3239,9 @@ MELACandidate* TUtil::ConvertVectorFormat(
     }
     cand->addAssociatedVs(); // For the VH topology
   }
-  candList->push_back(cand);
   return cand;
 }
+
 
 // Convert the vector of top daughters (as simple particles) to MELAParticles and create a MELATopCandidate
 // The output lists could be members of TEvtProb directly.

@@ -104,12 +104,12 @@ public:
     double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
     double selfDHqqcoupl[SIZE_HQQ][2],
     double selfDHggcoupl[SIZE_HGG][2],
-    double selfDHzzcoupl[SIZE_HVV][2],
-    double selfDHwwcoupl[SIZE_HVV][2],
-    double selfDHzzLambda_qsq[4][3],
-    double selfDHwwLambda_qsq[4][3],
-    int selfDHzzCLambda_qsq[3],
-    int selfDHwwCLambda_qsq[3],
+    double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2],
+    double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2],
+    double selfDHzzLambda_qsq[nSupportedHiggses][4][3],
+    double selfDHwwLambda_qsq[nSupportedHiggses][4][3],
+    int selfDHzzCLambda_qsq[nSupportedHiggses][3],
+    int selfDHwwCLambda_qsq[nSupportedHiggses][3],
     bool diffHWW = false
     );
   void set_SpinOneCouplings(
