@@ -6,10 +6,9 @@
 
 class MELACandidate : public MELAParticle{
 public:
-  MELACandidate(int id_, TLorentzVector p4_, bool associatedByHighestPt_=false) : MELAParticle(id_, p4_),associatedByHighestPt(associatedByHighestPt_) {}
-
-  ~MELACandidate(){ for (unsigned int i=0; i<sortedVs.size(); i++) delete sortedVs.at(i); sortedVs.clear(); sortedDaughters.clear(); associatedTops.clear(); associatedJets.clear(); associatedLeptons.clear(); associatedNeutrinos.clear(); associatedPhotons.clear(); }
-
+  MELACandidate(int id_, TLorentzVector p4_, bool associatedByHighestPt_=false);
+  ~MELACandidate();
+  MELACandidate* shallowCopy();
 
   // Member functions
 
@@ -43,12 +42,15 @@ public:
 
   void sortDaughters();
   void testPreSelectedDaughters();
+  bool testShallowCopy();
 
   bool daughtersInterfere()const;
-  void setAddAssociatedByHighestPt(bool associatedByHighestPt_){ associatedByHighestPt=associatedByHighestPt_; }
+  void setAddAssociatedByHighestPt(bool associatedByHighestPt_);
+  void setShallowCopy(bool flag);
 
 protected:
   bool associatedByHighestPt;
+  bool isShallowCopy;
 
   std::vector<MELAParticle*> associatedLeptons;
   std::vector<MELAParticle*> associatedNeutrinos;

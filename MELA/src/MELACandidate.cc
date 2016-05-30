@@ -2,6 +2,54 @@
 
 using namespace PDGHelpers;
 
+MELACandidate::MELACandidate(int id_, TLorentzVector p4_, bool associatedByHighestPt_) :
+MELAParticle(id_, p4_),
+associatedByHighestPt(associatedByHighestPt_),
+isShallowCopy(false)
+{}
+MELACandidate::~MELACandidate(){
+  if (!isShallowCopy){ // Delete owned objjects, or not
+    for (unsigned int i=0; i<sortedVs.size(); i++) delete sortedVs.at(i);
+  }
+  sortedVs.clear();
+
+  sortedDaughters.clear();
+  associatedTops.clear(); 
+  associatedJets.clear();
+  associatedLeptons.clear();
+  associatedNeutrinos.clear();
+  associatedPhotons.clear();
+}
+
+MELACandidate* MELACandidate::shallowCopy(){
+  MELACandidate* cand = new MELACandidate(id, p4, associatedByHighestPt);
+
+  // Copy particle content
+  cand->setSelected(passSelection);
+  cand->setGenStatus(genStatus);
+  cand->setLifetime(lifetime);
+  for (unsigned int ip=0; ip<mothers.size(); ip++) (cand->mothers).push_back(mothers.at(ip));
+  for (unsigned int ip=0; ip<daughters.size(); ip++) (cand->daughters).push_back(daughters.at(ip));
+
+  // Copy candidate content
+  cand->setShallowCopy(true);
+  for (unsigned int ip=0; ip<sortedDaughters.size(); ip++) (cand->sortedDaughters).push_back(sortedDaughters.at(ip));
+  for (unsigned int ip=0; ip<associatedJets.size(); ip++) (cand->associatedJets).push_back(associatedJets.at(ip));
+  for (unsigned int ip=0; ip<associatedNeutrinos.size(); ip++) (cand->associatedNeutrinos).push_back(associatedNeutrinos.at(ip));
+  for (unsigned int ip=0; ip<associatedLeptons.size(); ip++) (cand->associatedLeptons).push_back(associatedLeptons.at(ip));
+  for (unsigned int ip=0; ip<associatedPhotons.size(); ip++) (cand->associatedPhotons).push_back(associatedPhotons.at(ip));
+  for (unsigned int ip=0; ip<associatedTops.size(); ip++) (cand->associatedTops).push_back(associatedTops.at(ip));
+  for (unsigned int ip=0; ip<sortedVs.size(); ip++) (cand->sortedVs).push_back(sortedVs.at(ip));
+
+  return cand;
+}
+
+
+void MELACandidate::setAddAssociatedByHighestPt(bool associatedByHighestPt_){ associatedByHighestPt=associatedByHighestPt_; }
+void MELACandidate::setShallowCopy(bool flag){ isShallowCopy=flag; }
+bool MELACandidate::testShallowCopy(){ return isShallowCopy; }
+
+
 void MELACandidate::sortDaughters(){
   if (debugVars::debugFlag) std::cout << "Starting MELACandidate::sortDaughtersInitial" << std::endl;
   sortDaughtersInitial();
