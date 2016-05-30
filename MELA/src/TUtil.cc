@@ -2114,9 +2114,12 @@ double TUtil::JHUGenMatEl(
 
   // Determine te actual ids to compute the ME. Assign ids if any are unknown.
   for (int iv=0; iv<2; iv++){ // Max. 2 vector bosons
-    if (MYIDUP_tmp[2*iv+0]!=0 && MYIDUP_tmp[2*iv+1]!=0){ // Z->2l, W->lnu, G
+    if (MYIDUP_tmp[2*iv+0]!=0 && MYIDUP_tmp[2*iv+1]!=0){ // Z->2l,2nu,2q, W->lnu,qq', G
+      // OSSF pairs or just one "V-daughter"
       if (TMath::Sign(1, MYIDUP_tmp[2*iv+0])==TMath::Sign(1, -MYIDUP_tmp[2*iv+1]) || (MYIDUP_tmp[2*iv+0]==-9000 || MYIDUP_tmp[2*iv+1]==-9000)) idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1]));
-      else idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+1])); // Reverse sign of daughter if SSSF pair
+      // SSSF pairs, ordered already by phi, so avoid the re-ordering inside the ME
+      else if (MYIDUP_tmp[2*iv+0]<0) idarray[iv].push_back(pair(-MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1])); // Reverse sign of first daughter if SS(--)SF pair
+      else idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+1])); // Reverse sign of daughter if SS(++)SF pair
     }
     else if (MYIDUP_tmp[2*iv+0]!=0){ // ->f?,  one quark is known
       if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(iv))){ // (W+/-)->f?
