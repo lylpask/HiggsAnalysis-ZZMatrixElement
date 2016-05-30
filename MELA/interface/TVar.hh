@@ -66,6 +66,11 @@ public:
     InterfOn = 1,
     InterfOff=2
   };
+  enum FermionMassRemoval{
+    NoRemoval = 0,
+    ConserveDifermionMass = 1,
+    MomentumToEnergy=2
+  };
 
   enum Process{
 

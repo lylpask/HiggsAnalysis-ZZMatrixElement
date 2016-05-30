@@ -6,16 +6,16 @@
 
 #ifndef ZZ_COMMON
 #define ZZ_COMMON
-#include <TLorentzVector.h>
-#include <TTree.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TH1D.h>
-#include <TH2D.h>
 #include <string>
 #include <vector>
-#include <TFile.h>
-#include <TF1.h>
+#include "TLorentzVector.h"
+#include "TTree.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
+#include "TFile.h"
+#include "TF1.h"
 #include "TVar.hh"
 // Mod_Parameters
 #include "TModParameters.hh"
@@ -40,6 +40,90 @@
 
 
 namespace TUtil{
+  /// Remove fermion mass if the flag is set to true
+  extern bool forbidMassiveLeptons;
+  extern bool forbidMassiveJets;
+  extern TVar::FermionMassRemoval LeptonMassScheme;
+  extern TVar::FermionMassRemoval JetMassScheme;
+  void applyLeptonMassCorrection(bool flag=true);
+  void applyJetMassCorrection(bool flag=true);
+  void setLeptonMassScheme(TVar::FermionMassRemoval scheme=TVar::ConserveDifermionMass);
+  void setJetMassScheme(TVar::FermionMassRemoval scheme=TVar::ConserveDifermion);
+  // This version makes the masses of p1 and p2 to be m1 and m2, leaving p1+p2 unchanged.
+  void constrainedRemovePairMass(TLorentzVector& p1, TLorentzVector& p2, double m1=0, double m2=0);
+  // This version simply scales momentum to match energy for the desired mass.
+  void scaleMomentumToEnergy(TLorentzVector massiveJet, TLorentzVector& masslessJet, double mass=0);
+  // Function that has generic removal features
+  pair<TLorentzVector, TLorentzVector> removeMassFromPair(
+    TLorentzVector jet1, int jet1Id,
+    TLorentzVector jet2, int jet2Id,
+    double m1=0, double m2=0
+    );
+  // Function that adjusts top daughter kinematics
+  void adjustTopDaughters(SimpleParticleCollection_t& daughters); // Daughters are arranged as b, Wf, Wfb
+  // Compute a fake jet from the massless jets
+  void computeFakeJet(TLorentzVector realJet, TLorentzVector others, TLorentzVector& fakeJet); // Input massive + higgs -> output massless fake jet
+
+  /// Compute decay angles from the lepton four-vectors and pdgIds.  
+  /// Theta1 is the angle corresponding to Z1.
+  /// Z1_lept1 and  Z1_lept2 are supposed to come from the same Z.
+  /// Leptons are re-ordered internally according to a standard convention:
+  /// lept1 = negative-charged lepton (for OS pairs).
+  void computeAngles(
+    TLorentzVector Z1_lept1, int Z1_lept1Id,
+    TLorentzVector Z1_lept2, int Z1_lept2Id,
+    TLorentzVector Z2_lept1, int Z2_lept1Id,
+    TLorentzVector Z2_lept2, int Z2_lept2Id,
+    float& costhetastar,
+    float& costheta1,
+    float& costheta2,
+    float& Phi,
+    float& Phi1);
+  void computeAnglesCS(
+    TLorentzVector Z1_lept1, int Z1_lept1Id,
+    TLorentzVector Z1_lept2, int Z1_lept2Id,
+    TLorentzVector Z2_lept1, int Z2_lept1Id,
+    TLorentzVector Z2_lept2, int Z2_lept2Id,
+    float pbeam,
+    float& costhetastar,
+    float& costheta1,
+    float& costheta2,
+    float& Phi,
+    float& Phi1
+    );
+  // Angles of associated production
+  void computeVBFangles(
+    float& costhetastar,
+    float& costheta1,
+    float& costheta2,
+    float& Phi,
+    float& Phi1,
+    float& Q2V1,
+    float& Q2V2,
+    TLorentzVector p4M11, int Z1_lept1Id,
+    TLorentzVector p4M12, int Z1_lept2Id,
+    TLorentzVector p4M21, int Z2_lept1Id,
+    TLorentzVector p4M22, int Z2_lept2Id,
+    TLorentzVector jet1, int jet1Id,
+    TLorentzVector jet2, int jet2Id,
+    TLorentzVector* injet1, int injet1Id, // Gen. partons in lab frame
+    TLorentzVector* injet2, int injet2Id
+    );
+  void computeVHangles(
+    float& costhetastar,
+    float& costheta1,
+    float& costheta2,
+    float& Phi,
+    float& Phi1,
+    TLorentzVector p4M11, int Z1_lept1Id,
+    TLorentzVector p4M12, int Z1_lept2Id,
+    TLorentzVector p4M21, int Z2_lept1Id,
+    TLorentzVector p4M22, int Z2_lept2Id,
+    TLorentzVector jet1, int jet1Id,
+    TLorentzVector jet2, int jet2Id,
+    TLorentzVector* injet1, int injet1Id, // Gen. partons in lab frame
+    TLorentzVector* injet2, int injet2Id
+    );
 
   // Parameter settings
   void SetEwkCouplingParameters();
@@ -145,6 +229,8 @@ namespace TUtil{
     std::vector<MELAParticle*>* particleList,
     std::vector<MELATopCandidate*>* topCandList
     );
+
+
 
 }
 

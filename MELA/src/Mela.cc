@@ -22,7 +22,6 @@ Please adhere to the following coding conventions:
 #include <DataFormats/GeometryVector/interface/Pi.h>
 #include <FWCore/ParameterSet/interface/FileInPath.h>
 
-#include <ZZMatrixElement/MELA/interface/computeAngles.h>
 #include <ZZMatrixElement/MELA/interface/VectorPdfFactory.h>
 #include <ZZMatrixElement/MELA/interface/TensorPdfFactory.h>
 #include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU_ZgammaZZ_fast.h>
@@ -250,7 +249,8 @@ void appendTopCandidate(SimpleParticleCollection_t* TopDaughters){ ZZME->append_
 void Mela::resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   ZZME->reset_MCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }
-void Mela::setRemoveLeptonMasses(bool MasslessLeptonSwitch){ mela::applyLeptonMassCorrection(MasslessLeptonSwitch); }
+void Mela::setRemoveLeptonMasses(bool MasslessLeptonSwitch){ TUtil::applyLeptonMassCorrection(MasslessLeptonSwitch); }
+void Mela::setRemoveJetMasses(bool MasslessLeptonSwitch){ TUtil::applyJetMassCorrection(MasslessLeptonSwitch); }
 void Mela::setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
   ZZME->set_RenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
@@ -1121,9 +1121,9 @@ void Mela::computeProdP(
       Jet2=Jet1;
       Jet1=JetTmp;
     }
-    mela::computeJetMassless(Jet1, jet1massless);
+    TUtil::scaleMomentumToEnergy(Jet1, jet1massless);
     if (!(Jet2==nullFourVector) && myProduction_ != TVar::JH){
-      mela::computeJetMassless(Jet2, jet2massless);
+      TUtil::scaleMomentumToEnergy(Jet2, jet2massless);
     }
     else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) {
       mela::computeFakeJet(jet1massless, higgs, jet2massless);

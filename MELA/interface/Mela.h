@@ -45,6 +45,7 @@ public:
   void setVerbosity(TVar::VerbosityLevel verbosity_=TVar::ERROR);
   void setMelaLeptonInterference(TVar::LeptonInterference myLepInterf=TVar::DefaultLeptonInterf);
   void setRemoveLeptonMasses(bool MasslessLeptonSwitch=true);
+  void setRemoveJetMasses(bool MasslessLeptonSwitch=true);
   void setMelaHiggsMass(double myHiggsMass, int index=0);
   void setMelaHiggsWidth(double myHiggsWidth=-1, int index=0);
   void setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index);
