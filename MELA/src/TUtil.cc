@@ -903,7 +903,7 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
     }
   }
 
-  if (Q<=0){
+  if (Q<=0.){
     cout << "Scaling fails, defaulting to dynamic scheme m3456 " << endl;
     TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
     Q = fabs(pTotal.M());
@@ -912,13 +912,13 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
 }
 void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
   bool hasReset=false;
-  if (multiplier_ren<=0 || multiplier_fac<=0){
+  if (multiplier_ren<=0. || multiplier_fac<=0.){
     cerr << "Invalid scale multipliers" << endl;
     return;
   }
-  if (Q_ren<=1 || Q_fac<=1 || mynloop<=0 || mypartons.compare("Default")==0){
-    if (Q_ren<0) cout << "Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
-    if (Q_fac<0) cout << "Invalid factorization scale, setting to mH/2..." << endl;
+  if (Q_ren<=1. || Q_fac<=1. || mynloop<=0 || mypartons.compare("Default")==0){
+    if (Q_ren<0.) cout << "Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
+    if (Q_fac<0.) cout << "Invalid factorization scale, setting to mH/2..." << endl;
     Q_ren = (masses_mcfm_.hmass)*0.5;
     Q_fac = Q_ren;
     mynloop = 1;
@@ -1876,8 +1876,9 @@ double TUtil::SumMatrixElementPDF(
     p4[3][ipar] = momTmp->T();
     MomStore[ipar]=*momTmp;
   }
-
-  //for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+  if (verbosity >= TVar::DEBUG){
+    for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+  }
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
@@ -2012,7 +2013,7 @@ double TUtil::JHUGenMatEl(
 
   double msq[nmsq][nmsq]={ 0 }; // ME**2[parton2][parton1] for each incoming parton 1 and 2, used in RcdME
   int MYIDUP_tmp[4]={ 0 }; // Initial assignment array, unconverted. 0==Unassigned
-  vector<int> idarray[4]; // All possible ids for each daughter based on the value of MYIDUP_tmp[0:3] and the desired V ids taken from mela_event.intermediateVid.at(0:1)
+  vector<pair<int, int>> idarray[2]; // All possible ids for each daughter based on the value of MYIDUP_tmp[0:3] and the desired V ids taken from mela_event.intermediateVid.at(0:1)
   int MYIDUP[4]={ 0 }; // "Working" assignment, converted
   int idfirst[2]={ 0 }; // Used to set DecayMode1, = MYIDUP[0:1]
   int idsecond[2]={ 0 }; // Used to set DecayMode2, = MYIDUP[2:3]
@@ -2090,10 +2091,12 @@ double TUtil::JHUGenMatEl(
       else MYIDUP_tmp[ipar] = -9000; // No need to set p4, which is already 0 by initialization
       // __modparameters_MOD_not_a_particle__?
     }
-    cout << "MYIDUP_tmp[" << ipar << "]=" << MYIDUP_tmp[ipar] << endl;
+    if (verbosity >= TVar::DEBUG) cout << "MYIDUP_tmp[" << ipar << "]=" << MYIDUP_tmp[ipar] << endl;
   }
 
-  for (int idau=0; idau<4; idau++) cout << "MYIDUP_tmp[" << idau << "]=" << MYIDUP_tmp[idau] << endl;
+  if (verbosity >= TVar::DEBUG){
+    for (int idau=0; idau<4; idau++) cout << "MYIDUP_tmp[" << idau << "]=" << MYIDUP_tmp[idau] << endl;
+  }
 
   // FIXME: SETALPHAS DOES NOT MODIFY JHUGENMELA
   // Set alphas
@@ -2109,142 +2112,121 @@ double TUtil::JHUGenMatEl(
   //  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
-  for (int idau=0; idau<4; idau++){
-    // If id is known, just assign it.
-    if (MYIDUP_tmp[idau]!=0) idarray[idau].push_back(MYIDUP_tmp[idau]);
-    else{
-      if (idau<2 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))){ // Z->ffb
-        if (MYIDUP_tmp[1-idau]!=0) idarray[idau].push_back(-MYIDUP_tmp[1-idau]); // Z->f+unknown (I don't know how this could happen, but cover this case as well)
-        else if(idau==0){
-          for (int iquark=1; iquark<=5; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
-            idarray[idau].push_back(iquark);
-            idarray[1-idau].push_back(-iquark);
+  // Determine te actual ids to compute the ME. Assign ids if any are unknown.
+  for (int iv=0; iv<2; iv++){ // Max. 2 vector bosons
+    if (MYIDUP_tmp[2*iv+0]!=0 && MYIDUP_tmp[2*iv+1]!=0){ // Z->2l, W->lnu, G
+      if (TMath::Sign(1, MYIDUP_tmp[2*iv+0])==TMath::Sign(1, -MYIDUP_tmp[2*iv+1]) || (MYIDUP_tmp[2*iv+0]==-9000 || MYIDUP_tmp[2*iv+1]==-9000)) idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1]));
+      else idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+1])); // Reverse sign of daughter if SSSF pair
+    }
+    else if (MYIDUP_tmp[2*iv+0]!=0){ // ->f?,  one quark is known
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(iv))){ // (W+/-)->f?
+        if (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2*iv+0])){ // (W+)->u?
+          int id_dn = TMath::Sign(1, -MYIDUP_tmp[2*iv+0]);
+          int id_st = TMath::Sign(3, -MYIDUP_tmp[2*iv+0]);
+          int id_bt = TMath::Sign(5, -MYIDUP_tmp[2*iv+0]);
+          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_dn));
+          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_st));
+          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_bt));
+        }
+        else if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2*iv+0])){ // (W-)->d?
+          int id_up = TMath::Sign(2, -MYIDUP_tmp[2*iv+0]);
+          int id_ch = TMath::Sign(4, -MYIDUP_tmp[2*iv+0]);
+          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_up));
+          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_ch));
+        }
+      }
+      else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(iv))){ // Z->f?
+        idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+0]));
+      }
+    }
+    else if (MYIDUP_tmp[2*iv+1]!=0){ // ->?fb,  one quark is known
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(iv))){ // (W+/-)->?fb
+        if (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2*iv+1])){ // (W-)->?ub
+          int id_dn = TMath::Sign(1, -MYIDUP_tmp[2*iv+1]);
+          int id_st = TMath::Sign(3, -MYIDUP_tmp[2*iv+1]);
+          int id_bt = TMath::Sign(5, -MYIDUP_tmp[2*iv+1]);
+          idarray[iv].push_back(pair(id_dn, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair(id_st, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair(id_bt, MYIDUP_tmp[2*iv+1]));
+        }
+        else if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2*iv+1])){ // (W+)->?db
+          int id_up = TMath::Sign(2, -MYIDUP_tmp[2*iv+1]);
+          int id_ch = TMath::Sign(4, -MYIDUP_tmp[2*iv+1]);
+          idarray[iv].push_back(pair(id_up, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair(id_ch, MYIDUP_tmp[2*iv+1]));
+        }
+      }
+      else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(iv))){ // Z->?fb
+        idarray[iv].push_back(pair(-MYIDUP_tmp[2*iv+1], MYIDUP_tmp[2*iv+1]));
+      }
+    }
+    else{ // Both fermions unknown
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(iv))){ // (W+/-)->??
+        for (int iqu=1; iqu<=2; iqu++){
+          int id_up = iqu*2;
+          for (int iqd=1; iqd<=3; iqd++){
+            int id_dn = iqd*2-1;
+            if (iv==0){ idarray[iv].push_back(pair(id_up, -id_dn)); idarray[iv].push_back(pair(-id_dn, id_up)); }
+            else{ idarray[iv].push_back(pair(id_dn, -id_up)); idarray[iv].push_back(pair(-id_up, id_dn)); }
           }
         }
       }
-      else if (idau<2 && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))){ // (W+)->ffb
-        if (MYIDUP_tmp[1-idau]!=0){ // One quark is known
-          if (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1-idau])){
-            int id_dn = TMath::Sign(1, -MYIDUP_tmp[1-idau]);
-            int id_st = TMath::Sign(3, -MYIDUP_tmp[1-idau]);
-            int id_bt = TMath::Sign(5, -MYIDUP_tmp[1-idau]);
-            idarray[idau].push_back(id_dn);
-            idarray[idau].push_back(id_st);
-            idarray[idau].push_back(id_bt);
-          }
-          else if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1-idau])){
-            int id_up = TMath::Sign(2, -MYIDUP_tmp[1-idau]);
-            int id_ch = TMath::Sign(4, -MYIDUP_tmp[1-idau]);
-            idarray[idau].push_back(id_up);
-            idarray[idau].push_back(id_ch);
-          }
-        }
-        else if (idau==0){ // Both quarks unknown
-          for (int iquark=1; iquark<=5; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
-            if (PDGHelpers::isUpTypeQuark(iquark)) idarray[idau].push_back(iquark); // Assign u to f
-            else idarray[1-idau].push_back(-iquark); // Assign db to fb
-          }
-        }
-      }
-      if (idau>=2 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))){ // Z->ffb
-        if (MYIDUP_tmp[5-idau]!=0) idarray[idau].push_back(-MYIDUP_tmp[5-idau]); // Z->f+unknown (I don't know how this could happen, but cover this case as well)
-        else if (idau==2){
-          for (int iquark=1; iquark<=5; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
-            idarray[idau].push_back(iquark);
-            idarray[5-idau].push_back(-iquark);
-          }
-        }
-      }
-      else if (idau>=2 && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))){ // (W-)->ffb
-        if (MYIDUP_tmp[5-idau]!=0){ // One quark is known
-          if (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[5-idau])){
-            int id_dn = TMath::Sign(1, -MYIDUP_tmp[5-idau]);
-            int id_st = TMath::Sign(3, -MYIDUP_tmp[5-idau]);
-            int id_bt = TMath::Sign(5, -MYIDUP_tmp[5-idau]);
-            idarray[idau].push_back(id_dn);
-            idarray[idau].push_back(id_st);
-            idarray[idau].push_back(id_bt);
-          }
-          if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[5-idau])){
-            int id_up = TMath::Sign(2, -MYIDUP_tmp[5-idau]);
-            int id_ch = TMath::Sign(4, -MYIDUP_tmp[5-idau]);
-            idarray[idau].push_back(id_up);
-            idarray[idau].push_back(id_ch);
-          }
-        }
-        else if (idau==2){ // Both quarks unknown
-          for (int iquark=-5; iquark<=-1; iquark++){ // iquark in PDG convention; 1/3/5 are dn-type
-            if (PDGHelpers::isDownTypeQuark(iquark)) idarray[idau].push_back(-iquark); // Assign d to f
-            else idarray[5-idau].push_back(iquark); // Assign ub to fb
-          }
-        }
+      else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(iv))){ // Z->??
+        for (int iq=1; iq<=5; iq++){ idarray[iv].push_back(pair(iq, -iq)); idarray[iv].push_back(pair(-iq, iq)); }
       }
     }
   }
 
   int nNonZero=0;
-  for (int d1=0; d1<idarray[0].size(); d1++){
-    for (int d2=0; d2<idarray[1].size(); d2++){
-      for (int d3=0; d1<idarray[2].size(); d3++){
-        for (int d4=0; d1<idarray[3].size(); d4++){
-          if (
-            (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && idarray[0].at(d1)!=-idarray[1].at(d2))
-            ||
-            (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)) && idarray[2].at(d3)!=-idarray[2].at(d4))
-            ) continue;
-          // Convert the particles
-          MYIDUP[0] = convertLHEreverse(&(idarray[0].at(d1)));
-          MYIDUP[1] = convertLHEreverse(&(idarray[1].at(d2)));
-          MYIDUP[2] = convertLHEreverse(&(idarray[2].at(d3)));
-          MYIDUP[3] = convertLHEreverse(&(idarray[3].at(d4)));
-          // TEST: Print particles
-          cout << "TUtil::JHUGenMatEl: d1-d4=\t" << d1 << '\t' << d2 << '\t' << d3 << '\t' << d4 << endl;
-          for (int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl;
-          // Determine M_V and Ga_V in JHUGen, needed for g1 vs everything else.
-          for (int ip=0; ip<2; ip++){ idfirst[ip]=MYIDUP[ip]; idsecond[ip]=MYIDUP[ip+2]; }
-          __modjhugenmela_MOD_setdecaymodes(idfirst, idsecond); // Set M_V and Ga_V in JHUGen
+  for (unsigned int v1=0; v1<idarray[0].size(); v1++){
+    for (unsigned int v2=0; v2<idarray[1].size(); v2++){
+      // Convert the particle ids to JHU convention
+      MYIDUP[0] = convertLHEreverse(&(idarray[0].at(v1).first));
+      MYIDUP[1] = convertLHEreverse(&(idarray[0].at(v1).second));
+      MYIDUP[2] = convertLHEreverse(&(idarray[1].at(v2).first));
+      MYIDUP[3] = convertLHEreverse(&(idarray[1].at(v2).second));
 
-          double MatElTmp=0.;
-          int idIntermediate[2]={ mela_event.intermediateVid.at(0), mela_event.intermediateVid.at(1) };
-          if (
-            (PDGHelpers::isAWBoson(idIntermediate[0]) && PDGHelpers::isAWBoson(idIntermediate[1]))
-            ||
-            (
-            (PDGHelpers::isAZBoson(idIntermediate[0]) || PDGHelpers::isAPhoton(idIntermediate[0]))
-            &&
-            (PDGHelpers::isAZBoson(idIntermediate[1]) || PDGHelpers::isAPhoton(idIntermediate[1]))
-            )
-            ){
-            if (production == TVar::ZZGG){
-              if (isSpinZero){
-                //__modkinematics_MOD_evalalphas();
-                __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
-              }
-              else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElTmp);
-            }
-            else if (production == TVar::ZZQQB){
-              if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, MYIDUP, &MatElTmp);
-              else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, MYIDUP, &MatElTmp);
-            }
-            else if (production == TVar::ZZINDEPENDENT){
-              if (isSpinZero) __modhiggs_MOD_evalamp_h_vv(p4, MYIDUP, &MatElTmp);
-              else if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(p4, MYIDUP, &MatElTmp);
-              else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
-            }
-            // Add CKM elements since they are not included
-            if (PDGHelpers::isAWBoson(idIntermediate[0])) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(d1)), &(idarray[1].at(d2)))/__modparameters_MOD_scalefactor(&(idarray[0].at(d1)), &(idarray[1].at(d2))), 2);
-            if (PDGHelpers::isAWBoson(idIntermediate[1])) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[2].at(d3)), &(idarray[3].at(d4)))/__modparameters_MOD_scalefactor(&(idarray[2].at(d3)), &(idarray[3].at(d4))), 2);
-          }
-
-          cout << "TUtil::JHUGenMatEl: MatElTmp = " << MatElTmp << endl;
-          MatElSq += MatElTmp;
-          if (MatElTmp>0.) nNonZero++;
-        }
+      // Check working ids
+      if (verbosity>=TVar::DEBUG){
+        cout << "TUtil::JHUGenMatEl: d1-d4=\t" << d1 << '\t' << d2 << '\t' << d3 << '\t' << d4 << endl;
+        for (int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl;
       }
+
+      // Determine M_V and Ga_V in JHUGen, needed for g1 vs everything else.
+      for (int ip=0; ip<2; ip++){ idfirst[ip]=MYIDUP[ip]; idsecond[ip]=MYIDUP[ip+2]; }
+      __modjhugenmela_MOD_setdecaymodes(idfirst, idsecond); // Set M_V and Ga_V in JHUGen
+
+      double MatElTmp=0.;
+      if (production == TVar::ZZGG){
+        if (isSpinZero){
+          //__modkinematics_MOD_evalalphas(); // FIXME
+          __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
+        }
+        else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElTmp);
+      }
+      else if (production == TVar::ZZQQB){
+        if (isSpinOne) __modzprime_MOD_evalamp_qqb_zprime_vv(p4, MYIDUP, &MatElTmp);
+        else if (isSpinTwo) __modgraviton_MOD_evalamp_qqb_g_vv(p4, MYIDUP, &MatElTmp);
+      }
+      else if (production == TVar::ZZINDEPENDENT){
+        if (isSpinZero) __modhiggs_MOD_evalamp_h_vv(p4, MYIDUP, &MatElTmp);
+        else if (isSpinOne) __modzprime_MOD_evalamp_zprime_vv(p4, MYIDUP, &MatElTmp);
+        else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
+      }
+      // Add CKM elements since they are not included
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(d1)), &(idarray[1].at(d2)))/__modparameters_MOD_scalefactor(&(idarray[0].at(d1)), &(idarray[1].at(d2))), 2);
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[2].at(d3)), &(idarray[3].at(d4)))/__modparameters_MOD_scalefactor(&(idarray[2].at(d3)), &(idarray[3].at(d4))), 2);
+
+      if (verbosity >= TVar::DEBUG) cout << "TUtil::JHUGenMatEl: Instance MatElTmp = " << MatElTmp << '\n' << endl;
+      MatElSq += MatElTmp;
+      if (MatElTmp>0.) nNonZero++;
     }
   }
   if (nNonZero>0) MatElSq /= ((double)nNonZero);
-  cout << "TUtil::JHUGenMatEl: Number of matrix element instances computed: " << nNonZero << endl;
+  if (verbosity >= TVar::DEBUG){
+    cout << "TUtil::JHUGenMatEl: Number of matrix element instances computed: " << nNonZero << endl;
+    cout << "TUtil::JHUGenMatEl: MatElSq after division = " << MatElSq << endl;
+  }
   // This constant is needed to account for the different units used in
   // JHUGen compared to the MCFM
   double constant = 1.45e-8;
@@ -2273,10 +2255,7 @@ double TUtil::JHUGenMatEl(
     RcdME->computeWeightedMEArray();
   }
 
-/*
-  for (int i=0; i<6; i++) cout << "p4["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]*100. << '\t' << p4[i][2]*100. << '\t' << p4[i][3]*100. << '\t' << p4[i][0]*100. << endl;
-  cout << "MatElSq=" << endl;
-*/
+  if (verbosity >= TVar::DEBUG) cout << "TUtil::JHUGenMatEl: Final MatElSq = " << MatElSq << endl;
 
   // Reset alphas
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
@@ -3563,7 +3542,7 @@ void TUtil::GetBoostedParticleVectors(
     // Undecayed Higgs has V1=H, V2=empty, no sortedDaughters!
     daughters.push_back(SimpleParticle_t(melaCand->id, melaCand->p4));
     idVstar.push_back(melaCand->id);
-    //idVstar.push_back(-9000);
+    idVstar.push_back(-9000);
   }
   else{
     // H->ffb has V1=f->f, V2=fb->fb
@@ -3583,7 +3562,7 @@ void TUtil::GetBoostedParticleVectors(
           idVstar.push_back(idtmp);
         }
       }
-      //else idVstar.push_back(-9000);
+      else idVstar.push_back(-9000);
     }
   }
   if (daughters.size()>=2){
@@ -3663,6 +3642,8 @@ void TUtil::GetBoostedParticleVectors(
           associated_tmp.push_back(SimpleParticle_t(part->id, part->p4));
         }
       }
+      // Add the id of the intermediate V into the idVstar array
+      if (associated_tmp.size()>=2 || (associated_tmp.size()==1 && PDGHelpers::isAPhoton(associated_tmp.at(0).first))) idVstar.push_back(Vdau->id); // Only add the V-id of pairs that passed
       // Adjust the kinematics of associated V-originating particles
       if (associated_tmp.size()>=2){ // ==1 means a photon, so omit it here.
         unsigned int nffs = associated_tmp.size()/2;
