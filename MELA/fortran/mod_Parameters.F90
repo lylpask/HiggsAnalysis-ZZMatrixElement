@@ -6,7 +6,6 @@ save
 character(len=6),parameter :: JHUGen_Version="v6.9.9"
 !
 !
-!
 !=====================================================
 !internal
 integer, public, parameter  :: dp = selected_real_kind(15)
@@ -15,7 +14,6 @@ integer, public, parameter :: ZZMode=00,ZgsMode=01,gsZMode=02,gsgsMode=03
 integer, public, parameter :: WWMode=10
 integer, public, parameter :: ggMode=20
 integer, public, parameter :: ZgMode=30,gsgMode=31
-
 integer, public :: Collider,PChannel,Process,DecayMode1,DecayMode2,TopDecays,TauDecays
 integer, public :: VegasIt1,VegasNc0,VegasNc1,VegasNc2,PMZZEvals
 real(8), public :: Collider_Energy
@@ -51,10 +49,12 @@ logical, public :: warmup
 character(len=500) :: DataFile
 character(len=100) :: LogFile
 character(len=500) :: LHEProdFile
+! PDFset variables, present regardless of useLHAPDF value due to MELA
 character(len=100) :: LHAPDFString
 character(len=500) :: LHAPDF_DATA_PATH
-integer, public :: LHAPDFMember, lenLHAPDFString
+integer, public :: LHAPDFMember, lenLHAPDFString ! lenLHAPDFString is needed in MELA
 integer, public :: PDFSet
+! End PDFset variables
 logical, public :: includeInterference, writegit
 real(8), public :: M_V,Ga_V
 real(8), public, parameter :: GeV=1d0/100d0 ! we are using units of 100GeV, i.e. Lambda=10 is 1TeV
@@ -592,9 +592,7 @@ interface ReadCommandLineArgument
 end interface
 
 
-
 CONTAINS
-
 
 
 function HVVSpinZeroDynamicCoupling (index,sWplus,sWminus,sWW,tryWWcoupl)
@@ -1844,7 +1842,7 @@ end subroutine ReadCommandLineArgument_string
          pol_mass(2)=(ct*cphi-pol*ci*sphi)/sqrt2
          pol_mass(3)=(ct*sphi+pol*ci*cphi)/sqrt2
          pol_mass(4)=-st/sqrt2
-      elseif (pol.eq.0) then
+      else if(pol.eq.0) then
          pol_mass(1)= pv/m
          pol_mass(2)= p0/m/pv*px
          pol_mass(3)= p0/m/pv*py
@@ -2071,7 +2069,5 @@ subroutine spinoru(p,za,zb,s)
 !========================================================================
 
 
+
 END MODULE
-
-
-

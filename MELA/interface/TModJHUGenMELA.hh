@@ -5,6 +5,7 @@ extern "C" {
   void __modjhugenmela_MOD_sethiggsmasswidth(double *mass, double *width);
   void __modjhugenmela_MOD_setdecaymodes(int idfirst[2], int idsecond[2]);
   void __modjhugenmela_MOD_settopdecays(int* flag);
+  void __modjhugenmela_MOD_setmurenfac(double* muren, double* mufac);
 
   // NOTE: LOGICAL==INT, LOGICAL*1==BOOL(!???): http://www.yolinux.com/TUTORIALS/LinuxTutorialMixingFortranAndC.html
   void __modjhugenmela_MOD_setspinzerovvcouplings        (double vvcoupl[39][2], int cqsq[3], double Lambda_qsq[4][3], int* usewwcoupl); // YES, THE LAST ARGUMENT IS AN INT!

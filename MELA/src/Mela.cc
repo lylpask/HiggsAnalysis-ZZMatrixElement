@@ -44,6 +44,7 @@ Please adhere to the following coding conventions:
 #include <sys/types.h>
 
 
+using namespace std;
 using namespace RooFit;
 
 Mela::Mela(
@@ -54,8 +55,9 @@ Mela::Mela(
   melaCand(0)
 {
   const double maxSqrts = 8.;
-  //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing fermion masses
+
   setVerbosity(TVar::ERROR);
+  //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing fermion masses
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing fermion masses to compute MEs that expect massless fermions properly
 
   // Create symlinks to the required files, if these are not already present (do nothing otherwse)
@@ -104,7 +106,7 @@ Mela::Mela(
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel", "qqZZmodel", *z1mass_rrv, *z2mass_rrv, *costheta1_rrv, *costheta2_rrv, *phi_rrv, *costhetastar_rrv, *phi1_rrv, *mzz_rrv, *upFrac_rrv);
 
   edm::FileInPath HiggsWidthFile("ZZMatrixElement/MELA/data/HiggsTotalWidth.txt");
-  std::string path = HiggsWidthFile.fullPath();
+  string path = HiggsWidthFile.fullPath();
   edm::FileInPath path_nnpdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
   char path_nnpdf_c[] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
   int pdfmember = 0;
@@ -144,22 +146,22 @@ Mela::Mela(
   RooMsgService::instance().setStreamStatus(0, kFALSE);// silence also the error messages, but should really be looked at.
 
   myR=new TRandom3(35797);
-  //  std::cout << "before supermela" << std::endl;
+  //  cout << "before supermela" << endl;
 
   int superMELA_LHCsqrts = LHCsqrts;
   if (superMELA_LHCsqrts > maxSqrts) superMELA_LHCsqrts = maxSqrts;
   super = new SuperMELA(mh_, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
   char cardpath[500];
   sprintf(cardpath, "ZZMatrixElement/MELA/data/CombinationInputs/SM_inputs_%dTeV/inputs_4mu.txt", superMELA_LHCsqrts);
-  //std::cout << "before supermela, pathToCards: " <<cardpath<< std::endl;
+  //cout << "before supermela, pathToCards: " <<cardpath<< endl;
   edm::FileInPath cardfile(cardpath);
-  std::string cpath=cardfile.fullPath();
-  //std::cout << cpath.substr(0,cpath.length()-14).c_str()  <<std::endl;
+  string cpath=cardfile.fullPath();
+  //cout << cpath.substr(0,cpath.length()-14).c_str()  <<endl;
   super->SetPathToCards(cpath.substr(0, cpath.length()-14).c_str());
   super->SetVerbosity(false);
-  // std::cout << "starting superMELA initialization" << std::endl;
+  // cout << "starting superMELA initialization" << endl;
   super->init();
-  //std::cout << "after supermela" << std::endl;
+  //cout << "after supermela" << endl;
   edm::FileInPath CTotBkgFile("ZZMatrixElement/MELA/data/ZZ4l-C_TotalBkgM4lGraph.root");
   TFile* finput_ctotbkg = TFile::Open(CTotBkgFile.fullPath().c_str(), "read");
   for (int i=0; i<3; i++) tgtotalbkg[i] = 0;
@@ -171,7 +173,7 @@ Mela::Mela(
 }
 
 Mela::~Mela(){
-//  std::cout << "begin destructor" << std::endl;  
+//  cout << "begin destructor" << endl;  
   //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
 
@@ -199,7 +201,7 @@ Mela::~Mela(){
   delete super;
   delete myR;
 
-//  std::cout << "end destructor" << std::endl;
+//  cout << "end destructor" << endl;
 }
 
 // Set-functions
@@ -265,7 +267,7 @@ MelaIO* Mela::getIORecord(){ return ZZME->get_IORecord(); }
 // Candidate functions
 MELACandidate* Mela::getCurrentCandidate(){ return ZZME->get_CurrentCandidate(); }
 int Mela::getCurrentCandidateIndex(){ return ZZME->get_CurrentCandidateIndex(); }
-vector<MELATopCandidate*>* Mela::getTopCandidateCollection(){ return ZZME->get_TopCandidateCollection(); }
+std::vector<MELATopCandidate*>* Mela::getTopCandidateCollection(){ return ZZME->get_TopCandidateCollection(); }
 void Mela::reset_CandRef(){ melaCand=0; }
 
 

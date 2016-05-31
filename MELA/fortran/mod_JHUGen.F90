@@ -7,7 +7,7 @@ MODULE ModJHUGen
 #endif
    implicit none
 
-   public :: InitFirstTime
+   public :: InitFirstTime,ResetPDFs
 
    CONTAINS
 
@@ -24,7 +24,6 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
 
    Collider=1
    VegasIt1=-1
-   PDFSet=3      ! 1: CTEQ6L1   2: MRSW with best fit, 2xx: MSTW with eigenvector set xx=01..40
    VegasNc0=-1
    VegasNc1=-1
    VegasNc2=-1
@@ -38,6 +37,7 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
    TopDecays=-1
    TauDecays=-1
    Process = 0   ! select 0, 1 or 2 to represent the spin of the resonance
+   PDFSet=3      ! 1: CTEQ6L1   2: MRSW with best fit, 2xx: MSTW with eigenvector set xx=01..40
    LHAPDFString = pdftable
    LHAPDFMember = pdfmember
    lenLHAPDFString = pdfstrlength
@@ -53,7 +53,12 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
 
 #if useLHAPDF==1
    if( LHAPDFString.eq."" ) then
-      print *, "Need to specify pdf file name in command line argument LHAPDF"
+      print *, "Need to specify pdf file for LHAPDF"
+      stop
+   endif
+#else
+   if( LHAPDFString.eq."" .and. PDFSet.eq.3) then
+      print *, "Need to specify pdf file for NNPDF"
       stop
    endif
 #endif
@@ -69,8 +74,6 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
       Ga_V= 0d0
    endif
 
-   !includeInterference = .true.
-
    call InitPDFs()
    IF( COLLIDER.EQ.1) THEN
       Collider_Energy  = LHC_Energy
@@ -83,6 +86,25 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
 END SUBROUTINE
 
 
+
+SUBROUTINE InitPDFValues()
+   use ModParameters
+   use ModKinematics
+   implicit none
+
+#if useLHAPDF==0
+   IF (alphas_mz .LE. 0d0) THEN
+      WRITE(6,*) 'alphas_mz .le. 0:',alphas_mz
+      WRITE(6,*) 'continuing with alphas_mz=0.118'
+      alphas_mz=0.118d0
+   ENDIF
+#endif
+
+   Mu_Fact = M_Reso ! Set pdf scale to resonance mass by default, later changed as necessary in the EvalWeighted/EvalUnweighted subroutines
+	Mu_Ren = M_Reso ! Set renorm. scale to resonance mass by default, later changed as necessary in the EvalWeighted/EvalUnweighted subroutines
+   call EvalAlphaS() ! Set alphas at default Mu_Ren. Notice ModParameters::ComputeQCDVariables is automatically called!
+   return
+END SUBROUTINE
 
 SUBROUTINE InitPDFs()
 
@@ -107,15 +129,23 @@ SUBROUTINE InitPDFs()
 
      zmass_pdf = M_Z ! Take zmass_pdf=M_Z in pdfs that do not specify this value
 
-     if( PDFSet.eq.3 ) then  ! NNPDF 3.0 LO with a_s=0.13
+     if( PDFSet.eq.1 ) then ! CTEQ6L1
+        call SetCtq6(4)  ! 4    CTEQ6L1  Leading Order cteq6l1.tbl
+
+        alphas_mz=0.130d0
+        !nloops_pdf=1
+     elseif( PDFSet.eq.3 ) then  ! NNPDF 3.0 LO with a_s=0.13
         call NNPDFDriver(LHAPDFString,lenLHAPDFString)
         call NNinitPDF(LHAPDFMember)
 
         alphas_mz=0.130d0
         !nloops_pdf=1
         zmass_pdf=91.199996948242188d0*GeV
+     elseif( (PDFSet.eq.2) .or. (PDFSet.ge.201 .and. PDFSet.le.240) ) then ! MSTW2008 and variations
+        alphas_mz=0.13939d0
+        !nloops_pdf=1
      else ! Everything else
-        write(6,*),"main.F90::InitPDFs: PDFSet",PDFSet,"QCD parameters are unknown. Please double-check! Stopping JHUGen..."
+        write(6,*),"mod_JHUGen.F90::InitPDFs: PDFSet",PDFSet,"QCD parameters are unknown. Please double-check! Stopping JHUGen..."
         stop
         ! Could also have used these instead of the stop statement, but why introduce arbitrary number?
         !alphas_mz = 0.13229060d0
@@ -128,28 +158,29 @@ SUBROUTINE InitPDFs()
    return
 END SUBROUTINE
 
-
-SUBROUTINE InitPDFValues()
-   use ModParameters
-   use ModKinematics
-   implicit none
-
-#if useLHAPDF==0
-   IF (alphas_mz .LE. 0d0) THEN
-      WRITE(6,*) 'alphas_mz .le. 0:',alphas_mz
-      WRITE(6,*) 'continuing with alphas_mz=0.118'
-      alphas_mz=0.118d0
-   ENDIF
+subroutine ResetPDFs(pdftable,pdfstrlength,pdfmember,pdfid)
+implicit none
+integer :: pdfstrlength
+character(len=pdfstrlength) pdftable
+integer :: pdfmember
+integer, intent(in) :: pdfid
+   PDFSet=pdfid      ! 1: CTEQ6L1   2: MRSW with best fit, 2xx: MSTW with eigenvector set xx=01..40    3: NNPDF3.0
+   LHAPDFString = pdftable
+   LHAPDFMember = pdfmember
+   lenLHAPDFString = pdfstrlength
+#if useLHAPDF==1
+   if( LHAPDFString.eq."" ) then
+      print *, "Need to specify pdf file for LHAPDF"
+      stop
+   endif
+#else
+   if( LHAPDFString.eq."" .and. PDFSet.eq.3) then
+      print *, "Need to specify pdf file for NNPDF"
+      stop
+   endif
 #endif
-
-   Mu_Fact = M_Reso ! Set pdf scale to resonance mass by default, later changed as necessary in the EvalWeighted/EvalUnweighted subroutines
-	Mu_Ren = M_Reso ! Set renorm. scale to resonance mass by default, later changed as necessary in the EvalWeighted/EvalUnweighted subroutines
-   call EvalAlphaS() ! Set alphas at default Mu_Ren. Notice ModParameters::ComputeQCDVariables is automatically called!
-   return
-END SUBROUTINE
-
-
-
+   call InitPDFs()
+end subroutine
 
 
 SUBROUTINE PrintLogo(TheUnit)

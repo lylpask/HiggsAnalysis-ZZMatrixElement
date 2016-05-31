@@ -7,7 +7,6 @@
 #include <vector>
 #include <cmath>
 
-using namespace std;
 
 class MelaIO{
 private:
