@@ -80,6 +80,110 @@ void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double e
 }
 */
 
+// Set NNPDF driver path
+void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
+  char path_nnpdf_c[200];
+  sprintf(path_nnpdf_c, "%s", path);
+  int pathLength = strlen(path_nnpdf_c);
+  nnpdfdriver_(path_nnpdf_c, &pathLength);
+  nninitpdf_(&pdfmember);
+}
+void TEvtProb::SetProcess(TVar::Process tmp) { process = tmp; }
+void TEvtProb::SetMatrixElement(TVar::MatrixElement tmp){ matrixElement = tmp; }
+void TEvtProb::SetProduction(TVar::Production tmp){ production = tmp; }
+void TEvtProb::SetVerbosity(TVar::VerbosityLevel tmp){ verbosity = tmp; }
+void TEvtProb::SetLeptonInterf(TVar::LeptonInterference tmp){ leptonInterf = tmp; }
+void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
+  event_scales.renomalizationScheme = renormalizationSch;
+  event_scales.factorizationScheme = factorizationSch;
+  event_scales.ren_scale_factor = ren_sf;
+  event_scales.fac_scale_factor = fac_sf;
+}
+void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
+void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
+  // Regular, first resonance
+  if (whichResonance==1 || whichResonance==-1){
+    if (mass<0.){
+      _hmass = -1;
+      _hwidth = 0;
+    }
+    else if (wHiggs<0.){
+      _hmass = mass;
+      _hwidth = myCSW_->HiggsWidth(0, min(_hmass, 1000.));
+    }
+    else{
+      _hmass = mass;
+      _hwidth = wHiggs;
+    }
+    masses_mcfm_.hmass = _hmass;
+    masses_mcfm_.hwidth = _hwidth;
+
+    if (_hmass<0.) SetJHUGenHiggsMassWidth(0., _hwidth);
+    else SetJHUGenHiggsMassWidth(_hmass, _hwidth);
+  }
+
+  // Second resonance
+  if (whichResonance==2){
+    if (wHiggs<=0. || mass<0.){
+      _h2mass = -1;
+      _h2width = 0;
+    }
+    else{
+      _h2mass = mass;
+      _h2width = wHiggs;
+    }
+    spinzerohiggs_anomcoupl_.h2mass = _h2mass;
+    spinzerohiggs_anomcoupl_.h2width = _h2width;
+    //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
+  }
+  else if (whichResonance==-1){
+    _h2mass = -1;
+    _h2width = 0;
+    spinzerohiggs_anomcoupl_.h2mass = _h2mass;
+    spinzerohiggs_anomcoupl_.h2width = _h2width;
+    //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
+  }
+}
+void TEvtProb::SetInputEvent(
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen
+  ){
+  MELACandidate* cand = ConvertVectorFormat(
+    pDaughters,
+    pAssociated,
+    pMothers,
+    isGen,
+    &particleList, &candList // push_back is done automatically
+    );
+  if (cand!=0) melaCand=cand;
+}
+void TEvtProb::AppendTopCandidate(SimpleParticleCollection_t* TopDaughters){
+  if (!CheckInputPresent()){
+    cerr << "TEvtProb::AppendTopCandidate: No MELACandidates are present to append this top!" << endl;
+    return;
+  }
+  MELATopCandidate* cand = ConvertTopCandidate(
+    TopDaughters,
+    &particleList, &topCandList // push_back is done automatically
+    );
+  if (cand!=0) melaCand->addAssociatedTops(cand);
+}
+void TEvtProb::SetRcdCandPtr(){ RcdME.melaCand = melaCand; }
+void TEvtProb::SetCurrentCandidate(unsigned int icand){
+  if (candList.size()>icand && icand>=0) melaCand = candList.at(icand);
+  else cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << endl;
+}
+void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
+  melaCand = cand;
+  if (verbosity>=TVar::INFO && melaCand==0) cout << "TEvtProb::SetCurrentCandidate: BE CAREFUL! melaCand==0!" << endl;
+  if (verbosity>=TVar::INFO && GetCurrentCandidateIndex()<0) cout << "TEvtProb::SetCurrentCandidate: The current candidate is not in the list of candidates. It is the users' responsibility to delete this candidate and all of its associated particles." << endl;
+}
+
+// Reset functions
+void TEvtProb::ResetIORecord(){ RcdME.reset(); }
+void TEvtProb::ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); }
 void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   if (ext_ewscheme<-1 || ext_ewscheme>3) ext_ewscheme=3;
   ewinput_.Gf_inp = ext_Gf;
@@ -90,33 +194,12 @@ void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double e
   ewscheme_.ewscheme = ext_ewscheme;
   coupling_();
 }
-
-// Set NNPDF driver path
-void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
-  char path_nnpdf_c[200];
-  sprintf(path_nnpdf_c, "%s", path);
-  int pathLength = strlen(path_nnpdf_c);
-  nnpdfdriver_(path_nnpdf_c, &pathLength);
-  nninitpdf_(&pdfmember);
+void TEvtProb::ResetCouplings(){
+  selfDSpinZeroCoupl.reset();
+  selfDSpinOneCoupl.reset();
+  selfDSpinTwoCoupl.reset();
+  AllowSeparateWWCouplings(false);
 }
-
-
-bool TEvtProb::CheckInputPresent(){
-  if (melaCand==0 || candList.size()==0){
-    cerr
-      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand << " is nullPtr"
-      << " or candList.size()==" << candList.size() << " is problematic!"
-      << endl;
-    if (candList.size()==0) return false;
-    else{
-      SetCurrentCandidate(candList.size()-1);
-      cerr << "TEvtProb::XsecCalc_XVV: melaCand now points to the latest candidate (cand" << (candList.size()-1) << ")" << endl;
-    }
-  }
-  SetRcdCandPtr(); // If input event is present, set the RcdME pointer to melaCand
-  return true;
-}
-void TEvtProb::SetRcdCandPtr(){ RcdME.melaCand = melaCand; }
 void TEvtProb::ResetInputEvent(){
   RcdME.melaCand = 0;
   melaCand = 0;
@@ -141,15 +224,13 @@ void TEvtProb::ResetInputEvent(){
   }
   particleList.clear();
 }
-void TEvtProb::SetCurrentCandidate(unsigned int icand){
-  if (candList.size()>icand && icand>=0) melaCand = candList.at(icand);
-  else cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << endl;
-}
-void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
-  melaCand = cand;
-  if (verbosity>=TVar::INFO && melaCand==0) cout << "TEvtProb::SetCurrentCandidate: BE CAREFUL! melaCand==0!" << endl;
-  if (verbosity>=TVar::INFO && GetCurrentCandidateIndex()<0) cout << "TEvtProb::SetCurrentCandidate: The current candidate is not in the list of candidates. It is the users' responsibility to delete this candidate and all of its associated particles." << endl;
-}
+
+// Get-functions
+SpinZeroCouplings* TEvtProb::GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); };
+SpinOneCouplings* TEvtProb::GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
+SpinTwoCouplings* TEvtProb::GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
+MelaIO* TEvtProb::GetIORecord(){ return RcdME.getRef(); };
+std::vector<MELATopCandidate*>* TEvtProb::GetTopCandidates(){ return &topCandList; }
 MELACandidate* TEvtProb::GetCurrentCandidate(){ return melaCand; }
 int TEvtProb::GetCurrentCandidateIndex(){
   if (melaCand==0) return -1;
@@ -159,7 +240,25 @@ int TEvtProb::GetCurrentCandidateIndex(){
   return -1;
 }
 
+// Check/test functions
+bool TEvtProb::CheckInputPresent(){
+  if (melaCand==0 || candList.size()==0){
+    cerr
+      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand << " is nullPtr"
+      << " or candList.size()==" << candList.size() << " is problematic!"
+      << endl;
+    if (candList.size()==0) return false;
+    else{
+      SetCurrentCandidate(candList.size()-1);
+      cerr << "TEvtProb::XsecCalc_XVV: melaCand now points to the latest candidate (cand" << (candList.size()-1) << ")" << endl;
+    }
+  }
+  SetRcdCandPtr(); // If input event is present, set the RcdME pointer to melaCand
+  return true;
+}
 
+
+// ME functions
 
 //
 // Directly calculate the VV->4f differential cross-section
@@ -182,11 +281,29 @@ double TEvtProb::XsecCalc_XVV(
 
   bool needBSMHiggs=false;
   if (forceUseMCFM){
+    // Check self-defined couplings are specified.
     for (int vv = 0; vv < SIZE_HVV; vv++){
-      if ((selfDSpinZeroCoupl.Hzzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hzzcoupl)[vv][0] != 0){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
+      if (
+        (selfDSpinZeroCoupl.Hzzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hzzcoupl)[vv][0] != 0
+        ||
+        (selfDSpinZeroCoupl.Hwwcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hwwcoupl)[vv][0] != 0
+        ){
+        needBSMHiggs = true; break;
+      } // Only possible if selfDefine is called.
+    }
+    if (_h2mass>=0. && _h2width>0. && !needBSMHiggs){
+      for (int vv = 0; vv < SIZE_HVV; vv++){
+        if (
+          (selfDSpinZeroCoupl.H2zzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.H2zzcoupl)[vv][0] != 0
+          ||
+          (selfDSpinZeroCoupl.H2wwcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.H2wwcoupl)[vv][0] != 0
+          ){
+          needBSMHiggs = true; break;
+        } // Only possible if selfDefine is called.
+      }
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
-    SetMCFMSpinZeroVVCouplings(needBSMHiggs, &selfDSpinZeroCoupl, true);
+    SetMCFMSpinZeroVVCouplings(needBSMHiggs, &selfDSpinZeroCoupl, false);
     calculateME = MCFM_chooser(process, production, leptonInterf, melaCand);
   }
 
@@ -576,12 +693,26 @@ double TEvtProb::XsecCalc_VVXVV(
   bool calculateME=true;
   // process == TVar::bkgZZ_SMHiggs && matrixElement == TVar::JHUGen is still MCFM
   if (forceUseMCFM){ // Always uses MCFM
+    // Check self-defined couplings are specified.
     for (int vv = 0; vv < SIZE_HVV; vv++){
       if (
         (selfDSpinZeroCoupl.Hzzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hzzcoupl)[vv][0] != 0
         ||
         (selfDSpinZeroCoupl.Hwwcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.Hwwcoupl)[vv][0] != 0
-        ){ needBSMHiggs = true; break; } // Only possible if selfDefine is called.
+        ){
+        needBSMHiggs = true; break;
+      } // Only possible if selfDefine is called.
+    }
+    if (_h2mass>=0. && _h2width>0. && !needBSMHiggs){
+      for (int vv = 0; vv < SIZE_HVV; vv++){
+        if (
+          (selfDSpinZeroCoupl.H2zzcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.H2zzcoupl)[vv][0] != 0
+          ||
+          (selfDSpinZeroCoupl.H2wwcoupl)[vv][1] != 0 || (selfDSpinZeroCoupl.H2wwcoupl)[vv][0] != 0
+          ){
+          needBSMHiggs = true; break;
+        } // Only possible if selfDefine is called.
+      }
     }
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
     SetMCFMSpinZeroVVCouplings(needBSMHiggs, &selfDSpinZeroCoupl, false);
@@ -826,90 +957,6 @@ double TEvtProb::XsecCalc_TTX(
   return dXsec;
 }
 
-
-void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
-  event_scales.renomalizationScheme = renormalizationSch;
-  event_scales.factorizationScheme = factorizationSch;
-  event_scales.ren_scale_factor = ren_sf;
-  event_scales.fac_scale_factor = fac_sf;
-}
-
-
-// this appears to be some kind of
-// way of setting MCFM parameters through
-// an interface defined in TMCFM.hh
-void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
-  // Regular, first resonance
-  if (whichResonance==1 || whichResonance==-1){
-    if (mass<0.){
-      _hmass = -1;
-      _hwidth = 0;
-    }
-    else if (wHiggs<0.){
-      _hmass = mass;
-      _hwidth = myCSW_->HiggsWidth(0, min(_hmass, 1000.));
-    }
-    else{
-      _hmass = mass;
-      _hwidth = wHiggs;
-    }
-    masses_mcfm_.hmass = _hmass;
-    masses_mcfm_.hwidth = _hwidth;
-
-    if (_hmass<0.) SetJHUGenHiggsMassWidth(0., _hwidth);
-    else SetJHUGenHiggsMassWidth(_hmass, _hwidth);
-  }
-
-  // Second resonance
-  if (whichResonance==2){
-    if (wHiggs<=0. || mass<0.){
-      _h2mass = -1;
-      _h2width = 0;
-    }
-    else{
-      _h2mass = mass;
-      _h2width = wHiggs;
-    }
-    spinzerohiggs_anomcoupl_.h2mass = _h2mass;
-    spinzerohiggs_anomcoupl_.h2width = _h2width;
-    //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
-  }
-  else if (whichResonance==-1){
-    _h2mass = -1;
-    _h2width = 0;
-    spinzerohiggs_anomcoupl_.h2mass = _h2mass;
-    spinzerohiggs_anomcoupl_.h2width = _h2width;
-    //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
-  }
-}
-
-
-void TEvtProb::SetInputEvent(
-  SimpleParticleCollection_t* pDaughters,
-  SimpleParticleCollection_t* pAssociated,
-  SimpleParticleCollection_t* pMothers,
-  bool isGen
-  ){
-  MELACandidate* cand = ConvertVectorFormat(
-    pDaughters,
-    pAssociated,
-    pMothers,
-    isGen,
-    &particleList, &candList // push_back is done automatically
-    );
-  if (cand!=0) melaCand=cand;
-}
-void TEvtProb::AppendTopCandidate(SimpleParticleCollection_t* TopDaughters){
-  if (!CheckInputPresent()){
-    cerr << "TEvtProb::AppendTopCandidate: No MELACandidates are present to append this top!" << endl;
-    return;
-  }
-  MELATopCandidate* cand = ConvertTopCandidate(
-    TopDaughters,
-    &particleList, &topCandList // push_back is done automatically
-    );
-  if (cand!=0) melaCand->addAssociatedTops(cand);
-}
 
 
 

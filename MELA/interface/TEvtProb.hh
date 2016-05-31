@@ -57,18 +57,24 @@ public:
   //----------------------
   // Functions
   //----------------------
-  void SetProcess(TVar::Process tmp) { process = tmp; }
-  void SetMatrixElement(TVar::MatrixElement tmp){ matrixElement = tmp; }
-  void SetProduction(TVar::Production tmp){ production = tmp; }
-  void SetVerbosity(TVar::VerbosityLevel tmp){ verbosity = tmp; }
-  void SetLeptonInterf(TVar::LeptonInterference tmp){ leptonInterf = tmp; }
+  void Set_LHAgrid(const char* path, int pdfmember=0);
+  void SetProcess(TVar::Process tmp);
+  void SetMatrixElement(TVar::MatrixElement tmp);
+  void SetProduction(TVar::Production tmp);
+  void SetVerbosity(TVar::VerbosityLevel tmp);
+  void SetLeptonInterf(TVar::LeptonInterference tmp);
 
   void SetCurrentCandidate(unsigned int icand);
   void SetCurrentCandidate(MELACandidate* cand);
 
-  void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
+  void AllowSeparateWWCouplings(bool doAllow=false);
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
-  void Set_LHAgrid(const char* path, int pdfmember=0);
+  void ResetCouplings();
+
+  void SetHiggsMass(double mass, double wHiggs=-1., int whichResonance=-1);
+
+  void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+  void ResetRenFacScaleMode();
 
   // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively.
   // Also set melaCand to this candidsate if it is valid.
@@ -79,6 +85,10 @@ public:
     bool isGen=false
     );
   void AppendTopCandidate(SimpleParticleCollection_t* TopDaughters);
+  void ResetInputEvent();
+
+  // Reset the IO record, called at te beginning of each comoputation
+  void ResetIORecord();
 
   double XsecCalc_XVV(
     TVar::Process process_, TVar::Production production_,
@@ -111,27 +121,15 @@ public:
     int topProcess, int topDecay
     );
 
-  // this appears to be some kind of
-  // way of setting MCFM parameters through
-  // an interface defined in TMCFM.hh
-  void SetHiggsMass(double mass, double wHiggs=-1., int whichResonance=-1);
-
-  void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
-  void ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); };
-
-  void ResetCouplings(){ selfDSpinZeroCoupl.reset(); selfDSpinOneCoupl.reset(); selfDSpinTwoCoupl.reset(); AllowSeparateWWCouplings(false); };
-  void ResetIORecord(){ RcdME.reset(); };
-  void ResetInputEvent();
-
 
   // Get-functions
-  SpinZeroCouplings* GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); };
-  SpinOneCouplings* GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
-  SpinTwoCouplings* GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
-  MelaIO* GetIORecord(){ return RcdME.getRef(); };
+  SpinZeroCouplings* GetSelfDSpinZeroCouplings();
+  SpinOneCouplings* GetSelfDSpinOneCouplings();
+  SpinTwoCouplings* GetSelfDSpinTwoCouplings();
+  MelaIO* GetIORecord();
   MELACandidate* GetCurrentCandidate();
   int GetCurrentCandidateIndex(); // Return the index of current melaCand in the candList array, or -1 if it does not exist
-  std::vector<MELATopCandidate*>* GetTopCandidates(){ return &topCandList; }
+  std::vector<MELATopCandidate*>* GetTopCandidates();
 
 protected:
   //--------------------

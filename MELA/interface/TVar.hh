@@ -57,8 +57,9 @@ public:
     Lep_WH = 10, // W(+/-)H, W->lnu
     Had_ZH = 11, // ZH, Z->uu/dd
     Had_WH = 12, // W(+/-)H, W->ud
-    ttH = 13, // ttH
-    bbH = 14 // bbH
+    GammaH = 13, // gammaH, stable A
+    ttH = 14, // ttH
+    bbH = 15 // bbH
     //
   };
   enum LeptonInterference{

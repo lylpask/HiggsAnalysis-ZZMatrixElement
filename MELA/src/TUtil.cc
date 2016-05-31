@@ -868,8 +868,9 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
         || production==TVar::ZZQQB_S
         || production==TVar::ZZQQB_TU
         || production==TVar::ZZINDEPENDENT
-        || production==TVar::WH
-        || production==TVar::ZH
+        || production==TVar::Lep_WH || production==TVar::Had_WH
+        || production==TVar::Lep_ZH || production==TVar::Had_ZH
+        || production==TVar::GammaH
         ){
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
         Q = fabs(pTotal.M());
@@ -887,8 +888,9 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
         || production==TVar::ZZQQB_S
         || production==TVar::ZZQQB_TU
         || production==TVar::ZZINDEPENDENT
-        || production==TVar::ZH
-        || production==TVar::WH
+        || production==TVar::Lep_WH || production==TVar::Had_WH
+        || production==TVar::Lep_ZH || production==TVar::Had_ZH
+        || production==TVar::GammaH
         ){
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
         Q = fabs(pTotal.M());
@@ -2823,10 +2825,11 @@ double TUtil::VHiggsMatEl(
   double MatElsq[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
-  if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH)){ cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
+  if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH || production == TVar::GammaH)){ cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
   int nRequested_AssociatedJets=0;
   int nRequested_AssociatedLeptons=0;
+  int nRequested_AssociatedPhotons=0;
   int AssociationVCompatibility=0;
   int partIncCode;
   if (production == TVar::Had_ZH || production == TVar::Had_WH){ // Only use associated partons
@@ -2837,8 +2840,13 @@ double TUtil::VHiggsMatEl(
     partIncCode=TVar::kUseAssociated_Leptons;
     nRequested_AssociatedLeptons=2;
   }
+  else if (production == TVar::GammaH){ // Only use associated photon
+    partIncCode=TVar::kUseAssociated_Photons;
+    nRequested_AssociatedPhotons=1;
+  }
   if (production==TVar::Lep_WH || production==TVar::Had_WH)) AssociationVCompatibility=24;
   else if (production==TVar::Lep_ZH || production==TVar::Had_ZH)) AssociationVCompatibility=23;
+  else if (production==TVar::GammaH)) AssociationVCompatibility=22;
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
   mela_event.AssociationVCompatibility=AssociationVCompatibility;
@@ -2849,7 +2857,10 @@ double TUtil::VHiggsMatEl(
     mela_event,
     partIncCode
     );
-  if (mela_event.pAssociated.size()<2){ cerr << "TUtil::VHiggsMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
+  if ((mela_event.pAssociated.size()<2 && production!=TVar::GammaH) || (mela_event.pAssociated.size()<1 && production==TVar::GammaH)){
+    if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
+    return sum_msqjk;
+  }
 
   int MYIDUP_prod[4]={ 0 }; // "Incoming" partons 1, 2, "outgoing" partons 3, 4
   int MYIDUP_dec[2]={ 0 }; // "Outgoing" partons 1, 2
@@ -2899,8 +2910,8 @@ double TUtil::VHiggsMatEl(
     MomStore[ipar+6] = (*momTmp);
   }
 
-  if (PDGHelpers::isAGluon(MYIDUP_prod[0]) || PDGHelpers::isAGluon(MYIDUP_prod[1])){ cerr << "TUtil::VHiggsMatEl: Initial state gluons are not permitted!" << endl; return sum_msqjk; }
-  if (PDGHelpers::isAGluon(MYIDUP_prod[2]) || PDGHelpers::isAGluon(MYIDUP_prod[3])){ cerr << "TUtil::VHiggsMatEl: Final state gluons are not permitted!" << endl; return sum_msqjk; }
+  if (PDGHelpers::isAGluon(MYIDUP_prod[0]) || PDGHelpers::isAGluon(MYIDUP_prod[1])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Initial state gluons are not permitted!" << endl; return sum_msqjk; }
+  if (PDGHelpers::isAGluon(MYIDUP_prod[2]) || PDGHelpers::isAGluon(MYIDUP_prod[3])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Final state gluons are not permitted!" << endl; return sum_msqjk; }
 
   // Decay V/f ids
   for (int iv=0; iv<2; iv++){

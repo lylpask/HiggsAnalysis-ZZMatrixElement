@@ -574,7 +574,7 @@ void Mela::computeDecayAngles(
   ){
   qH=0; m1=0; m2=0; costheta1=0; costheta2=0; phi=0; costhetastar=0; phi1=0;
 
-  if (melaCand==0) melaCand = getCurrentCandidateIndex();
+  if (melaCand==0) melaCand = getCurrentCandidate();
   if (melaCand!=0){
     qH = melaCand->m();
     m1 = melaCand->getSortedV(0)->m();
@@ -632,9 +632,9 @@ void Mela::computeP_selfDspin0(
   bool useConstant
   ){
   reset_PAux();
-  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){ cerr << "Mela::computeP_selfDspin0: This method only applies to spin0, set Process to SelfDefine_spin0 or ME to MCFM!" << endl; return; }
 
-  melaCand = getCurrentCandidateIndex();
+  melaCand = getCurrentCandidate();
+  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){ cerr << "Mela::computeP_selfDspin0: This method only applies to spin0, set Process to SelfDefine_spin0 or ME to MCFM!" << endl; melaCand=0; }
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
       ZZME->set_SpinZeroCouplings(
@@ -694,6 +694,7 @@ void Mela::computeP_selfDspin0(
   reset_CandRef();
 }
 
+
 void Mela::computeP_selfDspin1(
   double selfDZvvcoupl_input[SIZE_ZVV][2],
   float& prob,
@@ -717,9 +718,8 @@ void Mela::computeP_selfDspin1(
   ){
   reset_PAux();
 
-  if (myModel_ != TVar::SelfDefine_spin1){ cerr << "Mela::computeP_selfDspin1: This method only applies to spin1, set Process to SelfDefine_spin1!" << endl; return; }
-
-  melaCand = getCurrentCandidateIndex();
+  melaCand = getCurrentCandidate();
+  if (myModel_ != TVar::SelfDefine_spin1){ cerr << "Mela::computeP_selfDspin1: This method only applies to spin1, set Process to SelfDefine_spin1!" << endl; melaCand=0; }
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen){
       ZZME->set_SpinOneCouplings(selfDZqqcoupl, selfDZvvcoupl);
@@ -804,9 +804,8 @@ void Mela::computeP_selfDspin2(
   ){
   reset_PAux();
 
-  if (myModel_ != TVar::SelfDefine_spin2){ cerr << "Mela::computeP_selfDspin2: This method only applies to spin2, set Process to SelfDefine_spin2!" << endl; return; }
-
-  melaCand = getCurrentCandidateIndex();
+  melaCand = getCurrentCandidate();
+  if (myModel_ != TVar::SelfDefine_spin2){ cerr << "Mela::computeP_selfDspin2: This method only applies to spin2, set Process to SelfDefine_spin2!" << endl; melaCand=0; }
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen){
       ZZME->set_SpinTwoCouplings(selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
@@ -862,6 +861,7 @@ void Mela::computeP_selfDspin2(
   reset_CandRef();
 }
 
+
 void Mela::computeP(
   double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
   float& prob,
@@ -880,7 +880,7 @@ void Mela::computeP(
   ){
   reset_PAux();
 
-  melaCand = getCurrentCandidateIndex();
+  melaCand = getCurrentCandidate();
   if (melaCand!=0){
     TLorentzVector nullVector(0, 0, 0, 0);
     float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
@@ -911,6 +911,18 @@ void Mela::computeP(
     }
     else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
       if (!(myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+          selfDHvvcoupl_freenorm,
+          selfDHqqcoupl,
+          selfDHggcoupl,
+          selfDHzzcoupl,
+          selfDHwwcoupl,
+          selfDHzzLambda_qsq,
+          selfDHwwLambda_qsq,
+          selfDHzzCLambda_qsq,
+          selfDHwwCLambda_qsq,
+          differentiate_HWW_HZZ
+          );
         ZZME->computeXS(
           myModel_, myME_, myProduction_,
           prob
@@ -997,7 +1009,7 @@ void Mela::computeP(
               &partList_tmp,
               &candList_tmp
               );
-            if (myVerbosity_>=TVar::ERROR && cand_tmp==0) cerr << "Mela::computeP: failed to construct temporary candidate!" << endl;
+            if (myVerbosity_>=TVar::ERROR && cand_tmp==0) cerr << "Mela::computeP: Failed to construct temporary candidate!" << endl;
             setCurrentCandidate(cand_tmp);
             // calculate the ME
             ZZME->computeXS(
@@ -1023,420 +1035,11 @@ void Mela::computeP(
 }
 
 
-void Mela::computeProdDecP(
-  double selfDHvvcoupl_input[SIZE_HVV][2],
-  double selfDHwwcoupl_input[SIZE_HVV][2],
-  float& prob,
-  bool useConstant
-  ){
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HVV; ic++){
-      selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
-      selfDHwwcoupl[ic][im] = selfDHwwcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
-    }
-  }
-  computeProdDecP(
-    prob,
-    useConstant
-    );
-}
-void Mela::computeProdDecP(
-  float& prob,
-  bool useConstant
-  ){
-  reset_PAux();
-  melaCand = getCurrentCandidateIndex();
-
-  bool hasFailed = true;
-  if (myME_ != TVar::MCFM){
-    cout << "Mela::computeProdDecP ME is not supported for ME " << myME_ << endl;
-    hasFailed = true;
-  }
-  if (myProduction_ != TVar::JJVBF){
-    cout << "Mela::computeProdDecP production mode is not supported for production " << myProduction_ << endl;
-    hasFailed = true;
-  }
-  if (melaCand==0) hasFailed=true;
-  if (hasFailed) prob=0;
-  else{
-    ZZME->computeProdXS_VVHVV(
-      myModel_, myME_, myProduction_,
-      prob
-      );
-    if(useConstant) prob *= getConstant(false);
-  }
-
-  reset_SelfDCouplings();
-  reset_CandRef();
-}
-
-
-void Mela::computeProdP(
-  double selfDHggcoupl_input[SIZE_HGG][2],
-  double selfDHvvcoupl_input[SIZE_HVV][2],
-  double selfDHwwcoupl_input[SIZE_HVV][2],
-  float& prob,
-  bool useConstant
-  ){
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im] = selfDHggcoupl_input[ic][im];
-    for (int ic=0; ic<SIZE_HVV; ic++){
-      selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
-      selfDHwwcoupl[ic][im] = selfDHwwcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
-    }
-  }
-  computeProdP(
-    prob,
-    useConstant
-    );
-}
-void Mela::computeProdP(
-  float& prob,
-  bool useConstant
-  ){
-  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH) computeProdP_ttH(prob, 0, 2, useConstant);
-  else if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH) computeProdP_VH(prob, false, useConstant);
-  else{
-    reset_PAux();
-    melaCand = getCurrentCandidateIndex();
-    if (melaCand==0){ prob=0; return; }
-
-    TLorentzVector nullFourVector(0, 0, 0, 0);
-    bool isJet2Fake = false;
-    // LEFT HERE
-    TLorentzVector jet1massless(0, 0, 0, 0);
-    TLorentzVector jet2massless(0, 0, 0, 0);
-    TLorentzVector higgs;
-    if (Decay2==nullFourVector || Decay2_Id==0){
-      if (Decay1_Id==25) higgs=Decay1;
-      if (Decay1_Id!=25){
-        cout << "No Higgs event passed. Returning prob=-99." << endl;
-        prob=-99;
-      }
-    }
-    else higgs=Decay1+Decay2;
-
-    if (Jet1==nullFourVector && !(Jet2==nullFourVector)){
-      TLorentzVector JetTmp = Jet2;
-      Jet2=Jet1;
-      Jet1=JetTmp;
-    }
-    TUtil::scaleMomentumToEnergy(Jet1, jet1massless);
-    if (!(Jet2==nullFourVector) && myProduction_ != TVar::JH){
-      TUtil::scaleMomentumToEnergy(Jet2, jet2massless);
-    }
-    else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF) {
-      mela::computeFakeJet(jet1massless, higgs, jet2massless);
-      isJet2Fake=true;
-    }
-
-    //if (myProduction_ == TVar::JH) cout << "Massless jet 2 E: " << jet2massless.T() << ", p: " << jet2massless.P() << endl;
-    if (isJet2Fake){
-      int nGrid=11;
-      std::vector<double> etaArray;
-      std::vector<double> pArray;
-      double eta_max = 15;
-      if (jet2massless.Pt()>0) eta_max = max(eta_max, 1.2*fabs(jet2massless.Eta()));
-      double eta_min = -eta_max;
-
-      for (int iter=0; iter<nGrid; iter++){
-        float prob_temp=-1;
-        TLorentzVector higgs_temp;
-        TLorentzVector jet1massless_temp;
-        TLorentzVector jet2massless_temp;
-        higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
-        jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
-
-        double jet2temp_eta = ((double)iter)*(eta_max-eta_min) / (((double)nGrid) - 1.) + eta_min;
-        etaArray.push_back(jet2temp_eta);
-        double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
-        double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
-        jet2massless_temp.SetZ(jet2temp_pz);
-        jet2massless_temp.SetX(jet2massless.X()); jet2massless_temp.SetY(jet2massless.Y()); jet2massless_temp.SetT(jet2massless_temp.P());
-
-        TLorentzVector total_temp=jet1massless_temp+jet2massless_temp+higgs_temp;
-        jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-        jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-        higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-          selfDHvvcoupl_freenorm,
-          selfDHqqcoupl,
-          selfDHggcoupl,
-          selfDHzzcoupl,
-          selfDHwwcoupl,
-          selfDHzzLambda_qsq,
-          selfDHwwLambda_qsq,
-          selfDHzzCLambda_qsq,
-          selfDHwwCLambda_qsq,
-          differentiate_HWW_HZZ
-          );
-        ZZME->computeProdXS_JJH(
-          jet1massless_temp, jet2massless_temp, higgs_temp,
-          myModel_, myME_, myProduction_,
-          prob_temp
-          );
-        pArray.push_back((double)prob_temp);
-      }
-
-      double* xGrid;
-      double* yGrid;
-      const double grid_precision = 0.05;
-      int ctr_iter=0;
-      for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
-        if (pArray[iG]==pArray[iG+1]) continue;
-        if (etaArray[iG]==etaArray[iG+1]) continue;
-
-        ctr_iter++;
-
-        xGrid = new double[nGrid];
-        yGrid = new double[nGrid];
-        for (int iter=0; iter<nGrid; iter++){ // Fill the arrays
-          xGrid[iter] = (double)etaArray[iter];
-          yGrid[iter] = (double)pArray[iter];
-        }
-
-        TGraph* interpolator = new TGraph(nGrid, xGrid, yGrid);
-        double derivative_first = (yGrid[1]-yGrid[0])/(xGrid[1]-xGrid[0]);
-        double derivative_last = (yGrid[nGrid-1]-yGrid[nGrid-2])/(xGrid[nGrid-1]-xGrid[nGrid-2]);
-        TSpline3* spline = new TSpline3("spline", interpolator, "b1e1", derivative_first, derivative_last);
-        double x_middle = (xGrid[iG]+xGrid[iG+1])*0.5;
-        double y_middle = (yGrid[iG]+yGrid[iG+1])*0.5;
-        double y_sp = spline->Eval(x_middle);
-        if (y_sp<0) y_sp = 0;
-
-        std::vector<double>::iterator gridIt;
-
-        if (fabs(y_sp-y_middle)<grid_precision*fabs(y_middle) || fabs(xGrid[iG+1]-xGrid[iG])<1e-3){
-          gridIt = pArray.begin()+iG+1;
-          pArray.insert(gridIt, y_sp);
-          gridIt = etaArray.begin()+iG+1;
-          etaArray.insert(gridIt, x_middle);
-          iG++; // Pass to next bin
-        }
-        else{
-          float prob_temp=-1;
-          TLorentzVector higgs_temp;
-          TLorentzVector jet1massless_temp;
-          TLorentzVector jet2massless_temp;
-          higgs_temp.SetXYZT(higgs.X(), higgs.Y(), higgs.Z(), higgs.T());
-          jet1massless_temp.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T());
-
-          double jet2temp_eta = x_middle;
-          gridIt = etaArray.begin()+iG+1;
-          etaArray.insert(gridIt, x_middle);
-          double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
-          double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
-          jet2massless_temp.SetZ(jet2temp_pz);
-          jet2massless_temp.SetX(jet2massless.X()); jet2massless_temp.SetY(jet2massless.Y()); jet2massless_temp.SetT(jet2massless_temp.P());
-
-          TLorentzVector total_temp=jet1massless_temp+jet2massless_temp+higgs_temp;
-          jet1massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-          jet2massless_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-          higgs_temp.Boost(-total_temp.BoostVector().x(), -total_temp.BoostVector().y(), 0);
-          if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-            selfDHvvcoupl_freenorm,
-            selfDHqqcoupl,
-            selfDHggcoupl,
-            selfDHzzcoupl,
-            selfDHwwcoupl,
-            selfDHzzLambda_qsq,
-            selfDHwwLambda_qsq,
-            selfDHzzCLambda_qsq,
-            selfDHwwCLambda_qsq,
-            differentiate_HWW_HZZ
-            );
-          ZZME->computeProdXS_JJH(jet1massless_temp, jet2massless_temp, higgs_temp,
-            myModel_, myME_, myProduction_,
-            prob_temp
-            );
-          gridIt = pArray.begin()+iG+1;
-          pArray.insert(gridIt, (double)prob_temp);
-          iG--; // Do not pass to next bin, repeat until precision is achieved.
-        }
-        nGrid++;
-
-        delete spline;
-        delete interpolator;
-        delete xGrid;
-        delete yGrid;
-      }
-
-      auxiliaryProb = 0;
-      int iGFirst=0, iGLast=nGrid-1;
-      for (int iG=1; iG<nGrid; iG++){
-        if (pArray[iG]>0 && pArray[iG-1]==0){
-          iGFirst = iG-1;
-          break;
-        }
-      }
-      for (int iG=nGrid-2; iG>=0; iG--){
-        if (pArray[iG]>0 && pArray[iG+1]==0){
-          iGLast = iG+1;
-          break;
-        }
-      }
-
-      double dEtaGrid = etaArray[iGLast] - etaArray[iGFirst];
-      for (int iG=iGFirst; iG<iGLast-1; iG++){
-        double dEta = etaArray[iG+1] - etaArray[iG];
-        double sumProb = pArray[iG]+pArray[iG+1];
-        sumProb *= 0.5;
-        dEta = dEta/dEtaGrid;
-        double addProb = sumProb*dEta;
-        auxiliaryProb += (float)addProb;
-      }
-    }
-
-
-
-    TLorentzVector total=jet1massless+jet2massless+higgs;
-    jet1massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-    jet2massless.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-    higgs.Boost(-total.BoostVector().x(), -total.BoostVector().y(), 0);
-    if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
-      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-        selfDHvvcoupl_freenorm,
-        selfDHqqcoupl,
-        selfDHggcoupl,
-        selfDHzzcoupl,
-        selfDHwwcoupl,
-        selfDHzzLambda_qsq,
-        selfDHwwLambda_qsq,
-        selfDHzzCLambda_qsq,
-        selfDHwwCLambda_qsq,
-        differentiate_HWW_HZZ
-        );
-      ZZME->computeProdXS_JJH(
-        myModel_, myME_, myProduction_,
-        prob
-        ); // Higgs + 2 jets: SBF or WBF
-      if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
-    }
-    else if (myProduction_ == TVar::JH){
-      // No anomalous couplings are implemented in HJ
-      ZZME->computeProdXS_JH(
-        myModel_, myME_, myProduction_,
-        prob
-        ); // Higgs + 1 jet; only SM is supported for now.
-    }
-
-    if (useConstant)prob *= getConstant(false);
-
-    reset_SelfDCouplings();
-    reset_CandRef();
-  }
-}
-
-
-void Mela::computeProdP_VH(
-  double selfDHvvcoupl_input[SIZE_HVV][2],
-  float& prob,
-  bool includeHiggsDecay,
-  bool useConstant
-  ){
-  // Dedicated function for VH ME
-  selfDHggcoupl[0][0] = 1.0; // Don't set this, and you might get 0 in the future for ggVH.
-
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HVV; ic++){
-      selfDHzzcoupl[ic][im] = selfDHvvcoupl_input[ic][im];
-      selfDHwwcoupl[ic][im] = selfDHvvcoupl_input[ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
-    }
-  }
-  computeProdP(
-    prob,
-    includeHiggsDecay,
-    useConstant
-    );
-}
-void Mela::computeProdP_VH(
-  float& prob,
-  bool includeHiggsDecay,
-  bool useConstant
-  ){
-  // Dedicated function for VH ME
-  reset_PAux();
-
-  melaCand = getCurrentCandidateIndex();
-  if (melaCand!=0){
-    if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH){
-      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-        selfDHvvcoupl_freenorm,
-        selfDHqqcoupl,
-        selfDHggcoupl,
-        selfDHzzcoupl,
-        selfDHwwcoupl,
-        selfDHzzLambda_qsq,
-        selfDHwwLambda_qsq,
-        selfDHzzCLambda_qsq,
-        selfDHwwCLambda_qsq,
-        differentiate_HWW_HZZ
-        );
-      ZZME->computeProdXS_VH(
-        myModel_,
-        myME_,
-        myProduction_,
-        prob,
-        includeHiggsDecay
-        ); // VH
-
-      float mzz = (Higgs_daughter[0]+Higgs_daughter[1]+Higgs_daughter[2]+Higgs_daughter[3]).M();
-      if (useConstant) prob *= getConstant(false);
-    }
-  }
-
-  reset_SelfDCouplings();
-  reset_CandRef();
-}
-
-
-
-void Mela::computeProdP_ttH(
-  float& prob,
-  int topDecay,
-  int topProcess,
-  bool useConstant
-  ){
-  reset_PAux();
-  float constant = 1;
-
-  selfDHggcoupl[0][0] = 1.0;
-
-  ZZME->set_SpinZeroCouplings(
-    selfDHvvcoupl_freenorm,
-    selfDHqqcoupl,
-    selfDHggcoupl,
-    selfDHzzcoupl,
-    selfDHwwcoupl,
-    selfDHzzLambda_qsq,
-    selfDHwwLambda_qsq,
-    selfDHzzCLambda_qsq,
-    selfDHwwCLambda_qsq,
-    differentiate_HWW_HZZ
-    );
-  ZZME->computeProdXS_ttH(vTTH, Higgs, ttbar_daughters_pdgid, topDecay, topProcess, myModel_, myME_, myProduction_, prob);
-
-  constant = getConstant(3, (float)Higgs.M());
-  prob *= constant;
-
-  reset_SelfDCouplings();
-}
-
-
 void Mela::computeD_CP(
-  float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
   TVar::MatrixElement myME,
   TVar::Process myType,
   float& prob
   ){
-  reset_PAux();
-
   double coupl_mix[SIZE_HVV][2] ={ { 0 } };
   double coupl_1[SIZE_HVV][2] ={ { 0 } };
   double coupl_2[SIZE_HVV][2] ={ { 0 } };
@@ -1511,191 +1114,532 @@ void Mela::computeD_CP(
   default:
     cout <<"Error: Not supported!"<<endl;
   }
+
   float pMix, p1, p2;
   setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_mix, pMix);
-
-  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_1, p1);
-
-  setProcess(TVar::SelfDefine_spin0, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, coupl_2, p2);
-
+  computeP_selfDspin0(coupl_mix, pMix, true);
+  computeP_selfDspin0(coupl_1, p1, true);
+  computeP_selfDspin0(coupl_2, p2, true);
   prob = pMix- p1- p2;
 }
 
 
-
-
-void Mela::computePM4l(
-  TLorentzVector Z1_lept1, int Z1_lept1Id,  // input 4-vectors
-  TLorentzVector Z1_lept2, int Z1_lept2Id,  // 
-  TLorentzVector Z2_lept1, int Z2_lept1Id,
-  TLorentzVector Z2_lept2, int Z2_lept2Id,
-  TVar::SuperMelaSyst syst,
-  float& prob){
-  reset_PAux();
-
-  // Notice: No need to correct lepton masses here since m4l is the only information entered. m4l is not supposed to change after mass corrections.
-  TLorentzVector ZZ = (Z1_lept1 + Z1_lept2 + Z2_lept1 + Z2_lept2);
-  float mzz = ZZ.M();
-  TVar::LeptonFlavor flavor = TVar::Flavor_Dummy;
-
-  if (abs(Z1_lept1Id)==11 &&  abs(Z1_lept2Id)==11 &&
-    abs(Z2_lept1Id)==11 &&  abs(Z2_lept2Id)==11)
-    flavor = TVar::Flavor_4e;
-
-  if (abs(Z1_lept1Id)==13 &&  abs(Z1_lept2Id)==13 &&
-    abs(Z2_lept1Id)==13 &&  abs(Z2_lept2Id)==13)
-    flavor = TVar::Flavor_4mu;
-
-  if (abs(Z1_lept1Id)==11 &&  abs(Z1_lept2Id)==11 &&
-    abs(Z2_lept1Id)==13 &&  abs(Z2_lept2Id)==13)
-    flavor = TVar::Flavor_2e2mu;
-
-  if (abs(Z1_lept1Id)==13 &&  abs(Z1_lept2Id)==13 &&
-    abs(Z2_lept1Id)==11 &&  abs(Z2_lept2Id)==11)
-    flavor = TVar::Flavor_2e2mu;
-
-
-  computePM4l(mzz, flavor, syst, prob);
+void Mela::computeProdDecP(
+  double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+  double selfDHwwcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+  float& prob,
+  bool useConstant
+  ){
+  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+    for (int im=0; im<2; im++){
+      for (int ic=0; ic<SIZE_HVV; ic++){
+        selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
+        selfDHwwcoupl[jh][ic][im] = selfDHwwcoupl_input[jh][ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+      }
+    }
+  }
+  computeProdDecP(
+    prob,
+    useConstant
+    );
 }
-
-void Mela::computePM4l(
-  float mZZ, TVar::LeptonFlavor flavor, TVar::SuperMelaSyst syst, float& prob
+void Mela::computeProdDecP(
+  float& prob,
+  bool useConstant
   ){
   reset_PAux();
-  prob=-99;//default dummy.
+  melaCand = getCurrentCandidate();
 
-  if (flavor == TVar::Flavor_Dummy) // only compute things if flavor determination succeded
-    return;
-
-  switch (flavor){
-  case 1: super->SetDecayChannel("4e"); break;
-  case 2: super->SetDecayChannel("4mu"); break;
-  case 3: super->SetDecayChannel("2e2mu"); break;
-  default: std::cout << " unknown flavor: " << flavor << std::endl; exit(0);
+  bool hasFailed = true;
+  if (myME_ != TVar::MCFM){
+    cout << "Mela::computeProdDecP ME is not supported for ME " << myME_ << endl;
+    hasFailed = true;
   }
-
-
-  if (syst == TVar::SMSyst_None){
-    std::pair<double, double> m4lP = super->M4lProb(mZZ);
-    if (myModel_ == TVar::HSMHiggs) // currently only supported signal is H(0+)
-      prob = m4lP.first;
-    if (myModel_ == TVar::bkgZZ) // currently only supported background is summed paramterization
-      prob = m4lP.second;
+  if (myProduction_ != TVar::JJVBF){
+    cout << "Mela::computeProdDecP production mode is not supported for production " << myProduction_ << endl;
+    hasFailed = true;
   }
+  if (melaCand==0) hasFailed=true;
+  if (hasFailed) prob=0;
   else{
-    //systematics for p(m4l)
-    float mZZtmp=mZZ;
-    float meanErr=float(super->GetSigShapeSystematic("meanCB"));
-    if (syst == TVar::SMSyst_ScaleUp){
-      mZZtmp = mZZ*(1.0+meanErr);
-      if (mZZtmp>180.0 || mZZtmp<100)mZZtmp=mZZ;
-      std::pair<double, double> m4lPScaleUp = super->M4lProb(mZZtmp);
-      if (myModel_ == TVar::HSMHiggs)
-        prob = m4lPScaleUp.first;
-      if (myModel_ == TVar::bkgZZ)
-        prob = m4lPScaleUp.second;
+    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+      selfDHvvcoupl_freenorm,
+      selfDHqqcoupl,
+      selfDHggcoupl,
+      selfDHzzcoupl,
+      selfDHwwcoupl,
+      selfDHzzLambda_qsq,
+      selfDHwwLambda_qsq,
+      selfDHzzCLambda_qsq,
+      selfDHwwCLambda_qsq,
+      differentiate_HWW_HZZ
+      );
+    ZZME->computeProdXS_VVHVV(
+      myModel_, myME_, myProduction_,
+      prob
+      );
+    if(useConstant) prob *= getConstant(false);
+  }
+
+  reset_SelfDCouplings();
+  reset_CandRef();
+}
+
+
+void Mela::computeProdP(
+  double selfDHggcoupl_input[SIZE_HGG][2],
+  double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+  double selfDHwwcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+  float& prob,
+  bool useConstant
+  ){
+  for (int im=0; im<2; im++){ for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im] = selfDHggcoupl_input[ic][im]; }
+  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+    for (int im=0; im<2; im++){
+      for (int ic=0; ic<SIZE_HVV; ic++){
+        selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
+        selfDHwwcoupl[jh][ic][im] = selfDHvwwcoupl_input[jh][ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+      }
+    }
+  }
+  computeProdP(
+    prob,
+    useConstant
+    );
+}
+void Mela::computeProdP(
+  float& prob,
+  bool useConstant
+  ){
+  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH) computeProdP_ttH(prob, 0, 2, useConstant);
+  else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH) computeProdP_VH(prob, false, useConstant);
+  else{
+    reset_PAux();
+
+    melaCand = getCurrentCandidate();
+    if (melaCand!=0){
+
+      TLorentzVector nullFourVector(0, 0, 0, 0);
+      bool isJet2Fake = false;
+      MELACandidate* candOriginal = melaCand;
+
+      TLorentzVector jet1, higgs;
+      TLorentzVector jet1massless(0, 0, 0, 0);
+      TLorentzVector jet2massless(0, 0, 0, 0);
+      higgs=melaCand->p4;
+      if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
+        int njets=0;
+        for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
+          if (melaCand->getAssociatedJet(ip)->passSelection){
+            njets++;
+            if (njets==1) jet1 = melaCand->getAssociatedJet(ip)->p4;
+          }
+        }
+        if (njets==1){
+          TUtil::scaleMomentumToEnergy(jet1, jet1massless);
+          TUtil::computeFakeJet(jet1massless, higgs, jet2massless);
+          isJet2Fake=true;
+        }
+      }
+
+      if (isJet2Fake){ // Do the integration first
+        MELACandidate* candCopy = melaCand->shallowCopy();
+        MELAParticle fakeJet(0, jet2massless); // Unknown jet, obviously
+        candCopy->addAssociatedJets(&fakeJet);
+        setCurrentCandidate(candCopy);
+
+        int nGrid=11;
+        std::vector<double> etaArray;
+        std::vector<double> pArray;
+        double eta_max = 15;
+        if (jet2massless.Pt()>0.) eta_max = max(eta_max, 1.2*fabs(jet2massless.Eta()));
+        double eta_min = -eta_max;
+
+        for (int iter=0; iter<nGrid; iter++){
+          float prob_temp=-1;
+
+          double jet2temp_eta = ((double)iter)*(eta_max-eta_min) / (((double)nGrid) - 1.) + eta_min;
+          etaArray.push_back(jet2temp_eta);
+          double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
+          double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
+          fakeJet.p4.SetZ(jet2temp_pz);
+          fakeJet.p4.SetX(jet2massless.X()); fakeJet.p4.SetY(jet2massless.Y()); fakeJet.p4.SetT(fakeJet.p4.P());
+
+          if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+            selfDHvvcoupl_freenorm,
+            selfDHqqcoupl,
+            selfDHggcoupl,
+            selfDHzzcoupl,
+            selfDHwwcoupl,
+            selfDHzzLambda_qsq,
+            selfDHwwLambda_qsq,
+            selfDHzzCLambda_qsq,
+            selfDHwwCLambda_qsq,
+            differentiate_HWW_HZZ
+            );
+          ZZME->computeProdXS_JJH(
+            myModel_, myME_, myProduction_,
+            prob_temp
+            );
+          pArray.push_back((double)prob_temp);
+        }
+
+        double* xGrid;
+        double* yGrid;
+        const double grid_precision = 0.05;
+        int ctr_iter=0;
+        for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
+          if (pArray[iG]==pArray[iG+1]) continue;
+          if (etaArray[iG]==etaArray[iG+1]) continue;
+
+          ctr_iter++;
+
+          xGrid = new double[nGrid];
+          yGrid = new double[nGrid];
+          for (int iter=0; iter<nGrid; iter++){ // Fill the arrays
+            xGrid[iter] = (double)etaArray[iter];
+            yGrid[iter] = (double)pArray[iter];
+          }
+
+          TGraph* interpolator = new TGraph(nGrid, xGrid, yGrid);
+          double derivative_first = (yGrid[1]-yGrid[0])/(xGrid[1]-xGrid[0]);
+          double derivative_last = (yGrid[nGrid-1]-yGrid[nGrid-2])/(xGrid[nGrid-1]-xGrid[nGrid-2]);
+          TSpline3* spline = new TSpline3("spline", interpolator, "b1e1", derivative_first, derivative_last);
+          double x_middle = (xGrid[iG]+xGrid[iG+1])*0.5;
+          double y_middle = (yGrid[iG]+yGrid[iG+1])*0.5;
+          double y_sp = spline->Eval(x_middle);
+          if (y_sp<0) y_sp = 0;
+
+          std::vector<double>::iterator gridIt;
+
+          if (fabs(y_sp-y_middle)<grid_precision*fabs(y_middle) || fabs(xGrid[iG+1]-xGrid[iG])<1e-3){
+            gridIt = pArray.begin()+iG+1;
+            pArray.insert(gridIt, y_sp);
+            gridIt = etaArray.begin()+iG+1;
+            etaArray.insert(gridIt, x_middle);
+            iG++; // Pass to next bin
+          }
+          else{
+            float prob_temp=-1;
+
+            double jet2temp_eta = x_middle;
+            gridIt = etaArray.begin()+iG+1;
+            etaArray.insert(gridIt, x_middle);
+            double jet2temp_sinh_eta = TMath::SinH(jet2temp_eta);
+            double jet2temp_pz = jet2massless.Pt()*jet2temp_sinh_eta;
+            fakeJet.p4.SetZ(jet2temp_pz);
+            fakeJet.p4.SetX(jet2massless.X()); fakeJet.p4.SetY(jet2massless.Y()); fakeJet.p4.SetT(fakeJet.p4.P());
+
+            if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+              selfDHvvcoupl_freenorm,
+              selfDHqqcoupl,
+              selfDHggcoupl,
+              selfDHzzcoupl,
+              selfDHwwcoupl,
+              selfDHzzLambda_qsq,
+              selfDHwwLambda_qsq,
+              selfDHzzCLambda_qsq,
+              selfDHwwCLambda_qsq,
+              differentiate_HWW_HZZ
+              );
+            ZZME->computeProdXS_JJH(
+              myModel_, myME_, myProduction_,
+              prob_temp
+              );
+            gridIt = pArray.begin()+iG+1;
+            pArray.insert(gridIt, (double)prob_temp);
+            iG--; // Do not pass to next bin, repeat until precision is achieved.
+          }
+          nGrid++;
+
+          delete spline;
+          delete interpolator;
+          delete xGrid;
+          delete yGrid;
+        }
+
+        auxiliaryProb = 0;
+        int iGFirst=0, iGLast=nGrid-1;
+        for (int iG=1; iG<nGrid; iG++){
+          if (pArray[iG]>0 && pArray[iG-1]==0){
+            iGFirst = iG-1;
+            break;
+          }
+        }
+        for (int iG=nGrid-2; iG>=0; iG--){
+          if (pArray[iG]>0 && pArray[iG+1]==0){
+            iGLast = iG+1;
+            break;
+          }
+        }
+        double dEtaGrid = etaArray[iGLast] - etaArray[iGFirst];
+        for (int iG=iGFirst; iG<iGLast-1; iG++){
+          double dEta = etaArray[iG+1] - etaArray[iG];
+          double sumProb = pArray[iG]+pArray[iG+1];
+          sumProb *= 0.5;
+          dEta = dEta/dEtaGrid;
+          double addProb = sumProb*dEta;
+          auxiliaryProb += (float)addProb;
+        }
+
+        delete candCopy; // Delete the shallow copy
+        setCurrentCandidate(candOriginal);
+        melaCand = getCurrentCandidate();
+        if (myVerbosity>=TVar::DEBUG){
+          if (melaCand!=candOriginal) cerr << "Mela::computeProdP: melaCand!=candOriginal at the end of the fake jet scenario!" << endl;
+        }
+      }
+
+
+      if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
+        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+          selfDHvvcoupl_freenorm,
+          selfDHqqcoupl,
+          selfDHggcoupl,
+          selfDHzzcoupl,
+          selfDHwwcoupl,
+          selfDHzzLambda_qsq,
+          selfDHwwLambda_qsq,
+          selfDHzzCLambda_qsq,
+          selfDHwwCLambda_qsq,
+          differentiate_HWW_HZZ
+          );
+        ZZME->computeProdXS_JJH(
+          myModel_, myME_, myProduction_,
+          prob
+          ); // Higgs + 2 jets: SBF or WBF
+        if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
+      }
+      else if (myProduction_ == TVar::JH){
+        // No anomalous couplings are implemented in HJ
+        ZZME->computeProdXS_JH(
+          myModel_, myME_, myProduction_,
+          prob
+          ); // Higgs + 1 jet; only SM is supported for now.
+      }
+
+      if (useConstant) prob *= getConstant(false);
     }
 
-    if (syst == TVar::SMSyst_ScaleDown){
-      mZZtmp = mZZ*(1.0-meanErr);
-      if (mZZtmp>180 || mZZtmp<100) mZZtmp=mZZ;
-      std::pair<double, double> m4lPScaleDown = super->M4lProb(mZZtmp);
-      if (myModel_ == TVar::HSMHiggs) prob = m4lPScaleDown.first;
-      if (myModel_ == TVar::bkgZZ) prob = m4lPScaleDown.second;
-    }
-
-    float sigmaErr=float(super->GetSigShapeSystematic("sigmaCB"));
-    float sigmaCB=float(super->GetSigShapeParameter("sigmaCB"));
-    if (syst == TVar::SMSyst_ResUp || syst ==  TVar::SMSyst_ResDown){
-      mZZtmp= myR->Gaus(mZZ, sigmaErr*sigmaCB);
-      if (mZZtmp>180 || mZZtmp<100) mZZtmp=mZZ;
-      std::pair<double, double> m4lPResUp = super->M4lProb(mZZtmp);
-      if (myModel_ == TVar::HSMHiggs) prob = m4lPResUp.first;
-      if (myModel_ == TVar::bkgZZ) prob = m4lPResUp.second;
-    }
+    reset_SelfDCouplings();
+    reset_CandRef();
   }
 }
 
-void Mela::computeWeight(
-  float mZZ, float mZ1, float mZ2,
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  float& w
-  ){ // Lepton interference using JHUGen
+
+void Mela::computeProdP_VH(
+  double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
+  float& prob,
+  bool includeHiggsDecay,
+  bool useConstant
+  ){
+  // Dedicated function for VH ME
+  selfDHggcoupl[0][0] = 1.0; // Don't set this, and you might get 0 in the future for ggVH.
+  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+    for (int im=0; im<2; im++){
+      for (int ic=0; ic<SIZE_HVV; ic++){
+        selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
+        selfDHwwcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+      }
+    }
+  }
+  computeProdP(
+    prob,
+    includeHiggsDecay,
+    useConstant
+    );
+}
+void Mela::computeProdP_VH(
+  float& prob,
+  bool includeHiggsDecay,
+  bool useConstant
+  ){
+  // Dedicated function for VH ME
   reset_PAux();
 
-  float dXsec_HZZ_JHU, dXsec_HZZ_JHU_interf; // temporary prob
+  melaCand = getCurrentCandidate();
+  if (melaCand!=0){
+    if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH){
+      if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+        selfDHvvcoupl_freenorm,
+        selfDHqqcoupl,
+        selfDHggcoupl,
+        selfDHzzcoupl,
+        selfDHwwcoupl,
+        selfDHzzLambda_qsq,
+        selfDHwwLambda_qsq,
+        selfDHzzCLambda_qsq,
+        selfDHwwCLambda_qsq,
+        differentiate_HWW_HZZ
+        );
+      ZZME->computeProdXS_VH(
+        myModel_,
+        myME_,
+        myProduction_,
+        prob,
+        includeHiggsDecay
+        ); // VH
 
-  // calculate dXsec for 4e/4mu
-  setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar,
-    costheta1,
-    costheta2,
-    phi, phi1,
-    1, dXsec_HZZ_JHU_interf);
+      float mzz = (Higgs_daughter[0]+Higgs_daughter[1]+Higgs_daughter[2]+Higgs_daughter[3]).M();
+      if (useConstant) prob *= getConstant(false);
+    }
+  }
 
-  // calculate dXsec for 2e2mu
-  setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar,
-    costheta1,
-    costheta2,
-    phi, phi1,
-    3, dXsec_HZZ_JHU);
-
-  w = dXsec_HZZ_JHU_interf / dXsec_HZZ_JHU;
-
-  // protect against anomalously large weights
-  if (w>5.) w=25./w;
+  reset_SelfDCouplings();
+  reset_CandRef();
 }
 
-void Mela::computeWeight(
-  float mZZ, float mZ1, float mZ2,
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
-  float& w
+
+void Mela::computeProdP_ttH(
+  float& prob,
+  int topProcess,
+  int topDecay,
+  bool useConstant
   ){
   reset_PAux();
 
-  float dXsec_HZZ_JHU, dXsec_HZZ_JHU_interf; // temporary prob
+  melaCand = getCurrentCandidate();
+  if (melaCand!=0){
+    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+      selfDHvvcoupl_freenorm,
+      selfDHqqcoupl,
+      selfDHggcoupl,
+      selfDHzzcoupl,
+      selfDHwwcoupl,
+      selfDHzzLambda_qsq,
+      selfDHwwLambda_qsq,
+      selfDHzzCLambda_qsq,
+      selfDHwwCLambda_qsq,
+      differentiate_HWW_HZZ
+      );
+    ZZME->computeProdXS_ttH(
+      myModel_, myME_, myProduction_,
+      prob,
+      topProcess, topDecay
+      );
 
-  // calculate dXsec for 4e/4mu
-  setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar,
-    costheta1,
-    costheta2,
-    phi, phi1,
-    1, selfDHvvcoupl_freenorm_input, dXsec_HZZ_JHU_interf);
+    if (useConstant) prob *= getConstant(false);
+  }
 
-  // calculate dXsec for 2e2mu
-  setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar,
-    costheta1,
-    costheta2,
-    phi, phi1,
-    3, selfDHvvcoupl_freenorm_input, dXsec_HZZ_JHU);
-
-  w = dXsec_HZZ_JHU_interf / dXsec_HZZ_JHU;
-
-  // protect against anomalously large weights
-  if (w>5.) w=25./w;
+  reset_SelfDCouplings();
+  reset_CandRef();
 }
+
+
+void Mela::compute4FermionWeight(float& w){ // Lepton interference using JHUGen
+  reset_PAux();
+
+  melaCand = getCurrentCandidate();
+  if (melaCand!=0){
+    bool hasFailed=false;
+    int id_original[2][2];
+    for (int iv=0; iv<2; iv++){
+      MELAPArticle* Vi = melaCand->getSortedV(iv);
+      int ndau=Vi->getNDaughters();
+      if (ndau!=2 || !(PDGHelpers::isAZBoson(Vi->id) || PDGHelpers::isAPhoton(Vi->id))){ w=1; hasFailed=true; break; } // Veto WW, ZG, GG
+      for (int ivd=0; ivd<2; ivd++) id_original[iv][ivd]=Vi->getDaughter(ivd)->id;
+    }
+    if (
+      !PDGHelpers::isALepton(id_original[0][0])
+      ||
+      !PDGHelpers::isALepton(id_original[0][1])
+      ||
+      !PDGHelpers::isALepton(id_original[1][0])
+      ||
+      !PDGHelpers::isALepton(id_original[1][1])
+      ){
+      if (myVerbosity_>=TVar::ERROR) cerr << "Mela::computeWeight: Function is not implemented for decay states other than 4l/2l2l." << endl;
+      w=0;
+      hasFailed=true;
+    }
+    /*
+    if (
+    (id_original[0][0]==0 && id_original[0][1]==0)
+    ||
+    (id_original[1][0]==0 && id_original[1][1]==0)
+    ){ // Return 1 if any pairs of quarks are unknown
+    w=1;
+    hasFailed=true;
+    }
+    */
+
+    if (!hasFailed){
+      float dXsec_HZZ_JHU, dXsec_HZZ_JHU_interf; // temporary prob
+
+      // Calculate dXsec ratio by directly modifying the candidate
+      computeP(dXsec_HZZ_JHU, false);
+      for (int ivd=0; ivd<2; ivd++) melaCand->getSortedV(1)->getDaughter(ivd)->id=id_original[0][0]*(1-2*ivd);
+      computeP(dXsec_HZZ_JHU_interf, false);
+      for (int ivd=0; ivd<2; ivd++) melaCand->getSortedV(1)->getDaughter(ivd)->id=id_original[1][ivd];
+
+      w = dXsec_HZZ_JHU_interf / dXsec_HZZ_JHU;
+      // protect against anomalously large weights
+      if (w>5.) w=25./w;
+    }
+  }
+
+  reset_SelfDCouplings();
+  reset_CandRef();
+}
+
+
+void Mela::computePM4l(TVar::SuperMelaSyst syst, float& prob){
+  reset_PAux();
+  prob=-99;
+
+  melaCand = getCurrentCandidate();
+  if (melaCand!=0){
+    bool hasFailed=false;
+    int id_original[2][2];
+    for (int iv=0; iv<2; iv++){
+      MELAPArticle* Vi = melaCand->getSortedV(iv);
+      int ndau=Vi->getNDaughters();
+      if (ndau!=2 || !(PDGHelpers::isAZBoson(Vi->id) || PDGHelpers::isAPhoton(Vi->id))){ hasFailed=true; break; } // Veto WW, ZG, GG
+      for (int ivd=0; ivd<2; ivd++) id_original[iv][ivd]=Vi->getDaughter(ivd)->id;
+    }
+
+    if (!hasFailed){
+      if (abs(id_original[0][0])==11 && abs(id_original[1][0])==11 && abs(id_original[0][1])==11 && abs(id_original[1][1])==11) super->SetDecayChannel("4e");
+      else if (abs(id_original[0][0])==13 && abs(id_original[1][0])==13 && abs(id_original[0][1])==13 && abs(id_original[1][1])==13) super->SetDecayChannel("4mu");
+      else if (
+        (abs(id_original[0][0])==11 && abs(id_original[0][1])==11 && abs(id_original[1][0])==13 && abs(id_original[1][1])==13)
+        ||
+        (abs(id_original[0][0])==13 && abs(id_original[0][1])==13 && abs(id_original[1][0])==11 && abs(id_original[1][1])==11)
+        ) super->SetDecayChannel("2e2mu");
+      else{ if (myVerbosity_>=TVar::ERROR) cerr << "Mela::computePM4l: SuperMELA is currently not implemented for decay states other than 4e. 4mu, 2e2mu." << endl; hasFailed=true; }
+    }
+
+    if (!hasFailed){
+      double mZZ = melaCand->m();
+      // currently only supported signal is ggH(0+), only supported background is summed paramterization
+      if (syst == TVar::SMSyst_None){
+        std::pair<double, double> m4lP = super->M4lProb(mZZ);
+        if (myModel_ == TVar::HSMHiggs) prob = m4lP.first;
+        else if (myModel_ == TVar::bkgZZ) prob = m4lP.second;
+      }
+      else{
+        //systematics for p(m4l)
+        float mZZtmp=mZZ;
+        float meanErr=float(super->GetSigShapeSystematic("meanCB"));
+        float sigmaErr=float(super->GetSigShapeSystematic("sigmaCB"));
+        float sigmaCB=float(super->GetSigShapeParameter("sigmaCB"));
+        if (syst == TVar::SMSyst_ScaleUp) mZZtmp = mZZ*(1.0+meanErr);
+        else if (syst == TVar::SMSyst_ScaleDown) mZZtmp = mZZ*(1.0-meanErr);
+        else if (syst == TVar::SMSyst_ResUp || syst ==  TVar::SMSyst_ResDown) mZZtmp= myR->Gaus(mZZ, sigmaErr*sigmaCB);
+
+        if (mZZtmp>180. || mZZtmp<100.) mZZtmp=mZZ;
+        std::pair<double, double> m4lP = super->M4lProb(mZZtmp);
+        if (myModel_ == TVar::HSMHiggs) prob = m4lP.first;
+        else if (myModel_ == TVar::bkgZZ) prob = m4lP.second;
+      }
+    }
+  }
+
+  reset_SelfDCouplings();
+  reset_CandRef();
+}
+
+
 void Mela::setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]){ // Hope it has only 3 members in the array
   string tgname = "C_TotalBkgM4l_";
 
@@ -1720,7 +1664,15 @@ void Mela::setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]){ // Hope it has 
     tgC[flavor] = (TGraph*)fcontainer->Get(ctgM4L.c_str());
   }
 }
-void Mela::constructDggr(float mzz, int flavor, float bkg_VAMCFM_noscale, float ggzz_VAMCFM_noscale, float ggHZZ_prob_pure_noscale, float ggHZZ_prob_int_noscale, float& myDggr){
+void Mela::constructDggr(
+  float mzz,
+  int flavor,
+  float bkg_VAMCFM_noscale,
+  float ggzz_VAMCFM_noscale,
+  float ggHZZ_prob_pure_noscale,
+  float ggHZZ_prob_int_noscale,
+  float& myDggr
+  ){
   float ctotal_bkg = tgtotalbkg[flavor-1]->Eval(mzz);
 
   float rValues[6]={ 1, 5, 10, 15, 20, 25 };
@@ -1736,41 +1688,58 @@ void Mela::constructDggr(float mzz, int flavor, float bkg_VAMCFM_noscale, float 
   float kd = total_sig_ME/kd_denominator;
   myDggr = kd;
 }
-void Mela::computeD_gg(float mZZ, float mZ1, float mZ2, // input kinematics
-  float costhetastar,
-  float costheta1,
-  float costheta2,
-  float phi,
-  float phi1,
-  int flavor,
+void Mela::computeD_gg(
   TVar::MatrixElement myME,
   TVar::Process myType,
-  float& prob){
-
+  float& prob
+  ){
+  prob=-99;
   if (myME != TVar::MCFM || myType != TVar::D_gg10){
     cout << "Only support MCFM and D_gg10"<<endl;
     return;
   }
 
-  setMelaLeptonInterference(TVar::DefaultLeptonInterf); // Override lepton interference setting
+  melaCand = getCurrentCandidate();
+  if (melaCand!=0){
+    bool hasFailed=false;
+    int id_original[2][2];
+    for (int iv=0; iv<2; iv++){
+      MELAPArticle* Vi = melaCand->getSortedV(iv);
+      int ndau=Vi->getNDaughters();
+      if (ndau!=2 || !(PDGHelpers::isAZBoson(Vi->id) || PDGHelpers::isAPhoton(Vi->id))){ hasFailed=true; break; } // Veto WW, ZG, GG
+      for (int ivd=0; ivd<2; ivd++) id_original[iv][ivd]=Vi->getDaughter(ivd)->id;
+    }
 
-  float bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, bkgHZZ_prob_noscale;
-  setProcess(TVar::bkgZZ, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, ggzz_VAMCFM_noscale);
-  setProcess(TVar::HSMHiggs, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, ggHZZ_prob_pure_noscale);
-  setProcess(TVar::bkgZZ_SMHiggs, myME, TVar::ZZGG);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, bkgHZZ_prob_noscale);
-  setProcess(TVar::bkgZZ, myME, TVar::ZZQQB);
-  computeP(mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1, flavor, bkg_VAMCFM_noscale, 0);
-  ggHZZ_prob_int_noscale = bkgHZZ_prob_noscale - ggHZZ_prob_pure_noscale -  ggzz_VAMCFM_noscale;
-  float myDggr;
-  constructDggr(mZZ, flavor, bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, myDggr);
-  prob=myDggr;
+    int flavor=-1;
+    if (!hasFailed){
+      if (abs(id_original[0][0])==11 && abs(id_original[1][0])==11 && abs(id_original[0][1])==11 && abs(id_original[1][1])==11) flavor=1;
+      else if (abs(id_original[0][0])==13 && abs(id_original[1][0])==13 && abs(id_original[0][1])==13 && abs(id_original[1][1])==13) flavor=2;
+      else if (
+        (abs(id_original[0][0])==11 && abs(id_original[0][1])==11 && abs(id_original[1][0])==13 && abs(id_original[1][1])==13)
+        ||
+        (abs(id_original[0][0])==13 && abs(id_original[0][1])==13 && abs(id_original[1][0])==11 && abs(id_original[1][1])==11)
+        ) flavor=3;
+      else{ if (myVerbosity_>=TVar::ERROR) cerr << "Mela::constructDggr: Function is currently not implemented for decay states other than 4e. 4mu, 2e2mu." << endl; hasFailed=true; }
+    }
+
+    if (!hasFailed){
+      TVar::LeptonInterference deflepinterf = myLepInterf;
+      setMelaLeptonInterference(TVar::InterfOff); // Override lepton interference setting
+
+      float bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, bkgHZZ_prob_noscale;
+      setProcess(TVar::bkgZZ, myME, TVar::ZZGG); computeP(ggzz_VAMCFM_noscale, false);
+      setProcess(TVar::HSMHiggs, myME, TVar::ZZGG); computeP(ggHZZ_prob_pure_noscale, false);
+      setProcess(TVar::bkgZZ_SMHiggs, myME, TVar::ZZGG); computeP(bkgHZZ_prob_noscale, false);
+      ggHZZ_prob_int_noscale = bkgHZZ_prob_noscale - ggHZZ_prob_pure_noscale -  ggzz_VAMCFM_noscale;
+      setProcess(TVar::bkgZZ, myME, TVar::ZZQQB); computeP(bkg_VAMCFM_noscale, false);
+      constructDggr(melaCand->m(), flavor, bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, prob);
+
+      setMelaLeptonInterference(deflepinterf); // Restore lepton interference setting
+    }
+  }
+
+  reset_SelfDCouplings();
+  reset_CandRef();
 }
 
 // Notice that these only set the members of MELA, not TEvtProb. TEvtProb resets itself.
@@ -1827,7 +1796,7 @@ void Mela::configureAnalyticalPDFs(){
   // 
   if (myModel_==TVar::bkgZZ)  pdf = qqZZmodel;
   else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF);
-  else if (myProduction_ == TVar::ZH || myProduction_ == TVar::WH);
+  else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH);
   else if (
     myModel_ == TVar::HSMHiggs
     || myModel_ == TVar::H0minus || myModel_ == TVar::D_g1g4 || myModel_ == TVar::D_g1g4_pi_2

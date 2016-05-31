@@ -144,7 +144,6 @@ public:
     float& prob
     );
 
-
   //****VVH Spin-0****//
   void computeProdDecP(
     double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
@@ -186,39 +185,24 @@ public:
   //***ttH Spin-0****//
   void computeProdP_ttH(
     float& prob,
-    int topDecay=0,
     int topProcess=2,
+    int topDecay=0,
     bool useConstant=true
     );
 
+  // Calculation weight to correct for fermion interference
+  void compute4FermionWeight(float& w);
 
-  void computePM4l(
-    float mZZ,
-    TVar::LeptonFlavor flavor,
-    TVar::SuperMelaSyst syst,
-    float& prob
-    ); //SuperMela
-
+  //***SuperMela***//
   void computePM4l(
     TVar::SuperMelaSyst syst,
     float& prob
-    ); //SuperMela
+    );
 
 
   // Access ZZMEs Calculate4Momentum
   std::vector<TLorentzVector> calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi);
 
-  // Calculation weight to correct for lepton interference
-  void computeWeight(
-    // return variables:
-    float& w
-    );
-
-  void computeWeight(
-    double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
-    // return variables:
-    float& w
-    );
 
   RooAbsPdf* pdf;
   ScalarPdfFactory_ggH* ggSpin0Model;
@@ -246,20 +230,17 @@ public:
   TGraph* DggZZ_scalefactor;
   void setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]);
   void constructDggr(
-    float mzz, float bkg_VAMCFM_noscale,
-    float ggzz_VAMCFM_noscale, float ggHZZ_prob_pure_noscale,
-    float ggHZZ_prob_int_noscale, float& myDggr
+    float mzz,
+    int flavor, // (1,2,3) for (4e,4mu,2e2mu)
+    float bkg_VAMCFM_noscale,
+    float ggzz_VAMCFM_noscale,
+    float ggHZZ_prob_pure_noscale,
+    float ggHZZ_prob_int_noscale,
+    float& myDggr
     );
 
   TGraph* tgtotalbkg[3];
   void computeD_gg(
-    float mZZ, float mZ1, float mZ2, // input kinematics
-    float costhetastar,
-    float costheta1,
-    float costheta2,
-    float phi,
-    float phi1,
-    int flavor,
     TVar::MatrixElement myME,
     TVar::Process myType,
     float& prob
