@@ -1,13 +1,13 @@
 #include "Riostream.h"
 
 #include "ZZMatrixElement/MELA/interface/HZZ4LRooPdfs.h"
+#include <cmath>
+#include <complex>
 #include "RooAbsReal.h"
 #include "RooRealVar.h"
 #include "RooVoigtian.h"
-//#include "RooComplex.h"
 #include "RooMath.h"
 #include "RooAbsCategory.h"
-#include <math.h>
 #include "TMath.h"
 #include "TComplex.h"
 #include <algorithm>
@@ -3801,7 +3801,7 @@ double RooaDoubleCBxBW::evaluateVoigtian() const
   double a = 0.5*c*width;
   double u = c*arg;
   std::complex<double> z(u,a);
-  std::complex<double> v = RooMath::erfc_fast(z);
+  std::complex<double> v = RooMath::erfc(z);
   return atan2(0.,-1.)*v.real()/width;
 }
 

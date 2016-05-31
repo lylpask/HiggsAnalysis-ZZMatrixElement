@@ -2,7 +2,6 @@
 #define newZZMatrixElement_newZZMatrixElement_h
 
 #include <vector>
-#include "TLorentzVector.h"
 #include <ZZMatrixElement/MELA/interface/TVar.hh>
 #include <ZZMatrixElement/MELA/interface/TEvtProb.hh>
 
@@ -36,14 +35,14 @@ public:
     float& mevalue
     );
 
-  void computeProdXS_JJH(TLorentzVector jet1,
+  void computeProdXS_JJH(
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
     float &mevalue
     );
 
-  void computeProdXS_JH(TLorentzVector singleJet,
+  void computeProdXS_JH(
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
@@ -62,7 +61,7 @@ public:
     TVar::Process process_,
     TVar::MatrixElement me_,
     TVar::Production production_,
-    float &mevalue
+    float &mevalue,
     int topProcess,
     int topDecay=0
     );
@@ -72,16 +71,16 @@ public:
   void set_Verbosity(TVar::VerbosityLevel verbosity_); // Sets variables in Xcal2 as well
   void set_LeptonInterference(TVar::LeptonInterference myLepInterf); // Sets variables in Xcal2 as well
   //
-  void newZZMatrixElement::set_TempCandidate(
+  void set_TempCandidate(
     SimpleParticleCollection_t* pDaughters,
     SimpleParticleCollection_t* pAssociated=0,
     SimpleParticleCollection_t* pMothers=0,
     bool isGen=false
     ); // Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
-  void newZZMatrixElement::set_TempCandidate(
-    std::vector<MELAPArticle*>& pDaughters,
-    std::vector<MELAPArticle*>& pAssociated,
-    std::vector<MELAPArticle*>& pMothers,
+  void set_TempCandidate(
+    std::vector<MELAParticle*>& pDaughters,
+    std::vector<MELAParticle*>& pAssociated,
+    std::vector<MELAParticle*>& pMothers,
     bool isGen=false
     ); /* Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
        Difference of this overload is that the originating MELAParticles are not owned.*/
@@ -100,7 +99,7 @@ public:
   //
   void set_mHiggs(double mh_, int index); // Does not set any variables in Xcal2!
   void set_wHiggs(double gah_, int index); // Does not set any variables in Xcal2!
-  void set_mHiggs_wHiggs(double mh_, gah_, int index); // Does not set any variables in Xcal2!
+  void set_mHiggs_wHiggs(double mh_, double gah_, int index); // Does not set any variables in Xcal2!
   //
 
   // Reset-functions

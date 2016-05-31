@@ -100,7 +100,7 @@ Mela::Mela(
   measurables_.Phi1 = phi1_rrv;
   measurables_.Y = Y_rrv;
 
-  ggSpin0Model = new ScalarPdfFactory_ggH(measurables_, false, 1, 1); // 1,1==ZZ
+  ggSpin0Model = new ScalarPdfFactory_ggH(measurables_, false, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll); // RooSpin::kVdecayType_Zll,RooSpin::kVdecayType_Zll==ZZ
   spin1Model = new VectorPdfFactory(z1mass_rrv, z2mass_rrv, costhetastar_rrv, costheta1_rrv, costheta2_rrv, phi_rrv, phi1_rrv, mzz_rrv);
   spin2Model = new TensorPdfFactory_HVV(measurables_, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll);
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel", "qqZZmodel", *z1mass_rrv, *z2mass_rrv, *costheta1_rrv, *costheta2_rrv, *phi_rrv, *costhetastar_rrv, *phi1_rrv, *mzz_rrv, *upFrac_rrv);
@@ -211,12 +211,12 @@ void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Pro
   myME_ = myME;
   myProduction_ = myProduction;
 }
-void Mela::setVerbosity(TVar::VerbosityLevel verbosity_=TVar::ERROR){ myVerbosity_=verbosity_; ZZME->set_Verbosity(myVerbosity_); }
+void Mela::setVerbosity(TVar::VerbosityLevel verbosity_){ myVerbosity_=verbosity_; ZZME->set_Verbosity(myVerbosity_); }
 // Should be called per-event
 void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myHiggsMass, index); }
 void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(myHiggsWidth, index); }
 void Mela::setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index){ ZZME->set_mHiggs_wHiggs(myHiggsMass, myHiggsWidth, index); }
-void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){ ZZME->set_LeptonInterference(myLepInterf); }
+void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){ myLepInterf_=myLepInterf; ZZME->set_LeptonInterference(myLepInterf); }
 void Mela::setCurrentCandidate(unsigned int icand){ ZZME->set_CurrentCandidate(icand); }
 void Mela::setCurrentCandidate(MELACandidate* cand){ ZZME->set_CurrentCandidate(cand); }
 void Mela::setInputEvent(
@@ -239,15 +239,60 @@ void Mela::setTempCandidate(
   bool isGen
   ){ ZZME->set_TempCandidate(pDaughters, pAssociated, pMothers); }
 void Mela::setTempCandidate(
-  std::vector<MELAPArticle*>& pDaughters,
-  std::vector<MELAPArticle*>& pAssociated,
-  std::vector<MELAPArticle*>& pMothers,
-  bool isGen=false
+  std::vector<MELAParticle*>& pDaughters,
+  std::vector<MELAParticle*>& pAssociated,
+  std::vector<MELAParticle*>& pMothers,
+  bool isGen
   ){ ZZME->set_TempCandidate(pDaughters, pAssociated, pMothers); }
-void appendTopCandidate(SimpleParticleCollection_t* TopDaughters){ ZZME->append_TopCandidate(TopDaughters); }
+void Mela::appendTopCandidate(SimpleParticleCollection_t* TopDaughters){ ZZME->append_TopCandidate(TopDaughters); }
 
 
+// Notice that this only sets the members of MELA, not TEvtProb. TEvtProb resets itself.
+void Mela::reset_SelfDCouplings(){
+  // We have a lot of them.
 
+  //****Spin-0****//
+  differentiate_HWW_HZZ=false;
+  for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfDHvvcoupl_freenorm[ic]=0;
+
+  for (int im=0; im<2; im++){
+    for (int ic=0; ic<SIZE_HQQ; ic++) selfDHqqcoupl[ic][im]=0;
+    for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im]=0;
+  }
+
+  // Loop over the number of supported resonances
+  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
+    for (int im=0; im<2; im++){
+      for (int ic=0; ic<SIZE_HVV; ic++){
+        selfDHzzcoupl[jh][ic][im] = 0;
+        selfDHwwcoupl[jh][ic][im] = 0;
+      }
+    }
+    for (int ik=0; ik<3; ik++){
+      selfDHzzCLambda_qsq[jh][ik]=0;
+      selfDHwwCLambda_qsq[jh][ik]=0;
+      for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
+        selfDHzzLambda_qsq[jh][ic][ik] = 100.;
+        selfDHwwLambda_qsq[jh][ic][ik] = 100.;
+      }
+    }
+  }
+
+  //****Spin-1****//
+  for (int im=0; im<2; im++){
+    for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = 0;
+    for (int ic=0; ic<SIZE_ZQQ; ic++) selfDZqqcoupl[ic][im] = 0;
+  }
+
+  //****Spin-2****//
+  for (int im=0; im<2; im++){
+    for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = 0;
+    for (int ic=0; ic<SIZE_GGG; ic++) selfDGggcoupl[ic][im] = 0;
+    for (int ic=0; ic<SIZE_GQQ; ic++) selfDGqqcoupl[ic][im] = 0;
+  }
+
+  // Did I tell you that we have a lot of them?
+}
 void Mela::resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   ZZME->reset_MCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }
@@ -574,10 +619,12 @@ void Mela::computeDecayAngles(
   float& costhetastar,
   float& Phi1
   ){
-  qH=0; m1=0; m2=0; costheta1=0; costheta2=0; phi=0; costhetastar=0; phi1=0;
+  qH=0; m1=0; m2=0; costheta1=0; costheta2=0; Phi=0; costhetastar=0; Phi1=0;
 
   if (melaCand==0) melaCand = getCurrentCandidate();
   if (melaCand!=0){
+    TLorentzVector nullVector(0, 0, 0, 0);
+
     qH = melaCand->m();
     m1 = melaCand->getSortedV(0)->m();
     m2 = melaCand->getSortedV(1)->m();
@@ -588,20 +635,20 @@ void Mela::computeDecayAngles(
         MELAParticle* Vi = melaCand->getSortedV(vv);
         for (int dd=0; dd<Vi->getNDaughters(); dd++) dau[vv][dd] = Vi->getDaughter(dd);
       }
-      mela::computeAngles(
-        (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : 0),
-        (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : 0),
-        (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : 0),
-        (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : 0),
-        costhetastar, costheta1, costheta2, phi, phi1
+      TUtil::computeAngles(
+        (dau[0][0]!=0 ? dau[0][0]->p4 : nullVector), (dau[0][0]!=0 ? dau[0][0]->id : -9000),
+        (dau[0][1]!=0 ? dau[0][1]->p4 : nullVector), (dau[0][1]!=0 ? dau[0][1]->id : -9000),
+        (dau[1][0]!=0 ? dau[1][0]->p4 : nullVector), (dau[1][0]!=0 ? dau[1][0]->id : -9000),
+        (dau[1][1]!=0 ? dau[1][1]->p4 : nullVector), (dau[1][1]!=0 ? dau[1][1]->id : -9000),
+        costhetastar, costheta1, costheta2, Phi, Phi1
         );
     }
     // Protect against NaN
     if (!(costhetastar==costhetastar)) costhetastar=0;
     if (!(costheta1==costheta1)) costheta1=0;
     if (!(costheta2==costheta2)) costheta2=0;
-    if (!(phi==phi)) phi=0;
-    if (!(phi1==phi1)) phi1=0;
+    if (!(Phi==Phi)) Phi=0;
+    if (!(Phi1==Phi1)) Phi1=0;
   }
   else if (myVerbosity_>=TVar::DEBUG) cerr << "Mela::computeDecayAngles: No possible melaCand in TEvtProb to compute angles." << endl;
 }
@@ -615,7 +662,7 @@ void Mela::computeP_selfDspin0(
   selfDHqqcoupl[0][0] = 1.0; // Don't set these, and you will get 0.
   selfDHggcoupl[0][0] = 1.0;
 
-  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
     for (int im=0; im<2; im++){
       for (int ic=0; ic<SIZE_HVV; ic++){
         selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
@@ -623,6 +670,7 @@ void Mela::computeP_selfDspin0(
       }
     }
   }
+
   computeP_selfDspin0(
     prob,
     useConstant
@@ -660,7 +708,7 @@ void Mela::computeP_selfDspin0(
     }
     else if (myME_ == TVar::ANALYTICAL){ // Needs further generalization!
       TLorentzVector nullVector(0, 0, 0, 0);
-      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
       computeDecayAngles(
         mZZ, mZ1, mZ2,
         costheta1, costheta2, Phi,
@@ -669,8 +717,8 @@ void Mela::computeP_selfDspin0(
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(phi);
-      phi1_rrv->setVal(phi1);
+      phi_rrv->setVal(Phi);
+      phi1_rrv->setVal(Phi1);
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
@@ -705,6 +753,7 @@ void Mela::computeP_selfDspin1(
   // Initialize the quark_left_right couplings
   selfDZqqcoupl[0][0]=1.0;
   selfDZqqcoupl[1][0]=1.0;
+
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = selfDZvvcoupl_input[ic][im];
   }
@@ -734,7 +783,7 @@ void Mela::computeP_selfDspin1(
     }
     else if (myME_ == TVar::ANALYTICAL){ // Needs generalization!
       TLorentzVector nullVector(0, 0, 0, 0);
-      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
       computeDecayAngles(
         mZZ, mZ1, mZ2,
         costheta1, costheta2, Phi,
@@ -743,8 +792,8 @@ void Mela::computeP_selfDspin1(
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(phi);
-      phi1_rrv->setVal(phi1);
+      phi_rrv->setVal(Phi);
+      phi1_rrv->setVal(Phi1);
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
@@ -787,18 +836,16 @@ void Mela::computeP_selfDspin2(
   ){
   selfDGqqcoupl[0][0]=1.0; // Set these incorrectly, and you see left-right asymmetries in qqG (or nothing)
   selfDGqqcoupl[1][0]=1.0;
+
   for (int im=0; im<2; im++){
     for (int ic=0; ic<SIZE_GGG; ic++) selfDGggcoupl[ic][im] = selfDGggcoupl_input[ic][im];
     for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = selfDGvvcoupl_input[ic][im];
   }
 
   computeP_selfDspin2(
-    mZZ, mZ1, mZ2,
-    costhetastar, costheta1, costheta2, phi, phi1,
-    flavor,
-    prob
+    prob,
+    useConstant
     );
-  //reset_SelfDCouplings();
 }
 void Mela::computeP_selfDspin2(
   float& prob,
@@ -820,7 +867,7 @@ void Mela::computeP_selfDspin2(
     }
     else if (myME_ == TVar::ANALYTICAL){
       TLorentzVector nullVector(0, 0, 0, 0);
-      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
       computeDecayAngles(
         mZZ, mZ1, mZ2,
         costheta1, costheta2, Phi,
@@ -829,8 +876,8 @@ void Mela::computeP_selfDspin2(
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(phi);
-      phi1_rrv->setVal(phi1);
+      phi_rrv->setVal(Phi);
+      phi1_rrv->setVal(Phi1);
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
@@ -871,8 +918,8 @@ void Mela::computeP(
   ){
   selfDHqqcoupl[0][0] = 1.0;
   selfDHggcoupl[0][0] = 1.0;
-  selfDHzzcoupl[0][0] = 1.0;
-  selfDHwwcoupl[0][0] = 1.0;
+  selfDHzzcoupl[0][0][0] = 1.0;
+  selfDHwwcoupl[0][0][0] = 1.0;
   for (int ig=0; ig<SIZE_HVV_FREENORM; ig++) selfDHvvcoupl_freenorm[ig] = selfDHvvcoupl_freenorm_input[ig];
   computeP(prob, useConstant);
 }
@@ -885,7 +932,7 @@ void Mela::computeP(
   melaCand = getCurrentCandidate();
   if (melaCand!=0){
     TLorentzVector nullVector(0, 0, 0, 0);
-    float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, phi=0, costhetastar=0, phi1=0;
+    float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
 
     if (myME_ == TVar::ANALYTICAL){
       computeDecayAngles(
@@ -896,8 +943,8 @@ void Mela::computeP(
       costhetastar_rrv->setVal(costhetastar);
       costheta1_rrv->setVal(costheta1);
       costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(phi);
-      phi1_rrv->setVal(phi1);
+      phi_rrv->setVal(Phi);
+      phi1_rrv->setVal(Phi1);
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
@@ -1042,76 +1089,76 @@ void Mela::computeD_CP(
   TVar::Process myType,
   float& prob
   ){
-  double coupl_mix[SIZE_HVV][2] ={ { 0 } };
-  double coupl_1[SIZE_HVV][2] ={ { 0 } };
-  double coupl_2[SIZE_HVV][2] ={ { 0 } };
+  double coupl_mix[nSupportedHiggses][SIZE_HVV][2] ={ { { 0 } } };
+  double coupl_1[nSupportedHiggses][SIZE_HVV][2] ={ { { 0 } } };
+  double coupl_2[nSupportedHiggses][SIZE_HVV][2] ={ { { 0 } } };
 
   switch (myType){
   case TVar::D_g1g4:
-    coupl_mix[0][0] =1.;
-    coupl_mix[3][0] =2.521;
-    coupl_1[0][0] =1.;
-    coupl_2[3][0] =2.521;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][3][0] =2.521;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][3][0] =2.521;
     break;
   case TVar::D_g1g4_pi_2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[3][1] =2.521;
-    coupl_1[0][0] =1.;
-    coupl_2[3][1] =2.521;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][3][1] =2.521;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][3][1] =2.521;
     break;
   case TVar::D_g1g2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[1][0] = 1.638;
-    coupl_1[0][0] =1.;
-    coupl_2[1][0] = 1.638;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][1][0] = 1.638;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][1][0] = 1.638;
     break;
   case TVar::D_g1g2_pi_2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[1][1] = 1.638;
-    coupl_1[0][0] =1.;
-    coupl_2[1][1] = 1.638;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][1][1] = 1.638;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][1][1] = 1.638;
     break;
   case TVar::D_g1g1prime2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[11][0] = 12046.01;
-    coupl_1[0][0] =1.;
-    coupl_2[11][0] = 12046.01;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][11][0] = 12046.01;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][11][0] = 12046.01;
     break;
   case TVar::D_zzzg:
-    coupl_mix[0][0] =1.;
-    coupl_mix[4][0] = 0.0688;
-    coupl_1[0][0] =1.;
-    coupl_2[4][0] = 0.0688;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][4][0] = 0.0688;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][4][0] = 0.0688;
     break;
   case TVar::D_zzgg:
-    coupl_mix[0][0] =1.;
-    coupl_mix[7][0] = -0.0898;
-    coupl_1[0][0] =1.;
-    coupl_2[7][0] = -0.0898;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][7][0] = -0.0898;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][7][0] = -0.0898;
     break;
   case TVar::D_zzzg_PS:
-    coupl_mix[0][0] =1.;
-    coupl_mix[6][0] = 0.0855;
-    coupl_1[0][0] =1.;
-    coupl_2[6][0] = 0.0855;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][6][0] = 0.0855;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][6][0] = 0.0855;
     break;
   case TVar::D_zzgg_PS:
-    coupl_mix[0][0] =1.;
-    coupl_mix[9][0] = -0.0907;
-    coupl_1[0][0] =1.;
-    coupl_2[9][0] = -0.0907;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][9][0] = -0.0907;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][9][0] = -0.0907;
     break;
   case TVar::D_zzzg_g1prime2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[30][0] = -7591.914;
-    coupl_1[0][0] =1.;
-    coupl_2[30][0] = -7591.914;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][30][0] = -7591.914;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][30][0] = -7591.914;
     break;
   case TVar::D_zzzg_g1prime2_pi_2:
-    coupl_mix[0][0] =1.;
-    coupl_mix[30][1] = -7591.914;
-    coupl_1[0][0] =1.;
-    coupl_2[30][1] = -7591.914;
+    coupl_mix[0][0][0] =1.;
+    coupl_mix[0][30][1] = -7591.914;
+    coupl_1[0][0][0] =1.;
+    coupl_2[0][30][1] = -7591.914;
     break;
   default:
     cout <<"Error: Not supported!"<<endl;
@@ -1132,7 +1179,7 @@ void Mela::computeProdDecP(
   float& prob,
   bool useConstant
   ){
-  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
     for (int im=0; im<2; im++){
       for (int ic=0; ic<SIZE_HVV; ic++){
         selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
@@ -1196,11 +1243,11 @@ void Mela::computeProdP(
   bool useConstant
   ){
   for (int im=0; im<2; im++){ for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im] = selfDHggcoupl_input[ic][im]; }
-  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
     for (int im=0; im<2; im++){
       for (int ic=0; ic<SIZE_HVV; ic++){
         selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
-        selfDHwwcoupl[jh][ic][im] = selfDHvwwcoupl_input[jh][ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
+        selfDHwwcoupl[jh][ic][im] = selfDHwwcoupl_input[jh][ic][im]; // Just for extra protection since differentiate_HWW_HZZ is set to false.
       }
     }
   }
@@ -1387,7 +1434,7 @@ void Mela::computeProdP(
         delete candCopy; // Delete the shallow copy
         setCurrentCandidate(candOriginal);
         melaCand = getCurrentCandidate();
-        if (myVerbosity>=TVar::DEBUG){
+        if (myVerbosity_>=TVar::DEBUG){
           if (melaCand!=candOriginal) cerr << "Mela::computeProdP: melaCand!=candOriginal at the end of the fake jet scenario!" << endl;
         }
       }
@@ -1437,7 +1484,7 @@ void Mela::computeProdP_VH(
   ){
   // Dedicated function for VH ME
   selfDHggcoupl[0][0] = 1.0; // Don't set this, and you might get 0 in the future for ggVH.
-  for (jh=0; jh<(int)nSupportedHiggses; jh++){
+  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
     for (int im=0; im<2; im++){
       for (int ic=0; ic<SIZE_HVV; ic++){
         selfDHzzcoupl[jh][ic][im] = selfDHvvcoupl_input[jh][ic][im];
@@ -1445,7 +1492,8 @@ void Mela::computeProdP_VH(
       }
     }
   }
-  computeProdP(
+
+  computeProdP_VH(
     prob,
     includeHiggsDecay,
     useConstant
@@ -1482,7 +1530,6 @@ void Mela::computeProdP_VH(
         includeHiggsDecay
         ); // VH
 
-      float mzz = (Higgs_daughter[0]+Higgs_daughter[1]+Higgs_daughter[2]+Higgs_daughter[3]).M();
       if (useConstant) prob *= getConstant(false);
     }
   }
@@ -1536,7 +1583,7 @@ void Mela::compute4FermionWeight(float& w){ // Lepton interference using JHUGen
     bool hasFailed=false;
     int id_original[2][2];
     for (int iv=0; iv<2; iv++){
-      MELAPArticle* Vi = melaCand->getSortedV(iv);
+      MELAParticle* Vi = melaCand->getSortedV(iv);
       int ndau=Vi->getNDaughters();
       if (ndau!=2 || !(PDGHelpers::isAZBoson(Vi->id) || PDGHelpers::isAPhoton(Vi->id))){ w=1; hasFailed=true; break; } // Veto WW, ZG, GG
       for (int ivd=0; ivd<2; ivd++) id_original[iv][ivd]=Vi->getDaughter(ivd)->id;
@@ -1594,7 +1641,7 @@ void Mela::computePM4l(TVar::SuperMelaSyst syst, float& prob){
     bool hasFailed=false;
     int id_original[2][2];
     for (int iv=0; iv<2; iv++){
-      MELAPArticle* Vi = melaCand->getSortedV(iv);
+      MELAParticle* Vi = melaCand->getSortedV(iv);
       int ndau=Vi->getNDaughters();
       if (ndau!=2 || !(PDGHelpers::isAZBoson(Vi->id) || PDGHelpers::isAPhoton(Vi->id))){ hasFailed=true; break; } // Veto WW, ZG, GG
       for (int ivd=0; ivd<2; ivd++) id_original[iv][ivd]=Vi->getDaughter(ivd)->id;
@@ -1706,7 +1753,7 @@ void Mela::computeD_gg(
     bool hasFailed=false;
     int id_original[2][2];
     for (int iv=0; iv<2; iv++){
-      MELAPArticle* Vi = melaCand->getSortedV(iv);
+      MELAParticle* Vi = melaCand->getSortedV(iv);
       int ndau=Vi->getNDaughters();
       if (ndau!=2 || !(PDGHelpers::isAZBoson(Vi->id) || PDGHelpers::isAPhoton(Vi->id))){ hasFailed=true; break; } // Veto WW, ZG, GG
       for (int ivd=0; ivd<2; ivd++) id_original[iv][ivd]=Vi->getDaughter(ivd)->id;
@@ -1725,7 +1772,7 @@ void Mela::computeD_gg(
     }
 
     if (!hasFailed){
-      TVar::LeptonInterference deflepinterf = myLepInterf;
+      TVar::LeptonInterference deflepinterf = myLepInterf_;
       setMelaLeptonInterference(TVar::InterfOff); // Override lepton interference setting
 
       float bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, bkgHZZ_prob_noscale;
@@ -1744,53 +1791,6 @@ void Mela::computeD_gg(
   reset_CandRef();
 }
 
-// Notice that these only set the members of MELA, not TEvtProb. TEvtProb resets itself.
-void Mela::reset_SelfDCouplings(){
-  // We have a lot of them.
-
-  //****Spin-0****//
-  differentiate_HWW_HZZ=false;
-  for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfDHvvcoupl_freenorm[ic]=0;
-
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_HQQ; ic++) selfDHqqcoupl[ic][im]=0;
-    for (int ic=0; ic<SIZE_HGG; ic++) selfDHggcoupl[ic][im]=0;
-  }
-
-  // Loop over the number of supported resonances
-  for (int jh=0; jh<(int)nSupportedHiggses; jh++){
-    for (int im=0; im<2; im++){
-      for (int ic=0; ic<SIZE_HVV; ic++){
-        selfDHzzcoupl[jh][ic][im] = 0;
-        selfDHwwcoupl[jh][ic][im] = 0;
-      }
-    }
-    for (int ik=0; ik<3; ik++){
-      selfDHzzCLambda_qsq[jh][ik]=0;
-      selfDHwwCLambda_qsq[jh][ik]=0;
-      for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
-        selfDHzzLambda_qsq[jh][ic][ik] = 100.;
-        selfDHwwLambda_qsq[jh][ic][ik] = 100.;
-      }
-    }
-  }
-
-  //****Spin-1****//
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = 0;
-    for (int ic=0; ic<SIZE_ZQQ; ic++) selfDZqqcoupl[ic][im] = 0;
-  }
-
-  //****Spin-2****//
-  for (int im=0; im<2; im++){
-    for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = 0;
-    for (int ic=0; ic<SIZE_GGG; ic++) selfDGggcoupl[ic][im] = 0;
-    for (int ic=0; ic<SIZE_GQQ; ic++) selfDGqqcoupl[ic][im] = 0;
-  }
-
-  // Did I tell you that we have a lot of them?
-}
-void Mela::reset_CandRef(){ melaCand=0; }
 
 void Mela::configureAnalyticalPDFs(){
   // 
@@ -1833,59 +1833,59 @@ void Mela::configureAnalyticalPDFs(){
     // Self-defined spin-0
     if (myModel_ == TVar::SelfDefine_spin0){
       for (int im=0; im<2; im++){
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[0][im])->setVal(selfDHzzcoupl[0][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[0][im])->setVal(selfDHzzcoupl[1][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[0][im])->setVal(selfDHzzcoupl[2][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[0][im])->setVal(selfDHzzcoupl[3][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[0][im])->setVal(selfDHzzcoupl[0][0][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[0][im])->setVal(selfDHzzcoupl[0][1][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[0][im])->setVal(selfDHzzcoupl[0][2][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[0][im])->setVal(selfDHzzcoupl[0][3][im]);
 
-        ((RooRealVar*)ggSpin0Model->parameters.gzgs2List[0][im])->setVal(selfDHzzcoupl[4][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.gzgs3List[0][im])->setVal(selfDHzzcoupl[5][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.gzgs4List[0][im])->setVal(selfDHzzcoupl[6][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.ggsgs2List[0][im])->setVal(selfDHzzcoupl[7][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.ggsgs3List[0][im])->setVal(selfDHzzcoupl[8][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.ggsgs4List[0][im])->setVal(selfDHzzcoupl[9][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.gzgs2List[0][im])->setVal(selfDHzzcoupl[0][4][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.gzgs3List[0][im])->setVal(selfDHzzcoupl[0][5][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.gzgs4List[0][im])->setVal(selfDHzzcoupl[0][6][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.ggsgs2List[0][im])->setVal(selfDHzzcoupl[0][7][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.ggsgs3List[0][im])->setVal(selfDHzzcoupl[0][8][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.ggsgs4List[0][im])->setVal(selfDHzzcoupl[0][9][im]);
 
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[1][im])->setVal(selfDHzzcoupl[10][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[2][im])->setVal(selfDHzzcoupl[11][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[3][im])->setVal(selfDHzzcoupl[12][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[4][im])->setVal(selfDHzzcoupl[13][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[5][im])->setVal(selfDHzzcoupl[14][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[1][im])->setVal(selfDHzzcoupl[0][10][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[2][im])->setVal(selfDHzzcoupl[0][11][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[3][im])->setVal(selfDHzzcoupl[0][12][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[4][im])->setVal(selfDHzzcoupl[0][13][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[5][im])->setVal(selfDHzzcoupl[0][14][im]);
 
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[1][im])->setVal(selfDHzzcoupl[15][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[2][im])->setVal(selfDHzzcoupl[16][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[3][im])->setVal(selfDHzzcoupl[17][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[4][im])->setVal(selfDHzzcoupl[18][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[5][im])->setVal(selfDHzzcoupl[19][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[1][im])->setVal(selfDHzzcoupl[0][15][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[2][im])->setVal(selfDHzzcoupl[0][16][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[3][im])->setVal(selfDHzzcoupl[0][17][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[4][im])->setVal(selfDHzzcoupl[0][18][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[5][im])->setVal(selfDHzzcoupl[0][19][im]);
 
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[1][im])->setVal(selfDHzzcoupl[20][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[2][im])->setVal(selfDHzzcoupl[21][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[3][im])->setVal(selfDHzzcoupl[22][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[4][im])->setVal(selfDHzzcoupl[23][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[5][im])->setVal(selfDHzzcoupl[24][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[1][im])->setVal(selfDHzzcoupl[0][20][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[2][im])->setVal(selfDHzzcoupl[0][21][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[3][im])->setVal(selfDHzzcoupl[0][22][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[4][im])->setVal(selfDHzzcoupl[0][23][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[5][im])->setVal(selfDHzzcoupl[0][24][im]);
 
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[1][im])->setVal(selfDHzzcoupl[25][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[2][im])->setVal(selfDHzzcoupl[26][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[3][im])->setVal(selfDHzzcoupl[27][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[4][im])->setVal(selfDHzzcoupl[28][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[5][im])->setVal(selfDHzzcoupl[29][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[1][im])->setVal(selfDHzzcoupl[0][25][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[2][im])->setVal(selfDHzzcoupl[0][26][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[3][im])->setVal(selfDHzzcoupl[0][27][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[4][im])->setVal(selfDHzzcoupl[0][28][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[5][im])->setVal(selfDHzzcoupl[0][29][im]);
 
-        ((RooRealVar*)ggSpin0Model->parameters.gzgs1List[0][im])->setVal(selfDHzzcoupl[30][im]); // Zgs1_prime2
+        ((RooRealVar*)ggSpin0Model->couplings.gzgs1List[0][im])->setVal(selfDHzzcoupl[0][30][im]); // Zgs1_prime2
 
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[6][im])->setVal(selfDHzzcoupl[31][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g1List[7][im])->setVal(selfDHzzcoupl[32][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[6][im])->setVal(selfDHzzcoupl[33][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g2List[7][im])->setVal(selfDHzzcoupl[34][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[6][im])->setVal(selfDHzzcoupl[35][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g3List[7][im])->setVal(selfDHzzcoupl[36][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[6][im])->setVal(selfDHzzcoupl[37][im]);
-        ((RooRealVar*)ggSpin0Model->parameters.g4List[7][im])->setVal(selfDHzzcoupl[38][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[6][im])->setVal(selfDHzzcoupl[0][31][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g1List[7][im])->setVal(selfDHzzcoupl[0][32][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[6][im])->setVal(selfDHzzcoupl[0][33][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g2List[7][im])->setVal(selfDHzzcoupl[0][34][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[6][im])->setVal(selfDHzzcoupl[0][35][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g3List[7][im])->setVal(selfDHzzcoupl[0][36][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[6][im])->setVal(selfDHzzcoupl[0][37][im]);
+        ((RooRealVar*)ggSpin0Model->couplings.g4List[7][im])->setVal(selfDHzzcoupl[0][38][im]);
       }
       for (int qoqtqz=0; qoqtqz<3; qoqtqz++){ // 0==q1, 1==q2, 2==q12
-        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z1qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][qoqtqz]);
-        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z2qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[1][qoqtqz]);
-        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z3qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[2][qoqtqz]);
-        ((RooRealVar*)ggSpin0Model->parameters.Lambda_z4qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[3][qoqtqz]);
-        ((RooRealVar*)ggSpin0Model->parameters.cLambda_qsq[qoqtqz])->setVal(selfDHzzCLambda_qsq[qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->couplings.Lambda_z1qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][0][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->couplings.Lambda_z2qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][1][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->couplings.Lambda_z3qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][2][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->couplings.Lambda_z4qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][3][qoqtqz]);
+        ((RooRealVar*)ggSpin0Model->couplings.cLambda_qsq[qoqtqz])->setVal(selfDHzzCLambda_qsq[0][qoqtqz]);
       }
     }
     ggSpin0Model->makeParamsConst(true);
@@ -1930,7 +1930,7 @@ void Mela::configureAnalyticalPDFs(){
     // Self-defined spin-2
     if (myModel_ == TVar::SelfDefine_spin2){
       for (int ig=0; ig<SIZE_GVV; ig++){
-        for (int im=0; im<2; im++) ((RooRealVar*)spin2Model->parameters.bList[ig][im])->setVal(selfDGvvcoupl[ig][im]);
+        for (int im=0; im<2; im++) ((RooRealVar*)spin2Model->couplings.bList[ig][im])->setVal(selfDGvvcoupl[ig][im]);
       }
     }
     if (myProduction_ == TVar::ZZQQB){
@@ -1941,7 +1941,7 @@ void Mela::configureAnalyticalPDFs(){
       if (myModel_ == TVar::SelfDefine_spin2){
         double c1 = 2*selfDGggcoupl[0][0] + 2.*selfDGggcoupl[1][0];
         double c2 = -0.5*selfDGggcoupl[0][0] + selfDGggcoupl[2][0] + 2.*selfDGggcoupl[3][0];
-        double c5 = 4*selfDGggcoupl[7][0];
+        double c5 = 0./*4*selfDGggcoupl[7][0]*/;
         Double_t fppReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
         Double_t fppImag = 1./sqrt(6.) * c5;
         Double_t fmmReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);

@@ -1,4 +1,6 @@
 #include <ZZMatrixElement/MELA/interface/newZZMatrixElement.h>
+#include "TLorentzRotation.h"
+
 
 using namespace std;
 using namespace TUtil;
@@ -140,9 +142,9 @@ void newZZMatrixElement::set_TempCandidate(
   }
 }
 void newZZMatrixElement::set_TempCandidate(
-  std::vector<MELAPArticle*>& pDaughters,
-  std::vector<MELAPArticle*>& pAssociated,
-  std::vector<MELAPArticle*>& pMothers,
+  std::vector<MELAParticle*>& pDaughters,
+  std::vector<MELAParticle*>& pAssociated,
+  std::vector<MELAParticle*>& pMothers,
   bool isGen
   ){
   MELACandidate* cand = ConvertVectorFormat(
@@ -168,7 +170,7 @@ void newZZMatrixElement::set_wHiggs(double gah_, int index){
   if (index<nSupportedHiggses && index>=0) wHiggs[index] = (double)gah_;
   else cerr << "newZZMatrixElement::set_wHiggs: Only resonances 0 (regular) and 1 (additional, possibly high-mass) are supported" << endl;
 }
-void newZZMatrixElement::set_mHiggs_wHiggs(double mh_, gah_, int index){
+void newZZMatrixElement::set_mHiggs_wHiggs(double mh_, double gah_, int index){
   if (index<nSupportedHiggses && index>=0){
     mHiggs[index] = mh_;
     wHiggs[index] = gah_;
@@ -195,7 +197,7 @@ void newZZMatrixElement::resetPerEvent(){
 
   // Delete the temporary input objects owned
   for (unsigned int ic=0; ic<tmpCandList.size(); ic++){ if (tmpCandList.at(ic)!=0) delete tmpCandList.at(ic); }
-  for (unsigned int itc=0; itc<tmpTopCandList.size(); itc++){ if (tmpTopCandList.at(itc)!=0) delete tmpTopCandList.at(itc); }
+  //for (unsigned int itc=0; itc<tmpTopCandList.size(); itc++){ if (tmpTopCandList.at(itc)!=0) delete tmpTopCandList.at(itc); }
   for (unsigned int ip=0; ip<tmpPartList.size(); ip++){ if (tmpPartList.at(ip)!=0) delete tmpPartList.at(ip); }
   melaCand=0;
 }
@@ -204,7 +206,7 @@ void newZZMatrixElement::reset_InputEvent(){ Xcal2.ResetInputEvent(); }
 
 
 MelaIO* newZZMatrixElement::get_IORecord(){ return Xcal2.GetIORecord(); }
-MELACandidate* newZZMatrixElement::get_CurrentCandidate(){ Xcal2.GetCurrentCandidate(); }
+MELACandidate* newZZMatrixElement::get_CurrentCandidate(){ return Xcal2.GetCurrentCandidate(); }
 int newZZMatrixElement::get_CurrentCandidateIndex(){ return Xcal2.GetCurrentCandidateIndex(); }
 vector<MELATopCandidate*>* newZZMatrixElement::get_TopCandidateCollection(){ return Xcal2.GetTopCandidates(); }
 
@@ -269,11 +271,11 @@ void newZZMatrixElement::computeXS(
   melaCand = get_CurrentCandidate();
 
   if (melaCand!=0){
-    double zzmass = melaCand.m();
+    double zzmass = melaCand->m();
     if (processME==TVar::MCFM || processModel==TVar::bkgZZ_SMHiggs){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
     else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 
-    mevalue = Xcal2.XsecCalc(
+    mevalue = Xcal2.XsecCalc_XVV(
       processModel, processProduction,
       processVerbosity
       );
@@ -294,7 +296,7 @@ void newZZMatrixElement::computeProdXS_VVHVV(
   melaCand = get_CurrentCandidate();
 
   if (melaCand!=0){
-    double zzmass = melaCand.m();
+    double zzmass = melaCand->m();
     if (processME==TVar::MCFM || processModel==TVar::bkgZZ_SMHiggs){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
     else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 
@@ -362,7 +364,7 @@ void newZZMatrixElement::computeProdXS_VH(
   melaCand = get_CurrentCandidate();
 
   if (melaCand!=0){
-    double zzmass = melaCand.m();
+    double zzmass = melaCand->m();
     if (processME==TVar::MCFM){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
     else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 
@@ -391,7 +393,7 @@ void newZZMatrixElement::computeProdXS_ttH(
   melaCand = get_CurrentCandidate();
 
   if (melaCand!=0){
-    double zzmass = melaCand.m();
+    double zzmass = melaCand->m();
     if (processME==TVar::MCFM){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
     else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 

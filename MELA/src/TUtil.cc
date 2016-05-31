@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cmath>
 #include "TMath.h"
+#include "TLorentzRotation.h"
 
 
 using namespace std;
@@ -10,8 +11,8 @@ using namespace std;
 namespace TUtil{
   bool forbidMassiveLeptons = true;
   bool forbidMassiveJets = true;
-  LeptonMassScheme = TVar::ConserveDifermionMass;
-  JetMassScheme = TVar::MomentumToEnergy;
+  TVar::FermionMassRemoval LeptonMassScheme = TVar::ConserveDifermionMass;
+  TVar::FermionMassRemoval JetMassScheme = TVar::MomentumToEnergy;
 }
 
 /***************************************************/
@@ -55,7 +56,7 @@ void TUtil::scaleMomentumToEnergy(TLorentzVector massiveJet, TLorentzVector& mas
   p3 = massiveJet.P();
   newp3 = sqrt(max(pow(energy, 2)-mass*fabs(mass), 0.));
   ratio = (p3>0. ? (newp3/p3) : 1.);
-  masslessJet.SetXZYT(massiveJet.X()*ratio, massiveJet.Y()*ratio, massiveJet.Z()*ratio, energy);
+  masslessJet.SetXYZT(massiveJet.X()*ratio, massiveJet.Y()*ratio, massiveJet.Z()*ratio, energy);
 }
 pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
   TLorentzVector jet1, int jet1Id,
@@ -178,15 +179,23 @@ void TUtil::computeAngles(
 
   // Sort Z1 leptons so that:
   if (
+    Z1_lept2Id!=9000
+    &&
+    (
     (Z1_lept1Id*Z1_lept2Id<0 && Z1_lept1Id<0) // for OS pairs: lep1 must be the negative one
     ||
     ((Z1_lept1Id*Z1_lept2Id>0 || (Z1_lept1Id==0 && Z1_lept2Id==0)) && p4M11.Phi()<=p4M12.Phi()) //for SS pairs: use random deterministic convention
+    )
     ) swap(p4M11, p4M12);
   // Same for Z2 leptons
   if (
+    Z2_lept2Id!=9000
+    &&
+    (
     (Z2_lept1Id*Z2_lept2Id<0 && Z2_lept1Id<0)
     ||
     ((Z2_lept1Id*Z2_lept2Id>0 || (Z2_lept1Id==0 && Z2_lept2Id==0)) && p4M21.Phi()<=p4M22.Phi())
+    )
     ) swap(p4M21, p4M22);
 
   // BEGIN THE CALCULATION
@@ -347,15 +356,23 @@ void TUtil::computeAnglesCS(
 
   // Sort Z1 leptons so that:
   if (
+    Z1_lept2Id!=9000
+    &&
+    (
     (Z1_lept1Id*Z1_lept2Id<0 && Z1_lept1Id<0) // for OS pairs: lep1 must be the negative one
     ||
     ((Z1_lept1Id*Z1_lept2Id>0 || (Z1_lept1Id==0 && Z1_lept2Id==0)) && p4M11.Phi()<=p4M12.Phi()) //for SS pairs: use random deterministic convention
+    )
     ) swap(p4M11, p4M12);
   // Same for Z2 leptons
   if (
+    Z2_lept2Id!=9000
+    &&
+    (
     (Z2_lept1Id*Z2_lept2Id<0 && Z2_lept1Id<0)
     ||
     ((Z2_lept1Id*Z2_lept2Id>0 || (Z2_lept1Id==0 && Z2_lept2Id==0)) && p4M21.Phi()<=p4M22.Phi())
+    )
     ) swap(p4M21, p4M22);
 
 
@@ -420,7 +437,7 @@ void TUtil::computeAnglesCS(
   TVector3 normalSC_BX_rotCS = (beamAxis.Cross(p3V1_BX_rotCS)).Unit();
 
   //// Phi
-  float tmpSgnPhi = p3V1_BX_rotCS.Vect().Dot(normal1_BX_rotCS.Cross(normal2_BX_rotCS));
+  float tmpSgnPhi = p3V1_BX_rotCS.Dot(normal1_BX_rotCS.Cross(normal2_BX_rotCS));
   float sgnPhi = 0;
   if (fabs(tmpSgnPhi)>0.) sgnPhi = tmpSgnPhi/fabs(tmpSgnPhi);
   float dot_BX12 = normal1_BX_rotCS.Dot(normal2_BX_rotCS);
@@ -428,7 +445,7 @@ void TUtil::computeAnglesCS(
   Phi = sgnPhi * acos(-1.*dot_BX12);
 
   //// Phi1
-  float tmpSgnPhi1 = p3V1_BX_rotCS.Vect().Dot(normal1_BX_rotCS.Cross(normalSC_BX_rotCS));
+  float tmpSgnPhi1 = p3V1_BX_rotCS.Dot(normal1_BX_rotCS.Cross(normalSC_BX_rotCS));
   float sgnPhi1 = 0;
   if (fabs(tmpSgnPhi1)>0.) sgnPhi1 = tmpSgnPhi1/fabs(tmpSgnPhi1);
   float dot_BX1SC = normal1_BX_rotCS.Dot(normalSC_BX_rotCS);
@@ -973,8 +990,8 @@ void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double 
   */
 }
 bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand){
-  MELAPArticle* V1 = cand->getSorteV(0);
-  MELAPArticle* V2 = cand->getSorteV(1);
+  MELAParticle* V1 = cand->getSortedV(0);
+  MELAParticle* V2 = cand->getSortedV(1);
   if (V1==0 || V2==0) return false;
 
   unsigned int ndau = V1->getNDaughters() + V2->getNDaughters();
@@ -991,7 +1008,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     &&
     V1->getDaughter(1)->id==V2->getDaughter(1)->id
     &&
-    !isAnUnknownJet(V1->getDaughter(0)->id) && !isAnUnknownJet(V1->getDaughter(1)->id)
+    !PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) && !PDGHelpers::isAnUnknownJet(V1->getDaughter(1)->id)
     );
 
   // VV->4f
@@ -1149,7 +1166,6 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     cerr <<"TUtil::MCFM_chooser: Can't identify Process: " << process << endl;
     cerr <<"TUtil::MCFM_chooser: ndau: " << ndau << '\t';
     cerr <<"TUtil::MCFM_chooser: naparts: " << naparts << '\t';
-    cerr <<"TUtil::MCFM_chooser: nainvalid: " << nainvalid << '\t';
     cerr <<"TUtil::MCFM_chooser: najets: " << najets << '\t';
     cerr <<"TUtil::MCFM_chooser: naneutrinos: " << naneutrinos << '\t';
     cerr <<"TUtil::MCFM_chooser: naleps: " << naleps << '\t';
@@ -1410,82 +1426,82 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
 
     /***** REGULAR RESONANCE *****/
     //
-    spinzerohiggs_anomcoupl_.cz_q1sq = (Hcoupling->HzzCLambda_qsq)[0];
-    spinzerohiggs_anomcoupl_.Lambda_z11 = (Hcoupling->HzzLambda_qsq)[0][0];
-    spinzerohiggs_anomcoupl_.Lambda_z21 = (Hcoupling->HzzLambda_qsq)[1][0];
-    spinzerohiggs_anomcoupl_.Lambda_z31 = (Hcoupling->HzzLambda_qsq)[2][0];
-    spinzerohiggs_anomcoupl_.Lambda_z41 = (Hcoupling->HzzLambda_qsq)[3][0];
-    spinzerohiggs_anomcoupl_.cz_q2sq = (Hcoupling->HzzCLambda_qsq)[1];
-    spinzerohiggs_anomcoupl_.Lambda_z12 = (Hcoupling->HzzLambda_qsq)[0][1];
-    spinzerohiggs_anomcoupl_.Lambda_z22 = (Hcoupling->HzzLambda_qsq)[1][1];
-    spinzerohiggs_anomcoupl_.Lambda_z32 = (Hcoupling->HzzLambda_qsq)[2][1];
-    spinzerohiggs_anomcoupl_.Lambda_z42 = (Hcoupling->HzzLambda_qsq)[3][1];
-    spinzerohiggs_anomcoupl_.cz_q12sq = (Hcoupling->HzzCLambda_qsq)[2];
-    spinzerohiggs_anomcoupl_.Lambda_z10 = (Hcoupling->HzzLambda_qsq)[0][2];
-    spinzerohiggs_anomcoupl_.Lambda_z20 = (Hcoupling->HzzLambda_qsq)[1][2];
-    spinzerohiggs_anomcoupl_.Lambda_z30 = (Hcoupling->HzzLambda_qsq)[2][2];
-    spinzerohiggs_anomcoupl_.Lambda_z40 = (Hcoupling->HzzLambda_qsq)[3][2];
+    spinzerohiggs_anomcoupl_.cz_q1sq = (Hcouplings->HzzCLambda_qsq)[0];
+    spinzerohiggs_anomcoupl_.Lambda_z11 = (Hcouplings->HzzLambda_qsq)[0][0];
+    spinzerohiggs_anomcoupl_.Lambda_z21 = (Hcouplings->HzzLambda_qsq)[1][0];
+    spinzerohiggs_anomcoupl_.Lambda_z31 = (Hcouplings->HzzLambda_qsq)[2][0];
+    spinzerohiggs_anomcoupl_.Lambda_z41 = (Hcouplings->HzzLambda_qsq)[3][0];
+    spinzerohiggs_anomcoupl_.cz_q2sq = (Hcouplings->HzzCLambda_qsq)[1];
+    spinzerohiggs_anomcoupl_.Lambda_z12 = (Hcouplings->HzzLambda_qsq)[0][1];
+    spinzerohiggs_anomcoupl_.Lambda_z22 = (Hcouplings->HzzLambda_qsq)[1][1];
+    spinzerohiggs_anomcoupl_.Lambda_z32 = (Hcouplings->HzzLambda_qsq)[2][1];
+    spinzerohiggs_anomcoupl_.Lambda_z42 = (Hcouplings->HzzLambda_qsq)[3][1];
+    spinzerohiggs_anomcoupl_.cz_q12sq = (Hcouplings->HzzCLambda_qsq)[2];
+    spinzerohiggs_anomcoupl_.Lambda_z10 = (Hcouplings->HzzLambda_qsq)[0][2];
+    spinzerohiggs_anomcoupl_.Lambda_z20 = (Hcouplings->HzzLambda_qsq)[1][2];
+    spinzerohiggs_anomcoupl_.Lambda_z30 = (Hcouplings->HzzLambda_qsq)[2][2];
+    spinzerohiggs_anomcoupl_.Lambda_z40 = (Hcouplings->HzzLambda_qsq)[3][2];
     //
     for (int im=0; im<2; im++){
-      spinzerohiggs_anomcoupl_.ghz1[im] = (Hcoupling->Hzzcoupl)[0][im];
-      spinzerohiggs_anomcoupl_.ghz2[im] = (Hcoupling->Hzzcoupl)[1][im];
-      spinzerohiggs_anomcoupl_.ghz3[im] = (Hcoupling->Hzzcoupl)[2][im];
-      spinzerohiggs_anomcoupl_.ghz4[im] = (Hcoupling->Hzzcoupl)[3][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime[im] = (Hcoupling->Hzzcoupl)[10][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime2[im] = (Hcoupling->Hzzcoupl)[11][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime3[im] = (Hcoupling->Hzzcoupl)[12][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime4[im] = (Hcoupling->Hzzcoupl)[13][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime5[im] = (Hcoupling->Hzzcoupl)[14][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime[im] = (Hcoupling->Hzzcoupl)[15][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime2[im] = (Hcoupling->Hzzcoupl)[16][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime3[im] = (Hcoupling->Hzzcoupl)[17][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime4[im] = (Hcoupling->Hzzcoupl)[18][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime5[im] = (Hcoupling->Hzzcoupl)[19][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime[im] = (Hcoupling->Hzzcoupl)[20][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime2[im] = (Hcoupling->Hzzcoupl)[21][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime3[im] = (Hcoupling->Hzzcoupl)[22][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime4[im] = (Hcoupling->Hzzcoupl)[23][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime5[im] = (Hcoupling->Hzzcoupl)[24][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime[im] = (Hcoupling->Hzzcoupl)[25][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime2[im] = (Hcoupling->Hzzcoupl)[26][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime3[im] = (Hcoupling->Hzzcoupl)[27][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime4[im] = (Hcoupling->Hzzcoupl)[28][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime5[im] = (Hcoupling->Hzzcoupl)[29][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime6[im] = (Hcoupling->Hzzcoupl)[31][im];
-      spinzerohiggs_anomcoupl_.ghz1_prime7[im] = (Hcoupling->Hzzcoupl)[32][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime6[im] = (Hcoupling->Hzzcoupl)[33][im];
-      spinzerohiggs_anomcoupl_.ghz2_prime7[im] = (Hcoupling->Hzzcoupl)[34][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime6[im] = (Hcoupling->Hzzcoupl)[35][im];
-      spinzerohiggs_anomcoupl_.ghz3_prime7[im] = (Hcoupling->Hzzcoupl)[36][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime6[im] = (Hcoupling->Hzzcoupl)[37][im];
-      spinzerohiggs_anomcoupl_.ghz4_prime7[im] = (Hcoupling->Hzzcoupl)[38][im];
+      spinzerohiggs_anomcoupl_.ghz1[im] = (Hcouplings->Hzzcoupl)[0][im];
+      spinzerohiggs_anomcoupl_.ghz2[im] = (Hcouplings->Hzzcoupl)[1][im];
+      spinzerohiggs_anomcoupl_.ghz3[im] = (Hcouplings->Hzzcoupl)[2][im];
+      spinzerohiggs_anomcoupl_.ghz4[im] = (Hcouplings->Hzzcoupl)[3][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime[im] = (Hcouplings->Hzzcoupl)[10][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime2[im] = (Hcouplings->Hzzcoupl)[11][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime3[im] = (Hcouplings->Hzzcoupl)[12][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime4[im] = (Hcouplings->Hzzcoupl)[13][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime5[im] = (Hcouplings->Hzzcoupl)[14][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime[im] = (Hcouplings->Hzzcoupl)[15][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime2[im] = (Hcouplings->Hzzcoupl)[16][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime3[im] = (Hcouplings->Hzzcoupl)[17][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime4[im] = (Hcouplings->Hzzcoupl)[18][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime5[im] = (Hcouplings->Hzzcoupl)[19][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime[im] = (Hcouplings->Hzzcoupl)[20][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime2[im] = (Hcouplings->Hzzcoupl)[21][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime3[im] = (Hcouplings->Hzzcoupl)[22][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime4[im] = (Hcouplings->Hzzcoupl)[23][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime5[im] = (Hcouplings->Hzzcoupl)[24][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime[im] = (Hcouplings->Hzzcoupl)[25][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime2[im] = (Hcouplings->Hzzcoupl)[26][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime3[im] = (Hcouplings->Hzzcoupl)[27][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime4[im] = (Hcouplings->Hzzcoupl)[28][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime5[im] = (Hcouplings->Hzzcoupl)[29][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime6[im] = (Hcouplings->Hzzcoupl)[31][im];
+      spinzerohiggs_anomcoupl_.ghz1_prime7[im] = (Hcouplings->Hzzcoupl)[32][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime6[im] = (Hcouplings->Hzzcoupl)[33][im];
+      spinzerohiggs_anomcoupl_.ghz2_prime7[im] = (Hcouplings->Hzzcoupl)[34][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime6[im] = (Hcouplings->Hzzcoupl)[35][im];
+      spinzerohiggs_anomcoupl_.ghz3_prime7[im] = (Hcouplings->Hzzcoupl)[36][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime6[im] = (Hcouplings->Hzzcoupl)[37][im];
+      spinzerohiggs_anomcoupl_.ghz4_prime7[im] = (Hcouplings->Hzzcoupl)[38][im];
       //
-      spinzerohiggs_anomcoupl_.ghzgs1_prime2[im] = (Hcoupling->Hzzcoupl)[30][im];
-      spinzerohiggs_anomcoupl_.ghzgs2[im] = (Hcoupling->Hzzcoupl)[4][im];
-      spinzerohiggs_anomcoupl_.ghzgs3[im] = (Hcoupling->Hzzcoupl)[5][im];
-      spinzerohiggs_anomcoupl_.ghzgs4[im] = (Hcoupling->Hzzcoupl)[6][im];
-      spinzerohiggs_anomcoupl_.ghgsgs2[im] = (Hcoupling->Hzzcoupl)[7][im];
-      spinzerohiggs_anomcoupl_.ghgsgs3[im] = (Hcoupling->Hzzcoupl)[8][im];
-      spinzerohiggs_anomcoupl_.ghgsgs4[im] = (Hcoupling->Hzzcoupl)[9][im];
+      spinzerohiggs_anomcoupl_.ghzgs1_prime2[im] = (Hcouplings->Hzzcoupl)[30][im];
+      spinzerohiggs_anomcoupl_.ghzgs2[im] = (Hcouplings->Hzzcoupl)[4][im];
+      spinzerohiggs_anomcoupl_.ghzgs3[im] = (Hcouplings->Hzzcoupl)[5][im];
+      spinzerohiggs_anomcoupl_.ghzgs4[im] = (Hcouplings->Hzzcoupl)[6][im];
+      spinzerohiggs_anomcoupl_.ghgsgs2[im] = (Hcouplings->Hzzcoupl)[7][im];
+      spinzerohiggs_anomcoupl_.ghgsgs3[im] = (Hcouplings->Hzzcoupl)[8][im];
+      spinzerohiggs_anomcoupl_.ghgsgs4[im] = (Hcouplings->Hzzcoupl)[9][im];
     }
     //
     if (spinzerohiggs_anomcoupl_.distinguish_HWWcouplings){
       //
-      spinzerohiggs_anomcoupl_.cw_q1sq = (Hcoupling->HwwCLambda_qsq)[0];
-      spinzerohiggs_anomcoupl_.Lambda_w11 = (Hcoupling->HwwLambda_qsq)[0][0];
-      spinzerohiggs_anomcoupl_.Lambda_w21 = (Hcoupling->HwwLambda_qsq)[1][0];
-      spinzerohiggs_anomcoupl_.Lambda_w31 = (Hcoupling->HwwLambda_qsq)[2][0];
-      spinzerohiggs_anomcoupl_.Lambda_w41 = (Hcoupling->HwwLambda_qsq)[3][0];
-      spinzerohiggs_anomcoupl_.cw_q2sq = (Hcoupling->HwwCLambda_qsq)[1];
-      spinzerohiggs_anomcoupl_.Lambda_w12 = (Hcoupling->HwwLambda_qsq)[0][1];
-      spinzerohiggs_anomcoupl_.Lambda_w22 = (Hcoupling->HwwLambda_qsq)[1][1];
-      spinzerohiggs_anomcoupl_.Lambda_w32 = (Hcoupling->HwwLambda_qsq)[2][1];
-      spinzerohiggs_anomcoupl_.Lambda_w42 = (Hcoupling->HwwLambda_qsq)[3][1];
-      spinzerohiggs_anomcoupl_.cw_q12sq = (Hcoupling->HwwCLambda_qsq)[2];
-      spinzerohiggs_anomcoupl_.Lambda_w10 = (Hcoupling->HwwLambda_qsq)[0][2];
-      spinzerohiggs_anomcoupl_.Lambda_w20 = (Hcoupling->HwwLambda_qsq)[1][2];
-      spinzerohiggs_anomcoupl_.Lambda_w30 = (Hcoupling->HwwLambda_qsq)[2][2];
-      spinzerohiggs_anomcoupl_.Lambda_w40 = (Hcoupling->HwwLambda_qsq)[3][2];
+      spinzerohiggs_anomcoupl_.cw_q1sq = (Hcouplings->HwwCLambda_qsq)[0];
+      spinzerohiggs_anomcoupl_.Lambda_w11 = (Hcouplings->HwwLambda_qsq)[0][0];
+      spinzerohiggs_anomcoupl_.Lambda_w21 = (Hcouplings->HwwLambda_qsq)[1][0];
+      spinzerohiggs_anomcoupl_.Lambda_w31 = (Hcouplings->HwwLambda_qsq)[2][0];
+      spinzerohiggs_anomcoupl_.Lambda_w41 = (Hcouplings->HwwLambda_qsq)[3][0];
+      spinzerohiggs_anomcoupl_.cw_q2sq = (Hcouplings->HwwCLambda_qsq)[1];
+      spinzerohiggs_anomcoupl_.Lambda_w12 = (Hcouplings->HwwLambda_qsq)[0][1];
+      spinzerohiggs_anomcoupl_.Lambda_w22 = (Hcouplings->HwwLambda_qsq)[1][1];
+      spinzerohiggs_anomcoupl_.Lambda_w32 = (Hcouplings->HwwLambda_qsq)[2][1];
+      spinzerohiggs_anomcoupl_.Lambda_w42 = (Hcouplings->HwwLambda_qsq)[3][1];
+      spinzerohiggs_anomcoupl_.cw_q12sq = (Hcouplings->HwwCLambda_qsq)[2];
+      spinzerohiggs_anomcoupl_.Lambda_w10 = (Hcouplings->HwwLambda_qsq)[0][2];
+      spinzerohiggs_anomcoupl_.Lambda_w20 = (Hcouplings->HwwLambda_qsq)[1][2];
+      spinzerohiggs_anomcoupl_.Lambda_w30 = (Hcouplings->HwwLambda_qsq)[2][2];
+      spinzerohiggs_anomcoupl_.Lambda_w40 = (Hcouplings->HwwLambda_qsq)[3][2];
       //
       for (int im=0; im<2; im++){
         spinzerohiggs_anomcoupl_.ghw1[im] = (Hcouplings->Hwwcoupl)[0][im];
@@ -1524,21 +1540,21 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
     }
     else{
       //
-      spinzerohiggs_anomcoupl_.cw_q1sq = (Hcoupling->HzzCLambda_qsq)[0];
-      spinzerohiggs_anomcoupl_.Lambda_w11 = (Hcoupling->HzzLambda_qsq)[0][0];
-      spinzerohiggs_anomcoupl_.Lambda_w21 = (Hcoupling->HzzLambda_qsq)[1][0];
-      spinzerohiggs_anomcoupl_.Lambda_w31 = (Hcoupling->HzzLambda_qsq)[2][0];
-      spinzerohiggs_anomcoupl_.Lambda_w41 = (Hcoupling->HzzLambda_qsq)[3][0];
-      spinzerohiggs_anomcoupl_.cw_q2sq = (Hcoupling->HzzCLambda_qsq)[1];
-      spinzerohiggs_anomcoupl_.Lambda_w12 = (Hcoupling->HzzLambda_qsq)[0][1];
-      spinzerohiggs_anomcoupl_.Lambda_w22 = (Hcoupling->HzzLambda_qsq)[1][1];
-      spinzerohiggs_anomcoupl_.Lambda_w32 = (Hcoupling->HzzLambda_qsq)[2][1];
-      spinzerohiggs_anomcoupl_.Lambda_w42 = (Hcoupling->HzzLambda_qsq)[3][1];
-      spinzerohiggs_anomcoupl_.cw_q12sq = (Hcoupling->HzzCLambda_qsq)[2];
-      spinzerohiggs_anomcoupl_.Lambda_w10 = (Hcoupling->HzzLambda_qsq)[0][2];
-      spinzerohiggs_anomcoupl_.Lambda_w20 = (Hcoupling->HzzLambda_qsq)[1][2];
-      spinzerohiggs_anomcoupl_.Lambda_w30 = (Hcoupling->HzzLambda_qsq)[2][2];
-      spinzerohiggs_anomcoupl_.Lambda_w40 = (Hcoupling->HzzLambda_qsq)[3][2];
+      spinzerohiggs_anomcoupl_.cw_q1sq = (Hcouplings->HzzCLambda_qsq)[0];
+      spinzerohiggs_anomcoupl_.Lambda_w11 = (Hcouplings->HzzLambda_qsq)[0][0];
+      spinzerohiggs_anomcoupl_.Lambda_w21 = (Hcouplings->HzzLambda_qsq)[1][0];
+      spinzerohiggs_anomcoupl_.Lambda_w31 = (Hcouplings->HzzLambda_qsq)[2][0];
+      spinzerohiggs_anomcoupl_.Lambda_w41 = (Hcouplings->HzzLambda_qsq)[3][0];
+      spinzerohiggs_anomcoupl_.cw_q2sq = (Hcouplings->HzzCLambda_qsq)[1];
+      spinzerohiggs_anomcoupl_.Lambda_w12 = (Hcouplings->HzzLambda_qsq)[0][1];
+      spinzerohiggs_anomcoupl_.Lambda_w22 = (Hcouplings->HzzLambda_qsq)[1][1];
+      spinzerohiggs_anomcoupl_.Lambda_w32 = (Hcouplings->HzzLambda_qsq)[2][1];
+      spinzerohiggs_anomcoupl_.Lambda_w42 = (Hcouplings->HzzLambda_qsq)[3][1];
+      spinzerohiggs_anomcoupl_.cw_q12sq = (Hcouplings->HzzCLambda_qsq)[2];
+      spinzerohiggs_anomcoupl_.Lambda_w10 = (Hcouplings->HzzLambda_qsq)[0][2];
+      spinzerohiggs_anomcoupl_.Lambda_w20 = (Hcouplings->HzzLambda_qsq)[1][2];
+      spinzerohiggs_anomcoupl_.Lambda_w30 = (Hcouplings->HzzLambda_qsq)[2][2];
+      spinzerohiggs_anomcoupl_.Lambda_w40 = (Hcouplings->HzzLambda_qsq)[3][2];
       //
       for (int im=0; im<2; im++){
         spinzerohiggs_anomcoupl_.ghw1[im] = (Hcouplings->Hzzcoupl)[0][im];
@@ -1579,82 +1595,82 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
     //
     /***** SECOND RESONANCE *****/
     //
-    spinzerohiggs_anomcoupl_.c2z_q1sq = (Hcoupling->H2zzCLambda_qsq)[0];
-    spinzerohiggs_anomcoupl_.Lambda2_z11 = (Hcoupling->H2zzLambda_qsq)[0][0];
-    spinzerohiggs_anomcoupl_.Lambda2_z21 = (Hcoupling->H2zzLambda_qsq)[1][0];
-    spinzerohiggs_anomcoupl_.Lambda2_z31 = (Hcoupling->H2zzLambda_qsq)[2][0];
-    spinzerohiggs_anomcoupl_.Lambda2_z41 = (Hcoupling->H2zzLambda_qsq)[3][0];
-    spinzerohiggs_anomcoupl_.c2z_q2sq = (Hcoupling->H2zzCLambda_qsq)[1];
-    spinzerohiggs_anomcoupl_.Lambda2_z12 = (Hcoupling->H2zzLambda_qsq)[0][1];
-    spinzerohiggs_anomcoupl_.Lambda2_z22 = (Hcoupling->H2zzLambda_qsq)[1][1];
-    spinzerohiggs_anomcoupl_.Lambda2_z32 = (Hcoupling->H2zzLambda_qsq)[2][1];
-    spinzerohiggs_anomcoupl_.Lambda2_z42 = (Hcoupling->H2zzLambda_qsq)[3][1];
-    spinzerohiggs_anomcoupl_.c2z_q12sq = (Hcoupling->H2zzCLambda_qsq)[2];
-    spinzerohiggs_anomcoupl_.Lambda2_z10 = (Hcoupling->H2zzLambda_qsq)[0][2];
-    spinzerohiggs_anomcoupl_.Lambda2_z20 = (Hcoupling->H2zzLambda_qsq)[1][2];
-    spinzerohiggs_anomcoupl_.Lambda2_z30 = (Hcoupling->H2zzLambda_qsq)[2][2];
-    spinzerohiggs_anomcoupl_.Lambda2_z40 = (Hcoupling->H2zzLambda_qsq)[3][2];
+    spinzerohiggs_anomcoupl_.c2z_q1sq = (Hcouplings->H2zzCLambda_qsq)[0];
+    spinzerohiggs_anomcoupl_.Lambda2_z11 = (Hcouplings->H2zzLambda_qsq)[0][0];
+    spinzerohiggs_anomcoupl_.Lambda2_z21 = (Hcouplings->H2zzLambda_qsq)[1][0];
+    spinzerohiggs_anomcoupl_.Lambda2_z31 = (Hcouplings->H2zzLambda_qsq)[2][0];
+    spinzerohiggs_anomcoupl_.Lambda2_z41 = (Hcouplings->H2zzLambda_qsq)[3][0];
+    spinzerohiggs_anomcoupl_.c2z_q2sq = (Hcouplings->H2zzCLambda_qsq)[1];
+    spinzerohiggs_anomcoupl_.Lambda2_z12 = (Hcouplings->H2zzLambda_qsq)[0][1];
+    spinzerohiggs_anomcoupl_.Lambda2_z22 = (Hcouplings->H2zzLambda_qsq)[1][1];
+    spinzerohiggs_anomcoupl_.Lambda2_z32 = (Hcouplings->H2zzLambda_qsq)[2][1];
+    spinzerohiggs_anomcoupl_.Lambda2_z42 = (Hcouplings->H2zzLambda_qsq)[3][1];
+    spinzerohiggs_anomcoupl_.c2z_q12sq = (Hcouplings->H2zzCLambda_qsq)[2];
+    spinzerohiggs_anomcoupl_.Lambda2_z10 = (Hcouplings->H2zzLambda_qsq)[0][2];
+    spinzerohiggs_anomcoupl_.Lambda2_z20 = (Hcouplings->H2zzLambda_qsq)[1][2];
+    spinzerohiggs_anomcoupl_.Lambda2_z30 = (Hcouplings->H2zzLambda_qsq)[2][2];
+    spinzerohiggs_anomcoupl_.Lambda2_z40 = (Hcouplings->H2zzLambda_qsq)[3][2];
     //
     for (int im=0; im<2; im++){
-      spinzerohiggs_anomcoupl_.gh2z1[im] = (Hcoupling->H2zzcoupl)[0][im];
-      spinzerohiggs_anomcoupl_.gh2z2[im] = (Hcoupling->H2zzcoupl)[1][im];
-      spinzerohiggs_anomcoupl_.gh2z3[im] = (Hcoupling->H2zzcoupl)[2][im];
-      spinzerohiggs_anomcoupl_.gh2z4[im] = (Hcoupling->H2zzcoupl)[3][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime[im] = (Hcoupling->H2zzcoupl)[10][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime2[im] = (Hcoupling->H2zzcoupl)[11][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime3[im] = (Hcoupling->H2zzcoupl)[12][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime4[im] = (Hcoupling->H2zzcoupl)[13][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime5[im] = (Hcoupling->H2zzcoupl)[14][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime[im] = (Hcoupling->H2zzcoupl)[15][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime2[im] = (Hcoupling->H2zzcoupl)[16][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime3[im] = (Hcoupling->H2zzcoupl)[17][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime4[im] = (Hcoupling->H2zzcoupl)[18][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime5[im] = (Hcoupling->H2zzcoupl)[19][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime[im] = (Hcoupling->H2zzcoupl)[20][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime2[im] = (Hcoupling->H2zzcoupl)[21][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime3[im] = (Hcoupling->H2zzcoupl)[22][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime4[im] = (Hcoupling->H2zzcoupl)[23][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime5[im] = (Hcoupling->H2zzcoupl)[24][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime[im] = (Hcoupling->H2zzcoupl)[25][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime2[im] = (Hcoupling->H2zzcoupl)[26][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime3[im] = (Hcoupling->H2zzcoupl)[27][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime4[im] = (Hcoupling->H2zzcoupl)[28][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime5[im] = (Hcoupling->H2zzcoupl)[29][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime6[im] = (Hcoupling->H2zzcoupl)[31][im];
-      spinzerohiggs_anomcoupl_.gh2z1_prime7[im] = (Hcoupling->H2zzcoupl)[32][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime6[im] = (Hcoupling->H2zzcoupl)[33][im];
-      spinzerohiggs_anomcoupl_.gh2z2_prime7[im] = (Hcoupling->H2zzcoupl)[34][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime6[im] = (Hcoupling->H2zzcoupl)[35][im];
-      spinzerohiggs_anomcoupl_.gh2z3_prime7[im] = (Hcoupling->H2zzcoupl)[36][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime6[im] = (Hcoupling->H2zzcoupl)[37][im];
-      spinzerohiggs_anomcoupl_.gh2z4_prime7[im] = (Hcoupling->H2zzcoupl)[38][im];
+      spinzerohiggs_anomcoupl_.gh2z1[im] = (Hcouplings->H2zzcoupl)[0][im];
+      spinzerohiggs_anomcoupl_.gh2z2[im] = (Hcouplings->H2zzcoupl)[1][im];
+      spinzerohiggs_anomcoupl_.gh2z3[im] = (Hcouplings->H2zzcoupl)[2][im];
+      spinzerohiggs_anomcoupl_.gh2z4[im] = (Hcouplings->H2zzcoupl)[3][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime[im] = (Hcouplings->H2zzcoupl)[10][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime2[im] = (Hcouplings->H2zzcoupl)[11][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime3[im] = (Hcouplings->H2zzcoupl)[12][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime4[im] = (Hcouplings->H2zzcoupl)[13][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime5[im] = (Hcouplings->H2zzcoupl)[14][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime[im] = (Hcouplings->H2zzcoupl)[15][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime2[im] = (Hcouplings->H2zzcoupl)[16][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime3[im] = (Hcouplings->H2zzcoupl)[17][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime4[im] = (Hcouplings->H2zzcoupl)[18][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime5[im] = (Hcouplings->H2zzcoupl)[19][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime[im] = (Hcouplings->H2zzcoupl)[20][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime2[im] = (Hcouplings->H2zzcoupl)[21][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime3[im] = (Hcouplings->H2zzcoupl)[22][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime4[im] = (Hcouplings->H2zzcoupl)[23][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime5[im] = (Hcouplings->H2zzcoupl)[24][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime[im] = (Hcouplings->H2zzcoupl)[25][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime2[im] = (Hcouplings->H2zzcoupl)[26][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime3[im] = (Hcouplings->H2zzcoupl)[27][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime4[im] = (Hcouplings->H2zzcoupl)[28][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime5[im] = (Hcouplings->H2zzcoupl)[29][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime6[im] = (Hcouplings->H2zzcoupl)[31][im];
+      spinzerohiggs_anomcoupl_.gh2z1_prime7[im] = (Hcouplings->H2zzcoupl)[32][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime6[im] = (Hcouplings->H2zzcoupl)[33][im];
+      spinzerohiggs_anomcoupl_.gh2z2_prime7[im] = (Hcouplings->H2zzcoupl)[34][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime6[im] = (Hcouplings->H2zzcoupl)[35][im];
+      spinzerohiggs_anomcoupl_.gh2z3_prime7[im] = (Hcouplings->H2zzcoupl)[36][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime6[im] = (Hcouplings->H2zzcoupl)[37][im];
+      spinzerohiggs_anomcoupl_.gh2z4_prime7[im] = (Hcouplings->H2zzcoupl)[38][im];
       //
-      spinzerohiggs_anomcoupl_.gh2zgs1_prime2[im] = (Hcoupling->H2zzcoupl)[30][im];
-      spinzerohiggs_anomcoupl_.gh2zgs2[im] = (Hcoupling->H2zzcoupl)[4][im];
-      spinzerohiggs_anomcoupl_.gh2zgs3[im] = (Hcoupling->H2zzcoupl)[5][im];
-      spinzerohiggs_anomcoupl_.gh2zgs4[im] = (Hcoupling->H2zzcoupl)[6][im];
-      spinzerohiggs_anomcoupl_.gh2gsgs2[im] = (Hcoupling->H2zzcoupl)[7][im];
-      spinzerohiggs_anomcoupl_.gh2gsgs3[im] = (Hcoupling->H2zzcoupl)[8][im];
-      spinzerohiggs_anomcoupl_.gh2gsgs4[im] = (Hcoupling->H2zzcoupl)[9][im];
+      spinzerohiggs_anomcoupl_.gh2zgs1_prime2[im] = (Hcouplings->H2zzcoupl)[30][im];
+      spinzerohiggs_anomcoupl_.gh2zgs2[im] = (Hcouplings->H2zzcoupl)[4][im];
+      spinzerohiggs_anomcoupl_.gh2zgs3[im] = (Hcouplings->H2zzcoupl)[5][im];
+      spinzerohiggs_anomcoupl_.gh2zgs4[im] = (Hcouplings->H2zzcoupl)[6][im];
+      spinzerohiggs_anomcoupl_.gh2gsgs2[im] = (Hcouplings->H2zzcoupl)[7][im];
+      spinzerohiggs_anomcoupl_.gh2gsgs3[im] = (Hcouplings->H2zzcoupl)[8][im];
+      spinzerohiggs_anomcoupl_.gh2gsgs4[im] = (Hcouplings->H2zzcoupl)[9][im];
     }
     //
     if (spinzerohiggs_anomcoupl_.distinguish_HWWcouplings){
       //
-      spinzerohiggs_anomcoupl_.c2w_q1sq = (Hcoupling->H2wwCLambda_qsq)[0];
-      spinzerohiggs_anomcoupl_.Lambda2_w11 = (Hcoupling->H2wwLambda_qsq)[0][0];
-      spinzerohiggs_anomcoupl_.Lambda2_w21 = (Hcoupling->H2wwLambda_qsq)[1][0];
-      spinzerohiggs_anomcoupl_.Lambda2_w31 = (Hcoupling->H2wwLambda_qsq)[2][0];
-      spinzerohiggs_anomcoupl_.Lambda2_w41 = (Hcoupling->H2wwLambda_qsq)[3][0];
-      spinzerohiggs_anomcoupl_.c2w_q2sq = (Hcoupling->H2wwCLambda_qsq)[1];
-      spinzerohiggs_anomcoupl_.Lambda2_w12 = (Hcoupling->H2wwLambda_qsq)[0][1];
-      spinzerohiggs_anomcoupl_.Lambda2_w22 = (Hcoupling->H2wwLambda_qsq)[1][1];
-      spinzerohiggs_anomcoupl_.Lambda2_w32 = (Hcoupling->H2wwLambda_qsq)[2][1];
-      spinzerohiggs_anomcoupl_.Lambda2_w42 = (Hcoupling->H2wwLambda_qsq)[3][1];
-      spinzerohiggs_anomcoupl_.c2w_q12sq = (Hcoupling->H2wwCLambda_qsq)[2];
-      spinzerohiggs_anomcoupl_.Lambda2_w10 = (Hcoupling->H2wwLambda_qsq)[0][2];
-      spinzerohiggs_anomcoupl_.Lambda2_w20 = (Hcoupling->H2wwLambda_qsq)[1][2];
-      spinzerohiggs_anomcoupl_.Lambda2_w30 = (Hcoupling->H2wwLambda_qsq)[2][2];
-      spinzerohiggs_anomcoupl_.Lambda2_w40 = (Hcoupling->H2wwLambda_qsq)[3][2];
+      spinzerohiggs_anomcoupl_.c2w_q1sq = (Hcouplings->H2wwCLambda_qsq)[0];
+      spinzerohiggs_anomcoupl_.Lambda2_w11 = (Hcouplings->H2wwLambda_qsq)[0][0];
+      spinzerohiggs_anomcoupl_.Lambda2_w21 = (Hcouplings->H2wwLambda_qsq)[1][0];
+      spinzerohiggs_anomcoupl_.Lambda2_w31 = (Hcouplings->H2wwLambda_qsq)[2][0];
+      spinzerohiggs_anomcoupl_.Lambda2_w41 = (Hcouplings->H2wwLambda_qsq)[3][0];
+      spinzerohiggs_anomcoupl_.c2w_q2sq = (Hcouplings->H2wwCLambda_qsq)[1];
+      spinzerohiggs_anomcoupl_.Lambda2_w12 = (Hcouplings->H2wwLambda_qsq)[0][1];
+      spinzerohiggs_anomcoupl_.Lambda2_w22 = (Hcouplings->H2wwLambda_qsq)[1][1];
+      spinzerohiggs_anomcoupl_.Lambda2_w32 = (Hcouplings->H2wwLambda_qsq)[2][1];
+      spinzerohiggs_anomcoupl_.Lambda2_w42 = (Hcouplings->H2wwLambda_qsq)[3][1];
+      spinzerohiggs_anomcoupl_.c2w_q12sq = (Hcouplings->H2wwCLambda_qsq)[2];
+      spinzerohiggs_anomcoupl_.Lambda2_w10 = (Hcouplings->H2wwLambda_qsq)[0][2];
+      spinzerohiggs_anomcoupl_.Lambda2_w20 = (Hcouplings->H2wwLambda_qsq)[1][2];
+      spinzerohiggs_anomcoupl_.Lambda2_w30 = (Hcouplings->H2wwLambda_qsq)[2][2];
+      spinzerohiggs_anomcoupl_.Lambda2_w40 = (Hcouplings->H2wwLambda_qsq)[3][2];
       //
       for (int im=0; im<2; im++){
         spinzerohiggs_anomcoupl_.gh2w1[im] = (Hcouplings->H2wwcoupl)[0][im];
@@ -1693,21 +1709,21 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
     }
     else{
       //
-      spinzerohiggs_anomcoupl_.c2w_q1sq = (Hcoupling->H2zzCLambda_qsq)[0];
-      spinzerohiggs_anomcoupl_.Lambda2_w11 = (Hcoupling->H2zzLambda_qsq)[0][0];
-      spinzerohiggs_anomcoupl_.Lambda2_w21 = (Hcoupling->H2zzLambda_qsq)[1][0];
-      spinzerohiggs_anomcoupl_.Lambda2_w31 = (Hcoupling->H2zzLambda_qsq)[2][0];
-      spinzerohiggs_anomcoupl_.Lambda2_w41 = (Hcoupling->H2zzLambda_qsq)[3][0];
-      spinzerohiggs_anomcoupl_.c2w_q2sq = (Hcoupling->H2zzCLambda_qsq)[1];
-      spinzerohiggs_anomcoupl_.Lambda2_w12 = (Hcoupling->H2zzLambda_qsq)[0][1];
-      spinzerohiggs_anomcoupl_.Lambda2_w22 = (Hcoupling->H2zzLambda_qsq)[1][1];
-      spinzerohiggs_anomcoupl_.Lambda2_w32 = (Hcoupling->H2zzLambda_qsq)[2][1];
-      spinzerohiggs_anomcoupl_.Lambda2_w42 = (Hcoupling->H2zzLambda_qsq)[3][1];
-      spinzerohiggs_anomcoupl_.c2w_q12sq = (Hcoupling->H2zzCLambda_qsq)[2];
-      spinzerohiggs_anomcoupl_.Lambda2_w10 = (Hcoupling->H2zzLambda_qsq)[0][2];
-      spinzerohiggs_anomcoupl_.Lambda2_w20 = (Hcoupling->H2zzLambda_qsq)[1][2];
-      spinzerohiggs_anomcoupl_.Lambda2_w30 = (Hcoupling->H2zzLambda_qsq)[2][2];
-      spinzerohiggs_anomcoupl_.Lambda2_w40 = (Hcoupling->H2zzLambda_qsq)[3][2];
+      spinzerohiggs_anomcoupl_.c2w_q1sq = (Hcouplings->H2zzCLambda_qsq)[0];
+      spinzerohiggs_anomcoupl_.Lambda2_w11 = (Hcouplings->H2zzLambda_qsq)[0][0];
+      spinzerohiggs_anomcoupl_.Lambda2_w21 = (Hcouplings->H2zzLambda_qsq)[1][0];
+      spinzerohiggs_anomcoupl_.Lambda2_w31 = (Hcouplings->H2zzLambda_qsq)[2][0];
+      spinzerohiggs_anomcoupl_.Lambda2_w41 = (Hcouplings->H2zzLambda_qsq)[3][0];
+      spinzerohiggs_anomcoupl_.c2w_q2sq = (Hcouplings->H2zzCLambda_qsq)[1];
+      spinzerohiggs_anomcoupl_.Lambda2_w12 = (Hcouplings->H2zzLambda_qsq)[0][1];
+      spinzerohiggs_anomcoupl_.Lambda2_w22 = (Hcouplings->H2zzLambda_qsq)[1][1];
+      spinzerohiggs_anomcoupl_.Lambda2_w32 = (Hcouplings->H2zzLambda_qsq)[2][1];
+      spinzerohiggs_anomcoupl_.Lambda2_w42 = (Hcouplings->H2zzLambda_qsq)[3][1];
+      spinzerohiggs_anomcoupl_.c2w_q12sq = (Hcouplings->H2zzCLambda_qsq)[2];
+      spinzerohiggs_anomcoupl_.Lambda2_w10 = (Hcouplings->H2zzLambda_qsq)[0][2];
+      spinzerohiggs_anomcoupl_.Lambda2_w20 = (Hcouplings->H2zzLambda_qsq)[1][2];
+      spinzerohiggs_anomcoupl_.Lambda2_w30 = (Hcouplings->H2zzLambda_qsq)[2][2];
+      spinzerohiggs_anomcoupl_.Lambda2_w40 = (Hcouplings->H2zzLambda_qsq)[3][2];
       //
       for (int im=0; im<2; im++){
         spinzerohiggs_anomcoupl_.gh2w1[im] = (Hcouplings->H2zzcoupl)[0][im];
@@ -1868,9 +1884,9 @@ double TUtil::SumMatrixElementPDF(
   }
 
   //initialize decayed particles
-  for (int ipar=2; ipar<min(NPart, mela_event.pDaughters.size()+mela_event.pAssociated.size()+2); ipar++){
+  for (int ipar=2; ipar<min(NPart, (int)(mela_event.pDaughters.size()+mela_event.pAssociated.size())+2); ipar++){
     TLorentzVector* momTmp;
-    if (ipar<mela_event.pDaughters.size()+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
+    if (ipar<(int)(mela_event.pDaughters.size())+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
     else momTmp=&(mela_event.pAssociated.at(ipar-2).second);
     p4[0][ipar] = momTmp->X();
     p4[1][ipar] = momTmp->Y();
@@ -2013,7 +2029,7 @@ double TUtil::JHUGenMatEl(
     );
   if (!(isSpinZero || isSpinOne || isSpinTwo)){ cerr << "TUtil::JHUGenMatEl: Process " << process << " not supported." << endl; return MatElSq; }
 
-  double msq[nmsq][nmsq]={ 0 }; // ME**2[parton2][parton1] for each incoming parton 1 and 2, used in RcdME
+  double msq[nmsq][nmsq]={ { 0 } }; // ME**2[parton2][parton1] for each incoming parton 1 and 2, used in RcdME
   int MYIDUP_tmp[4]={ 0 }; // Initial assignment array, unconverted. 0==Unassigned
   vector<pair<int, int>> idarray[2]; // All possible ids for each daughter based on the value of MYIDUP_tmp[0:3] and the desired V ids taken from mela_event.intermediateVid.at(0:1)
   int MYIDUP[4]={ 0 }; // "Working" assignment, converted
@@ -2061,7 +2077,7 @@ double TUtil::JHUGenMatEl(
   }
   //initialize decayed particles
   if (mela_event.pDaughters.size()==2){
-    for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+    for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
       TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
       int* idtmp = &(mela_event.pDaughters.at(ipar).first);
 
@@ -2077,7 +2093,7 @@ double TUtil::JHUGenMatEl(
     }
   }
   else{
-    for (int ipar=0; ipar<4; ipar++){
+    for (unsigned int ipar=0; ipar<4; ipar++){
       if (ipar<mela_event.pDaughters.size()){
         TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
         int* idtmp = &(mela_event.pDaughters.at(ipar).first);
@@ -2092,12 +2108,8 @@ double TUtil::JHUGenMatEl(
       }
       else MYIDUP_tmp[ipar] = -9000; // No need to set p4, which is already 0 by initialization
       // __modparameters_MOD_not_a_particle__?
+      if (verbosity >= TVar::DEBUG) cout << "MYIDUP_tmp[" << ipar << "]=" << MYIDUP_tmp[ipar] << endl;
     }
-    if (verbosity >= TVar::DEBUG) cout << "MYIDUP_tmp[" << ipar << "]=" << MYIDUP_tmp[ipar] << endl;
-  }
-
-  if (verbosity >= TVar::DEBUG){
-    for (int idau=0; idau<4; idau++) cout << "MYIDUP_tmp[" << idau << "]=" << MYIDUP_tmp[idau] << endl;
   }
 
   // FIXME: SETALPHAS DOES NOT MODIFY JHUGENMELA
@@ -2118,10 +2130,14 @@ double TUtil::JHUGenMatEl(
   for (int iv=0; iv<2; iv++){ // Max. 2 vector bosons
     if (MYIDUP_tmp[2*iv+0]!=0 && MYIDUP_tmp[2*iv+1]!=0){ // Z->2l,2nu,2q, W->lnu,qq', G
       // OSSF pairs or just one "V-daughter"
-      if (TMath::Sign(1, MYIDUP_tmp[2*iv+0])==TMath::Sign(1, -MYIDUP_tmp[2*iv+1]) || (MYIDUP_tmp[2*iv+0]==-9000 || MYIDUP_tmp[2*iv+1]==-9000)) idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1]));
+      if (
+        TMath::Sign(1, MYIDUP_tmp[2*iv+0])==TMath::Sign(1, -MYIDUP_tmp[2*iv+1])
+        ||
+        (MYIDUP_tmp[2*iv+0]==-9000 || MYIDUP_tmp[2*iv+1]==-9000)
+        ) idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1]));
       // SSSF pairs, ordered already by phi, so avoid the re-ordering inside the ME
-      else if (MYIDUP_tmp[2*iv+0]<0) idarray[iv].push_back(pair(-MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1])); // Reverse sign of first daughter if SS(--)SF pair
-      else idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+1])); // Reverse sign of daughter if SS(++)SF pair
+      else if (MYIDUP_tmp[2*iv+0]<0) idarray[iv].push_back(pair<int, int>(-MYIDUP_tmp[2*iv+0], MYIDUP_tmp[2*iv+1])); // Reverse sign of first daughter if SS(--)SF pair
+      else idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+1])); // Reverse sign of daughter if SS(++)SF pair
     }
     else if (MYIDUP_tmp[2*iv+0]!=0){ // ->f?,  one quark is known
       if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(iv))){ // (W+/-)->f?
@@ -2129,19 +2145,19 @@ double TUtil::JHUGenMatEl(
           int id_dn = TMath::Sign(1, -MYIDUP_tmp[2*iv+0]);
           int id_st = TMath::Sign(3, -MYIDUP_tmp[2*iv+0]);
           int id_bt = TMath::Sign(5, -MYIDUP_tmp[2*iv+0]);
-          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_dn));
-          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_st));
-          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_bt));
+          idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], id_dn));
+          idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], id_st));
+          idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], id_bt));
         }
         else if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2*iv+0])){ // (W-)->d?
           int id_up = TMath::Sign(2, -MYIDUP_tmp[2*iv+0]);
           int id_ch = TMath::Sign(4, -MYIDUP_tmp[2*iv+0]);
-          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_up));
-          idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], id_ch));
+          idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], id_up));
+          idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], id_ch));
         }
       }
       else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(iv))){ // Z->f?
-        idarray[iv].push_back(pair(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+0]));
+        idarray[iv].push_back(pair<int, int>(MYIDUP_tmp[2*iv+0], -MYIDUP_tmp[2*iv+0]));
       }
     }
     else if (MYIDUP_tmp[2*iv+1]!=0){ // ->?fb,  one quark is known
@@ -2150,19 +2166,19 @@ double TUtil::JHUGenMatEl(
           int id_dn = TMath::Sign(1, -MYIDUP_tmp[2*iv+1]);
           int id_st = TMath::Sign(3, -MYIDUP_tmp[2*iv+1]);
           int id_bt = TMath::Sign(5, -MYIDUP_tmp[2*iv+1]);
-          idarray[iv].push_back(pair(id_dn, MYIDUP_tmp[2*iv+1]));
-          idarray[iv].push_back(pair(id_st, MYIDUP_tmp[2*iv+1]));
-          idarray[iv].push_back(pair(id_bt, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair<int, int>(id_dn, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair<int, int>(id_st, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair<int, int>(id_bt, MYIDUP_tmp[2*iv+1]));
         }
         else if (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2*iv+1])){ // (W+)->?db
           int id_up = TMath::Sign(2, -MYIDUP_tmp[2*iv+1]);
           int id_ch = TMath::Sign(4, -MYIDUP_tmp[2*iv+1]);
-          idarray[iv].push_back(pair(id_up, MYIDUP_tmp[2*iv+1]));
-          idarray[iv].push_back(pair(id_ch, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair<int, int>(id_up, MYIDUP_tmp[2*iv+1]));
+          idarray[iv].push_back(pair<int, int>(id_ch, MYIDUP_tmp[2*iv+1]));
         }
       }
       else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(iv))){ // Z->?fb
-        idarray[iv].push_back(pair(-MYIDUP_tmp[2*iv+1], MYIDUP_tmp[2*iv+1]));
+        idarray[iv].push_back(pair<int, int>(-MYIDUP_tmp[2*iv+1], MYIDUP_tmp[2*iv+1]));
       }
     }
     else{ // Both fermions unknown
@@ -2171,13 +2187,13 @@ double TUtil::JHUGenMatEl(
           int id_up = iqu*2;
           for (int iqd=1; iqd<=3; iqd++){
             int id_dn = iqd*2-1;
-            if (iv==0){ idarray[iv].push_back(pair(id_up, -id_dn)); idarray[iv].push_back(pair(-id_dn, id_up)); }
-            else{ idarray[iv].push_back(pair(id_dn, -id_up)); idarray[iv].push_back(pair(-id_up, id_dn)); }
+            if (iv==0){ idarray[iv].push_back(pair<int, int>(id_up, -id_dn)); idarray[iv].push_back(pair<int, int>(-id_dn, id_up)); }
+            else{ idarray[iv].push_back(pair<int, int>(id_dn, -id_up)); idarray[iv].push_back(pair<int, int>(-id_up, id_dn)); }
           }
         }
       }
       else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(iv))){ // Z->??
-        for (int iq=1; iq<=5; iq++){ idarray[iv].push_back(pair(iq, -iq)); idarray[iv].push_back(pair(-iq, iq)); }
+        for (int iq=1; iq<=5; iq++){ idarray[iv].push_back(pair<int, int>(iq, -iq)); idarray[iv].push_back(pair<int, int>(-iq, iq)); }
       }
     }
   }
@@ -2192,10 +2208,7 @@ double TUtil::JHUGenMatEl(
       MYIDUP[3] = convertLHEreverse(&(idarray[1].at(v2).second));
 
       // Check working ids
-      if (verbosity>=TVar::DEBUG){
-        cout << "TUtil::JHUGenMatEl: d1-d4=\t" << d1 << '\t' << d2 << '\t' << d3 << '\t' << d4 << endl;
-        for (int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl;
-      }
+      if (verbosity>=TVar::DEBUG){ for (unsigned int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl; }
 
       // Determine M_V and Ga_V in JHUGen, needed for g1 vs everything else.
       for (int ip=0; ip<2; ip++){ idfirst[ip]=MYIDUP[ip]; idsecond[ip]=MYIDUP[ip+2]; }
@@ -2219,8 +2232,8 @@ double TUtil::JHUGenMatEl(
         else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
       }
       // Add CKM elements since they are not included
-      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(d1)), &(idarray[1].at(d2)))/__modparameters_MOD_scalefactor(&(idarray[0].at(d1)), &(idarray[1].at(d2))), 2);
-      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[2].at(d3)), &(idarray[3].at(d4)))/__modparameters_MOD_scalefactor(&(idarray[2].at(d3)), &(idarray[3].at(d4))), 2);
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second))/__modparameters_MOD_scalefactor(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second)), 2);
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second))/__modparameters_MOD_scalefactor(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second)), 2);
 
       if (verbosity >= TVar::DEBUG) cout << "TUtil::JHUGenMatEl: Instance MatElTmp = " << MatElTmp << '\n' << endl;
       MatElSq += MatElTmp;
@@ -2333,7 +2346,7 @@ double TUtil::HJJMatEl(
       MYIDUP_tmp[ipar] = -MYIDUP_tmp[ipar];
     }
   }
-  for (int ipar=0; ipar<2; ipar++){
+  for (unsigned int ipar=0; ipar<2; ipar++){
     if (ipar<mela_event.pAssociated.size()){
       TLorentzVector* momTmp = &(mela_event.pAssociated.at(ipar).second);
       int* idtmp = &(mela_event.pAssociated.at(ipar).first);
@@ -2347,7 +2360,7 @@ double TUtil::HJJMatEl(
     }
     else MYIDUP_tmp[ipar+2] = -9000; // No need to set p4, which is already 0 by initialization
   }
-  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+  for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
     p4[4][0] += momTmp->T()*GeV;
     p4[4][1] += momTmp->X()*GeV;
@@ -2356,13 +2369,11 @@ double TUtil::HJJMatEl(
     MomStore[5] = MomStore[5] + (*momTmp); // i==(2, 3, 4) is (J1, J2, H), recorded as MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
   // Momenta for HJ
-  for (int i = 0; i < 4; i++) {
+  for (unsigned int i = 0; i < 4; i++){
     if (i<3){ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2 J1
     else{ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i+1][j]; } // H
   }
-  if (verbosity >= TVar::DEBUG){
-    for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << endl;
-  }
+  if (verbosity >= TVar::DEBUG){ for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << endl; }
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
@@ -2831,7 +2842,7 @@ double TUtil::VHiggsMatEl(
   int nRequested_AssociatedLeptons=0;
   int nRequested_AssociatedPhotons=0;
   int AssociationVCompatibility=0;
-  int partIncCode;
+  int partIncCode=TVar::kNoAssociated; // Just to avoid warnings
   if (production == TVar::Had_ZH || production == TVar::Had_WH){ // Only use associated partons
     partIncCode=TVar::kUseAssociated_Jets;
     nRequested_AssociatedJets=2;
@@ -2844,9 +2855,9 @@ double TUtil::VHiggsMatEl(
     partIncCode=TVar::kUseAssociated_Photons;
     nRequested_AssociatedPhotons=1;
   }
-  if (production==TVar::Lep_WH || production==TVar::Had_WH)) AssociationVCompatibility=24;
-  else if (production==TVar::Lep_ZH || production==TVar::Had_ZH)) AssociationVCompatibility=23;
-  else if (production==TVar::GammaH)) AssociationVCompatibility=22;
+  if (production==TVar::Lep_WH || production==TVar::Had_WH) AssociationVCompatibility=24;
+  else if (production==TVar::Lep_ZH || production==TVar::Had_ZH) AssociationVCompatibility=23;
+  else if (production==TVar::GammaH) AssociationVCompatibility=22;
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
   mela_event.AssociationVCompatibility=AssociationVCompatibility;
@@ -2854,8 +2865,7 @@ double TUtil::VHiggsMatEl(
   mela_event.nRequested_AssociatedLeptons=nRequested_AssociatedLeptons;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event,
-    partIncCode
+    mela_event
     );
   if ((mela_event.pAssociated.size()<2 && production!=TVar::GammaH) || (mela_event.pAssociated.size()<1 && production==TVar::GammaH)){
     if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
@@ -2920,7 +2930,7 @@ double TUtil::VHiggsMatEl(
     else MYIDUP_dec[iv] = 0;
   }
   // Decay daughters
-  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+  for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
     if (mela_event.pDaughters.size()==1){
       p4[ipar+7][0] = momTmp->T()*GeV;
@@ -3007,7 +3017,6 @@ double TUtil::VHiggsMatEl(
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
   const double allowed_helicities[2] = { -1, 1 }; // L,R
-  double sumME=0;
   for (int h01 = 0; h01 < 2; h01++){
     helicities[0] = allowed_helicities[h01];
     helicities[1] = -helicities[0];
@@ -3071,6 +3080,7 @@ double TUtil::VHiggsMatEl(
                     (PDGHelpers::isUpTypeQuark(outgoing2) && outgoing2>0)
                     ) vh_ids[2]=24;
                   else vh_ids[2]=-24;
+                  vh_ids[3] = vh_ids[2];
 
                   vh_ids[5] = outgoing1;
                   vh_ids[6] = outgoing2;
@@ -3089,11 +3099,12 @@ double TUtil::VHiggsMatEl(
             else{
               // Determine whether the decay is from a W+ or a W-
               if (
-                (PDGHelpers::isANeutrino(outgoing1) && outgoing1>0)
+                (PDGHelpers::isANeutrino(MYIDUP_prod[2]) && MYIDUP_prod[2]>0)
                 ||
-                (PDGHelpers::isANeutrino(outgoing2) && outgoing2>0)
+                (PDGHelpers::isANeutrino(MYIDUP_prod[3]) && MYIDUP_prod[3]>0)
                 ) vh_ids[2]=24;
               else vh_ids[2]=-24;
+              vh_ids[3] = vh_ids[2];
 
               vh_ids[5] = MYIDUP_prod[2];
               vh_ids[6] = MYIDUP_prod[3];
@@ -3172,21 +3183,21 @@ double TUtil::TTHiggsMatEl(
   }
 
   SimpleParticleCollection_t topDaughters;
-  SimpleParticleCollection_t topbarDaughters;
+  SimpleParticleCollection_t antitopDaughters;
   bool isUnknown[2]; isUnknown[0]=true; isUnknown[1]=true;
 
   if (topDecay>0){
     // Daughters are assumed to have been ordered as b, Wf, Wfb already.
-    for (int itd=0; itd<mela_event.pTopDaughters.at(0).size(); itd++) topDaughter.push_back(mela_event.pTopDaughters.at(0).at(itd));
-    for (int itd=0; itd<mela_event.pAntitopDaughters.at(0).size(); itd++) topbarDaughters.push_back(mela_event.pAntitopDaughters.at(0).at(itd));
+    for (unsigned int itd=0; itd<mela_event.pTopDaughters.at(0).size(); itd++) topDaughters.push_back(mela_event.pTopDaughters.at(0).at(itd));
+    for (unsigned int itd=0; itd<mela_event.pAntitopDaughters.at(0).size(); itd++) antitopDaughters.push_back(mela_event.pAntitopDaughters.at(0).at(itd));
   }
   else{
-    for (int itop=0; itop<mela_event.pStableTops.size(); itop++) topDaughter.push_back(mela_event.pStableTops.at(itop));
-    for (int itop=0; itop<mela_event.pStableAntitops.size(); itop++) topbarDaughters.push_back(mela_event.pStableAntitops.at(itop));
+    for (unsigned int itop=0; itop<mela_event.pStableTops.size(); itop++) topDaughters.push_back(mela_event.pStableTops.at(itop));
+    for (unsigned int itop=0; itop<mela_event.pStableAntitops.size(); itop++) antitopDaughters.push_back(mela_event.pStableAntitops.at(itop));
   }
   // Check if either top is definitely identified
-  for (int itd=0; itd<topDaughter.size(); itd++){ if (topDaughter.at(itd).first!=0){ isUnknown[0]=false; break; } }
-  for (int itd=0; itd<topbarDaughters.size(); itd++){ if (topbarDaughters.at(itd).first!=0){ isUnknown[1]=false; break; } }
+  for (unsigned int itd=0; itd<topDaughters.size(); itd++){ if (topDaughters.at(itd).first!=0){ isUnknown[0]=false; break; } }
+  for (unsigned int itd=0; itd<antitopDaughters.size(); itd++){ if (antitopDaughters.at(itd).first!=0){ isUnknown[1]=false; break; } }
 
   // Start assigning the momenta
   // 0,1: p1 p2
@@ -3194,7 +3205,7 @@ double TUtil::TTHiggsMatEl(
   // 5-8: bb,W-,f,fb
   // 9-12: b,W+,fb,f
   double p4[13][4]={ { 0 } };
-  MYIDUP_prod[2]={ 0 };
+  double MYIDUP_prod[2]={ 0 };
   TLorentzVector MomStore[mxpart];
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
   for (int ipar=0; ipar<2; ipar++){
@@ -3220,9 +3231,9 @@ double TUtil::TTHiggsMatEl(
   }
 
   // Assign top momenta
-  for (unsigned int ipar=0; ipar<topDaughter.size(); ipar++){
-    TLorentzVector* momTmp = &(topDaughter.at(ipar).second);
-    if (topDaughter.size()==1){
+  for (unsigned int ipar=0; ipar<topDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(topDaughters.at(ipar).second);
+    if (topDaughters.size()==1){
       p4[4][0] = momTmp->T()*GeV;
       p4[4][1] = momTmp->X()*GeV;
       p4[4][2] = momTmp->Y()*GeV;
@@ -3257,12 +3268,12 @@ double TUtil::TTHiggsMatEl(
     }
     MomStore[6] = MomStore[6] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
-  if (topDaughter.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=9; ip<=10; ip++) p4[4][ix] = p4[ip][ix]; } }
+  if (topDaughters.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=9; ip<=10; ip++) p4[4][ix] = p4[ip][ix]; } }
 
   // Assign antitop momenta
-  for (unsigned int ipar=0; ipar<antitopDaughter.size(); ipar++){
-    TLorentzVector* momTmp = &(antitopDaughter.at(ipar).second);
-    if (antitopDaughter.size()==1){
+  for (unsigned int ipar=0; ipar<antitopDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(antitopDaughters.at(ipar).second);
+    if (antitopDaughters.size()==1){
       p4[3][0] = momTmp->T()*GeV;
       p4[3][1] = momTmp->X()*GeV;
       p4[3][2] = momTmp->Y()*GeV;
@@ -3297,9 +3308,9 @@ double TUtil::TTHiggsMatEl(
     }
     MomStore[7] = MomStore[7] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
-  if (antitopDaughter.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=5; ip<=6; ip++) p4[3][ix] = p4[ip][ix]; } }
+  if (antitopDaughters.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=5; ip<=6; ip++) p4[3][ix] = p4[ip][ix]; } }
 
-  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+  for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
     p4[2][0] += momTmp->T()*GeV;
     p4[2][1] += momTmp->X()*GeV;
@@ -3357,6 +3368,7 @@ double TUtil::BBHiggsMatEl(
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
   double MatElsq[nmsq][nmsq]={ { 0 } };
+  double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::BBHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
   if (production!=TVar::bbH){ cerr << "TUtil::BBHiggsMatEl: Only bbH is supported." << endl; return sum_msqjk; }
@@ -3366,7 +3378,7 @@ double TUtil::BBHiggsMatEl(
 
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
-  mela_event.kUseAssociated_Jets=nRequested_Tops;
+  mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   GetBoostedParticleVectors(
     RcdME->melaCand,
     mela_event
@@ -3380,13 +3392,13 @@ double TUtil::BBHiggsMatEl(
   }
 
   SimpleParticleCollection_t topDaughters;
-  SimpleParticleCollection_t topbarDaughters;
+  SimpleParticleCollection_t antitopDaughters;
   bool isUnknown[2]; isUnknown[0]=false; isUnknown[1]=false;
 
-  if (pAssociated.at(0).first>=0){ topDaughter.push_back(mela_event.pAssociated.at(0)); isUnknown[0]=(PDGHelpers::isAnUnknownJet(pAssociated.at(0).first)); }
-  else antitopDaughter.push_back(mela_event.pAssociated.at(0));
-  if (pAssociated.at(1).first<=0){ antitopDaughter.push_back(mela_event.pAssociated.at(1)); isUnknown[1]=(PDGHelpers::isAnUnknownJet(pAssociated.at(1).first)); }
-  else topDaughter.push_back(mela_event.pAssociated.at(1));
+  if (mela_event.pAssociated.at(0).first>=0){ topDaughters.push_back(mela_event.pAssociated.at(0)); isUnknown[0]=(PDGHelpers::isAnUnknownJet(mela_event.pAssociated.at(0).first)); }
+  else antitopDaughters.push_back(mela_event.pAssociated.at(0));
+  if (mela_event.pAssociated.at(1).first<=0){ antitopDaughters.push_back(mela_event.pAssociated.at(1)); isUnknown[1]=(PDGHelpers::isAnUnknownJet(mela_event.pAssociated.at(1).first)); }
+  else topDaughters.push_back(mela_event.pAssociated.at(1));
 
   // Start assigning the momenta
   // 0,1: p1 p2
@@ -3394,7 +3406,7 @@ double TUtil::BBHiggsMatEl(
   // 5-8: bb,W-,f,fb
   // 9-12: b,W+,fb,f
   double p4[13][4]={ { 0 } };
-  MYIDUP_prod[2]={ 0 };
+  double MYIDUP_prod[2]={ 0 };
   TLorentzVector MomStore[mxpart];
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
   for (int ipar=0; ipar<2; ipar++){
@@ -3420,8 +3432,8 @@ double TUtil::BBHiggsMatEl(
   }
 
   // Assign b momenta
-  for (unsigned int ipar=0; ipar<topDaughter.size(); ipar++){
-    TLorentzVector* momTmp = &(topDaughter.at(ipar).second);
+  for (unsigned int ipar=0; ipar<topDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(topDaughters.at(ipar).second);
     p4[4][0] = momTmp->T()*GeV;
     p4[4][1] = momTmp->X()*GeV;
     p4[4][2] = momTmp->Y()*GeV;
@@ -3430,8 +3442,8 @@ double TUtil::BBHiggsMatEl(
   }
 
   // Assign bb momenta
-  for (unsigned int ipar=0; ipar<antitopDaughter.size(); ipar++){
-    TLorentzVector* momTmp = &(antitopDaughter.at(ipar).second);
+  for (unsigned int ipar=0; ipar<antitopDaughters.size(); ipar++){
+    TLorentzVector* momTmp = &(antitopDaughters.at(ipar).second);
     p4[3][0] = momTmp->T()*GeV;
     p4[3][1] = momTmp->X()*GeV;
     p4[3][2] = momTmp->Y()*GeV;
@@ -3439,7 +3451,7 @@ double TUtil::BBHiggsMatEl(
     MomStore[7] = MomStore[7] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
 
-  for (int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
+  for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
     p4[2][0] += momTmp->T()*GeV;
     p4[2][1] += momTmp->X()*GeV;
@@ -3464,7 +3476,7 @@ double TUtil::BBHiggsMatEl(
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
-  __modbbbh_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);
+  __modttbh_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);
   if (isUnknown[0] && isUnknown[1]){
     Swap_Momenta(p4[3], p4[4]);
     __modttbh_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq_tmp);
@@ -3511,7 +3523,7 @@ bool TUtil::CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector
 // ComputePDF does the PDF computation
 void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity){
   double xx[2]={ 0 };
-  bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, verbosity, EBEAM);
+  bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, EBEAM, verbosity);
   if (passPartonErgFrac){
     //Calculate Pdf
     //Parton Density Function is always evalualted at pT=0 frame
@@ -3759,7 +3771,7 @@ void TUtil::GetBoostedParticleVectors(
   vector<SimpleParticleCollection_t> topDaughters;
   vector<SimpleParticleCollection_t> antitopDaughters;
   SimpleParticleCollection_t stableTops;
-  SimpleParticleCollection_t stableAntiTops;
+  SimpleParticleCollection_t stableAntitops;
 
   vector<MELATopCandidate*> tops;
   vector<MELATopCandidate*> topbars;
@@ -3768,7 +3780,7 @@ void TUtil::GetBoostedParticleVectors(
   else if (code%TVar::kUseAssociated_StableTops==0 || code%TVar::kUseAssociated_UnstableTops==0){
 
     for (int itop=0; itop<melaCand->getNAssociatedTops(); itop++){
-      MELATopCandidate* theTop = melaCand->getAssociatedTop(ip);
+      MELATopCandidate* theTop = melaCand->getAssociatedTop(itop);
       if (theTop!=0 && theTop->passSelection){
         vector<MELATopCandidate*>* particleArray;
         if (theTop->id==6) particleArray = &tops;
@@ -3808,7 +3820,7 @@ void TUtil::GetBoostedParticleVectors(
       MELATopCandidate* theTop = topbars.at(itop);
       if (code%TVar::kUseAssociated_StableTops==0 && nsatisfied_antitops<mela_event.nRequested_Antitops){ // Case with no daughters needed
         nsatisfied_antitops++;
-        stableAntiTops.push_back(SimpleParticle_t(theTop->id, theTop->p4));
+        stableAntitops.push_back(SimpleParticle_t(theTop->id, theTop->p4));
       }
       else if (code%TVar::kUseAssociated_UnstableTops==0 && nsatisfied_antitops<mela_event.nRequested_Antitops){ // Case with daughters needed
         nsatisfied_antitops++;
@@ -3837,7 +3849,7 @@ void TUtil::GetBoostedParticleVectors(
         }
         else if (code%TVar::kUseAssociated_StableTops==0 && nsatisfied_antitops<mela_event.nRequested_Antitops){
           nsatisfied_antitops++;
-          stableAntiTops.push_back(SimpleParticle_t(theTop->id, theTop->p4));
+          stableAntitops.push_back(SimpleParticle_t(theTop->id, theTop->p4));
         }
         // t, then tb cases with daughters needed
         else if (code%TVar::kUseAssociated_UnstableTops==0 && nsatisfied_tops<mela_event.nRequested_Tops){
@@ -3881,7 +3893,7 @@ void TUtil::GetBoostedParticleVectors(
   for (unsigned int ip=0; ip<daughters.size(); ip++) pTotal = pTotal + daughters.at(ip).second;
   for (unsigned int ip=0; ip<associated.size(); ip++) pTotal = pTotal + associated.at(ip).second;
   for (unsigned int ip=0; ip<stableTops.size(); ip++) pTotal = pTotal + stableTops.at(ip).second;
-  for (unsigned int ip=0; ip<stableAntiTops.size(); ip++) pTotal = pTotal + stableAntiTops.at(ip).second;
+  for (unsigned int ip=0; ip<stableAntitops.size(); ip++) pTotal = pTotal + stableAntitops.at(ip).second;
   for (unsigned int ip=0; ip<topDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<topDaughters.at(ip).size(); ipd++) pTotal = pTotal + topDaughters.at(ip).at(ipd).second; }
   for (unsigned int ip=0; ip<antitopDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<antitopDaughters.at(ip).size(); ipd++) pTotal = pTotal + antitopDaughters.at(ip).at(ipd).second; }
 
@@ -3894,7 +3906,7 @@ void TUtil::GetBoostedParticleVectors(
     for (unsigned int ip=0; ip<daughters.size(); ip++) daughters.at(ip).second.Boost(boostV);
     for (unsigned int ip=0; ip<associated.size(); ip++) associated.at(ip).second.Boost(boostV);
     for (unsigned int ip=0; ip<stableTops.size(); ip++) stableTops.at(ip).second.Boost(boostV);
-    for (unsigned int ip=0; ip<stableAntiTops.size(); ip++) stableAntiTops.at(ip).second.Boost(boostV);
+    for (unsigned int ip=0; ip<stableAntitops.size(); ip++) stableAntitops.at(ip).second.Boost(boostV);
     for (unsigned int ip=0; ip<topDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<topDaughters.at(ip).size(); ipd++) topDaughters.at(ip).at(ipd).second.Boost(boostV); }
     for (unsigned int ip=0; ip<antitopDaughters.size(); ip++){ for (unsigned int ipd=0; ipd<antitopDaughters.at(ip).size(); ipd++) antitopDaughters.at(ip).at(ipd).second.Boost(boostV); }
     pTotal.Boost(boostV);
@@ -3976,7 +3988,7 @@ MELACandidate* TUtil::ConvertVectorFormat(
   else if (pDaughters->size()>4){ cerr << "TUtil::ConvertVectorFormat: Daughter size " << pDaughters->size() << ">4 is not supported!" << endl; return cand; }
   if (pMothers!=0 && pMothers->size()!=2){ cerr << "TUtil::ConvertVectorFormat: Mothers momentum size (" << pMothers->size() << ") has to have had been 2! Continuing by omitting mothers." << endl; /*return cand;*/ }
 
-  // Create mother, daughter and associated particle MELAPArticle objects
+  // Create mother, daughter and associated particle MELAParticle objects
   std::vector<MELAParticle*> daughters;
   std::vector<MELAParticle*> aparticles;
   std::vector<MELAParticle*> mothers;
@@ -4004,7 +4016,7 @@ MELACandidate* TUtil::ConvertVectorFormat(
   }
 
   // Create the candidate
-  cand = TUtil::ConvertVectorFormat(daughters, aparticles, mothers);
+  cand = TUtil::ConvertVectorFormat(daughters, aparticles, mothers, isGen);
   if (candList!=0 && cand!=0) candList->push_back(cand);
   return cand;
 }
@@ -4015,12 +4027,15 @@ MELACandidate* ConvertVectorFormat(
   std::vector<MELAParticle*>& mothers,
   bool isGen
   ){
+  MELACandidate* cand=0;
+
   /***** Adaptation of LHEAnalyzer::Event::constructVVCandidates *****/
   /*
   The assumption is that the daughters make sense for either ffb, gamgam, Zgam, ZZ or WW.
   No checking is done on whether particle-antiparticle pairing is correct when necessary.
   If not, you will get a seg. fault!
   */
+
   // Undecayed Higgs
   if (daughters.size()==1) cand = new MELACandidate(25, (daughters.at(0))->p4); // No sorting!
   // GG / ff final states
@@ -4032,7 +4047,7 @@ MELACandidate* ConvertVectorFormat(
     cand->addDaughter(F1);
     cand->addDaughter(F2);
     double defaultHVVmass = PDGHelpers::HVVmass;
-    PDGHelpers::setHVVmass(Zeromass);
+    PDGHelpers::setHVVmass(PDGHelpers::Zeromass);
     cand->sortDaughters();
     PDGHelpers::setHVVmass(defaultHVVmass);
   }
@@ -4077,12 +4092,12 @@ MELACandidate* ConvertVectorFormat(
   }
   /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
   if (mothers.size()>0){ // ==2
-    for (int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));
+    for (unsigned int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));
     if (isGen) cand->setGenStatus(-1); // Candidate is a gen. particle!
   }
   /***** Adaptation of LHEAnalyzer::Event::addVVCandidateAppendages *****/
   if (aparticles.size()>0){
-    for (int ip=0; ip<aparticles.size(); ip++){
+    for (unsigned int ip=0; ip<aparticles.size(); ip++){
       const int partId = (aparticles.at(ip))->id;
       if (PDGHelpers::isALepton(partId)) cand->addAssociatedLeptons(aparticles.at(ip));
       else if (PDGHelpers::isANeutrino(partId)) cand->addAssociatedNeutrinos(aparticles.at(ip)); // Be careful: Neutrinos are neutrinos, but also "leptons" in MELACandidate!

@@ -45,10 +45,11 @@ namespace TUtil{
   extern bool forbidMassiveJets;
   extern TVar::FermionMassRemoval LeptonMassScheme;
   extern TVar::FermionMassRemoval JetMassScheme;
+
   void applyLeptonMassCorrection(bool flag=true);
   void applyJetMassCorrection(bool flag=true);
   void setLeptonMassScheme(TVar::FermionMassRemoval scheme=TVar::ConserveDifermionMass);
-  void setJetMassScheme(TVar::FermionMassRemoval scheme=TVar::ConserveDifermion);
+  void setJetMassScheme(TVar::FermionMassRemoval scheme=TVar::ConserveDifermionMass);
   // This version makes the masses of p1 and p2 to be m1 and m2, leaving p1+p2 unchanged.
   void constrainedRemovePairMass(TLorentzVector& p1, TLorentzVector& p2, double m1=0, double m2=0);
   // This version simply scales momentum to match energy for the desired mass.

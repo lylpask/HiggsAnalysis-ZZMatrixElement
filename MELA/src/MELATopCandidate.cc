@@ -39,7 +39,7 @@ MELATopCandidate::MELATopCandidate(
   else id=0;
 }
 
-MELAParticle* MELATopCandidate::setLightQuark(MELAParticle* myParticle){ lightQuark=myParticle; if (lightQuark!=0) addDaughter(lightQuark); }
-MELAParticle* MELATopCandidate::setWFermion(MELAParticle* myParticle){ Wferm=myParticle; if (Wferm!=0) addDaughter(Wferm); }
-MELAParticle* MELATopCandidate::setWAntifermion(MELAParticle* myParticle){ Wfermbar=myParticle; if (Wfermbar!=0) addDaughter(Wfermbar); }
+void MELATopCandidate::setLightQuark(MELAParticle* myParticle){ lightQuark=myParticle; if (lightQuark!=0) addDaughter(lightQuark); }
+void MELATopCandidate::setWFermion(MELAParticle* myParticle){ Wferm=myParticle; if (Wferm!=0) addDaughter(Wferm); }
+void MELATopCandidate::setWAntifermion(MELAParticle* myParticle){ Wfermbar=myParticle; if (Wfermbar!=0) addDaughter(Wfermbar); }
 

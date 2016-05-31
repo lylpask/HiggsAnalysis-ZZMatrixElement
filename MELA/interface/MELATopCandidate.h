@@ -9,9 +9,9 @@ public:
   MELATopCandidate(MELAParticle* lightQuark_, MELAParticle* Wferm_, MELAParticle* Wfermbar_);
   ~MELATopCandidate(){}
 
-  MELAParticle* setLightQuark(MELAParticle* myParticle);
-  MELAParticle* setWFermion(MELAParticle* myParticle);
-  MELAParticle* setWAntifermion(MELAParticle* myParticle);
+  void setLightQuark(MELAParticle* myParticle);
+  void setWFermion(MELAParticle* myParticle);
+  void setWAntifermion(MELAParticle* myParticle);
 
   MELAParticle* getLightQuark(){ return lightQuark; }
   MELAParticle* getWFermion(){ return Wferm; }

@@ -8,7 +8,6 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-// #pragma link C++ function ScanChain(TChain*, enum Sample, double, bool);
 #pragma link C++  nestedclasses;
 #pragma link C++  nestedtypedefs;
 

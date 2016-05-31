@@ -99,7 +99,7 @@ void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVa
   event_scales.ren_scale_factor = ren_sf;
   event_scales.fac_scale_factor = fac_sf;
 }
-void AllowSeparateWWCouplings(bool doAllow=false){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
+void TEvtProb::AllowSeparateWWCouplings(bool doAllow){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
 void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
   // Regular, first resonance
   if (whichResonance==1 || whichResonance==-1){
@@ -172,7 +172,7 @@ void TEvtProb::AppendTopCandidate(SimpleParticleCollection_t* TopDaughters){
 }
 void TEvtProb::SetRcdCandPtr(){ RcdME.melaCand = melaCand; }
 void TEvtProb::SetCurrentCandidate(unsigned int icand){
-  if (candList.size()>icand && icand>=0) melaCand = candList.at(icand);
+  if (candList.size()>icand) melaCand = candList.at(icand);
   else cerr << "TEvtProb::SetCurrentCandidate: icand=" << icand << ">=candList.size()=" << candList.size() << endl;
 }
 void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
@@ -226,10 +226,10 @@ void TEvtProb::ResetInputEvent(){
 }
 
 // Get-functions
-SpinZeroCouplings* TEvtProb::GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); };
-SpinOneCouplings* TEvtProb::GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); };
-SpinTwoCouplings* TEvtProb::GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); };
-MelaIO* TEvtProb::GetIORecord(){ return RcdME.getRef(); };
+SpinZeroCouplings* TEvtProb::GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); }
+SpinOneCouplings* TEvtProb::GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); }
+SpinTwoCouplings* TEvtProb::GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); }
+MelaIO* TEvtProb::GetIORecord(){ return RcdME.getRef(); }
 std::vector<MELATopCandidate*>* TEvtProb::GetTopCandidates(){ return &topCandList; }
 MELACandidate* TEvtProb::GetCurrentCandidate(){ return melaCand; }
 int TEvtProb::GetCurrentCandidateIndex(){
@@ -654,7 +654,7 @@ double TEvtProb::XsecCalc_XVV(
     else if (isSpinOne) SetJHUGenSpinOneCouplings(Zqqcoupl, Zvvcoupl);
     else if (isSpinTwo) SetJHUGenSpinTwoCouplings(Gggcoupl, Gvvcoupl, Gqqcoupl);
 
-    if (isSpinZero || isSpinOne || isSpinTwo) dXsec = JHUGenMatEl(process, production, &RcdME);
+    if (isSpinZero || isSpinOne || isSpinTwo) dXsec = JHUGenMatEl(process, production, matrixElement, &event_scales, &RcdME, EBEAM, verbosity);
     else cerr
       << "TEvtProb::XsecCalc_XVV: JHUGen ME is not spin zero, one or two! The process is described by "
       << "Process: " << process << ", Production: " << production << ", and ME: " << matrixElement
@@ -723,7 +723,7 @@ double TEvtProb::XsecCalc_VVXVV(
   if (!calculateME) return dXsec;
 
   // ME calculation
-  if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &mcfm_event, &RcdME, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm), verbosity);
+  if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm), verbosity);
   else cerr << "Non-MCFM Mes are not supported." << endl;
 
   if (verbosity >= TVar::DEBUG) cout

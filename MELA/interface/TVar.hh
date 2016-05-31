@@ -4,7 +4,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include <pair>
+#include <utility>
 #include "TLorentzVector.h"
 #include "TCouplings.hh"
 #include "MelaIO.h"
@@ -246,7 +246,7 @@ struct simple_event_record{ // Somewhat not-so-simple particles
   std::vector<SimpleParticleCollection_t> pTopDaughters;
   std::vector<SimpleParticleCollection_t> pAntitopDaughters;
   SimpleParticleCollection_t pStableTops;
-  SimpleParticleCollection_t pStableAntiTops;
+  SimpleParticleCollection_t pStableAntitops;
 
   // Constructor
   simple_event_record() :

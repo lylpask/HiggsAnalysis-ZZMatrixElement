@@ -30,7 +30,7 @@ class SuperMELA;
 #include <ZZMatrixElement/MELA/interface/TEvtProb.hh>
 #include <ZZMatrixElement/MELA/interface/ScalarPdfFactory_ggH.h>
 #include <ZZMatrixElement/MELA/interface/VectorPdfFactory.h>
-#include <ZZMatrixElement/MELA/interface/TensorPdfFactory.h>
+#include <ZZMatrixElement/MELA/interface/TensorPdfFactory_HVV.h>
 #include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU_ZgammaZZ_fast.h>
 
 class Mela{
@@ -65,9 +65,9 @@ public:
     bool isGen=false
     ); // Adds a temp. candidate
   void setTempCandidate(
-    std::vector<MELAPArticle*>& pDaughters,
-    std::vector<MELAPArticle*>& pAssociated,
-    std::vector<MELAPArticle*>& pMothers,
+    std::vector<MELAParticle*>& pDaughters,
+    std::vector<MELAParticle*>& pAssociated,
+    std::vector<MELAParticle*>& pMothers,
     bool isGen=false
     ); // Adds a temp. candidate constructed from pre-existing objects
   void appendTopCandidate(SimpleParticleCollection_t* TopDaughters); // Adds a top
@@ -207,7 +207,7 @@ public:
   RooAbsPdf* pdf;
   ScalarPdfFactory_ggH* ggSpin0Model;
   VectorPdfFactory* spin1Model;
-  TensorPdfFactory* spin2Model;
+  TensorPdfFactory_HVV* spin2Model;
   RooqqZZ_JHU_ZgammaZZ_fast* qqZZmodel;
   SuperMELA* super;
   TRandom3 *myR; // random number for resolution systematics
@@ -279,6 +279,7 @@ protected:
   TVar::Process myModel_;
   TVar::MatrixElement myME_;
   TVar::Production myProduction_;
+  TVar::LeptonInterference myLepInterf_;
   TVar::VerbosityLevel myVerbosity_;
 
   newZZMatrixElement* ZZME;
