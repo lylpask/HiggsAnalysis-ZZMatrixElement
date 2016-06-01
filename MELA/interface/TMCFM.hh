@@ -43,19 +43,19 @@ extern "C" {
     int ndim, ncall, itmx, nprn;
   } bveg1_mcfm_;
 
-  extern  struct {
+  extern struct {
     int ih1, ih2;
   } density_;
 
-  extern  struct{
+  extern struct{
     double scale, musq;
   } scale_;
 
-  extern  struct{
+  extern struct{
     double facscale;
   } facscale_;
 
-  extern  struct {
+  extern struct {
     int n2; int n3; double mass2; double width2; double mass3; double width3;
   } breit_;
 
@@ -72,6 +72,10 @@ extern "C" {
   extern struct{
     int npart;
   } npart_;
+
+  extern struct{
+    int nuflav;
+  } nuflav_;
 
   extern struct{
     double vsymfact;
@@ -104,6 +108,10 @@ extern "C" {
   extern struct {
     double Gf, gw, xw, gwsq, esq, vevsq;
   } ewcouple_;
+
+  extern struct {
+    double Q[11], tau[11];
+  } ewcharge_;
 
   extern struct {
     double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z, tevscale;
@@ -208,6 +216,9 @@ extern "C" {
 
   } spinzerohiggs_anomcoupl_;
 
+  extern struct {
+    bool srdiags;
+  } srdiags_;
 
   //mcfm/src/Inc/zcouple.F
   extern struct{
@@ -218,34 +229,39 @@ extern "C" {
     int nwz;
   } nwz_;
 
-  extern  struct {
+  extern struct {
     double taumin;
   } taumin_;
 
-  extern  struct {
+  extern struct {
     double sqrts;
   } energy_;
 
-  extern  struct {
+  extern struct {
     int nlooprun;
   } nlooprun_;
 
-  extern  struct {
+  extern struct {
     int nflav;
   } nflav_;
 
 
-  extern  struct {
+  extern struct {
     int lastphot;
-  } lastphot_
+  } lastphot_;
 
-  extern  struct {
+  extern struct {
+    char runstring[30];
+  } runstring_;
+
+  extern struct {
     char pdlabel[7];
   } pdlabel_;
 
-  extern  struct {
+  extern struct {
     char plabel[mxpart][2];
   } plabel_;
+
 
   //---------------------------------
   // function
@@ -292,13 +308,13 @@ extern "C" {
 
 #define qq_zzqq_ qq_zzqq_ // WBFZZ
   void qq_zzqq_(double* p, double* msq);
-
-#define gg_zz_int_ gg_zz_int_
-  void gg_zz_int_(double* p, double* msq);
+#define qq_wwqq_ qq_wwqq_ // WBFWW
+  void qq_wwqq_(double* p, double* msq);
+#define qq_vvqq_ qq_vvqq_ // WBFVV
+  void qq_vvqq_(double* p, double* msq);
 
 #define gg_zz_int_freenorm_ gg_zz_int_freenorm_
   void gg_zz_int_freenorm_(double* p, double hcoupl[2], double *msq);
-
 #define gg_hzz_tb_ gg_hzz_tb_
   void gg_hzz_tb_(double* p, double* msq);
 #define gg_zz_hpi_ gg_zz_hpi_ // Only H+interf, no |gg->ZZ|**2
@@ -307,15 +323,25 @@ extern "C" {
   void gg_zz_all_(double* p, double* msq);
 #define gg_zz_ gg_zz_
   void gg_zz_(double* p, double* msq);
+#define gg_zz_int_ gg_zz_int_
+  void gg_zz_int_(double* p, double* msq);
 
+
+  // WW+ZZ, p as in ZZ
+#define gg_hvv_tb_ gg_hvv_tb_
+  void gg_hvv_tb_(double* p, double* msq);
+#define gg_vv_all_ gg_vv_all_
+  void gg_vv_all_(double* p, double* msq);
+#define gg_vv_ gg_vv_
+  void gg_vv_(double* p, double* msq);
 
   // ZZ->2l2q
-  void qqb_z2jet_(double* p, double* msq);
 #define qqb_z2jet_ qqb_z2jet_
+  void qqb_z2jet_(double* p, double* msq);
 
   // ZG->2lG
-  void qqb_zgam_(double* p, double* msq);
 #define qqb_zgam_ qqb_zgam_
+  void qqb_zgam_(double* p, double* msq);
 
 
   // For H->WW/ZZ phase space
@@ -349,6 +375,7 @@ extern "C" {
 
 #define qqb_wgam_ qqb_wgam_
   void qqb_wgam_(double* p, double* msq);
+
   void phi3m0_(double* xth, double* xphi, double* p0, double* p1, double* p2, double* wt);
   void breitw_(double* x1, double* mminsq, double* mmaxsq, double* rmass, double* rwidth, double* msq, double* wt);
 
