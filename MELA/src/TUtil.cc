@@ -1,4 +1,4 @@
-#include "ZZMatrixElement/MELA/interface/TUtil.hh"
+#include <ZZMatrixElement/MELA/interface/TUtil.hh>
 #include <iostream>
 #include <cstdio>
 #include <cmath>
@@ -9,6 +9,7 @@
 
 
 using namespace std;
+
 
 namespace TUtil{
   bool forbidMassiveLeptons = true;
@@ -2824,6 +2825,7 @@ double TUtil::VHiggsMatEl(
   TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
   double EBEAM,
+  bool includeHiggsDecay,
   TVar::VerbosityLevel verbosity
   ){
   const double GeV=1./100.; // JHUGen mom. scale factor
@@ -2865,6 +2867,7 @@ double TUtil::VHiggsMatEl(
   mela_event.AssociationVCompatibility=AssociationVCompatibility;
   mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   mela_event.nRequested_AssociatedLeptons=nRequested_AssociatedLeptons;
+  mela_event.nRequested_AssociatedPhotons=nRequested_AssociatedPhotons;
   GetBoostedParticleVectors(
     RcdME->melaCand,
     mela_event
@@ -2875,7 +2878,7 @@ double TUtil::VHiggsMatEl(
   }
 
   int MYIDUP_prod[4]={ 0 }; // "Incoming" partons 1, 2, "outgoing" partons 3, 4
-  int MYIDUP_dec[2]={ 0 }; // "Outgoing" partons 1, 2
+  int MYIDUP_dec[2]={ -9000, -9000 }; // "Outgoing" partons 1, 2 from the Higgs (->bb)
   double p4[9][4] ={ { 0 } };
   double helicities[9] ={ 0 };
   int vh_ids[9] ={ 0 };
@@ -2910,7 +2913,7 @@ double TUtil::VHiggsMatEl(
     }
   }
   // Associated particles
-  for (int ipar=0; ipar<2; ipar++){
+  for (int ipar=0; ipar<(production!=TVar::GammaH ? 2 : 1); ipar++){
     TLorentzVector* momTmp = &(mela_event.pAssociated.at(ipar).second);
     int* idtmp = &(mela_event.pAssociated.at(ipar).first);
     if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_prod[ipar+2] = *idtmp;
@@ -2921,6 +2924,7 @@ double TUtil::VHiggsMatEl(
     p4[ipar+5][3] = momTmp->Z()*GeV;
     MomStore[ipar+6] = (*momTmp);
   }
+  if (production==TVar::GammaH) MYIDUP_prod[3]=-9000;
 
   if (PDGHelpers::isAGluon(MYIDUP_prod[0]) || PDGHelpers::isAGluon(MYIDUP_prod[1])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Initial state gluons are not permitted!" << endl; return sum_msqjk; }
   if (PDGHelpers::isAGluon(MYIDUP_prod[2]) || PDGHelpers::isAGluon(MYIDUP_prod[3])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Final state gluons are not permitted!" << endl; return sum_msqjk; }
@@ -2947,6 +2951,7 @@ double TUtil::VHiggsMatEl(
       p4[ipar+7][2] = momTmp->Y()*GeV;
       p4[ipar+7][3] = momTmp->Z()*GeV;
       MomStore[2*ipar+2] = (*momTmp); // 2,4
+      if (PDGHelpers::isAQuark(mela_event.pDaughters.at(ipar).first)) MYIDUP_dec[ipar]=mela_event.pDaughters.at(ipar).first;
     }
     else if (mela_event.pDaughters.size()==3){
       if (ipar<2){
@@ -2993,15 +2998,22 @@ double TUtil::VHiggsMatEl(
   }
 
   vh_ids[4] = 25;
-  if (production==TVar::Lep_ZH || production==TVar::Had_ZH) vh_ids[2] = 23;
-  else if (production==TVar::Lep_WH || production==TVar::Had_WH) vh_ids[2] = 24;
-  vh_ids[3] = vh_ids[2];
+  if (production==TVar::Lep_ZH || production==TVar::Had_ZH || production==TVar::GammaH) vh_ids[2] = 23;
+  else if (production==TVar::Lep_WH || production==TVar::Had_WH) vh_ids[2] = 24; // To be changed later
+  if (production!=TVar::GammaH) vh_ids[3] = vh_ids[2]; // To be changed later for WH
+  else vh_ids[3] = 22;
 
   // H->ffb decay is turned off, so no need to loop over helicities[7]=helicities[8]=+-1
   vh_ids[7] = 5; helicities[7] = 1;
-  vh_ids[8] = 5; helicities[8] = 1;
+  vh_ids[8] = -5; helicities[8] = 1;
+  int HDKon = 0;
+  if (includeHiggsDecay && MYIDUP_dec[0]!=-9000 && MYIDUP_dec[1]!=-9000 && MYIDUP_dec[0]==-MYIDUP_dec[1]){
+    HDKon=1;
+    __modjhugenmela_MOD_sethdk(&HDKon);
+  }
+  else if (verbosity>=TVar::INFO && includeHiggsDecay) cerr << "TUtil::VHiggsMatEl: includeHiggsDecay=true is not supported for the present decay mode." << endl;
 
-  if ( verbosity >= TVar::DEBUG ) {
+  if (verbosity >= TVar::DEBUG){
     for (int i=0; i<9; i++) cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
     for (int i=0; i<9; i++) cout << "id(" << i << ") = "  << vh_ids[i] << endl;
   }
@@ -3027,7 +3039,7 @@ double TUtil::VHiggsMatEl(
       helicities[6] = -helicities[5];
       for (int incoming1 = -nf; incoming1 <= nf; incoming1++){
         if (incoming1==0) continue;
-        if (production==TVar::Lep_ZH || production==TVar::Had_ZH){
+        if (production==TVar::Lep_ZH || production==TVar::Had_ZH || production==TVar::GammaH){
           vh_ids[0] = incoming1;
           vh_ids[1] = -incoming1;
           if (
@@ -3046,18 +3058,82 @@ double TUtil::VHiggsMatEl(
                 (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
                 ) continue;
 
-              double msq=0;
-              __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-              MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              if (HDKon==0){
+                double msq=0;
+                __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              }
+              else{
+                for (int h78=0; h78<2; h78++){
+                  helicities[7]=allowed_helicities[h78];
+                  helicities[8]=allowed_helicities[h78];
+                  if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                    if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                      vh_ids[7]=MYIDUP_dec[0];
+                      vh_ids[8]=-MYIDUP_dec[0];
+                    }
+                    else{
+                      vh_ids[7]=-MYIDUP_dec[1];
+                      vh_ids[8]=MYIDUP_dec[1];
+                    }
+                    double msq=0;
+                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  }
+                  else{
+                    for (int hquark=-5; hquark<=5; hquark++){
+                      if (hquark==0) continue;
+                      vh_ids[7]=-hquark;
+                      vh_ids[8]=hquark;
+                      double msq=0;
+                      __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                      MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    }
+                  }
+                }
+              }
+
             } // End loop over outgoing1=-outgoing2
           }
           else{
             vh_ids[5] = MYIDUP_prod[2];
             vh_ids[6] = MYIDUP_prod[3];
 
-            double msq=0;
-            __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-            MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+            if (HDKon==0){
+              double msq=0;
+              __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+              MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+            }
+            else{
+              for (int h78=0; h78<2; h78++){
+                helicities[7]=allowed_helicities[h78];
+                helicities[8]=allowed_helicities[h78];
+                if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                  if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                    vh_ids[7]=MYIDUP_dec[0];
+                    vh_ids[8]=-MYIDUP_dec[0];
+                  }
+                  else{
+                    vh_ids[7]=-MYIDUP_dec[1];
+                    vh_ids[8]=MYIDUP_dec[1];
+                  }
+                  double msq=0;
+                  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                  MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                }
+                else{
+                  for (int hquark=-5; hquark<=5; hquark++){
+                    if (hquark==0) continue;
+                    vh_ids[7]=-hquark;
+                    vh_ids[8]=hquark;
+                    double msq=0;
+                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  }
+                }
+              }
+            }
+
           } // End check on Had vs Lep
         } // End ZH case
         else if (production==TVar::Lep_WH || production==TVar::Had_WH){
@@ -3092,9 +3168,41 @@ double TUtil::VHiggsMatEl(
                     (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
                     ) continue;
 
-                  double msq=0;
-                  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                  MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  if (HDKon==0){
+                    double msq=0;
+                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  }
+                  else{
+                    for (int h78=0; h78<2; h78++){
+                      helicities[7]=allowed_helicities[h78];
+                      helicities[8]=allowed_helicities[h78];
+                      if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                        if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                          vh_ids[7]=MYIDUP_dec[0];
+                          vh_ids[8]=-MYIDUP_dec[0];
+                        }
+                        else{
+                          vh_ids[7]=-MYIDUP_dec[1];
+                          vh_ids[8]=MYIDUP_dec[1];
+                        }
+                        double msq=0;
+                        __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                        MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      }
+                      else{
+                        for (int hquark=-5; hquark<=5; hquark++){
+                          if (hquark==0) continue;
+                          vh_ids[7]=-hquark;
+                          vh_ids[8]=hquark;
+                          double msq=0;
+                          __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                          MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                        }
+                      }
+                    }
+                  }
+
                 } // End loop over outgoing2
               } // End loop over outgoing1
             }
@@ -3111,9 +3219,41 @@ double TUtil::VHiggsMatEl(
               vh_ids[5] = MYIDUP_prod[2];
               vh_ids[6] = MYIDUP_prod[3];
 
-              double msq=0;
-              __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-              MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              if (HDKon==0){
+                double msq=0;
+                __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              }
+              else{
+                for (int h78=0; h78<2; h78++){
+                  helicities[7]=allowed_helicities[h78];
+                  helicities[8]=allowed_helicities[h78];
+                  if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                    if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                      vh_ids[7]=MYIDUP_dec[0];
+                      vh_ids[8]=-MYIDUP_dec[0];
+                    }
+                    else{
+                      vh_ids[7]=-MYIDUP_dec[1];
+                      vh_ids[8]=MYIDUP_dec[1];
+                    }
+                    double msq=0;
+                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  }
+                  else{
+                    for (int hquark=-5; hquark<=5; hquark++){
+                      if (hquark==0) continue;
+                      vh_ids[7]=-hquark;
+                      vh_ids[8]=hquark;
+                      double msq=0;
+                      __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                      MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    }
+                  }
+                }
+              }
+
             } // End check on Had vs Lep
           } // End loop over incoming2
         } // End WH case
@@ -3123,9 +3263,16 @@ double TUtil::VHiggsMatEl(
 
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
+  // Turn H_DK off
+  if (HDKon!=0){
+    HDKon=0;
+    __modjhugenmela_MOD_sethdk(&HDKon);
+  }
+
   //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
   //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  
   return sum_msqjk;
 }
 

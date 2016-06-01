@@ -112,7 +112,8 @@ public:
 
   double XsecCalc_VX(
     TVar::Process process_, TVar::Production production_,
-    TVar::VerbosityLevel verbosity_
+    TVar::VerbosityLevel verbosity_,
+    bool includeHiggsDecay
     );
 
   double XsecCalc_TTX(

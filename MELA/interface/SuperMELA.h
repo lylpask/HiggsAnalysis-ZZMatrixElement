@@ -8,8 +8,7 @@
 
 #include "TLorentzVector.h"
 #include "ZZMatrixElement/MELA/interface/Mela.h"
-#include "ZZMatrixElement/MELA/interface/HZZ4LRooPdfs.h"
-#include "ZZMatrixElement/MELA/interface/HZZ2L2QRooPdfs.h"
+#include "ZZMatrixElement/MELA/interface/MELACombinePdfs.h"
 #include "RooRealVar.h"
 #include "RooFormulaVar.h"
 #include "RooCBShape.h"
@@ -67,8 +66,8 @@ protected:
   RooFormulaVar *n_CB_, *alpha_CB_, *n2_CB_, *alpha2_CB_, *mean_CB_, *sigma_CB_, *meanTOT_CB_;//,*gamma_BW_;
   RooFormulaVar *mean_CB_err_, *sigma_CB_err_;
   // RooCBShape *sig_CB_;
-  RooDoubleCB *sig_CB_;
-  RooRelBWUFParam *sig_BW_;//this is defined in HZZ4LRooPdfs.h
+  MELADoubleCB *sig_CB_;
+  MELARelBWUFParam *sig_BW_;//this is defined in HZZ4LRooPdfs.h
   RooFFTConvPdf *sig_FFT_;
   RooRealVar *mean_BW_, *width_BW_;
   double norm_sig_CB_, norm_sig_FFT_;
@@ -78,7 +77,7 @@ protected:
     *a4_qqZZ_, *a5_qqZZ_, *a6_qqZZ_, *a7_qqZZ_,
     *a8_qqZZ_, *a9_qqZZ_, *a10_qqZZ_, *a11_qqZZ_,
     *a12_qqZZ_, *a13_qqZZ_;
-  RooqqZZPdf_v2 *qqZZ_pdf_;
+  MELAqqZZPdf_v2 *qqZZ_pdf_;
   double norm_bkg_qqZZ_;
 
 

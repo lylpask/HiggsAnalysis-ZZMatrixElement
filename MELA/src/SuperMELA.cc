@@ -268,8 +268,8 @@ void SuperMELA::init(){
     delete sig_BW_;
   if (sig_FFT_)
     delete sig_FFT_;
-  sig_CB_ =new RooDoubleCB("signalCB_ggH", "signalCB_ggH", *m4l_rrv_, *meanTOT_CB_, *sigma_CB_, *alpha_CB_, *n_CB_, *alpha2_CB_, *n2_CB_);
-  sig_BW_ =new RooRelBWUFParam("signalBW_ggH", "signalBW_ggH", *m4l_rrv_, *mean_BW_, *width_BW_);
+  sig_CB_ =new MELADoubleCB("signalCB_ggH", "signalCB_ggH", *m4l_rrv_, *meanTOT_CB_, *sigma_CB_, *alpha_CB_, *n_CB_, *alpha2_CB_, *n2_CB_);
+  sig_BW_ =new MELARelBWUFParam("signalBW_ggH", "signalBW_ggH", *m4l_rrv_, *mean_BW_, *width_BW_);
   sig_FFT_=new RooFFTConvPdf("signal_ggH", "BW (X) CB", *m4l_rrv_, *sig_BW_, *sig_CB_, 2);
   sig_FFT_->setBufferFraction(0.2);
   if (verbose_){
@@ -359,7 +359,7 @@ void SuperMELA::init(){
 
   if (qqZZ_pdf_)
     delete qqZZ_pdf_;
-  qqZZ_pdf_ = new RooqqZZPdf_v2("bkg_qqzz", "bkg_qqzz", *m4l_rrv_, *a0_qqZZ_, *a1_qqZZ_, *a2_qqZZ_, *a3_qqZZ_,
+  qqZZ_pdf_ = new MELAqqZZPdf_v2("bkg_qqzz", "bkg_qqzz", *m4l_rrv_, *a0_qqZZ_, *a1_qqZZ_, *a2_qqZZ_, *a3_qqZZ_,
     *a4_qqZZ_, *a5_qqZZ_, *a6_qqZZ_, *a7_qqZZ_,
     *a8_qqZZ_, *a9_qqZZ_, *a10_qqZZ_, *a11_qqZZ_,
     *a12_qqZZ_, *a13_qqZZ_);

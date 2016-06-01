@@ -232,6 +232,7 @@ void Mela::setInputEvent(
     isGen
     );
 }
+void Mela::resetInputEvent(){ ZZME->reset_InputEvent(); }
 void Mela::setTempCandidate(
   SimpleParticleCollection_t* pDaughters,
   SimpleParticleCollection_t* pAssociated,

@@ -175,6 +175,7 @@ namespace TUtil{
     TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
     double EBEAM,
+    bool includeHiggsDecay,
     TVar::VerbosityLevel verbosity
     );
   double TTHiggsMatEl(

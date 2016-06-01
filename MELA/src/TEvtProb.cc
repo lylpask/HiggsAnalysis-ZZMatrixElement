@@ -853,7 +853,8 @@ double TEvtProb::XsecCalcXJ(TVar::Process process_, TVar::Production production_
 
 double TEvtProb::XsecCalc_VX(
   TVar::Process process_, TVar::Production production_,
-  TVar::VerbosityLevel verbosity_
+  TVar::VerbosityLevel verbosity_,
+  bool includeHiggsDecay
   ){
   double dXsec = 0;
   ResetIORecord();
@@ -903,7 +904,7 @@ double TEvtProb::XsecCalc_VX(
     }
     SetJHUGenSpinZeroVVCouplings(Hvvcoupl, HvvCLambda_qsq, HvvLambda_qsq, false);
 
-    dXsec = VHiggsMatEl(process, production, matrixElement, &event_scales, &RcdME, EBEAM, verbosity);
+    dXsec = VHiggsMatEl(process, production, matrixElement, &event_scales, &RcdME, EBEAM, includeHiggsDecay, verbosity);
     if (verbosity >= TVar::DEBUG) std::cout << "Process " << TVar::ProcessName(process) << " TEvtProb::XsecCalc_VX(): dXsec=" << dXsec << endl;
   } // end of JHUGen matrix element calculations
   else cerr << "Non-JHUGen VH MEs are not supported!" << endl;

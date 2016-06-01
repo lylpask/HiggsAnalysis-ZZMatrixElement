@@ -352,7 +352,8 @@ void newZZMatrixElement::computeProdXS_VH(
 
     mevalue  = Xcal2.XsecCalc_VX(
       processModel, processProduction,
-      processVerbosity
+      processVerbosity,
+      includeHiggsDecay
       );
   }
 

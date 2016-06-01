@@ -9,7 +9,11 @@ MODULE ModJHUGenMELA
 
 ! JHUGenMELA-specific subroutines and functions
 
-public :: SetHiggsMassWidth,SetDecayModes,SetTopDecays,SetMuRenFac
+public :: SetHiggsMassWidth
+public :: SetDecayModes
+public :: SetTopDecays
+public :: SetHDK
+public :: SetMuRenFac
 public :: SetSpinZeroVVCouplings,SetSpinZeroVVCouplings_NoGamma,SetDistinguishWWCouplingsFlag
 public :: SetSpinZeroGGCouplings,SetSpinZeroQQCouplings
 public :: SetSpinOneCouplings
@@ -67,6 +71,12 @@ subroutine SetTopDecays(flag)
 implicit none
 integer, intent(in) :: flag
    TopDecays=flag
+end subroutine
+
+subroutine SetHDK(flag)
+implicit none
+logical, intent(in) :: flag
+   H_DK=flag
 end subroutine
 
 subroutine SetMuRenFac(muren,mufac)
