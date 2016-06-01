@@ -10,6 +10,7 @@ extern "C" {
   void __modjhugenmela_MOD_sethdk(int* flag);
   void __modjhugenmela_MOD_sethiggsmasswidth(double *mass, double *width);
   void __modjhugenmela_MOD_setmurenfac(double* muren, double* mufac);
+  void __modjhugenmela_MOD_resetmubarhgabarh();
   void __modjhugenmela_MOD_setmvgv();
   void __modjhugenmela_MOD_setmvgvfromvertex(int* idV);
   void __modjhugenmela_MOD_setspinonecouplings(double qqcoupl[2][2], double vvcoupl[2][2]);
@@ -19,6 +20,8 @@ extern "C" {
   void __modjhugenmela_MOD_setspinzerovvcouplings(double vvcoupl[39][2], int cqsq[3], double Lambda_qsq[4][3], int* usewwcoupl); // YES, THE LAST ARGUMENT IS AN INT!
   void __modjhugenmela_MOD_setspinzerovvcouplings_nogamma(double vvcoupl[32][2], int cqsq[3], double Lambda_qsq[4][3], int* usewwcoupl); // YES, THE LAST ARGUMENT IS AN INT!
   void __modjhugenmela_MOD_settopdecays(int* flag);
+
+  void __modjhugenmela_MOD_getalphasalphasmz(double* val_as, double* val_asmz);
 
 }
 

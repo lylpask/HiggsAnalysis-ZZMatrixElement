@@ -14,11 +14,13 @@ public :: SetDecayModes
 public :: SetTopDecays
 public :: SetHDK
 public :: SetMuRenFac
+public :: ResetMubarHGabarH
 public :: SetSpinZeroVVCouplings,SetSpinZeroVVCouplings_NoGamma,SetDistinguishWWCouplingsFlag
 public :: SetSpinZeroGGCouplings,SetSpinZeroQQCouplings
 public :: SetSpinOneCouplings
 public :: SetSpinTwoCouplings
 
+public :: GetAlphaSAlphaSMZ
 
 contains
 
@@ -84,6 +86,12 @@ implicit none
 real(8), intent(in) :: muren,mufac
 	Mu_Ren = muren
    Mu_Fact = mufac
+end subroutine
+
+subroutine ResetMubarHGabarH()
+implicit none
+   mubarH=-999d0
+   gabarH=-999d0
 end subroutine
 
 subroutine SetSpinZeroVVCouplings(vvcoupl, cqsq, Lambda_qsq, useWWcoupl)
@@ -388,11 +396,6 @@ subroutine SetSpinTwoCouplings(acoupl,bcoupl,qLR)
    return
 end subroutine SetSpinTwoCouplings
 
-
-!=====================================================
-! Internal functions and subroutines
-!=====================================================
-
 subroutine SetMVGV()
 implicit none
   if( IsAZDecay(DecayMode1) ) then
@@ -422,6 +425,13 @@ integer idV
   endif
 end subroutine
 
+
+subroutine GetAlphaSAlphaSMZ(val_as, val_asmz)
+implicit none
+real(8), intent(out) :: val_as, val_asmz
+   val_as=alphas
+   val_asmz=alphas_mz
+end subroutine
 
 
 END MODULE ModJHUGenMELA

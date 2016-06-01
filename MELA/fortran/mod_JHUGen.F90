@@ -47,6 +47,8 @@ SUBROUTINE InitFirstTime(pdftable,pdfstrlength,pdfmember)
    FacScheme = kRenFacScheme_default
    RenScheme = kRenFacScheme_default
 
+   call ResetMubarHGabarH()
+
 !---------------------------
    call PrintLogo(io_stdout)
 !---------------------------

@@ -121,6 +121,9 @@ public:
     H2_g9, // 2h9-
     H2_g10, // 2h10-
 
+    bkgZGamma,    //Z+gamma
+    bkgZJJ,    //Z + 2 jets
+
     bkgZZ,    //qq->ZZ
     bkgZZ_SMHiggs,    //ggZZ+SMHiggs, ggZZ always calculated by MCFM, ME stands for SMHiggs ME, JHUGen: MCFM ggZZ + JHUGen SMHiggs, MCFM: MCFM (ggZZ+ SMHiggs)
     /**** For width ***/

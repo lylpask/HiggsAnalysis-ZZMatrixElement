@@ -1534,8 +1534,6 @@ subroutine EvalAlphaS()
 
       alphas=alphas_mz/(1.0_dp+alphas_mz*B0_PDF(NF5)*2.0_dp*dlog((Mu_Ren/zmass_pdf)))
 #endif
-      alphas_mz = 0.13229060d0
-      alphas = 0.13229060d0
       ! Calculate the derived couplings
       call ComputeQCDVariables()
    RETURN

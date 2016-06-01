@@ -935,12 +935,12 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
 void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
   bool hasReset=false;
   if (multiplier_ren<=0. || multiplier_fac<=0.){
-    cerr << "Invalid scale multipliers" << endl;
+    cerr << "TUtil::SetAlphaS: Invalid scale multipliers" << endl;
     return;
   }
   if (Q_ren<=1. || Q_fac<=1. || mynloop<=0 || mypartons.compare("Default")==0){
-    if (Q_ren<0.) cout << "Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
-    if (Q_fac<0.) cout << "Invalid factorization scale, setting to mH/2..." << endl;
+    if (Q_ren<0.) cout << "TUtil::SetAlphaS: Invalid QCD scale for alpha_s, setting to mH/2..." << endl;
+    if (Q_fac<0.) cout << "TUtil::SetAlphaS: Invalid factorization scale, setting to mH/2..." << endl;
     Q_ren = (masses_mcfm_.hmass)*0.5;
     Q_fac = Q_ren;
     mynloop = 1;
@@ -956,21 +956,28 @@ void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double 
 
   /***** MCFM Alpha_S *****/
   bool nflav_is_same = (nflav_.nflav == mynflav);
+  if (!nflav_is_same) cout << "TUtil::SetAlphaS: nflav=" << nflav_.nflav << " is the only one supported." << endl;
   scale_.scale = Q_ren;
   scale_.musq = Q_ren*Q_ren;
   facscale_.facscale = Q_fac;
+  if (mynloop!=1){
+    cout << "TUtil::SetAlphaS: Only nloop=1 is supported!" << endl;
+    mynloop=1;
+  }
   nlooprun_.nlooprun = mynloop;
 
+  /*
+  ///// Disabling alpha_s computation from MCFM to replace with the JHUGen implementation, allows LHAPDF interface readily /////
+  // For proper pdfwrapper_linux.f execution (alpha_s computation does not use pdf but examines the pdf name to initialize amz.)
   if (mypartons.compare("Default")!=0 && mypartons.compare("cteq6_l")!=0 && mypartons.compare("cteq6l1")!=0){
-    cout << "Only default=cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting mypartons to Default..." << endl;
-    mypartons = "Default";
+  cout << "Only default=cteq6l1 or cteq6_l are supported. Modify mela.cc symlinks, put the pdf table into data/Pdfdata and retry. Setting mypartons to Default..." << endl;
+  mypartons = "Default";
   }
   // From pdfwrapper_linux.f:
   if (mypartons.compare("cteq6_l")==0) couple_.amz = 0.118;
   else if (mypartons.compare("cteq6l1")==0 || mypartons.compare("Default")==0) couple_.amz = 0.130;
   else couple_.amz = 0.118; // Add pdf as appropriate
 
-  // For proper pdfwrapper_linux.f execution (alpha_s computation does not use pdf but examines the pdf name to initialize amz.)
   if (!nflav_is_same){
     nflav_.nflav = mynflav;
 
@@ -979,6 +986,14 @@ void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double 
     coupling2_();
   }
   else qcdcouple_.as = alphas_(&(scale_.scale), &(couple_.amz), &(nlooprun_.nlooprun));
+  */
+
+  const double GeV=1./100.;
+  double muren_jhu = scale_.scale*GeV;
+  double mufac_jhu = facscale_.facscale*GeV;
+  __modjhugenmela_MOD_setmurenfac(&muren_jhu, &mufac_jhu);
+  __modkinematics_MOD_evalalphas();
+  __modjhugenmela_MOD_getalphasalphasmz(&(qcdcouple_.as), &(couple_.amz));
 
   qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
   qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
@@ -993,23 +1008,18 @@ void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double 
   */
 }
 bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand){
+  if (cand==0){ cerr << "TUtil::MCFM_chooser: Invalid candidate!" << endl; return false; } // Invalid candidate
   MELAParticle* V1 = cand->getSortedV(0);
   MELAParticle* V2 = cand->getSortedV(1);
-  if (V1==0 || V2==0) return false;
+  if (V1==0 || V2==0){ cerr << "TUtil::MCFM_chooser: Invalid candidate Vs:" << V1 << '\t' << V2 << endl; return false; } // Invalid candidate Vs
 
   unsigned int ndau = V1->getNDaughters() + V2->getNDaughters();
-  unsigned int najets = cand->getNAssociatedJets();
-  unsigned int naneutrinos = cand->getNAssociatedNeutrinos();
-  unsigned int naleps = cand->getNAssociatedLeptons()-naneutrinos;
-  unsigned int naphotons = cand->getNAssociatedPhotons();
-  unsigned int naferms = naleps+naneutrinos+najets;
-  unsigned int naparts = naferms+naphotons;
   bool definiteInterf=(
     ndau>3
     &&
-    V1->getDaughter(0)->id==V1->getDaughter(0)->id
+    abs(V1->getDaughter(0)->id)==abs(V2->getDaughter(0)->id)
     &&
-    V1->getDaughter(1)->id==V2->getDaughter(1)->id
+    abs(V1->getDaughter(1)->id)==abs(V2->getDaughter(1)->id)
     &&
     !PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) && !PDGHelpers::isAnUnknownJet(V1->getDaughter(1)->id)
     );
@@ -1040,13 +1050,27 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     breit_.mass3=masses_mcfm_.zmass;
     breit_.width3=masses_mcfm_.zwidth;
 
-    zcouple_.q1=-1.0; // Pretty important for MCFM 6.8+, does not matter for earlier versions
-    zcouple_.l1=zcouple_.le;
-    zcouple_.r1=zcouple_.re;
+    if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+      zcouple_.q1=-1.0;
+      zcouple_.l1=zcouple_.le;
+      zcouple_.r1=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+      zcouple_.q1=0;
+      zcouple_.l1=zcouple_.ln;
+      zcouple_.r1=zcouple_.rn;
+    }
 
-    zcouple_.q2=-1.0; // Pretty important for MCFM 6.8+, does not matter for earlier versions
-    zcouple_.l2=zcouple_.le;
-    zcouple_.r2=zcouple_.re;
+    if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
+      zcouple_.q2=-1.0;
+      zcouple_.l2=zcouple_.le;
+      zcouple_.r2=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
+      zcouple_.q2=0;
+      zcouple_.l2=zcouple_.ln;
+      zcouple_.r2=zcouple_.rn;
+    }
 
     vsymfact_.vsymfact=1.0;
     interference_.interference=false;
@@ -1088,13 +1112,27 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     breit_.mass3 =masses_mcfm_.zmass;
     breit_.width3=masses_mcfm_.zwidth;
 
-    zcouple_.q1=-1.0;
-    zcouple_.l1=zcouple_.le;
-    zcouple_.r1=zcouple_.re;
+    if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+      zcouple_.q1=-1.0;
+      zcouple_.l1=zcouple_.le;
+      zcouple_.r1=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+      zcouple_.q1=0;
+      zcouple_.l1=zcouple_.ln;
+      zcouple_.r1=zcouple_.rn;
+    }
 
-    zcouple_.q2=-1.0;
-    zcouple_.l2=zcouple_.le;
-    zcouple_.r2=zcouple_.re;
+    if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
+      zcouple_.q2=-1.0;
+      zcouple_.l2=zcouple_.le;
+      zcouple_.r2=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
+      zcouple_.q2=0;
+      zcouple_.l2=zcouple_.ln;
+      zcouple_.r2=zcouple_.rn;
+    }
 
     vsymfact_.vsymfact=1.0;
     interference_.interference=false;
@@ -1106,8 +1144,6 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   }
   // JJ + VV->4f
   else if ( // Check for support in qq'H+2J
-    najets>=2 // Only jets since MCFM ME does not support leptons or neutrinos as associated particles
-    &&
     ndau>=4
     &&
     production == TVar::JJVBF
@@ -1138,13 +1174,27 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     npart_.npart=6;
     nwz_.nwz=2;
 
-    zcouple_.q1=-1.0;
-    zcouple_.l1=zcouple_.le;
-    zcouple_.r1=zcouple_.re;
+    if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+      zcouple_.q1=-1.0;
+      zcouple_.l1=zcouple_.le;
+      zcouple_.r1=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+      zcouple_.q1=0;
+      zcouple_.l1=zcouple_.ln;
+      zcouple_.r1=zcouple_.rn;
+    }
 
-    zcouple_.q2=-1.0;
-    zcouple_.l2=zcouple_.le;
-    zcouple_.r2=zcouple_.re;
+    if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
+      zcouple_.q2=-1.0;
+      zcouple_.l2=zcouple_.le;
+      zcouple_.r2=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
+      zcouple_.q2=0;
+      zcouple_.l2=zcouple_.ln;
+      zcouple_.r2=zcouple_.rn;
+    }
 
     bveg1_mcfm_.ndim=16;
     nqcdjets_.nqcdjets=2;
@@ -1160,8 +1210,83 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     vsymfact_.vsymfact=1.0;
     interference_.interference=false;
     if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
-      vsymfact_.vsymfact=1.0;
+      vsymfact_.vsymfact=0.5;
       interference_.interference=true;
+    }
+
+  }
+  else if (
+    ndau>=4
+    &&
+    process==TVar::bkgZJJ
+    &&
+    (production == TVar::ZZQQB || production == TVar::ZZINDEPENDENT)
+    ){
+    // -- 44 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4))+f(p5)+f(p6)'
+    // these settings are identical to use the chooser_() function
+
+    bveg1_mcfm_.ndim=10;
+    breit_.n2=0;
+    breit_.n3=1;
+    nqcdjets_.nqcdjets=2;
+    sprintf((plabel_.plabel)[2], "el");
+    sprintf((plabel_.plabel)[3], "ea");
+    sprintf((plabel_.plabel)[4], "pp");
+    sprintf((plabel_.plabel)[5], "pp");
+    sprintf((plabel_.plabel)[6], "pp");
+
+    if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+      zcouple_.q1=-1.0;
+      zcouple_.l1=zcouple_.le;
+      zcouple_.r1=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+      zcouple_.q1=0;
+      zcouple_.l1=zcouple_.ln;
+      zcouple_.r1=zcouple_.rn;
+    }
+
+    nwz_.nwz=0;
+    breit_.mass3=masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
+
+  }
+  else if (
+    ndau==3
+    &&
+    process==TVar::bkgZGamma
+    &&
+    (production == TVar::ZZQQB || production == TVar::ZZINDEPENDENT)
+    ){
+    // -- 300 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4))+gamma(p5)'
+    // -- 305 '  f(p1)+f(p2) --> Z^0(-->3*(nu(p3)+nu~(p4)))-(sum over 3 nu)+gamma(p5)'
+
+    nqcdjets_.nqcdjets=0;
+    bveg1_mcfm_.ndim=7;
+    breit_.n2=0;
+    breit_.n3=1;
+    breit_.mass3=masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
+    nwz_.nwz=0;
+    sprintf((plabel_.plabel)[4], "ga");
+    sprintf((plabel_.plabel)[5], "pp");
+    lastphot_.lastphot=5;
+
+    if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+      // -- 300 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4))+gamma(p5)'
+      sprintf((plabel_.plabel)[2], "el");
+      sprintf((plabel_.plabel)[3], "ea");
+      zcouple_.q1=-1.0;
+      zcouple_.l1=zcouple_.le;
+      zcouple_.r1=zcouple_.re;
+    }
+    else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+      // -- 305 '  f(p1)+f(p2) --> Z^0(-->3*(nu(p3)+nu~(p4)))-(sum over 3 nu)+gamma(p5)'
+      sprintf((plabel_.plabel)[2], "nl");
+      sprintf((plabel_.plabel)[3], "na");
+      zcouple_.q1=0;
+      zcouple_.l1=zcouple_.ln;
+      zcouple_.r1=zcouple_.rn;
     }
 
   }
@@ -1924,6 +2049,8 @@ double TUtil::SumMatrixElementPDF(
 
   bool passMassCuts=true;
   if (passMassCuts){
+    if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZJJ) qqb_z2jet_(p4[0], msq[0]);
+    if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZGamma) qqb_z2jet_(p4[0], msq[0]);
     if ((production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
     if (production == TVar::ZZQQB_STU && process == TVar::bkgZZ){
       channeltoggle=0;
@@ -2039,7 +2166,7 @@ double TUtil::JHUGenMatEl(
   int idfirst[2]={ 0 }; // Used to set DecayMode1, = MYIDUP[0:1]
   int idsecond[2]={ 0 }; // Used to set DecayMode2, = MYIDUP[2:3]
   double p4[6][4]={ { 0 } }; // Mom (*GeV) to pass into JHUGen
-  TLorentzVector MomStore[mxpart]; // Mom (in natural units) to compute alphaS (FIXME: SETALPHAS)
+  TLorentzVector MomStore[mxpart]; // Mom (in natural units) to compute alphaS
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
 
   // Notice that partIncCode is specific for this subroutine
@@ -2115,7 +2242,6 @@ double TUtil::JHUGenMatEl(
     }
   }
 
-  // FIXME: SETALPHAS DOES NOT MODIFY JHUGENMELA
   // Set alphas
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
@@ -2127,7 +2253,7 @@ double TUtil::JHUGenMatEl(
   //  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   //  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
 
   // Determine te actual ids to compute the ME. Assign ids if any are unknown.
   for (int iv=0; iv<2; iv++){ // Max. 2 vector bosons
@@ -2219,10 +2345,7 @@ double TUtil::JHUGenMatEl(
 
       double MatElTmp=0.;
       if (production == TVar::ZZGG){
-        if (isSpinZero){
-          //__modkinematics_MOD_evalalphas(); // FIXME
-          __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
-        }
+        if (isSpinZero) __modhiggs_MOD_evalamp_gg_h_vv(p4, MYIDUP, &MatElTmp);
         else if (isSpinTwo) __modgraviton_MOD_evalamp_gg_g_vv(p4, MYIDUP, &MatElTmp);
       }
       else if (production == TVar::ZZQQB){
@@ -2252,8 +2375,8 @@ double TUtil::JHUGenMatEl(
   // JHUGen compared to the MCFM
   double constant = 1.45e-8;
   if (isSpinZero && production!=TVar::ZZINDEPENDENT) constant = 4.46162946e-4;
-  MatElSq *= constant;
   // == 1.45e-8/pow(0.13229060/(3.*3.141592653589793238462643383279502884197*2.4621845810181631), 2), constant was 1.45e-8 before with alpha_s=0.13229060, vev=2.4621845810181631/GeV
+  MatElSq *= constant;
 
   // Set RcdME information for ME and parton distributions, taking into account the mothers if id!=0 (i.e. if not unknown).
   if (mela_event.pMothers.at(0).first!=0 && mela_event.pMothers.at(1).first!=0){
@@ -2388,7 +2511,7 @@ double TUtil::HJJMatEl(
   //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
 
   // NOTE ON CHANNEL HASHES:
   // THEY ONLY RETURN ISEL>=JSEL CASES. ISEL<JSEL NEEDS TO BE DONE MANUALLY.
@@ -3028,7 +3151,7 @@ double TUtil::VHiggsMatEl(
   //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
 
   const double allowed_helicities[2] = { -1, 1 }; // L,R
   for (int h01 = 0; h01 < 2; h01++){
@@ -3482,7 +3605,7 @@ double TUtil::TTHiggsMatEl(
   //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
 
   __modjhugenmela_MOD_settopdecays(&topDecay);
   __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
@@ -3625,7 +3748,7 @@ double TUtil::BBHiggsMatEl(
   //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
 
   __modttbhiggs_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);
   if (isUnknown[0] && isUnknown[1]){
@@ -3668,11 +3791,26 @@ void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double 
   double xx[2]={ 0 };
   bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, EBEAM, verbosity);
   if (passPartonErgFrac){
+    ///// USE JHUGEN SUBROUTINE (Accomodates LHAPDF) /////
+    double fx1x2_jhu[2][13]={ { 0 } };
+    __modkinematics_MOD_setpdfs(&(xx[0]), &(xx[1]), fx1x2_jhu);
+    for (int ip=-6; ip<=6; ip++){
+      int fac=0;
+      if (ip!=0 && (abs(ip)%2==0)) fac=-1;
+      else if (ip!=0) fac=1;
+      if (ip<0) fac=-fac;
+      int jp=ip+fac;
+      fx1[jp]=fx1x2_jhu[0][ip];
+      fx2[jp]=fx1x2_jhu[1][ip];
+    }
+    /*
+    ///// USE MCFM SUBROUTINE fdist_linux /////
     //Calculate Pdf
     //Parton Density Function is always evalualted at pT=0 frame
     //Always pass address through fortran function
     fdist_(&density_.ih1, &xx[0], &facscale_.facscale, fx1);
     fdist_(&density_.ih2, &xx[1], &facscale_.facscale, fx2);
+    */
   }
 }
 // SumMEPDF sums over all production parton flavors according to PDF and calls ComputePDF
