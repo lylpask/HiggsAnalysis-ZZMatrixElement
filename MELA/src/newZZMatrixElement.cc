@@ -141,24 +141,6 @@ void newZZMatrixElement::set_TempCandidate(
     set_CurrentCandidate(melaCand);
   }
 }
-void newZZMatrixElement::set_TempCandidate(
-  std::vector<MELAParticle*>& pDaughters,
-  std::vector<MELAParticle*>& pAssociated,
-  std::vector<MELAParticle*>& pMothers,
-  bool isGen
-  ){
-  MELACandidate* cand = ConvertVectorFormat(
-    pDaughters,
-    pAssociated,
-    pMothers,
-    isGen
-    );// push_back is NOT done automatically, and originating objects are NOT owned either!
-  if (cand!=0){
-    tmpCandList.push_back(cand);
-    melaCand=cand;
-    set_CurrentCandidate(melaCand);
-  }
-}
 // Adds a top candidate
 void newZZMatrixElement::append_TopCandidate(SimpleParticleCollection_t* TopDaughters){ Xcal2.AppendTopCandidate(TopDaughters); }
 // Set-functions that do not set anything that belongs to Xcal2

@@ -64,12 +64,6 @@ public:
     SimpleParticleCollection_t* pMothers=0,
     bool isGen=false
     ); // Adds a temp. candidate
-  void setTempCandidate(
-    std::vector<MELAParticle*>& pDaughters,
-    std::vector<MELAParticle*>& pAssociated,
-    std::vector<MELAParticle*>& pMothers,
-    bool isGen=false
-    ); // Adds a temp. candidate constructed from pre-existing objects
   void appendTopCandidate(SimpleParticleCollection_t* TopDaughters); // Adds a top
 
   // Function to set EW parameters in MCFM/JHUGen

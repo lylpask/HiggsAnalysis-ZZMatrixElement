@@ -77,13 +77,6 @@ public:
     SimpleParticleCollection_t* pMothers=0,
     bool isGen=false
     ); // Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
-  void set_TempCandidate(
-    std::vector<MELAParticle*>& pDaughters,
-    std::vector<MELAParticle*>& pAssociated,
-    std::vector<MELAParticle*>& pMothers,
-    bool isGen=false
-    ); /* Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2 for storage and deletion at a later stage
-       Difference of this overload is that the originating MELAParticles are not owned.*/
   //
   void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf); // Sets variables exclusive to Xcal2
   void set_LHAgrid(const char* path, int pdfmember=0); // Sets variable exclusive to Xcal2

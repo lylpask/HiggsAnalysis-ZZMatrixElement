@@ -238,12 +238,6 @@ void Mela::setTempCandidate(
   SimpleParticleCollection_t* pMothers,
   bool isGen
   ){ ZZME->set_TempCandidate(pDaughters, pAssociated, pMothers); }
-void Mela::setTempCandidate(
-  std::vector<MELAParticle*>& pDaughters,
-  std::vector<MELAParticle*>& pAssociated,
-  std::vector<MELAParticle*>& pMothers,
-  bool isGen
-  ){ ZZME->set_TempCandidate(pDaughters, pAssociated, pMothers); }
 void Mela::appendTopCandidate(SimpleParticleCollection_t* TopDaughters){ ZZME->append_TopCandidate(TopDaughters); }
 
 

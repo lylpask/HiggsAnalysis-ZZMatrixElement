@@ -192,7 +192,6 @@ namespace TUtil{
     TVar::VerbosityLevel verbosity
     );
 
-  void Swap_Momenta(double(&p)[4], double(&q)[4]);
   bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity);
   void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity);
   double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity);
@@ -214,12 +213,6 @@ namespace TUtil{
     // Outputs
     std::vector<MELAParticle*>* particleList,
     std::vector<MELACandidate*>* candList
-    );
-  MELACandidate* ConvertVectorFormat(
-    std::vector<MELAParticle*>& daughters,
-    std::vector<MELAParticle*>& aparticles,
-    std::vector<MELAParticle*>& mothers,
-    bool isGen
     );
   // Convert the vector of top daughters (as simple particles) to MELAParticles and create a MELATopCandidate
   // The output lists could be members of TEvtProb directly.

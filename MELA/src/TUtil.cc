@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cstdio>
 #include <cmath>
+#include <utility>
+#include <algorithm>
 #include "TMath.h"
 #include "TLorentzRotation.h"
 
@@ -3336,14 +3338,16 @@ double TUtil::TTHiggsMatEl(
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
   __modjhugenmela_MOD_settopdecays(&topDecay);
-  __modttbh_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
+  __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
   if (isUnknown[0] && isUnknown[1]){
-    Swap_Momenta(p4[3], p4[4]);
-    Swap_Momenta(p4[5], p4[9]);
-    Swap_Momenta(p4[6], p4[10]);
-    Swap_Momenta(p4[7], p4[12]);
-    Swap_Momenta(p4[8], p4[11]);
-    __modttbh_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq_tmp);
+    for (unsigned int ix=0; ix<4; ix++){
+      swap(p4[3][ix], p4[4][ix]);
+      swap(p4[5][ix], p4[9][ix]);
+      swap(p4[6][ix], p4[10][ix]);
+      swap(p4[7][ix], p4[12][ix]);
+      swap(p4[8][ix], p4[11][ix]);
+    }
+    __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq_tmp);
     for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
   }
   int defaultTopDecay=-1;
@@ -3476,10 +3480,10 @@ double TUtil::BBHiggsMatEl(
   //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
 
-  __modttbh_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);
+  __modttbhiggs_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);
   if (isUnknown[0] && isUnknown[1]){
-    Swap_Momenta(p4[3], p4[4]);
-    __modttbh_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq_tmp);
+    for (unsigned int ix=0; ix<4; ix++) swap(p4[3][ix], p4[4][ix]);
+    __modttbhiggs_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq_tmp);
     for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
   }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
@@ -3488,14 +3492,6 @@ double TUtil::BBHiggsMatEl(
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
   //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
   return sum_msqjk;
-}
-
-void TUtil::Swap_Momenta(double(&p)[4], double(&q)[4]){
-  for (int ix=0; ix<4; ix++){
-    double tmp=p[ix];
-    p[ix]=q[ix];
-    q[ix]=tmp;
-  }
 }
 
 // CheckPartonMomFraction computes xx[0:1] based on p0, p1
@@ -4016,19 +4012,6 @@ MELACandidate* TUtil::ConvertVectorFormat(
   }
 
   // Create the candidate
-  cand = TUtil::ConvertVectorFormat(daughters, aparticles, mothers, isGen);
-  if (candList!=0 && cand!=0) candList->push_back(cand);
-  return cand;
-}
-MELACandidate* ConvertVectorFormat(
-  // Inputs
-  std::vector<MELAParticle*>& daughters,
-  std::vector<MELAParticle*>& aparticles,
-  std::vector<MELAParticle*>& mothers,
-  bool isGen
-  ){
-  MELACandidate* cand=0;
-
   /***** Adaptation of LHEAnalyzer::Event::constructVVCandidates *****/
   /*
   The assumption is that the daughters make sense for either ffb, gamgam, Zgam, ZZ or WW.
@@ -4106,6 +4089,8 @@ MELACandidate* ConvertVectorFormat(
     }
     cand->addAssociatedVs(); // For the VH topology
   }
+
+  if (candList!=0 && cand!=0) candList->push_back(cand);
   return cand;
 }
 

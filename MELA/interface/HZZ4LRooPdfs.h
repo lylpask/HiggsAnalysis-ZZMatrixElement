@@ -713,53 +713,6 @@ protected:
 
 
 
-/////////////////////////////////////////////////////////////
-
-class RooaDoubleCBxBW : public RooAbsPdf {
- public:
-  RooaDoubleCBxBW();
-  RooaDoubleCBxBW(const char *name, const char *title,
-        RooAbsReal& _x, 
-        RooAbsReal& _shift,
-        RooAbsReal& _sigma,
-        RooAbsReal& _alphaL,
-        RooAbsReal& _alphaR,
-        RooAbsReal& _mean,
-        RooAbsReal& _width,
-        unsigned _nL,
-        unsigned _nR,
-        RooAbsReal& _thetaL,
-        RooAbsReal& _thetaR,
-        bool _computeActualCB
-    );
-  RooaDoubleCBxBW(const RooaDoubleCBxBW& other, const char* name=0) ;
-  virtual TObject* clone(const char* newname) const { return new RooaDoubleCBxBW(*this,newname); }
-  inline virtual ~RooaDoubleCBxBW() { }
-
- protected:
-
-  RooRealProxy x ;
-  RooRealProxy shift;
-  RooRealProxy sigma;
-  RooRealProxy alphaL;
-  RooRealProxy alphaR;
-  RooRealProxy mean;
-  RooRealProxy width;
-  unsigned nL;
-  unsigned nR;
-  RooRealProxy thetaL;
-  RooRealProxy thetaR;
-  bool computeActualCB;
-
-  Double_t evaluate() const ;
-  Double_t evaluateDoubleCB() const ;
-  Double_t evaluatePowerLaw(double lim, unsigned power, bool isLeft) const ;
-  Double_t evaluateQuadratic(double lim1, double lim2, bool isLeft) const ;
-  Double_t evaluateVoigtian() const ;
-};
-
-
-
 ///////////////////////////////////////////////////
 class RooCPSHighMassGGH : public RooAbsPdf {
 public:
