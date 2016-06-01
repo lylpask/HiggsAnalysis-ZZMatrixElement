@@ -64,6 +64,7 @@ public:
   void SetVerbosity(TVar::VerbosityLevel tmp);
   void SetLeptonInterf(TVar::LeptonInterference tmp);
 
+  void SetCandidateDecayMode(TVar::CandidateDecayMode mode);
   void SetCurrentCandidate(unsigned int icand);
   void SetCurrentCandidate(MELACandidate* cand);
 

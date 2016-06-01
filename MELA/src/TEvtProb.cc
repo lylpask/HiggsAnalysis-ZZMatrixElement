@@ -61,6 +61,7 @@ TEvtProb::TEvtProb(
   ResetRenFacScaleMode();
   ResetInputEvent();
   SetHiggsMass(125., 4.07e-3, -1);
+  SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
 }
 
 
@@ -93,6 +94,11 @@ void TEvtProb::SetMatrixElement(TVar::MatrixElement tmp){ matrixElement = tmp; }
 void TEvtProb::SetProduction(TVar::Production tmp){ production = tmp; }
 void TEvtProb::SetVerbosity(TVar::VerbosityLevel tmp){ verbosity = tmp; }
 void TEvtProb::SetLeptonInterf(TVar::LeptonInterference tmp){ leptonInterf = tmp; }
+void TEvtProb::SetCandidateDecayMode(TVar::CandidateDecayMode mode){
+  if (mode==TVar::CandidateDecay_WW) PDGHelpers::setHVVmass(PDGHelpers::Wmass);
+  else if (mode==TVar::CandidateDecay_Stable || mode==TVar::CandidateDecay_Stable) PDGHelpers::setHVVmass(PDGHelpers::Zeromass);
+  else PDGHelpers::setHVVmass(PDGHelpers::Zmass); // Anything that contains a Z
+}
 void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
   event_scales.renomalizationScheme = renormalizationSch;
   event_scales.factorizationScheme = factorizationSch;

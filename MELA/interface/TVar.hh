@@ -33,6 +33,15 @@ public:
     kUseAssociated_UnstableTops=7,
     kUseAssociated_StableTops=11
   };
+  enum CandidateDecayMode{
+    CandidateDecay_Stable,
+    CandidateDecay_ff,
+    CandidateDecay_WW,
+    CandidateDecay_ZZ,
+    CandidateDecay_ZG,
+    CandidateDecay_GG,
+    CandidateDecay_ZW // Untested
+  };
   enum VerbosityLevel {
     ERROR = 0,
     INFO = 1,

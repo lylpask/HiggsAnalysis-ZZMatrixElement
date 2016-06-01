@@ -107,6 +107,7 @@ void newZZMatrixElement::set_LHAgrid(const char* path, int pdfmember){ Xcal2.Set
 void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
   Xcal2.SetRenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
+void newZZMatrixElement::set_CandidateDecayMode(TVar::CandidateDecayMode mode){ Xcal2.SetCandidateDecayMode(mode); }
 void newZZMatrixElement::set_CurrentCandidate(unsigned int icand){ Xcal2.SetCurrentCandidate(icand); }
 void newZZMatrixElement::set_CurrentCandidate(MELACandidate* cand){ Xcal2.SetCurrentCandidate(cand); }
 void newZZMatrixElement::set_InputEvent(

@@ -50,6 +50,7 @@ public:
   void setMelaHiggsWidth(double myHiggsWidth=-1, int index=0);
   void setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index);
   void setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+  void setCandidateDecayMode(TVar::CandidateDecayMode mode);
   void setCurrentCandidate(unsigned int icand); // Switches to another candidate
   void setCurrentCandidate(MELACandidate* cand); // Switches to another candidate
   void setInputEvent(

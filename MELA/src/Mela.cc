@@ -115,6 +115,7 @@ Mela::Mela(
   setMelaHiggsMass(125., 0); setMelaHiggsMass(-1., 1);
   setMelaHiggsWidth(-1., 0); setMelaHiggsWidth(0., 1);
   setMelaLeptonInterference(TVar::DefaultLeptonInterf);
+  setCandidateDecayMode(TVar::CandidateDecay_ZZ); // Default decay mode is ZZ at the start
 
   // 
   // configure the JHUGEn and MCFM calculations 
@@ -217,6 +218,7 @@ void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myH
 void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(myHiggsWidth, index); }
 void Mela::setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index){ ZZME->set_mHiggs_wHiggs(myHiggsMass, myHiggsWidth, index); }
 void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){ myLepInterf_=myLepInterf; ZZME->set_LeptonInterference(myLepInterf); }
+void Mela::setCandidateDecayMode(TVar::CandidateDecayMode mode){ ZZME->set_CandidateDecayMode(mode); }
 void Mela::setCurrentCandidate(unsigned int icand){ ZZME->set_CurrentCandidate(icand); }
 void Mela::setCurrentCandidate(MELACandidate* cand){ ZZME->set_CurrentCandidate(cand); }
 void Mela::setInputEvent(
