@@ -7,10 +7,7 @@
 #define MEMCalc_MEMCalc_cpp
 
 /// MEMs header
-#include "ZZMatrixElement/MELA/interface/Mela.h"
-#include "ZZMatrixElement/MEKD/interface/MEKD.h"
 #include "../interface/MEMCalculators.h"
-#include "ZZMatrixElement/MELA/src/computeAngles.h"
 
 using namespace std;
 using namespace MEMNames;
@@ -937,7 +934,7 @@ int MEMs::cacheMELAcalculation(int process, MEMCalcs calculator, vector<TLorentz
   float costheta1, costheta2, costhetastar;
   float phi, phi1;
   
-  mela::computeAngles(partP[0], partId[0], partP[1], partId[1], 
+  TUtil::computeAngles(partP[0], partId[0], partP[1], partId[1], 
 		      partP[2], partId[2], partP[3], partId[3],
 		      costhetastar,costheta1,costheta2,phi,phi1);
   

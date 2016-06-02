@@ -386,6 +386,10 @@ extern "C" {
 #define qqb_w_g_ qqb_w_g_
   void qqb_w_g_(double* p, double* msq);
 
+#define ckmfill_ ckmfill_
+  void ckmfill_(int* nwz);
+
+
 }
 
 #endif

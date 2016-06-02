@@ -1014,7 +1014,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   if (V1==0 || V2==0){ cerr << "TUtil::MCFM_chooser: Invalid candidate Vs:" << V1 << '\t' << V2 << endl; return false; } // Invalid candidate Vs
 
   // LEFT HERE
-  // FICME:     else return false always has quarks missing. Add qcdjets +=2 and zcouple_.l1r1/l2r2=zcouple_.l[iq]/r[iq]
+  // FICME:     else return false always has quarks missing. Add qcdjets +=2 and zcouple_.l1r1/l2r2=zcouple_.l[-1+iq]/r[iq]
 
 
   unsigned int ndau = V1->getNDaughters() + V2->getNDaughters();
@@ -1045,15 +1045,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     //81 '  f(p1)+f(p2) --> Z^0(-->mu^-(p3)+mu^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))'
     //86 '  f(p1)+f(p2) --> Z^0(-->e^-(p5)+e^+(p6))+Z^0(-->mu^-(p3)+mu^+(p4)) (NO GAMMA*)'
     //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
+
     npart_.npart=4;
     nqcdjets_.nqcdjets=0;
     srdiags_.srdiags=true;
-
-    nwz_.nwz=0;
+    nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
     bveg1_mcfm_.ndim=10;
     breit_.n2=1;
     breit_.n3=1;
-
     breit_.mass2=masses_mcfm_.zmass;
     breit_.width2=masses_mcfm_.zwidth;
     breit_.mass3=masses_mcfm_.zmass;
@@ -1073,14 +1072,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1099,14 +1098,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q2=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l2=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q2=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1127,7 +1126,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     // Processes 61 (4l), 62 (2l2q), 64 (2q2l)
 
     nqcdjets_.nqcdjets=0;
-    nwz_.nwz=1;
+    nwz_.nwz=1; ckmfill_(&(nwz_.nwz));
     bveg1_mcfm_.ndim=10;
     breit_.n2=1;
     breit_.n3=1;
@@ -1177,6 +1176,10 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     breit_.n2=0;
     breit_.n3=1;
     nqcdjets_.nqcdjets=2;
+    nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
+    breit_.mass3=masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
+
     sprintf((plabel_.plabel)[2], "el");
     sprintf((plabel_.plabel)[3], "ea");
     sprintf((plabel_.plabel)[4], "pp");
@@ -1197,21 +1200,17 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
-
-    nwz_.nwz=0;
-    breit_.mass3=masses_mcfm_.zmass;
-    breit_.width3=masses_mcfm_.zwidth;
 
   }
   else if (
@@ -1230,7 +1229,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     breit_.n3=1;
     breit_.mass3=masses_mcfm_.zmass;
     breit_.width3=masses_mcfm_.zwidth;
-    nwz_.nwz=0;
+    nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
     sprintf((plabel_.plabel)[4], "ga");
     sprintf((plabel_.plabel)[5], "pp");
     lastphot_.lastphot=5;
@@ -1257,14 +1256,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1289,12 +1288,10 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
 
     npart_.npart=4;
     nqcdjets_.nqcdjets=0;
-
+    nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
     bveg1_mcfm_.ndim=10;
-
     breit_.n2=1;
     breit_.n3=1;
-
     breit_.mass2 =masses_mcfm_.zmass;
     breit_.width2=masses_mcfm_.zwidth;
     breit_.mass3 =masses_mcfm_.zmass;
@@ -1314,14 +1311,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1340,14 +1337,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q2=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l2=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q2=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1386,7 +1383,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     sprintf((plabel_.plabel)[5], "na");
     sprintf((plabel_.plabel)[6], "pp");
 
-    nwz_.nwz=0;
+    nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
     nqcdjets_.nqcdjets=0;
     bveg1_mcfm_.ndim=10;
     breit_.n2=1;
@@ -1408,14 +1405,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         nqcdjets_.nqcdjets += 2;
         int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
         if (jetid>0 && jetid<6){
-          zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-          zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+          zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+          zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
           zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
-          zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-          zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1434,14 +1431,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         nqcdjets_.nqcdjets += 2;
         int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
         if (jetid>0 && jetid<6){
-          zcouple_.q2=ewcharge_.Q[jetid]*sqrt(3.);
-          zcouple_.l2=zcouple_.l[jetid]*sqrt(3.);
+          zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
+          zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
           zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
-          zcouple_.q2=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-          zcouple_.l2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1461,14 +1458,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         nqcdjets_.nqcdjets += 2;
         int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
         if (jetid>0 && jetid<6){
-          zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-          zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+          zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+          zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
           zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
-          zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-          zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1487,14 +1484,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         nqcdjets_.nqcdjets += 2;
         int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
         if (jetid>0 && jetid<6){
-          zcouple_.q2=ewcharge_.Q[jetid]*sqrt(3.);
-          zcouple_.l2=zcouple_.l[jetid]*sqrt(3.);
+          zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
+          zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
           zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
-          zcouple_.q2=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-          zcouple_.l2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+          zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1557,6 +1554,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     ){
     // 220 '  f(p1)+f(p2) --> Z(e-(p3),e^+(p4))Z(mu-(p5),mu+(p6)))+f(p7)+f(p8) [weak]' 'L'
 
+    // FIXME
     if (process==TVar::bkgZZ){
       wwbits_.Hbit[0]=0;
       wwbits_.Hbit[1]=0;
@@ -1577,7 +1575,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     }
 
     npart_.npart=6;
-    nwz_.nwz=2;
+    nwz_.nwz=2; ckmfill_(&(nwz_.nwz));
+    bveg1_mcfm_.ndim=16;
+    nqcdjets_.nqcdjets=2;
+    breit_.n2=1;
+    breit_.n3=1;
+    breit_.mass2 =masses_mcfm_.zmass;
+    breit_.width2=masses_mcfm_.zwidth;
+    breit_.mass3 =masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
 
     if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
       zcouple_.q1=-1.0;
@@ -1593,14 +1599,14 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q1=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l1=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q1=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1619,28 +1625,17 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       nqcdjets_.nqcdjets += 2;
       int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
       if (jetid>0 && jetid<6){
-        zcouple_.q2=ewcharge_.Q[jetid]*sqrt(3.);
-        zcouple_.l2=zcouple_.l[jetid]*sqrt(3.);
+        zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
         zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
-        zcouple_.q2=(ewcharge_.Q[1]*3.+ewcharge_.Q[2]*2.)/5.*sqrt(3.);
-        zcouple_.l2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r2=sqrt(((pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
+        zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
-
-    bveg1_mcfm_.ndim=16;
-    nqcdjets_.nqcdjets=2;
-
-    breit_.n2=1;
-    breit_.n3=1;
-
-    breit_.mass2 =masses_mcfm_.zmass;
-    breit_.width2=masses_mcfm_.zwidth;
-    breit_.mass3 =masses_mcfm_.zmass;
-    breit_.width3=masses_mcfm_.zwidth;
 
     vsymfact_.vsymfact=1.0;
     interference_.interference=false;
