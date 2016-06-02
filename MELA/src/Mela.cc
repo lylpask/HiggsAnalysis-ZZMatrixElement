@@ -673,6 +673,7 @@ void Mela::computeP_selfDspin0(
     useConstant
     );
 }
+
 // You must absolutely know what you are doing if you are using the function below!
 void Mela::computeP_selfDspin0(
   float& prob,
@@ -748,6 +749,22 @@ void Mela::computeP_selfDspin0(
 }
 
 
+void Mela::computeP_selfDspin1(
+  double selfDZqqcoupl_input[SIZE_ZQQ][2],
+  double selfDZvvcoupl_input[SIZE_ZVV][2],
+  float& prob,
+  bool useConstant
+  ){
+  for (int im=0; im<2; im++){
+    for (int ic=0; ic<SIZE_ZQQ; ic++) selfDZqqcoupl[ic][im] = selfDZqqcoupl_input[ic][im];
+    for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = selfDZvvcoupl_input[ic][im];
+  }
+
+  computeP_selfDspin1(
+    prob,
+    useConstant
+    );
+}
 void Mela::computeP_selfDspin1(
   double selfDZvvcoupl_input[SIZE_ZVV][2],
   float& prob,
@@ -831,6 +848,24 @@ void Mela::computeP_selfDspin1(
 }
 
 
+void Mela::computeP_selfDspin2(
+  double selfDGggcoupl_input[SIZE_GGG][2],
+  double selfDGqqcoupl_input[SIZE_GQQ][2],
+  double selfDGvvcoupl_input[SIZE_GVV][2],
+  float& prob,
+  bool useConstant
+  ){
+  for (int im=0; im<2; im++){
+    for (int ic=0; ic<SIZE_GGG; ic++) selfDGggcoupl[ic][im] = selfDGggcoupl_input[ic][im];
+    for (int ic=0; ic<SIZE_GQQ; ic++) selfDGqqcoupl[ic][im] = selfDGqqcoupl_input[ic][im];
+    for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = selfDGvvcoupl_input[ic][im];
+  }
+
+  computeP_selfDspin2(
+    prob,
+    useConstant
+    );
+}
 void Mela::computeP_selfDspin2(
   double selfDGggcoupl_input[SIZE_GGG][2],
   double selfDGvvcoupl_input[SIZE_GVV][2],

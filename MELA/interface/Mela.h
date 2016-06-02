@@ -104,6 +104,12 @@ public:
     );
 
   void computeP_selfDspin1(
+    double selfDZqqcoupl_input[SIZE_ZQQ][2],
+    double selfDZvvcoupl_input[SIZE_ZVV][2],
+    float& prob,
+    bool useConstant=false
+    );
+  void computeP_selfDspin1(
     double selfDZvvcoupl_input[SIZE_ZVV][2],
     float& prob,
     bool useConstant=false
@@ -113,6 +119,13 @@ public:
     bool useConstant=false
     );
 
+  void computeP_selfDspin2(
+    double selfDGggcoupl_input[SIZE_GGG][2],
+    double selfDGqqcoupl_input[SIZE_GQQ][2],
+    double selfDGvvcoupl_input[SIZE_GVV][2],
+    float& prob,
+    bool useConstant=false
+    );
   void computeP_selfDspin2(
     double selfDGggcoupl_input[SIZE_GGG][2],
     double selfDGvvcoupl_input[SIZE_GVV][2],
