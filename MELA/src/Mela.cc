@@ -681,7 +681,13 @@ void Mela::computeP_selfDspin0(
   reset_PAux();
 
   melaCand = getCurrentCandidate();
-  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){ cerr << "Mela::computeP_selfDspin0: This method only applies to spin0, set Process to SelfDefine_spin0 or ME to MCFM!" << endl; melaCand=0; }
+  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){
+    if (myVerbosity_>=TVar::ERROR) cerr
+      << "Mela::computeP_selfDspin0: This method only applies to spin-0 self-defined process OR MCFM H(/+bkg) processes with self-def. couplings."
+      << "\n\tSet Process to SelfDefine_spin0 and ME to JHUGen, or Process to HSMHiggs, bkg*_* and ME to MCFM."
+      << endl;
+    melaCand=0;
+  }
   if (melaCand!=0){
     if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
       ZZME->set_SpinZeroCouplings(
@@ -955,8 +961,8 @@ void Mela::computeP(
       }
       else prob = pdf->getVal();
     }
-    else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM) {
-      if (!(myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)){
+    else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
+      if (!(myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  (myModel_ == TVar::bkgZZ || myModel_ == TVar::bkgWW || myModel_ == TVar::bkgZGamma || myModel_ == TVar::bkgZJJ))){
         if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
           selfDHvvcoupl_freenorm,
           selfDHqqcoupl,
@@ -982,7 +988,7 @@ void Mela::computeP(
           );
 
         if (myVerbosity_>=TVar::DEBUG){ // Notify first
-          cout << "Mela::computeP: Condition (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ)." << endl;
+          cout << "Mela::computeP: Condition (myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  myModel_ == TVar::bkgZZ/WW/ZGamma/ZJJ)." << endl;
           vector<TLorentzVector> pDauVec = calculate4Momentum(mZZ, mZ1, mZ1, acos(costhetastar), acos(costheta1), acos(costheta2), Phi1, Phi);
           cout
             << "\tOriginal mZZ=" << mZZ << " "
@@ -1031,11 +1037,10 @@ void Mela::computeP(
               for (int idau=0; idau<min(2, melaCand->getSortedV(iv)->getNDaughters()); idau++){
                 SimpleParticle_t tmpPair(melaCand->getSortedV(iv)->getDaughter(idau)->id, pDauVec.at(2*iv+idau));
                 daughters.push_back(tmpPair);
-
               }
             }
             if (myVerbosity_>=TVar::DEBUG){ // Summarize the integrated particles
-              cout << "hs, Phi1 are now " << hs_val << " " << phi1_val << endl;
+              cout << "Mela::computeP: hs, Phi1 are now " << hs_val << " " << phi1_val << endl;
               for (unsigned int idau=0; idau<daughters.size(); idau++){
                 cout << "Dau " << idau << " "
                   << "id=" << daughters.at(idau).first << " "

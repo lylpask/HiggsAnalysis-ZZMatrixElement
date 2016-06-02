@@ -255,7 +255,13 @@ void newZZMatrixElement::computeXS(
 
   if (melaCand!=0){
     double zzmass = melaCand->m();
-    if (processME==TVar::MCFM || processModel==TVar::bkgZZ_SMHiggs){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
+    if (
+      processME==TVar::MCFM
+      ||
+      (processModel==TVar::bkgZZ_SMHiggs && processProduction == TVar::ZZGG && processME==TVar::JHUGen)
+      ){
+      for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1);
+    }
     else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 
     mevalue = Xcal2.XsecCalc_XVV(
@@ -280,7 +286,13 @@ void newZZMatrixElement::computeProdXS_VVHVV(
 
   if (melaCand!=0){
     double zzmass = melaCand->m();
-    if (processME==TVar::MCFM || processModel==TVar::bkgZZ_SMHiggs){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
+    if (
+      processME==TVar::MCFM
+      ||
+      (processModel==TVar::bkgZZ_SMHiggs && processProduction == TVar::ZZGG && processME==TVar::JHUGen)
+      ){
+      for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1);
+    }
     else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 
     mevalue = Xcal2.XsecCalc_VVXVV(
