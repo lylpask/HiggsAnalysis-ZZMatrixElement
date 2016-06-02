@@ -1370,16 +1370,6 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     )
     ){ // gg->VV
     // Processes 1281, 1311, 1321
-    if (
-      PDGHelpers::isAJet(V1->getDaughter(0)->id)
-      ||
-      PDGHelpers::isAJet(V1->getDaughter(1)->id)
-      ||
-      PDGHelpers::isAJet(V2->getDaughter(0)->id)
-      ||
-      PDGHelpers::isAJet(V2->getDaughter(1)->id)
-      ) return false; // W->qq is not supported.
-
     sprintf((plabel_.plabel)[2], "el");
     sprintf((plabel_.plabel)[3], "ea");
     sprintf((plabel_.plabel)[4], "nl");
