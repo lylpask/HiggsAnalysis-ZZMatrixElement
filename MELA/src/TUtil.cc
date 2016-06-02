@@ -1068,6 +1068,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.l1=zcouple_.ln;
       zcouple_.r1=zcouple_.rn;
     }
+    else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q1=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l1=zcouple_.l[jetid];
+        zcouple_.r1=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
+    }
     else return false;
 
     if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
@@ -1079,6 +1092,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.q2=0;
       zcouple_.l2=zcouple_.ln;
       zcouple_.r2=zcouple_.rn;
+    }
+    else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q2=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l2=zcouple_.l[jetid];
+        zcouple_.r2=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
     }
     else return false;
 
@@ -1163,6 +1189,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.l1=zcouple_.ln;
       zcouple_.r1=zcouple_.rn;
     }
+    else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q1=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l1=zcouple_.l[jetid];
+        zcouple_.r1=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
+    }
     else return false;
 
     nwz_.nwz=0;
@@ -1204,6 +1243,21 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.q1=0;
       zcouple_.l1=zcouple_.ln;
       zcouple_.r1=zcouple_.rn;
+    }
+    else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+      sprintf((plabel_.plabel)[2], "el");// Trick MCFM, not implemented in MCFM properly
+      sprintf((plabel_.plabel)[3], "ea");
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q1=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l1=zcouple_.l[jetid];
+        zcouple_.r1=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
     }
     else return false;
 
@@ -1248,6 +1302,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.l1=zcouple_.ln;
       zcouple_.r1=zcouple_.rn;
     }
+    else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q1=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l1=zcouple_.l[jetid];
+        zcouple_.r1=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
+    }
     else return false;
 
     if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
@@ -1259,6 +1326,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.q2=0;
       zcouple_.l2=zcouple_.ln;
       zcouple_.r2=zcouple_.rn;
+    }
+    else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q2=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l2=zcouple_.l[jetid];
+        zcouple_.r2=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
     }
     else return false;
 
@@ -1306,27 +1386,161 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     sprintf((plabel_.plabel)[5], "na");
     sprintf((plabel_.plabel)[6], "pp");
 
-    zcouple_.q1=-1.0;
-    zcouple_.l1=zcouple_.le;
-    zcouple_.r1=zcouple_.re;
-    zcouple_.q2=0;
-    zcouple_.l2=zcouple_.ln;
-    zcouple_.r2=zcouple_.rn;
-
     nwz_.nwz=0;
     nqcdjets_.nqcdjets=0;
     bveg1_mcfm_.ndim=10;
     breit_.n2=1;
     breit_.n3=1;
-    nuflav_.nuflav=1;
+    nuflav_.nuflav=1; // Keep this at 1. Mela controls how many flavors in a more exact way.
+
+    if (isWW){
+      if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
+        zcouple_.q1=-1.0;
+        zcouple_.l1=zcouple_.le;
+        zcouple_.r1=zcouple_.re;
+      }
+      else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
+        zcouple_.q1=0;
+        zcouple_.l1=zcouple_.ln;
+        zcouple_.r1=zcouple_.rn;
+      }
+      else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
+        nqcdjets_.nqcdjets += 2;
+        zcouple_.q1=-1.0;
+        int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+        if (jetid>0 && jetid<6){
+          zcouple_.l1=zcouple_.l[jetid];
+          zcouple_.r1=zcouple_.r[jetid];
+        }
+        else{
+          zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+          zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        }
+      }
+      else return false;
+
+      if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+        zcouple_.q2=-1.0;
+        zcouple_.l2=zcouple_.le;
+        zcouple_.r2=zcouple_.re;
+      }
+      else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+        zcouple_.q2=0;
+        zcouple_.l2=zcouple_.ln;
+        zcouple_.r2=zcouple_.rn;
+      }
+      else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+        nqcdjets_.nqcdjets += 2;
+        zcouple_.q2=-1.0;
+        int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
+        if (jetid>0 && jetid<6){
+          zcouple_.l2=zcouple_.l[jetid];
+          zcouple_.r2=zcouple_.r[jetid];
+        }
+        else{
+          zcouple_.l2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+          zcouple_.r2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        }
+      }
+      else return false;
+    }
+    else if (isZZ){
+      if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+        zcouple_.q1=-1.0;
+        zcouple_.l1=zcouple_.le;
+        zcouple_.r1=zcouple_.re;
+      }
+      else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+        zcouple_.q1=0;
+        zcouple_.l1=zcouple_.ln;
+        zcouple_.r1=zcouple_.rn;
+      }
+      else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+        nqcdjets_.nqcdjets += 2;
+        zcouple_.q1=-1.0;
+        int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+        if (jetid>0 && jetid<6){
+          zcouple_.l1=zcouple_.l[jetid];
+          zcouple_.r1=zcouple_.r[jetid];
+        }
+        else{
+          zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+          zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        }
+      }
+      else return false;
+
+      if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
+        zcouple_.q2=-1.0;
+        zcouple_.l2=zcouple_.le;
+        zcouple_.r2=zcouple_.re;
+      }
+      else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
+        zcouple_.q2=0;
+        zcouple_.l2=zcouple_.ln;
+        zcouple_.r2=zcouple_.rn;
+      }
+      else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
+        nqcdjets_.nqcdjets += 2;
+        zcouple_.q2=-1.0;
+        int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
+        if (jetid>0 && jetid<6){
+          zcouple_.l2=zcouple_.l[jetid];
+          zcouple_.r2=zcouple_.r[jetid];
+        }
+        else{
+          zcouple_.l2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+          zcouple_.r2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        }
+      }
+      else return false;
+    }
 
     if(
-      (V1->getDaughter(0)->id!=-V2->getDaughter(1)->id) // eg. nu_mu mu+ e- nub_e
+      (
+      isWW
+      &&
+      (
+      (
+      !PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id)
+      &&
+      !PDGHelpers::isAnUnknownJet(V2->getDaughter(1)->id)
+      &&
+      V1->getDaughter(0)->id!=-V2->getDaughter(1)->id
+      ) // WW->u?+?cb is WW-only
+      ||
+      (
+      !PDGHelpers::isAnUnknownJet(V1->getDaughter(1)->id)
+      &&
+      !PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id)
+      &&
+      V1->getDaughter(1)->id!=-V2->getDaughter(0)->id
+      ) // WW->?db+s? is WW-only
+      )
+      )
       ||
       (
       (isWW && (process==TVar::bkgWW || process==TVar::HSMHiggs || process == TVar::bkgWW_SMHiggs))
       )
       ) sprintf(runstring_.runstring, "test_ww");
+
+    if (
+      isZZ
+      &&
+      (
+      (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(0)->id)) // llqq
+      ||
+      (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(0)->id)) // nnqq
+      ||
+      (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && (abs(V1->getDaughter(0)->id)+1)!=abs(V2->getDaughter(0)->id)) // eg. ee nu_mu nu_mu 
+      || // Check wrong configurations anyway
+      (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(0)->id)) // qqll
+      ||
+      (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(0)->id)) // qqnn
+      ||
+      (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(0)->id) && abs(V1->getDaughter(0)->id)!=(abs(V2->getDaughter(0)->id)+1)) // eg. nu_mu nu_mu ee
+      )
+      ) sprintf(runstring_.runstring, "test_zz");
 
   }
   // JJ + VV->4f
@@ -1371,6 +1585,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.l1=zcouple_.ln;
       zcouple_.r1=zcouple_.rn;
     }
+    else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q1=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l1=zcouple_.l[jetid];
+        zcouple_.r1=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r1=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
+    }
     else return false;
 
     if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
@@ -1382,6 +1609,19 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.q2=0;
       zcouple_.l2=zcouple_.ln;
       zcouple_.r2=zcouple_.rn;
+    }
+    else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      zcouple_.q2=-1.0;
+      int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.l2=zcouple_.l[jetid];
+        zcouple_.r2=zcouple_.r[jetid];
+      }
+      else{
+        zcouple_.l2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+        zcouple_.r2=sqrt(((pow(zcouple_.l[2], 2)+pow(zcouple_.r[2], 2))*3.+(pow(zcouple_.l[1], 2)+pow(zcouple_.r[1], 2))*2.)/10.);
+      }
     }
     else return false;
 
