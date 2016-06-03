@@ -79,7 +79,8 @@ namespace TUtil{
     float& costheta1,
     float& costheta2,
     float& Phi,
-    float& Phi1);
+    float& Phi1
+    );
   void computeAnglesCS(
     TLorentzVector Z1_lept1, int Z1_lept1Id,
     TLorentzVector Z1_lept2, int Z1_lept2Id,
@@ -196,6 +197,9 @@ namespace TUtil{
   bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity);
   void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity);
   double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity);
+
+  // Propagator reweighting
+  double ResonancePropagator(double shat, TVar::ResonancePropagatorScheme scheme);
 
   // Boost the particles with or without associated ones to pT=0 frame and return std::vectors filled with (id, momentum) pairs
   void GetBoostedParticleVectors(

@@ -81,6 +81,12 @@ public:
     ConserveDifermionMass = 1,
     MomentumToEnergy=2
   };
+  enum ResonancePropagatorScheme{
+    NoPropagator=1,
+    RunningWidth=1,
+    FixedWidth=2,
+    CPS=3
+  };
 
   enum Process{
 

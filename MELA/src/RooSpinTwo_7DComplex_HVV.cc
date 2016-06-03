@@ -40,10 +40,10 @@ Double_t RooSpinTwo_7DComplex_HVV::evaluateH1Factor(Int_t i1, Int_t j1, Int_t he
   }
   else{
     if ((i1==0 && j1==0) || (i1==-1 && j1==1) || (i1==1 && j1==-1)) result = 1.-pow(h1, 2); // 15 amps
-    else if (i1==1 && j1==1) result = 1.+pow(h1, 2)+2.*h1*dHel; // 6 amps
-    else if (i1==-1 && j1==-1) result = 1.+pow(h1, 2)-2.*h1*dHel; // 6 amps
-    else if ((i1==0 && j1==1) || (i1==1 && j1==0)) result = sqrt(fabs(1.-pow(h1, 2)))*(h1+dHel); // 9 amps
-    else if ((i1==0 && j1==-1) || (i1==-1 && j1==0)) result = sqrt(fabs(1.-pow(h1, 2)))*(dHel-h1); // 9 amps
+    else if (i1==1 && j1==1) result = 1.+pow(h1, 2)-2.*h1*dHel; // 6 amps
+    else if (i1==-1 && j1==-1) result = 1.+pow(h1, 2)+2.*h1*dHel; // 6 amps
+    else if ((i1==0 && j1==1) || (i1==1 && j1==0)) result = sqrt(fabs(1.-pow(h1, 2)))*(dHel-h1); // 9 amps
+    else if ((i1==0 && j1==-1) || (i1==-1 && j1==0)) result = sqrt(fabs(1.-pow(h1, 2)))*(dHel+h1); // 9 amps
   }
   return result;
 }
@@ -60,10 +60,10 @@ Double_t RooSpinTwo_7DComplex_HVV::evaluateH2Factor(Int_t i2, Int_t j2, Int_t he
   }
   else{
     if ((i2==0 && j2==0) || (i2==-1 && j2==1) || (i2==1 && j2==-1)) result = 1.-pow(h2, 2); // 15 amps
-    else if (i2==1 && j2==1) result = 1.+pow(h2, 2)+2.*h2*dHel; // 6 amps
-    else if (i2==-1 && j2==-1) result = 1.+pow(h2, 2)-2.*h2*dHel; // 6 amps
-    else if ((i2==0 && j2==1) || (i2==1 && j2==0)) result = sqrt(fabs(1.-pow(h2, 2)))*(h2+dHel); // 9 amps
-    else if ((i2==0 && j2==-1) || (i2==-1 && j2==0)) result = sqrt(fabs(1.-pow(h2, 2)))*(dHel-h2); // 9 amps
+    else if (i2==1 && j2==1) result = 1.+pow(h2, 2)-2.*h2*dHel; // 6 amps
+    else if (i2==-1 && j2==-1) result = 1.+pow(h2, 2)+2.*h2*dHel; // 6 amps
+    else if ((i2==0 && j2==1) || (i2==1 && j2==0)) result = sqrt(fabs(1.-pow(h2, 2)))*(dHel-h2); // 9 amps
+    else if ((i2==0 && j2==-1) || (i2==-1 && j2==0)) result = sqrt(fabs(1.-pow(h2, 2)))*(dHel+h2); // 9 amps
   }
   return result;
 }
@@ -285,7 +285,7 @@ Double_t RooSpinTwo_7DComplex_HVV::evaluate() const{
   Double_t epsilon=1e-15;
   Double_t m1_=m1; if (Vdecay1==RooSpin::kVdecayType_GammaOnshell) m1_=0;
   Double_t m2_=m2; if (Vdecay2==RooSpin::kVdecayType_GammaOnshell) m2_=0;
-  if (isZZ/* && Vdecay1==Vdecay2*/) {
+  if (isZZ && Vdecay1==Vdecay2){
     if ((m1_+m2_) > m12 || (fabs(m2_-mV)<fabs(m1_-mV) && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m2_ <= 0. && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m1_ <= 0. && Vdecay1!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;
   }
   else if ((m1_+m2_) > m12 || ((m2_ <= 0. || m1_ <= 0.) && Vdecay1!=RooSpin::kVdecayType_GammaOnshell && Vdecay2!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;
@@ -338,7 +338,7 @@ Double_t RooSpinTwo_7DComplex_HVV::analyticalIntegral(Int_t code, const char* /*
   Double_t epsilon=1e-10;
   Double_t m1_=m1; if (Vdecay1==RooSpin::kVdecayType_GammaOnshell) m1_=0;
   Double_t m2_=m2; if (Vdecay2==RooSpin::kVdecayType_GammaOnshell) m2_=0;
-  if (isZZ/* && Vdecay1==Vdecay2*/) {
+  if (isZZ && Vdecay1==Vdecay2){
     if ((m1_+m2_) > m12 || (fabs(m2_-mV)<fabs(m1_-mV) && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m2_ <= 0. && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m1_ <= 0. && Vdecay1!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;
   }
   else if ((m1_+m2_) > m12 || ((m2_ <= 0. || m1_ <= 0.) && Vdecay1!=RooSpin::kVdecayType_GammaOnshell && Vdecay2!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;

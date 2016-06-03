@@ -970,6 +970,7 @@ RETURN
 END FUNCTION
 
 
+
 FUNCTION GetBWPropagator(sHat, scheme)
 use modMisc
 use modParameters
@@ -1005,7 +1006,7 @@ integer :: scheme
 
         !print *, dsqrt(dabs(sHat))/GeV, gabarH/GeV, BigGamma/GeV
     elseif( scheme.eq.0 ) then  !remove the propagator completely
-        GetBWPropagator = 1
+        GetBWPropagator = 1d0
     else
         print *, "Invalid scheme: ", scheme
         stop 1

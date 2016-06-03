@@ -140,10 +140,10 @@ void RooSpinZero_7DComplex_withAccep_ggH::evaluatePolarizationTerms(Double_t& A0
     Double_t common_fac = (aH1 + bH1*pow(h1, 2) + cH1*pow(h1, 4) +dH1*pow(h1, 6) + eH1*pow(h1, 8));
 
     if (A00term!=0) A00term *= (1. - pow(h1, 2))*common_fac;
-    if (Appterm!=0) Appterm *= (1. + pow(h1, 2) + 2.*h1*R1Val)*common_fac;
-    if (Ammterm!=0) Ammterm *= (1. + pow(h1, 2) - 2.*h1*R1Val)*common_fac;
-    if (A00ppterm!=0) A00ppterm *= sqrt(1. - pow(h1, 2))*(R1Val + h1)*common_fac;
-    if (A00mmterm!=0) A00mmterm *= sqrt(1. - pow(h1, 2))*(R1Val - h1)*common_fac;
+    if (Appterm!=0) Appterm *= (1. + pow(h1, 2) - 2.*h1*R1Val)*common_fac;
+    if (Ammterm!=0) Ammterm *= (1. + pow(h1, 2) + 2.*h1*R1Val)*common_fac;
+    if (A00ppterm!=0) A00ppterm *= sqrt(1. - pow(h1, 2))*(R1Val - h1)*common_fac;
+    if (A00mmterm!=0) A00mmterm *= sqrt(1. - pow(h1, 2))*(R1Val + h1)*common_fac;
     if (Appmmterm!=0) Appmmterm *= (1. - pow(h1, 2))*common_fac;
   }
 
@@ -165,10 +165,10 @@ void RooSpinZero_7DComplex_withAccep_ggH::evaluatePolarizationTerms(Double_t& A0
     Double_t common_fac = (aH2 + bH2*pow(h2, 2) + cH2*pow(h2, 4) +dH2*pow(h2, 6) + eH2*pow(h2, 8));
 
     if (A00term!=0) A00term *= (1. - pow(h2, 2))*common_fac;
-    if (Appterm!=0) Appterm *= (1. + pow(h2, 2) + 2.*h2*R2Val)*common_fac;
-    if (Ammterm!=0) Ammterm *= (1. + pow(h2, 2) - 2.*h2*R2Val)*common_fac;
-    if (A00ppterm!=0) A00ppterm *= sqrt(1. - pow(h2, 2))*(R2Val + h2)*common_fac;
-    if (A00mmterm!=0) A00mmterm *= sqrt(1. - pow(h2, 2))*(R2Val - h2)*common_fac;
+    if (Appterm!=0) Appterm *= (1. + pow(h2, 2) - 2.*h2*R2Val)*common_fac;
+    if (Ammterm!=0) Ammterm *= (1. + pow(h2, 2) + 2.*h2*R2Val)*common_fac;
+    if (A00ppterm!=0) A00ppterm *= sqrt(1. - pow(h2, 2))*(R2Val - h2)*common_fac;
+    if (A00mmterm!=0) A00mmterm *= sqrt(1. - pow(h2, 2))*(R2Val + h2)*common_fac;
     if (Appmmterm!=0) Appmmterm *= (1. - pow(h2, 2))*common_fac;
   }
 
@@ -246,7 +246,7 @@ Double_t RooSpinZero_7DComplex_withAccep_ggH::evaluate() const{
   Double_t epsilon=1e-15;
   Double_t m1_=m1; if (Vdecay1==RooSpin::kVdecayType_GammaOnshell) m1_=0;
   Double_t m2_=m2; if (Vdecay2==RooSpin::kVdecayType_GammaOnshell) m2_=0;
-  if (isZZ/* && Vdecay1==Vdecay2*/) {
+  if (isZZ && Vdecay1==Vdecay2){
     if ((m1_+m2_) > m12 || (fabs(m2_-mV)<fabs(m1_-mV) && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m2_ <= 0. && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m1_ <= 0. && Vdecay1!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;
   }
   else if ((m1_+m2_) > m12 || ((m2_ <= 0. || m1_ <= 0.) && Vdecay1!=RooSpin::kVdecayType_GammaOnshell && Vdecay2!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;
@@ -319,7 +319,7 @@ Double_t RooSpinZero_7DComplex_withAccep_ggH::analyticalIntegral(Int_t code, con
   Double_t epsilon=1e-10;
   Double_t m1_=m1; if (Vdecay1==RooSpin::kVdecayType_GammaOnshell) m1_=0;
   Double_t m2_=m2; if (Vdecay2==RooSpin::kVdecayType_GammaOnshell) m2_=0;
-  if (isZZ/* && Vdecay1==Vdecay2*/) {
+  if (isZZ && Vdecay1==Vdecay2){
     if ((m1_+m2_) > m12 || (fabs(m2_-mV)<fabs(m1_-mV) && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m2_ <= 0. && Vdecay2!=RooSpin::kVdecayType_GammaOnshell) || (m1_ <= 0. && Vdecay1!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;
   }
   else if ((m1_+m2_) > m12 || ((m2_ <= 0. || m1_ <= 0.) && Vdecay1!=RooSpin::kVdecayType_GammaOnshell && Vdecay2!=RooSpin::kVdecayType_GammaOnshell)) return epsilon;

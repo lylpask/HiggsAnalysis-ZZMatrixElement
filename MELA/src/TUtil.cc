@@ -1077,9 +1077,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l1 = gV+gA;
+        zcouple_.r1 = gV-gA;
         zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1103,9 +1118,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l2 = gV+gA;
+        zcouple_.r2 = gV-gA;
         zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1205,9 +1235,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l1 = gV+gA;
+        zcouple_.r1 = gV-gA;
         zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1261,9 +1306,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l1 = gV+gA;
+        zcouple_.r1 = gV-gA;
         zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1316,9 +1376,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l1 = gV+gA;
+        zcouple_.r1 = gV-gA;
         zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1342,9 +1417,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l2 = gV+gA;
+        zcouple_.r2 = gV-gA;
         zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1410,9 +1500,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
+          double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+          double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+          double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+          double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+          double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+          double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+          double xx_up = gV_up*gA_up;
+          double xx_dn = gV_dn*gA_dn;
+          double yy = (2.*yy_up+3.*yy_dn)/5.;
+          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+          double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+          double gAsq = pow(xx, 2)/gVsq;
+          double gV=-sqrt(gVsq);
+          double gA=-sqrt(gAsq);
+          zcouple_.l1 = gV+gA;
+          zcouple_.r1 = gV-gA;
           zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-          zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1436,9 +1541,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
+          double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+          double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+          double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+          double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+          double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+          double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+          double xx_up = gV_up*gA_up;
+          double xx_dn = gV_dn*gA_dn;
+          double yy = (2.*yy_up+3.*yy_dn)/5.;
+          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+          double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+          double gAsq = pow(xx, 2)/gVsq;
+          double gV=-sqrt(gVsq);
+          double gA=-sqrt(gAsq);
+          zcouple_.l2 = gV+gA;
+          zcouple_.r2 = gV-gA;
           zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-          zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1463,9 +1583,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
+          double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+          double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+          double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+          double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+          double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+          double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+          double xx_up = gV_up*gA_up;
+          double xx_dn = gV_dn*gA_dn;
+          double yy = (2.*yy_up+3.*yy_dn)/5.;
+          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+          double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+          double gAsq = pow(xx, 2)/gVsq;
+          double gV=-sqrt(gVsq);
+          double gA=-sqrt(gAsq);
+          zcouple_.l1 = gV+gA;
+          zcouple_.r1 = gV-gA;
           zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-          zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1489,9 +1624,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
         }
         else{
+          double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+          double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+          double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+          double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+          double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+          double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+          double xx_up = gV_up*gA_up;
+          double xx_dn = gV_dn*gA_dn;
+          double yy = (2.*yy_up+3.*yy_dn)/5.;
+          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+          double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+          double gAsq = pow(xx, 2)/gVsq;
+          double gV=-sqrt(gVsq);
+          double gA=-sqrt(gAsq);
+          zcouple_.l2 = gV+gA;
+          zcouple_.r2 = gV-gA;
           zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-          zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-          zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
         }
       }
       else return false;
@@ -1604,9 +1754,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l1 = gV+gA;
+        zcouple_.r1 = gV-gA;
         zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r1=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -1630,9 +1795,24 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
       }
       else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn)/5.;
+        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l2 = gV+gA;
+        zcouple_.r2 = gV-gA;
         zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
-        zcouple_.l2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
-        zcouple_.r2=sqrt(((pow(zcouple_.l[-1+1], 2)+pow(zcouple_.r[1], 2))*3.+(pow(zcouple_.l[-1+2], 2)+pow(zcouple_.r[2], 2))*2.)/10.*3.);
       }
     }
     else return false;
@@ -4199,6 +4379,14 @@ double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double 
   //RcdME->getWeightedMEArray(wgt_msq);
   return RcdME->getSumME();
 }
+
+
+// Propagator reweighting
+double TUtil::ResonancePropagator(double shat, TVar::ResonancePropagatorScheme scheme){
+  int isch=(int)scheme;
+  return __modkinematics_MOD_getbwpropagator(&shat, &isch);
+}
+
 
 // GetBoostedParticleVectors decomposes the MELACandidate object melaCand into mothers, daughters, associateds and tops
 // and boosts them to the pT=0 frame for the particular mela_event.AssociationCode, which is a product of TVar::kUseAssociated* (prime numbers).

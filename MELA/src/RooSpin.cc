@@ -157,8 +157,8 @@ void RooSpin::calculateGVGA(Double_t& gV, Double_t& gA, RooSpin::VdecayType Vdec
   const Double_t Q_nu = 0;
 
   // gV = T3 - 2*Qf*sintW**2
-  const Double_t gV_up = atomicT3 - 2.*Q_up*Sin2ThetaW;
-  const Double_t gV_dn = -atomicT3 - 2.*Q_dn*Sin2ThetaW;
+  const Double_t gV_up = atomicT3 - 2.*Q_up*Sin2ThetaW; // ~0.19
+  const Double_t gV_dn = -atomicT3 - 2.*Q_dn*Sin2ThetaW; // ~-0.35
   const Double_t gV_l = -atomicT3 - 2.*Q_l*Sin2ThetaW;
   const Double_t gV_nu = atomicT3 - 2.*Q_nu*Sin2ThetaW;
 
@@ -170,8 +170,17 @@ void RooSpin::calculateGVGA(Double_t& gV, Double_t& gA, RooSpin::VdecayType Vdec
 
   if (Vdecay==RooSpin::kVdecayType_Zud){
     if (!isGamma){
-      gV = overallFactorZ*sqrt((2.*pow(gV_up, 2) + 3.*pow(gV_dn, 2))/5.);
-      gA = overallFactorZ*sqrt((2.*pow(gA_up, 2) + 3.*pow(gA_dn, 2))/5.);
+      double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+      double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+      double xx_up = gV_up*gA_up;
+      double xx_dn = gV_dn*gA_dn;
+      double yy = (2.*yy_up+3.*yy_dn)/5.;
+      double xx = (2.*xx_up+3.*xx_dn)/5.;
+      double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+      gV = (yy+sqrt(fabs(discriminant)))/2.;
+      gA = pow(xx,2)/gV;
+      gV = -overallFactorZ*sqrt(gV); // ~-0.28
+      gA = -overallFactorZ*sqrt(gA); // ~-0.5
     }
     else{
       gV = overallFactorGamma*sqrt((2.*pow(Q_up, 2) + 3.*pow(Q_dn, 2))/5.);
