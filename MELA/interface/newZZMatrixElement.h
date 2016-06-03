@@ -18,9 +18,7 @@ public:
     );
 
   ~newZZMatrixElement();
-  /// Compute KD from masses and angles.
-  /// The user must ensure that the order of m1/m2 matches the order of theta1/theta2.
-  // flavor 1 for 4e, 2 for 4m, 3 for 2e2mu
+
   void computeXS(
     TVar::Process process_,
     TVar::MatrixElement me_,
@@ -65,6 +63,8 @@ public:
     int topProcess,
     int topDecay=0
     );
+
+  void get_XPropagator(TVar::ResonancePropagatorScheme scheme, float& prop);
 
   // Set-functions
   void set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_); // Sets variables in Xcal2 as well

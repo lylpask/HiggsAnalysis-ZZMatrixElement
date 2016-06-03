@@ -1611,6 +1611,13 @@ void Mela::computeProdP_ttH(
   reset_CandRef();
 }
 
+void Mela::getXPropagator(TVar::ResonancePropagatorScheme scheme, float& prop){
+  prop=0.;
+  melaCand = getCurrentCandidate();
+  if (melaCand!=0) ZZME->get_XPropagator(scheme, prop);
+  reset_CandRef();
+}
+
 
 void Mela::compute4FermionWeight(float& w){ // Lepton interference using JHUGen
   reset_PAux();

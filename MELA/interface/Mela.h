@@ -96,27 +96,27 @@ public:
   void computeP_selfDspin0(
     double selfDHvvcoupl_input[nSupportedHiggses][SIZE_HVV][2],
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
   void computeP_selfDspin0(
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
 
   void computeP_selfDspin1(
     double selfDZqqcoupl_input[SIZE_ZQQ][2],
     double selfDZvvcoupl_input[SIZE_ZVV][2],
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
   void computeP_selfDspin1(
     double selfDZvvcoupl_input[SIZE_ZVV][2],
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
   void computeP_selfDspin1(
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
 
   void computeP_selfDspin2(
@@ -124,17 +124,17 @@ public:
     double selfDGqqcoupl_input[SIZE_GQQ][2],
     double selfDGvvcoupl_input[SIZE_GVV][2],
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
   void computeP_selfDspin2(
     double selfDGggcoupl_input[SIZE_GGG][2],
     double selfDGvvcoupl_input[SIZE_GVV][2],
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
   void computeP_selfDspin2(
     float& prob,
-    bool useConstant=false
+    bool useConstant=true
     );
 
   void computeP(
@@ -201,6 +201,9 @@ public:
 
   // Calculation weight to correct for fermion interference
   void compute4FermionWeight(float& w);
+
+  // Calculation of X propagator
+  void getXPropagator(TVar::ResonancePropagatorScheme scheme, float& prop);
 
   //***SuperMela***//
   void computePM4l(

@@ -406,3 +406,15 @@ void newZZMatrixElement::computeProdXS_ttH(
   return;
 }
 
+// Higgs propagator
+void newZZMatrixElement::get_XPropagator(TVar::ResonancePropagatorScheme scheme, float& prop){
+  prop=0.;
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0) prop=Xcal2.GetXPropagator(scheme);
+
+  resetPerEvent();
+  return;
+}
+
+

@@ -123,6 +123,7 @@ public:
     int topProcess, int topDecay
     );
 
+  double GetXPropagator(TVar::ResonancePropagatorScheme scheme);
 
   // Get-functions
   SpinZeroCouplings* GetSelfDSpinZeroCouplings();

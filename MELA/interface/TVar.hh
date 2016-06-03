@@ -133,11 +133,11 @@ public:
     bkgWW,    //qq/gg->WW
     bkgWWZZ,    //gg->ZZ+WW
 
-    bkgZZ_SMHiggs,    //ggZZ+SMHiggs, ggZZ always calculated by MCFM, ME stands for SMHiggs ME, JHUGen: MCFM ggZZ + JHUGen SMHiggs, MCFM: MCFM (ggZZ+ SMHiggs)
-    bkgWW_SMHiggs,    //ggWW+SMHiggs,
+    bkgZZ_SMHiggs,    //ggZZ+SMHigg
+    bkgWW_SMHiggs,    //ggWW+SMHiggs
     bkgWWZZ_SMHiggs,    //ggZZ+WW+SMHiggs
 
-    HSMHiggs_ZZWW,    //0+, call this for MCFM |H|**2 ZZ+WW interference
+    HSMHiggs_ZZWW,    //MCFM |H|**2 ZZ+WW with interference
 
     /**** For width ***/
     D_gg10,
