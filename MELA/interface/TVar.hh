@@ -137,7 +137,7 @@ public:
     bkgWW_SMHiggs,    //ggWW+SMHiggs
     bkgWWZZ_SMHiggs,    //ggZZ+WW+SMHiggs
 
-    HSMHiggs_ZZWW,    //MCFM |H|**2 ZZ+WW with interference
+    HSMHiggs_WWZZ,    //MCFM |H|**2 ZZ+WW with interference
 
     /**** For width ***/
     D_gg10,
