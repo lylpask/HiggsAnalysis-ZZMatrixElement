@@ -2681,7 +2681,7 @@ double TUtil::SumMatrixElementPDF(
   double coupling[SIZE_HVV_FREENORM], // This last argument is unfortunately the simplest way to pass these couplings
   TVar::VerbosityLevel verbosity
   ){
-
+  if (verbosity>=TVar::DEBUG) cout << "Begin SumMatrixElementPDF" << endl;
   int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
   int nRequested_AssociatedJets = 0;
   if (
@@ -2853,8 +2853,10 @@ double TUtil::SumMatrixElementPDF(
   }
 
 //  cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMatrixElementPDF: Reset AlphaS"<< endl;
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
 //  cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  if (verbosity>=TVar::DEBUG) cout << "End SumMatrixElementPDF(" << msqjk << ")" << endl;
   return msqjk;
 }
 
@@ -4531,20 +4533,23 @@ bool TUtil::CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector
 }
 // ComputePDF does the PDF computation
 void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TUtil::ComputePDF"<< endl;
   double xx[2]={ 0 };
   bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, EBEAM, verbosity);
   if (passPartonErgFrac){
     ///// USE JHUGEN SUBROUTINE (Accomodates LHAPDF) /////
     double fx1x2_jhu[2][13]={ { 0 } };
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::ComputePDF: Calling setpdfs"<< endl;
     __modkinematics_MOD_setpdfs(&(xx[0]), &(xx[1]), fx1x2_jhu);
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::ComputePDF: called"<< endl;
     for (int ip=-6; ip<=6; ip++){
       int fac=0;
       if (ip!=0 && (abs(ip)%2==0)) fac=-1;
       else if (ip!=0) fac=1;
       if (ip<0) fac=-fac;
       int jp=ip+fac;
-      fx1[jp]=fx1x2_jhu[0][ip];
-      fx2[jp]=fx1x2_jhu[1][ip];
+      fx1[jp+5]=fx1x2_jhu[0][ip+6];
+      fx2[jp+5]=fx1x2_jhu[1][ip+6];
     }
     /*
     ///// USE MCFM SUBROUTINE fdist_linux /////
@@ -4555,18 +4560,27 @@ void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double 
     fdist_(&density_.ih2, &xx[1], &facscale_.facscale, fx2);
     */
   }
+  if (verbosity>=TVar::DEBUG){
+    cout << "End TUtil::ComputePDF:"<< endl;
+    for (int ip=-nf; ip<=nf; ip++){
+      cout << "fx1, fx2[" << ip << "] = " << fx1[ip+5] << fx2[ip+5] << endl;
+    }
+  }
 }
 // SumMEPDF sums over all production parton flavors according to PDF and calls ComputePDF
 double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TUtil::SumMEPDF"<< endl;
   double fx1[nmsq]={ 0 };
   double fx2[nmsq]={ 0 };
   //double wgt_msq[nmsq][nmsq]={ { 0 } };
 
   ComputePDF(p0, p1, fx1, fx2, EBEAM, verbosity);
+  if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMEPDF: Setting RcdME"<< endl;
   RcdME->setPartonWeights(fx1, fx2);
   RcdME->setMEArray(msq,true);
   RcdME->computeWeightedMEArray();
   //RcdME->getWeightedMEArray(wgt_msq);
+  if (verbosity>=TVar::DEBUG) cout << "End TUtil::SumMEPDF"<< endl;
   return RcdME->getSumME();
 }
 

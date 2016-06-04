@@ -273,6 +273,7 @@ double TEvtProb::XsecCalc_XVV(
   TVar::Process process_, TVar::Production production_,
   TVar::VerbosityLevel verbosity_
   ){
+  if (verbosity_>=TVar::DEBUG) cout << "Begin XsecCalc_XVV"<< endl;
   double dXsec=0;
   ResetIORecord();
   if (!CheckInputPresent()) return dXsec;
@@ -287,6 +288,7 @@ double TEvtProb::XsecCalc_XVV(
 
   bool needBSMHiggs=false;
   if (forceUseMCFM){
+    if (verbosity_>=TVar::DEBUG) cout << "XsecCalc_XVV::Try MCFM"<< endl;
     // Check self-defined couplings are specified.
     for (int vv = 0; vv < SIZE_HVV; vv++){
       if (
@@ -314,11 +316,14 @@ double TEvtProb::XsecCalc_XVV(
   }
 
   // Final check before moving on to ME calculations
-  if (!calculateME) return dXsec;
-
+  if (!calculateME){
+    if (verbosity_>=TVar::DEBUG) cout << "XsecCalc_XVV::calculateME is false"<< endl;
+    return dXsec;
+  }
   // ME calculations
   if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm), verbosity);
   else if (matrixElement == TVar::JHUGen){
+    if (verbosity_>=TVar::DEBUG) cout << "XsecCalc_XVV::Try JHUGen"<< endl;
     AllowSeparateWWCouplings(false); // HZZ couplings are used for both in spin-0
     // all the possible couplings
     double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
@@ -672,12 +677,14 @@ double TEvtProb::XsecCalc_XVV(
     << " TEvtProb::XsecCalc(): dXsec=" << dXsec
     << endl;
 
+  if (verbosity_>=TVar::DEBUG) cout << "XsecCalc_XVV::Reset couplings"<< endl;
   ResetCouplings(); // Should come first
   if (forceUseMCFM){ // Set defaults. Should come next...
     if (needBSMHiggs) SetLeptonInterf(TVar::DefaultLeptonInterf);
     SetMCFMSpinZeroVVCouplings(false, &selfDSpinZeroCoupl, true); // ... because of this!
   }
   ResetRenFacScaleMode();
+  if (verbosity_>=TVar::DEBUG) cout << "End XsecCalc_XVV"<< endl;
   return dXsec;
 }
 

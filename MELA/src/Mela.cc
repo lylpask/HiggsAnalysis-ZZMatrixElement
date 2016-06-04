@@ -49,18 +49,23 @@ using namespace RooFit;
 
 Mela::Mela(
   double LHCsqrts_,
-  double mh_
+  double mh_,
+  TVar::VerbosityLevel verbosity_
   ) :
   LHCsqrts(LHCsqrts_),
+  myVerbosity_(verbosity_),
   melaCand(0)
 {
-  const double maxSqrts = 8.;
-
-  setVerbosity(TVar::ERROR);
+  if (myVerbosity_>=TVar::DEBUG) cout << "Start Mela constructor" << endl;
+  // Set verbosity
+  setVerbosity(verbosity_);
   //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing fermion masses
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing fermion masses to compute MEs that expect massless fermions properly
 
-  // Create symlinks to the required files, if these are not already present (do nothing otherwse)
+  const double maxSqrts = 8.;
+
+  // Create symlinks to the required files, if these are not already present (do nothing otherwise)
+  if (myVerbosity_>=TVar::DEBUG) cout << "Create symlinks to the required files, if these are not already present" << endl;
   edm::FileInPath mcfmInput1("ZZMatrixElement/MELA/data/input.DAT");
   edm::FileInPath mcfmInput2("ZZMatrixElement/MELA/data/process.DAT");
   edm::FileInPath mcfmInput3("ZZMatrixElement/MELA/data/Pdfdata/cteq6l1.tbl");
@@ -77,6 +82,7 @@ Mela::Mela(
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
+  if (myVerbosity_>=TVar::DEBUG) cout << "Create variables used in anaMELA" << endl;
   mzz_rrv = new RooRealVar("mzz", "m_{ZZ}", mh_, 0., 1000.);
   z1mass_rrv = new RooRealVar("z1mass", "m_{Z1}", 0., 160.);
   z2mass_rrv = new RooRealVar("z2mass", "m_{Z2}", 0., 200.);
@@ -86,7 +92,6 @@ Mela::Mela(
   phi_rrv= new RooRealVar("phi", "#Phi", -TMath::Pi(), TMath::Pi());
   phi1_rrv= new RooRealVar("phi1", "#Phi_{1}", -TMath::Pi(), TMath::Pi());
   Y_rrv = new RooRealVar("Yzz", "#Y_{ZZ}", 0, -4, 4);
-
   upFrac_rrv = new RooRealVar("upFrac", "fraction up-quarks", .5, 0., 1.);
 
   RooSpinZero::modelMeasurables measurables_;
@@ -100,11 +105,13 @@ Mela::Mela(
   measurables_.Phi1 = phi1_rrv;
   measurables_.Y = Y_rrv;
 
+  if (myVerbosity_>=TVar::DEBUG) cout << "Create anaMELA PDF factories" << endl;
   ggSpin0Model = new ScalarPdfFactory_ggH(measurables_, false, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll); // RooSpin::kVdecayType_Zll,RooSpin::kVdecayType_Zll==ZZ
   spin1Model = new VectorPdfFactory(z1mass_rrv, z2mass_rrv, costhetastar_rrv, costheta1_rrv, costheta2_rrv, phi_rrv, phi1_rrv, mzz_rrv);
   spin2Model = new TensorPdfFactory_HVV(measurables_, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll);
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel", "qqZZmodel", *z1mass_rrv, *z2mass_rrv, *costheta1_rrv, *costheta2_rrv, *phi_rrv, *costhetastar_rrv, *phi1_rrv, *mzz_rrv, *upFrac_rrv);
 
+  if (myVerbosity_>=TVar::DEBUG) cout << "Start newZZMatrixElement" << endl;
   edm::FileInPath HiggsWidthFile("ZZMatrixElement/MELA/data/HiggsTotalWidth.txt");
   string path = HiggsWidthFile.fullPath();
   edm::FileInPath path_nnpdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
@@ -112,6 +119,7 @@ Mela::Mela(
   int pdfmember = 0;
   symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
   ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
+  if (myVerbosity_>=TVar::DEBUG) cout << "Set newZZMatrixElement masses" << endl;
   setMelaHiggsMass(125., 0); setMelaHiggsMass(-1., 1);
   setMelaHiggsWidth(-1., 0); setMelaHiggsWidth(0., 1);
   setMelaLeptonInterference(TVar::DefaultLeptonInterf);
@@ -121,6 +129,7 @@ Mela::Mela(
   // configure the JHUGEn and MCFM calculations 
   // 
   // load TGraphs for VAMCFM scale factors
+  if (myVerbosity_>=TVar::DEBUG) cout << "Get c-constant histograms" << endl;
   edm::FileInPath ScaleFactorFile("ZZMatrixElement/MELA/data/scaleFactors.root");
   TFile* sf = TFile::Open(ScaleFactorFile.fullPath().c_str(), "r");
   vaScale_4e    = (TGraph*)sf->Get("scaleFactors_4e");
@@ -149,6 +158,7 @@ Mela::Mela(
   myR=new TRandom3(35797);
   //  cout << "before supermela" << endl;
 
+  if (myVerbosity_>=TVar::DEBUG) cout << "Start superMELA" << endl;
   int superMELA_LHCsqrts = LHCsqrts;
   if (superMELA_LHCsqrts > maxSqrts) superMELA_LHCsqrts = maxSqrts;
   super = new SuperMELA(mh_, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
@@ -163,6 +173,7 @@ Mela::Mela(
   // cout << "starting superMELA initialization" << endl;
   super->init();
   //cout << "after supermela" << endl;
+  if (myVerbosity_>=TVar::DEBUG) cout << "Get more c-constant histograms" << endl;
   edm::FileInPath CTotBkgFile("ZZMatrixElement/MELA/data/ZZ4l-C_TotalBkgM4lGraph.root");
   TFile* finput_ctotbkg = TFile::Open(CTotBkgFile.fullPath().c_str(), "read");
   for (int i=0; i<3; i++) tgtotalbkg[i] = 0;
@@ -171,6 +182,7 @@ Mela::Mela(
   for (int i=0; i<3; i++) assert(tgtotalbkg[i]);
 
   reset_SelfDCouplings();
+  if (myVerbosity_>=TVar::DEBUG) cout << "End Mela constructor" << endl;
 }
 
 Mela::~Mela(){
@@ -212,7 +224,7 @@ void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Pro
   myME_ = myME;
   myProduction_ = myProduction;
 }
-void Mela::setVerbosity(TVar::VerbosityLevel verbosity_){ myVerbosity_=verbosity_; ZZME->set_Verbosity(myVerbosity_); }
+void Mela::setVerbosity(TVar::VerbosityLevel verbosity_){ myVerbosity_=verbosity_; if(ZZME!=0) ZZME->set_Verbosity(myVerbosity_); }
 // Should be called per-event
 void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myHiggsMass, index); }
 void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(myHiggsWidth, index); }
@@ -679,6 +691,7 @@ void Mela::computeP_selfDspin0(
   float& prob,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP_selfDspin0" << endl;
   reset_PAux();
 
   melaCand = getCurrentCandidate();
@@ -746,6 +759,7 @@ void Mela::computeP_selfDspin0(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP_selfDspin0" << endl;
 }
 
 
@@ -787,6 +801,7 @@ void Mela::computeP_selfDspin1(
   float& prob,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP_selfDspin1" << endl;
   reset_PAux();
 
   melaCand = getCurrentCandidate();
@@ -845,6 +860,7 @@ void Mela::computeP_selfDspin1(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP_selfDspin1" << endl;
 }
 
 
@@ -889,6 +905,7 @@ void Mela::computeP_selfDspin2(
   float& prob,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP_selfDspin2" << endl;
   reset_PAux();
 
   melaCand = getCurrentCandidate();
@@ -946,6 +963,7 @@ void Mela::computeP_selfDspin2(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP_selfDspin2" << endl;
 }
 
 
@@ -965,6 +983,7 @@ void Mela::computeP(
   float& prob,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP" << endl;
   reset_PAux();
 
   melaCand = getCurrentCandidate();
@@ -1118,6 +1137,7 @@ void Mela::computeP(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP" << endl;
 }
 
 
@@ -1126,6 +1146,7 @@ void Mela::computeD_CP(
   TVar::Process myType,
   float& prob
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeD_CP" << endl;
   double coupl_mix[nSupportedHiggses][SIZE_HVV][2] ={ { { 0 } } };
   double coupl_1[nSupportedHiggses][SIZE_HVV][2] ={ { { 0 } } };
   double coupl_2[nSupportedHiggses][SIZE_HVV][2] ={ { { 0 } } };
@@ -1207,6 +1228,7 @@ void Mela::computeD_CP(
   computeP_selfDspin0(coupl_1, p1, true);
   computeP_selfDspin0(coupl_2, p2, true);
   prob = pMix- p1- p2;
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeD_CP" << endl;
 }
 
 
@@ -1233,6 +1255,7 @@ void Mela::computeProdDecP(
   float& prob,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeProdDecP" << endl;
   reset_PAux();
   melaCand = getCurrentCandidate();
 
@@ -1269,6 +1292,7 @@ void Mela::computeProdDecP(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeProdDecP" << endl;
 }
 
 
@@ -1297,6 +1321,7 @@ void Mela::computeProdP(
   float& prob,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeProdP" << endl;
   if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH) computeProdP_ttH(prob, 0, 2, useConstant);
   else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH) computeProdP_VH(prob, false, useConstant);
   else{
@@ -1510,6 +1535,7 @@ void Mela::computeProdP(
     reset_SelfDCouplings();
     reset_CandRef();
   }
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeProdP" << endl;
 }
 
 
@@ -1541,7 +1567,7 @@ void Mela::computeProdP_VH(
   bool includeHiggsDecay,
   bool useConstant
   ){
-  // Dedicated function for VH ME
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeProdP_VH" << endl;
   reset_PAux();
 
   melaCand = getCurrentCandidate();
@@ -1573,6 +1599,7 @@ void Mela::computeProdP_VH(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeProdP_VH" << endl;
 }
 
 
@@ -1582,6 +1609,7 @@ void Mela::computeProdP_ttH(
   int topDecay,
   bool useConstant
   ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeProdP_ttH" << endl;
   reset_PAux();
 
   melaCand = getCurrentCandidate();
@@ -1609,6 +1637,7 @@ void Mela::computeProdP_ttH(
 
   reset_SelfDCouplings();
   reset_CandRef();
+  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeProdP_ttH" << endl;
 }
 
 void Mela::getXPropagator(TVar::ResonancePropagatorScheme scheme, float& prop){
