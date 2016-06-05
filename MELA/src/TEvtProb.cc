@@ -24,18 +24,21 @@ using namespace TUtil;
 // Constructors and Destructor
 //-----------------------------------------------------------------------------
 TEvtProb::TEvtProb(
-  const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember
+  const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember, TVar::VerbosityLevel verbosity_
   ) :
-  verbosity(TVar::ERROR),
+  verbosity(verbosity_),
   EBEAM(ebeam)
 {
+  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb constructor" << endl;
+
   mcfm_init_((char *)"input.DAT", (char *)"./");
+  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: mcfm_init successful" << endl;
   SetEwkCouplingParameters();
   energy_.sqrts = 2.*EBEAM;
   coupling_();
   string path_string = path;
   myCSW_ = new HiggsCSandWidth_MELA(path_string);
-  //std::cout << path << std::endl;
+  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: HXS successful" << endl;
   SetLeptonInterf(TVar::DefaultLeptonInterf);
 
   // First resonance constant parameters
@@ -56,18 +59,22 @@ TEvtProb::TEvtProb(
   spinzerohiggs_anomcoupl_.Lambda2_Q=10000;
 
   InitJHUGenMELA(pathtoPDFSet, PDFMember);
+  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: InitJHUGenMELA successful" << endl;
 
   ResetCouplings();
   ResetRenFacScaleMode();
   ResetInputEvent();
   SetHiggsMass(125., 4.07e-3, -1);
   SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb constructor" << endl;
 }
 
 
 TEvtProb::~TEvtProb(){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb destructor" << endl;
   ResetInputEvent();
   if (myCSW_!=0) delete myCSW_;
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb destructor" << endl;
 }
 
 /*

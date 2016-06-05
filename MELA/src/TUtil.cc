@@ -5144,7 +5144,6 @@ MELACandidate* TUtil::ConvertVectorFormat(
   return cand;
 }
 
-
 // Convert the vector of top daughters (as simple particles) to MELAParticles and create a MELATopCandidate
 // The output lists could be members of TEvtProb directly.
 MELATopCandidate* TUtil::ConvertTopCandidate(
@@ -5187,4 +5186,92 @@ MELATopCandidate* TUtil::ConvertTopCandidate(
   return cand;
 }
 
+void TUtil::PrintCandidateSummary(MELACandidate* cand){
+  cout << "***** TUtil::PrintCandidateSummary *****" << endl;
+  cout << "Candidate: " << cand << endl;
+  if (cand!=0){
+    cout << "\tHas " << cand->getNSortedVs() << " sorted Vs" << endl;
+    for (int iv=0; iv<cand->getNSortedVs(); iv++){
+      cout
+        << "\t\tV" << iv << " (" << cand->getSortedV(iv)->id << ") (X,Y,Z,T)=( "
+        << cand->getSortedV(iv)->x() << " , "
+        << cand->getSortedV(iv)->y() << " , "
+        << cand->getSortedV(iv)->z() << " , "
+        << cand->getSortedV(iv)->t() << " )" << endl;
+      for (int ivd=0; ivd<cand->getSortedV(iv)->getNDaughters(); ivd++){
+        cout
+          << "\t\t- V" << iv << ivd << " (" << cand->getSortedV(iv)->getDaughter(ivd)->id << ") (X,Y,Z,T)=( "
+          << cand->getSortedV(iv)->getDaughter(ivd)->x() << " , "
+          << cand->getSortedV(iv)->getDaughter(ivd)->y() << " , "
+          << cand->getSortedV(iv)->getDaughter(ivd)->z() << " , "
+          << cand->getSortedV(iv)->getDaughter(ivd)->t() << " )" << endl;
+      }
+    }
+
+    cout << "\tHas " << cand->getNAssociatedLeptons() << " leptons or neutrinos" << endl;
+    for (int ip=0; ip<cand->getNAssociatedLeptons(); ip++){
+      MELAParticle* part = cand->getAssociatedLepton(ip);
+      cout
+        << "\t\tV" << ip << " (" << part->id << ") (X,Y,Z,T)=( "
+        << part->x() << " , "
+        << part->y() << " , "
+        << part->z() << " , "
+        << part->t() << " )" << endl;
+    }
+    cout << "\tHas " << cand->getNAssociatedPhotons() << " photons" << endl;
+    for (int ip=0; ip<cand->getNAssociatedPhotons(); ip++){
+      MELAParticle* part = cand->getAssociatedPhoton(ip);
+      cout
+        << "\t\tV" << ip << " (" << part->id << ") (X,Y,Z,T)=( "
+        << part->x() << " , "
+        << part->y() << " , "
+        << part->z() << " , "
+        << part->t() << " )" << endl;
+    }
+    cout << "\tHas " << cand->getNAssociatedJets() << " jets" << endl;
+    for (int ip=0; ip<cand->getNAssociatedJets(); ip++){
+      MELAParticle* part = cand->getAssociatedJet(ip);
+      cout
+        << "\t\tV" << ip << " (" << part->id << ") (X,Y,Z,T)=( "
+        << part->x() << " , "
+        << part->y() << " , "
+        << part->z() << " , "
+        << part->t() << " )" << endl;
+    }
+    cout << "\tHas " << cand->getNAssociatedTops() << " tops" << endl;
+    for (int ip=0; ip<cand->getNAssociatedTops(); ip++){
+      MELATopCandidate* part = cand->getAssociatedTop(ip);
+      cout
+        << "\t\tTop" << ip << " (" << part->id << ") (X,Y,Z,T)=( "
+        << part->x() << " , "
+        << part->y() << " , "
+        << part->z() << " , "
+        << part->t() << " )" << endl;
+      if (part->getLightQuark()!=0){
+        cout
+          << "\t\t- Top" << ip << " b " << " (" << part->getLightQuark()->id << ") (X,Y,Z,T)=( "
+          << part->getLightQuark()->x() << " , "
+          << part->getLightQuark()->y() << " , "
+          << part->getLightQuark()->z() << " , "
+          << part->getLightQuark()->t() << " )" << endl;
+      }
+      if (part->getWFermion()!=0){
+        cout
+          << "\t\t- Top" << ip << " Wf " << " (" << part->getWFermion()->id << ") (X,Y,Z,T)=( "
+          << part->getWFermion()->x() << " , "
+          << part->getWFermion()->y() << " , "
+          << part->getWFermion()->z() << " , "
+          << part->getWFermion()->t() << " )" << endl;
+      }
+      if (part->getWAntifermion()!=0){
+        cout
+          << "\t\t- Top" << ip << " Wfb " << " (" << part->getWAntifermion()->id << ") (X,Y,Z,T)=( "
+          << part->getWAntifermion()->x() << " , "
+          << part->getWAntifermion()->y() << " , "
+          << part->getWAntifermion()->z() << " , "
+          << part->getWAntifermion()->t() << " )" << endl;
+      }
+    }
+  }
+}
 

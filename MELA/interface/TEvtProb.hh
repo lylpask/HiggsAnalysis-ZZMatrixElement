@@ -51,7 +51,7 @@ public:
   // Constructors and Destructor
   //---------------------------------------------------------------------------
   TEvtProb() {};
-  TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0);
+  TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0, TVar::VerbosityLevel verbosity_=TVar::ERROR);
   ~TEvtProb();
 
   //----------------------

@@ -31,11 +31,12 @@ void testME_FullMELA_PingWithFourMomenta(int flavor=0){
   float wPOLE=4.07e-3;
 
   TVar::VerbosityLevel verbosity = TVar::DEBUG;
-  Mela mela(erg_tev, mPOLE);
-  mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 79.9549392, 91.1876, 0.23119);
-  mela.setVerbosity(verbosity);
-  mela.setVerbosity(verbosity);
+  Mela mela(erg_tev, mPOLE, verbosity);
+  if (verbosity>=TVar::DEBUG) cout << "Mela is initialized" << endl;
+  //mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 79.9549392, 91.1876, 0.23119);
+  if (verbosity>=TVar::DEBUG) cout << "Mela candidate decay mode initializing" << endl;
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+  if (verbosity>=TVar::DEBUG) cout << "Mela candidate decay mode initialized" << endl;
 
   float GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id;
   /*
@@ -122,16 +123,27 @@ void testME_FullMELA_PingWithFourMomenta(int flavor=0){
     pOrdered[3].SetXYZT(l4_array[ev][1], l4_array[ev][2], l4_array[ev][3], l4_array[ev][0]);
     SimpleParticleCollection_t daughters;
     for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(idOrdered[idau], pOrdered[idau]));
+    if (verbosity>=TVar::DEBUG) cout << "Mela candidate initializing" << endl;
     mela.setInputEvent(&daughters, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    if (verbosity>=TVar::DEBUG) cout << "Mela candidate initialized" << endl;
 
-    float pVAMCFM_selfDg1;
+    float pVAMCFM_sig_selfDg1;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
     mela.selfDHzzcoupl[0][0][0]=1.0;
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP_selfDspin0(pVAMCFM_selfDg1, true);
+    mela.computeP_selfDspin0(pVAMCFM_sig_selfDg1, true);
+    cout << "pVAMCFM_sig_selfDg1: " << pVAMCFM_sig_selfDg1 << endl;
+    float pVAMCFM_sig;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP_selfDspin0(pVAMCFM_sig, true);
+    cout << "pVAMCFM_sig: " << pVAMCFM_sig << endl;
 
+    if (verbosity>=TVar::DEBUG){ cout << "Removing Mela candidate\nSummary:" << endl; TUtil::PrintCandidateSummary(mela.getCurrentCandidate()); }
     mela.resetInputEvent();
   }
 }

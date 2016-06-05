@@ -228,8 +228,7 @@ namespace TUtil{
     std::vector<MELAParticle*>* particleList,
     std::vector<MELATopCandidate*>* topCandList
     );
-
-
+  void PrintCandidateSummary(MELACandidate* cand);
 
 }
 

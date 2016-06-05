@@ -111,13 +111,16 @@ Mela::Mela(
   spin2Model = new TensorPdfFactory_HVV(measurables_, RooSpin::kVdecayType_Zll, RooSpin::kVdecayType_Zll);
   qqZZmodel = new RooqqZZ_JHU_ZgammaZZ_fast("qqZZmodel", "qqZZmodel", *z1mass_rrv, *z2mass_rrv, *costheta1_rrv, *costheta2_rrv, *phi_rrv, *costhetastar_rrv, *phi1_rrv, *mzz_rrv, *upFrac_rrv);
 
-  if (myVerbosity_>=TVar::DEBUG) cout << "Start newZZMatrixElement" << endl;
+  if (myVerbosity_>=TVar::DEBUG) cout << "Paths for newZZMatrixElement" << endl;
   edm::FileInPath HiggsWidthFile("ZZMatrixElement/MELA/data/HiggsTotalWidth.txt");
   string path = HiggsWidthFile.fullPath();
+  if (myVerbosity_>=TVar::DEBUG) cout << path << endl;
   edm::FileInPath path_nnpdf("ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid");
   char path_nnpdf_c[] = "Pdfdata/NNPDF30_lo_as_0130.LHgrid";
   int pdfmember = 0;
   symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
+  if (myVerbosity_>=TVar::DEBUG) cout << path_nnpdf_c << " -> " << path_nnpdf.fullPath().c_str() << endl;
+  if (myVerbosity_>=TVar::DEBUG) cout << "Start newZZMatrixElement" << endl;
   ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
   if (myVerbosity_>=TVar::DEBUG) cout << "Set newZZMatrixElement masses" << endl;
   setMelaHiggsMass(125., 0); setMelaHiggsMass(-1., 1);

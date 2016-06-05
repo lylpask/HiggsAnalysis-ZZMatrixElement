@@ -16,9 +16,11 @@ newZZMatrixElement::newZZMatrixElement(
   processVerbosity(verbosity),
   processLeptonInterference(TVar::DefaultLeptonInterf),
   EBEAM(ebeam),
-  Xcal2(pathtoHiggsCSandWidth, ebeam, pathtoPDFSet, PDFMember),
+  Xcal2(pathtoHiggsCSandWidth, ebeam, pathtoPDFSet, PDFMember, verbosity),
   melaCand(0)
 {
+  if (processVerbosity>=TVar::DEBUG) cout << "Begin newZZMatrixElement constructor" << endl;
+
   // Set default parameters explicitly
   set_mHiggs(125., 0); set_wHiggs(-1., 0);
   set_mHiggs(-1., 1); set_wHiggs(0., 1);
@@ -26,11 +28,15 @@ newZZMatrixElement::newZZMatrixElement(
   selfD_SpinZeroCouplings = Xcal2.GetSelfDSpinZeroCouplings();
   selfD_SpinOneCouplings = Xcal2.GetSelfDSpinOneCouplings();
   selfD_SpinTwoCouplings = Xcal2.GetSelfDSpinTwoCouplings();
+
+  if (processVerbosity>=TVar::DEBUG) cout << "End newZZMatrixElement constructor" << endl;
 }
 newZZMatrixElement::~newZZMatrixElement(){
+  if (processVerbosity>=TVar::DEBUG) cout << "Begin newZZMatrixElement destructor" << endl;
   /*std::cout << "End of newZZME" << std::endl;*/
   resetPerEvent();
   reset_InputEvent();
+  if (processVerbosity>=TVar::DEBUG) cout << "End newZZMatrixElement destructor" << endl;
 }
 
 
