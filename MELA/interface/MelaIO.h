@@ -82,6 +82,7 @@ public:
   }
 
   MelaIO(){ melaCand=0; reset(); }
+  virtual ~MelaIO(){};
 
   double getSumME(){ return sumME; }
   void getWeightedMEArray(double MEsq_[nmsq][nmsq]){

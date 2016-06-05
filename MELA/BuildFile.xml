@@ -6,6 +6,8 @@
 <Flags LDFLAGS="-Wl,-rpath=$(CMSSW_BASE)/src/ZZMatrixElement/MELA/data/$(SCRAM_ARCH) $(shell $(CMSSW_BASE)/src/ZZMatrixElement/MELA/data/retrieve.csh $(SCRAM_ARCH)) -L$(CMSSW_BASE)/src/ZZMatrixElement/MELA/data/$(SCRAM_ARCH) -lmcfm_7p0 -ljhugenmela" />
 <Flags CPPDEFINES="_def_melatools_">
 
+</flags>
+
 <use name="FWCore/ParameterSet"/>
 <use name="f77compiler"/>
 <use name="root"/>
@@ -15,11 +17,11 @@
 <use name="CLHEP"/>
 
 <export>
-  <lib   name="1"/>
+  <lib name="1"/>
   <use name="mcfm_7p0"/>   <!--For this to work, one needs to specify mcfm as a scram tool.-->
 </export>
 
 <export>
-  <lib   name="1"/>
+  <lib name="1"/>
   <use name="jhugenmela"/>   <!--For this to work, one needs to specify mcfm as a scram tool.-->
 </export>

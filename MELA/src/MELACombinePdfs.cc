@@ -12,6 +12,7 @@
 #include "TComplex.h"
 #include <algorithm>
 
+using namespace std;
 using namespace TMath;
 
 namespace RooFit{
