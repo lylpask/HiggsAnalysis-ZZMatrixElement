@@ -283,10 +283,9 @@ public:
 
 protected:
 
-  // 
-  // data memmbers 
-  // 
-  bool usePowhegTemplate_;
+  //
+  // Data memmbers
+  //
   double LHCsqrts;
   TVar::Process myModel_;
   TVar::MatrixElement myME_;

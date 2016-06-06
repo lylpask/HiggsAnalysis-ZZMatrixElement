@@ -38,7 +38,7 @@ void testME_FullMELA_PingWithFourMomenta(int flavor=0){
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
   if (verbosity>=TVar::DEBUG) cout << "Mela candidate decay mode initialized" << endl;
 
-  float GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id;
+  float GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
   /*
   const int nEntries = 3;
   double l1_array[nEntries][4] = {
@@ -96,7 +96,7 @@ void testME_FullMELA_PingWithFourMomenta(int flavor=0){
     { 22.7864275656, -0.15136300982222117, -0.90077551414353962, -22.767866345236371 }
   };
 
-  for (int ev = 0; ev < nEntries; ev++){
+  for (int ev = 0; ev < 1; ev++){
     if (flavor == 2){
       GenLep1Id=13;
       GenLep2Id=-13;
@@ -109,39 +109,139 @@ void testME_FullMELA_PingWithFourMomenta(int flavor=0){
       GenLep3Id=11;
       GenLep4Id=-11;
     }
-    else{
+    else if (flavor == 0){
       GenLep1Id=13;
       GenLep2Id=-13;
       GenLep3Id=13;
       GenLep4Id=-13;
     }
+    else if (flavor == 3){
+      GenLep1Id=14;
+      GenLep2Id=-14;
+      GenLep3Id=13;
+      GenLep4Id=-13;
+    }
+    else if (flavor == 4){
+      GenLep1Id=0;
+      GenLep2Id=-0;
+      GenLep3Id=1;
+      GenLep4Id=-1;
+    }
+    else if (flavor == 4){
+      GenLep1Id=1;
+      GenLep2Id=-1;
+      GenLep3Id=2;
+      GenLep4Id=-2;
+    }
+
     int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
+    int idOrdered_WW[4] ={ 11, -12, 14, -13 };
     TLorentzVector pOrdered[4];
     pOrdered[0].SetXYZT(l1_array[ev][1], l1_array[ev][2], l1_array[ev][3], l1_array[ev][0]);
     pOrdered[1].SetXYZT(l2_array[ev][1], l2_array[ev][2], l2_array[ev][3], l2_array[ev][0]);
     pOrdered[2].SetXYZT(l3_array[ev][1], l3_array[ev][2], l3_array[ev][3], l3_array[ev][0]);
     pOrdered[3].SetXYZT(l4_array[ev][1], l4_array[ev][2], l4_array[ev][3], l4_array[ev][0]);
-    SimpleParticleCollection_t daughters;
-    for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(idOrdered[idau], pOrdered[idau]));
-    if (verbosity>=TVar::DEBUG) cout << "Mela candidate initializing" << endl;
-    mela.setInputEvent(&daughters, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
-    if (verbosity>=TVar::DEBUG) cout << "Mela candidate initialized" << endl;
+    SimpleParticleCollection_t daughters_WW;
+    for (unsigned int idau=0; idau<4; idau++) daughters_WW.push_back(SimpleParticle_t(idOrdered_WW[idau], pOrdered[idau]));
+    SimpleParticleCollection_t daughters_ZZ;
+    for (unsigned int idau=0; idau<4; idau++) daughters_ZZ.push_back(SimpleParticle_t(idOrdered[idau], pOrdered[idau]));
 
-    float pVAMCFM_sig_selfDg1;
+    TLorentzVector pOrdered_ZG[3];
+    pOrdered_ZG[0]=pOrdered[0];
+    pOrdered_ZG[1]=pOrdered[1];
+    pOrdered_ZG[2]=pOrdered[2]+pOrdered[3];
+    SimpleParticleCollection_t daughters_ZG;
+    for (unsigned int idau=0; idau<2; idau++) daughters_ZG.push_back(SimpleParticle_t(idOrdered[idau], pOrdered_ZG[idau]));
+    for (unsigned int idau=2; idau<3; idau++) daughters_ZG.push_back(SimpleParticle_t(22, pOrdered_ZG[idau]));
+
+    TLorentzVector pOrdered_GG[3];
+    pOrdered_GG[0]=pOrdered[0]+pOrdered[1];
+    pOrdered_GG[1]=pOrdered[2]+pOrdered[3];
+    SimpleParticleCollection_t daughters_GG;
+    for (unsigned int idau=0; idau<2; idau++) daughters_GG.push_back(SimpleParticle_t(22, pOrdered_GG[idau]));
+
+    mela.setInputEvent(&daughters_WW, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_ZZ, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_ZG, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_GG, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+
+    int cindex;
+
+    /***** WW *****/
+    cindex=0;
+    mela.setCurrentCandidate(cindex);
+    float pVAMCFM_WW_bkg;
+    mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZQQB);
+    mela.computeP(pVAMCFM_WW_bkg, true);
+    cout << "pVAMCFM_WW_bkg: " << pVAMCFM_WW_bkg << '\n' << endl;
+
+    float pVAMCFM_ggVV_total;
+    mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggVV_total, true);
+    cout << "pVAMCFM_ggVV_total: " << pVAMCFM_ggVV_total << '\n' << endl;
+    float pVAMCFM_ggVV_bkg;
+    mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggVV_bkg, true);
+    cout << "pVAMCFM_ggVV_bkg: " << pVAMCFM_ggVV_bkg << '\n' << endl;
+    float pVAMCFM_ggVV_sig;
+    mela.setProcess(TVar::HSMHiggs_WWZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggVV_sig, true);
+    cout << "pVAMCFM_ggVV_sig: " << pVAMCFM_ggVV_sig << '\n' << endl;
+
+    float pVAMCFM_ggWW_total;
+    mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggWW_total, true);
+    cout << "pVAMCFM_ggWW_total: " << pVAMCFM_ggWW_total << '\n' << endl;
+    float pVAMCFM_ggWW_bkg;
+    mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggWW_bkg, true);
+    cout << "pVAMCFM_ggWW_bkg: " << pVAMCFM_ggWW_bkg << '\n' << endl;
+    float pVAMCFM_ggWW_sig;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggWW_sig, true);
+    cout << "pVAMCFM_ggWW_sig: " << pVAMCFM_ggWW_sig << '\n' << endl;
+
+    float pVAMCFM_ggZZ_total;
+    mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggZZ_total, true);
+    cout << "pVAMCFM_ggZZ_total: " << pVAMCFM_ggZZ_total << '\n' << endl;
+    float pVAMCFM_ggZZ_bkg;
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggZZ_bkg, true);
+    cout << "pVAMCFM_ggZZ_bkg: " << pVAMCFM_ggZZ_bkg << '\n' << endl;
+    float pVAMCFM_ggZZ_sig;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggZZ_sig, true);
+    cout << "pVAMCFM_ggZZ_sig: " << pVAMCFM_ggZZ_sig << '\n' << endl;
+
+
+    /***** ZZ *****/
+    cindex=1;
+    mela.setCurrentCandidate(cindex);
+    float pVAMCFM_ZZ_sig;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ZZ_sig, true);
+    cout << "pVAMCFM_ZZ_sig: " << pVAMCFM_ZZ_sig << '\n' << endl;
+
+    float pVAMCFM_ZZ_sig_selfDg1;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
     mela.selfDHzzcoupl[0][0][0]=1.0;
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP_selfDspin0(pVAMCFM_sig_selfDg1, true);
-    cout << "pVAMCFM_sig_selfDg1: " << pVAMCFM_sig_selfDg1 << endl;
-    float pVAMCFM_sig;
-    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
-    mela.setMelaHiggsWidth(wPOLE);
-    mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP_selfDspin0(pVAMCFM_sig, true);
-    cout << "pVAMCFM_sig: " << pVAMCFM_sig << endl;
+    mela.computeP_selfDspin0(pVAMCFM_ZZ_sig_selfDg1, true);
+    cout << "pVAMCFM_ZZ_sig_selfDg1: " << pVAMCFM_ZZ_sig_selfDg1 << '\n' << endl;
+
+    /***** ZG *****/
+    cindex=2;
+    mela.setCurrentCandidate(cindex);
+    float pVAMCFM_ZG_bkg;
+    mela.setProcess(TVar::bkgZGamma, TVar::MCFM, TVar::ZZQQB);
+    mela.computeP(pVAMCFM_ZG_bkg, true);
+    cout << "pVAMCFM_ZG_bkg: " << pVAMCFM_ZG_bkg << '\n' << endl;
 
     if (verbosity>=TVar::DEBUG){ cout << "Removing Mela candidate\nSummary:" << endl; TUtil::PrintCandidateSummary(mela.getCurrentCandidate()); }
     mela.resetInputEvent();

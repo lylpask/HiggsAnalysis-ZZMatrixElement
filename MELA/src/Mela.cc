@@ -54,11 +54,11 @@ Mela::Mela(
   ) :
   LHCsqrts(LHCsqrts_),
   myVerbosity_(verbosity_),
+  ZZME(0),
+  auxiliaryProb(0.),
   melaCand(0)
 {
   if (myVerbosity_>=TVar::DEBUG) cout << "Start Mela constructor" << endl;
-  // Set verbosity
-  setVerbosity(verbosity_);
   //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing fermion masses
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing fermion masses to compute MEs that expect massless fermions properly
 
@@ -73,12 +73,12 @@ Mela::Mela(
   edm::FileInPath mcfmWarning("ZZMatrixElement/MELA/data/ffwarn.dat");
   edm::FileInPath mcfm_brsm_o("ZZMatrixElement/MELA/data/br.sm1");
   edm::FileInPath mcfm_brsm_t("ZZMatrixElement/MELA/data/br.sm2");
+  mkdir("Pdfdata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   symlink(mcfmWarning.fullPath().c_str(), "ffwarn.dat");
   symlink(mcfm_brsm_o.fullPath().c_str(), "br.sm1");
   symlink(mcfm_brsm_t.fullPath().c_str(), "br.sm2");
   symlink(mcfmInput1.fullPath().c_str(), "input.DAT");
   symlink(mcfmInput2.fullPath().c_str(), "process.DAT");
-  mkdir("Pdfdata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
 
