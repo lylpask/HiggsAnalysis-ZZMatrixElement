@@ -65,7 +65,7 @@ Mela::Mela(
   const double maxSqrts = 8.;
 
   // Create symlinks to the required files, if these are not already present (do nothing otherwise)
-  if (myVerbosity_>=TVar::DEBUG) cout << "Create symlinks to the required files, if these are not already present" << endl;
+  if (myVerbosity_>=TVar::DEBUG) cout << "Create symlinks to the required files, if these are not already present:" << endl;
   edm::FileInPath mcfmInput1("ZZMatrixElement/MELA/data/input.DAT");
   edm::FileInPath mcfmInput2("ZZMatrixElement/MELA/data/process.DAT");
   edm::FileInPath mcfmInput3("ZZMatrixElement/MELA/data/Pdfdata/cteq6l1.tbl");
@@ -73,14 +73,17 @@ Mela::Mela(
   edm::FileInPath mcfmWarning("ZZMatrixElement/MELA/data/ffwarn.dat");
   edm::FileInPath mcfm_brsm_o("ZZMatrixElement/MELA/data/br.sm1");
   edm::FileInPath mcfm_brsm_t("ZZMatrixElement/MELA/data/br.sm2");
+  mkdir("Pdfdata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  if (myVerbosity_>=TVar::DEBUG) cout << "\t- MCFM paths are taken" << endl;
   symlink(mcfmWarning.fullPath().c_str(), "ffwarn.dat");
   symlink(mcfm_brsm_o.fullPath().c_str(), "br.sm1");
   symlink(mcfm_brsm_t.fullPath().c_str(), "br.sm2");
   symlink(mcfmInput1.fullPath().c_str(), "input.DAT");
   symlink(mcfmInput2.fullPath().c_str(), "process.DAT");
-  mkdir("Pdfdata", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  if (myVerbosity_>=TVar::DEBUG) cout << "\t- MCFM symlinks are done" << endl;
   symlink(mcfmInput3.fullPath().c_str(), "Pdfdata/cteq6l1.tbl");
   symlink(mcfmInput4.fullPath().c_str(), "Pdfdata/cteq6l.tbl");
+  if (myVerbosity_>=TVar::DEBUG) cout << "\t- PDF symlinks are done" << endl;
 
   if (myVerbosity_>=TVar::DEBUG) cout << "Create variables used in anaMELA" << endl;
   mzz_rrv = new RooRealVar("mzz", "m_{ZZ}", mh_, 0., 1000.);
