@@ -204,7 +204,8 @@ namespace TUtil{
   // Boost the particles with or without associated ones to pT=0 frame and return std::vectors filled with (id, momentum) pairs
   void GetBoostedParticleVectors(
     MELACandidate* melaCand,
-    simple_event_record& mela_event
+    simple_event_record& mela_event,
+    TVar::VerbosityLevel verbosity=TVar::DEBUG
     );
 
   // Convert vectors of simple particles to MELAParticles and create a MELACandidate

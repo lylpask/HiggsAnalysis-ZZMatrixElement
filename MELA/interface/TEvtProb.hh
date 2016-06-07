@@ -65,7 +65,7 @@ public:
   void SetLeptonInterf(TVar::LeptonInterference tmp);
 
   void SetCandidateDecayMode(TVar::CandidateDecayMode mode);
-  void SetCurrentCandidate(unsigned int icand);
+  void SetCurrentCandidateFromIndex(unsigned int icand);
   void SetCurrentCandidate(MELACandidate* cand);
 
   void AllowSeparateWWCouplings(bool doAllow=false);
@@ -132,6 +132,7 @@ public:
   MelaIO* GetIORecord();
   MELACandidate* GetCurrentCandidate();
   int GetCurrentCandidateIndex(); // Return the index of current melaCand in the candList array, or -1 if it does not exist
+  int GetNCandidates();
   std::vector<MELATopCandidate*>* GetTopCandidates();
 
 protected:

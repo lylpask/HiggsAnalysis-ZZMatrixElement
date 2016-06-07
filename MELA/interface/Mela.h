@@ -51,7 +51,7 @@ public:
   void setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index);
   void setRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
   void setCandidateDecayMode(TVar::CandidateDecayMode mode);
-  void setCurrentCandidate(unsigned int icand); // Switches to another candidate
+  void setCurrentCandidateFromIndex(unsigned int icand); // Switches to another candidate
   void setCurrentCandidate(MELACandidate* cand); // Switches to another candidate
   void setInputEvent(
     SimpleParticleCollection_t* pDaughters,
@@ -75,6 +75,7 @@ public:
   MelaIO* getIORecord(); // Full parton-by-parton ME record
   MELACandidate* getCurrentCandidate();
   int getCurrentCandidateIndex();
+  int getNCandidates();
   std::vector<MELATopCandidate*>* getTopCandidateCollection();
 
 
@@ -98,11 +99,6 @@ public:
     float& prob,
     bool useConstant=true
     );
-  void computeP_selfDspin0(
-    float& prob,
-    bool useConstant=true
-    );
-
   void computeP_selfDspin1(
     double selfDZqqcoupl_input[SIZE_ZQQ][2],
     double selfDZvvcoupl_input[SIZE_ZVV][2],
@@ -114,11 +110,6 @@ public:
     float& prob,
     bool useConstant=true
     );
-  void computeP_selfDspin1(
-    float& prob,
-    bool useConstant=true
-    );
-
   void computeP_selfDspin2(
     double selfDGggcoupl_input[SIZE_GGG][2],
     double selfDGqqcoupl_input[SIZE_GQQ][2],
@@ -132,11 +123,6 @@ public:
     float& prob,
     bool useConstant=true
     );
-  void computeP_selfDspin2(
-    float& prob,
-    bool useConstant=true
-    );
-
   void computeP(
     double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
     float& prob,
@@ -302,7 +288,7 @@ protected:
   //
   // Functions
   //
-  void configureAnalyticalPDFs();
+  bool configureAnalyticalPDFs();
   void reset_SelfDCouplings();
   void reset_PAux(); // SuperProb reset
   void reset_CandRef();
