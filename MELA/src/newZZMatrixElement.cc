@@ -114,7 +114,7 @@ void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizat
   Xcal2.SetRenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
 void newZZMatrixElement::set_CandidateDecayMode(TVar::CandidateDecayMode mode){ Xcal2.SetCandidateDecayMode(mode); }
-void newZZMatrixElement::set_CurrentCandidate(unsigned int icand){ Xcal2.SetCurrentCandidate(icand); }
+void newZZMatrixElement::set_CurrentCandidateFromIndex(unsigned int icand){ Xcal2.SetCurrentCandidateFromIndex(icand); }
 void newZZMatrixElement::set_CurrentCandidate(MELACandidate* cand){ Xcal2.SetCurrentCandidate(cand); }
 void newZZMatrixElement::set_InputEvent(
   SimpleParticleCollection_t* pDaughters,
@@ -197,6 +197,7 @@ void newZZMatrixElement::reset_InputEvent(){ Xcal2.ResetInputEvent(); }
 MelaIO* newZZMatrixElement::get_IORecord(){ return Xcal2.GetIORecord(); }
 MELACandidate* newZZMatrixElement::get_CurrentCandidate(){ return Xcal2.GetCurrentCandidate(); }
 int newZZMatrixElement::get_CurrentCandidateIndex(){ return Xcal2.GetCurrentCandidateIndex(); }
+int newZZMatrixElement::get_NCandidates(){ return Xcal2.GetNCandidates(); }
 vector<MELATopCandidate*>* newZZMatrixElement::get_TopCandidateCollection(){ return Xcal2.GetTopCandidates(); }
 
 

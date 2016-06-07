@@ -1450,15 +1450,11 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     &&
     (
     (
-    (isZZ && (process==TVar::bkgWWZZ || process==TVar::HSMHiggs_WWZZ || process == TVar::bkgWWZZ_SMHiggs))
-    )
-    ||
-    (
     (isWW && (process==TVar::bkgWW || process==TVar::HSMHiggs || process == TVar::bkgWW_SMHiggs))
     )
     ||
     (
-    (isWW && (process==TVar::bkgWWZZ || process==TVar::HSMHiggs_WWZZ || process == TVar::bkgWWZZ_SMHiggs))
+    ((isWW || isZZ) && (process==TVar::bkgWWZZ || process==TVar::HSMHiggs_WWZZ || process == TVar::bkgWWZZ_SMHiggs))
     )
     )
     ){ // gg->VV
@@ -2684,37 +2680,22 @@ double TUtil::SumMatrixElementPDF(
   if (verbosity>=TVar::DEBUG) cout << "Begin SumMatrixElementPDF" << endl;
   int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
   int nRequested_AssociatedJets = 0;
-  if (
-    production==TVar::JJVBF
-    &&
-    (
-    (
-    process==TVar::HSMHiggs
-    ||
-    process==TVar::bkgZZ_SMHiggs
-    ||
-    process==TVar::bkgZZ
-    ||
-    process==TVar::bkgWW_SMHiggs
-    ||
-    process==TVar::bkgWW
-    )
-    )
-    ){ // Use asociated jets in the pT=0 frame boost
+  if (production==TVar::JJVBF){ // Use asociated jets in the pT=0 frame boost
     partIncCode=TVar::kUseAssociated_Jets;
     nRequested_AssociatedJets = 2;
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMatrixElementPDF: Requesting " << nRequested_AssociatedJets << " jets" << endl;
   }
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
   mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event
+    mela_event,
+    verbosity
     );
 
   double xx[2]={ 0 };
-  if (!CheckPartonMomFraction(mela_event.pMothers.at(0).second, mela_event.pMothers.at(1).second, xx, EBEAM, TVar::ERROR)) return 0;
-  if (xx[0]==0. || xx[1]==0. || EBEAM==0) return 0;
+  if (!CheckPartonMomFraction(mela_event.pMothers.at(0).second, mela_event.pMothers.at(1).second, xx, EBEAM, verbosity)) return 0;
 
   TLorentzVector MomStore[mxpart];
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
@@ -2753,7 +2734,7 @@ double TUtil::SumMatrixElementPDF(
   for (int ipar=2; ipar<min(NPart, (int)(mela_event.pDaughters.size()+mela_event.pAssociated.size())+2); ipar++){
     TLorentzVector* momTmp;
     if (ipar<(int)(mela_event.pDaughters.size())+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
-    else momTmp=&(mela_event.pAssociated.at(ipar-2).second);
+    else momTmp=&(mela_event.pAssociated.at(ipar-mela_event.pDaughters.size()-2).second);
     p4[0][ipar] = momTmp->X();
     p4[1][ipar] = momTmp->Y();
     p4[2][ipar] = momTmp->Z();
@@ -2837,9 +2818,16 @@ double TUtil::SumMatrixElementPDF(
       SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
     else if (production == TVar::JJVBF){
-      if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)) qq_zzqq_(p4[0], msq[0]); // VBF MCFM SBI, S or B
-      else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)) qq_wwqq_(p4[0], msq[0]); // VBF MCFM SBI, S or B
+      if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)){
+        qq_zzqq_(p4[0], msq[0]); // VBF MCFM SBI, S or B
+      }
+      else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)){
+        qq_wwqq_(p4[0], msq[0]); // VBF MCFM SBI, S or B
+      }
       else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){ // VBF MCFM SBI, S or B
+        if (isWW){
+          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis
+        }
         qq_vvqq_(p4[0], msq[0]);
       }
 
@@ -2920,7 +2908,8 @@ double TUtil::JHUGenMatEl(
   mela_event.AssociationCode=partIncCode;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event
+    mela_event,
+    verbosity
     );
   if (mela_event.pDaughters.size()<2 || mela_event.intermediateVid.size()!=2){
     cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
@@ -3182,7 +3171,8 @@ double TUtil::HJJMatEl(
   mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event
+    mela_event,
+    verbosity
     );
   if (mela_event.pAssociated.size()==0){ cerr << "TUtil::HJJMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
 
@@ -3738,7 +3728,8 @@ double TUtil::VHiggsMatEl(
   mela_event.nRequested_AssociatedPhotons=nRequested_AssociatedPhotons;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event
+    mela_event,
+    verbosity
     );
   if ((mela_event.pAssociated.size()<2 && production!=TVar::GammaH) || (mela_event.pAssociated.size()<1 && production==TVar::GammaH)){
     if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
@@ -4173,7 +4164,8 @@ double TUtil::TTHiggsMatEl(
   mela_event.nRequested_Antitops=nRequested_Antitops;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event
+    mela_event,
+    verbosity
     );
 
 
@@ -4400,7 +4392,8 @@ double TUtil::BBHiggsMatEl(
   mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
   GetBoostedParticleVectors(
     RcdME->melaCand,
-    mela_event
+    mela_event,
+    verbosity
     );
 
   if (mela_event.pAssociated.size()<2){
@@ -4514,20 +4507,20 @@ bool TUtil::CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector
   //Make sure parton Level Energy fraction is [0,1]
   //phase space function already makes sure the parton energy fraction between [min,1]
   //  x0 EBeam =>   <= -x1 EBeam
-  double sysPz=p0.Pz()    + p1.Pz();
-  double sysE =p0.Energy()+ p1.Energy();
-
+  double sysPz = p0.Z() + p1.Z();
+  double sysE = p0.T()+ p1.T();
   //Ignore the Pt doesn't make significant effect
   //double sysPt_sqr=sysPx*sysPx+sysPy*sysPy;
   //if(sysPt_sqr>=1.0E-10)  sysE=TMath::Sqrt(sysE*sysE-sysPt_sqr);
   xx[0]=(sysE+sysPz)/EBEAM/2.;
   xx[1]=(sysE-sysPz)/EBEAM/2.;
-  if (verbosity >= TVar::DEBUG) cout << "xx[0]: " << xx[0] << ", xx[1] = " << xx[1] << '\n';
-
+  if (verbosity >= TVar::DEBUG) cout << "xx[0]: " << xx[0] << ", xx[1] = " << xx[1] << ", xmin = " << xmin_.xmin << endl;
   if (
     xx[0] > 1.0 || xx[0]<=xmin_.xmin
     ||
     xx[1] > 1.0 || xx[1]<=xmin_.xmin
+    ||
+    EBEAM<=0.
     ) return false;
   else return true;
 }
@@ -4600,11 +4593,14 @@ double TUtil::ResonancePropagator(double shat, TVar::ResonancePropagatorScheme s
 // This is the major replacement functionality of the TVar lepton flavors.
 void TUtil::GetBoostedParticleVectors(
   MELACandidate* melaCand,
-  simple_event_record& mela_event
+  simple_event_record& mela_event,
+  TVar::VerbosityLevel verbosity
   ){
+  if (verbosity>=TVar::DEBUG) cout << "Begin GetBoostedParticles" << endl;
   // This is the beginning of one long function.
 
   int code = mela_event.AssociationCode;
+  if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: code=" << code << endl;
   int aVhypo = mela_event.AssociationVCompatibility;
   TLorentzVector nullFourVector(0, 0, 0, 0);
 
@@ -4655,12 +4651,18 @@ void TUtil::GetBoostedParticleVectors(
   }
 
   /***** ASSOCIATED PARTICLES *****/
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::GetBoostedParticles: nRequestedLeps=" << mela_event.nRequested_AssociatedLeptons << endl;
+    cout << "TUtil::GetBoostedParticles: nRequestedJets=" << mela_event.nRequested_AssociatedJets << endl;
+    cout << "TUtil::GetBoostedParticles: nRequestedPhotons=" << mela_event.nRequested_AssociatedPhotons << endl;
+  }
   int nsatisfied_jets=0;
   int nsatisfied_lnus=0;
   int nsatisfied_gammas=0;
   vector<MELAParticle*> candidateVs; // Used if aVhypo!=0
   SimpleParticleCollection_t associated;
   if (aVhypo!=0){
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: aVhypo!=0 case start" << endl;
 
     for (int iv=2; iv<melaCand->getNSortedVs(); iv++){ // Loop over associated Vs
       MELAParticle* Vdau = melaCand->getSortedV(iv);
@@ -4685,7 +4687,7 @@ void TUtil::GetBoostedParticleVectors(
       }
     } // End loop over associated Vs
 
-    cout << "TUtil::GetBoostedParticleVectors: candidateVs size = " << candidateVs.size() << endl;
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticleVectors: candidateVs size = " << candidateVs.size() << endl;
 
     // Pick however many candidates necessary to fill up the requested number of jets or lepton(+)neutrinos
     for (unsigned int iv=0; iv<candidateVs.size(); iv++){
@@ -4736,9 +4738,12 @@ void TUtil::GetBoostedParticleVectors(
       for (unsigned int ias=0; ias<associated_tmp.size(); ias++) associated.push_back(associated_tmp.at(ias)); // Fill associated at the last step
     }
 
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: aVhypo!=0 case associated.size=" << associated.size() << endl;
   }
   else{ // Could be split to aVhypo==0 and aVhypo<0 if associated V+jets is needed
     // Associated leptons
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: aVhypo==0 case begin" << endl;
+
     if (code%TVar::kUseAssociated_Leptons==0){
       SimpleParticleCollection_t associated_tmp;
       for (int ip=0; ip<melaCand->getNAssociatedLeptons(); ip++){
@@ -4748,6 +4753,9 @@ void TUtil::GetBoostedParticleVectors(
           associated_tmp.push_back(SimpleParticle_t(part->id, part->p4));
         }
       }
+
+      if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: aVhypo==0 lep case associated_tmp.size=" << associated_tmp.size() << endl;
+
       // Adjust the kinematics of associated non-V-originating particles
       if (associated_tmp.size()>=1){
         unsigned int nffs = associated_tmp.size()/2;
@@ -4777,6 +4785,9 @@ void TUtil::GetBoostedParticleVectors(
           associated_tmp.push_back(SimpleParticle_t(part->id, part->p4));
         }
       }
+
+      if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: aVhypo==0 jet case associated_tmp.size=" << associated_tmp.size() << endl;
+
       // Adjust the kinematics of associated non-V-originating particles
       if (associated_tmp.size()>=1){
         unsigned int nffs = associated_tmp.size()/2;
@@ -4810,6 +4821,7 @@ void TUtil::GetBoostedParticleVectors(
   }
   /***** END ASSOCIATED PARTICLES *****/
 
+  if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: associated.size=" << associated.size() << endl;
 
   /***** ASSOCIATED TOP OBJECTS *****/
   int nsatisfied_tops=0;
@@ -4822,7 +4834,7 @@ void TUtil::GetBoostedParticleVectors(
   vector<MELATopCandidate*> tops;
   vector<MELATopCandidate*> topbars;
   vector<MELATopCandidate*> unknowntops;
-  if (code%TVar::kUseAssociated_StableTops==0 && code%TVar::kUseAssociated_UnstableTops==0){ cerr << "TUtil::GetBoostedParticleVectors: Stable and unstable tops ar not supported at the same time!"  << endl; }
+  if (code%TVar::kUseAssociated_StableTops==0 && code%TVar::kUseAssociated_UnstableTops==0 && verbosity>=TVar::INFO) cerr << "TUtil::GetBoostedParticleVectors: Stable and unstable tops ar not supported at the same time!"  << endl;
   else if (code%TVar::kUseAssociated_StableTops==0 || code%TVar::kUseAssociated_UnstableTops==0){
 
     for (int itop=0; itop<melaCand->getNAssociatedTops(); itop++){
@@ -4931,7 +4943,14 @@ void TUtil::GetBoostedParticleVectors(
 
   }
   /***** END ASSOCIATED TOP OBJECTS *****/
-
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::GetBoostedParticles: stableTops.size=" << stableTops.size() << endl;
+    cout << "TUtil::GetBoostedParticles: stableAntitops.size=" << stableAntitops.size() << endl;
+    cout << "TUtil::GetBoostedParticles: topDaughters.size=" << topDaughters.size() << endl;
+    for (unsigned int itop=0; itop<topDaughters.size(); itop++) cout << "TUtil::GetBoostedParticles: topDaughters.at(" << itop << ").size=" << topDaughters.at(itop).size() << endl;
+    cout << "TUtil::GetBoostedParticles: antitopDaughters.size=" << antitopDaughters.size() << endl;
+    for (unsigned int itop=0; itop<antitopDaughters.size(); itop++) cout << "TUtil::GetBoostedParticles: antitopDaughters.at(" << itop << ").size=" << antitopDaughters.at(itop).size() << endl;
+  }
 
   /***** BOOSTS TO THE CORRECT PT=0 FRAME *****/
   // Gather all final state particles collected for this frame
@@ -5013,6 +5032,17 @@ void TUtil::GetBoostedParticleVectors(
   for (unsigned int ip=0; ip<antitopDaughters.size(); ip++) mela_event.pAntitopDaughters.push_back(antitopDaughters.at(ip));
 
   // This is the end of one long function.
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::GetBoostedParticles mela_event.intermediateVid.size=" << mela_event.intermediateVid.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pMothers.size=" << mela_event.pMothers.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pDaughters.size=" << mela_event.pDaughters.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pAssociated.size=" << mela_event.pAssociated.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pStableTops.size=" << mela_event.pStableTops.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pStableAntitops.size=" << mela_event.pStableAntitops.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pTopDaughters.size=" << mela_event.pTopDaughters.size() << endl;
+    cout << "TUtil::GetBoostedParticles mela_event.pAntitopDaughters.size=" << mela_event.pAntitopDaughters.size() << endl;
+    cout << "End GetBoostedParticles" << endl;
+  }
 }
 
 // Convert vectors of simple particles to MELAParticles and create a MELACandidate

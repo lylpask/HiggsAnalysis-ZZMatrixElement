@@ -17,6 +17,8 @@ MELA/fortran/*.o
 MELA/fortran/*.mod
 MELA/fortran/*.so
 
+MELA/test/Pdfdata/*.tbl
+MELA/test/Pdfdata/*.LHgrid
 MELA/test/br.sm1
 MELA/test/br.sm2
 MELA/test/ffwarn.dat

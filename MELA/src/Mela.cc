@@ -237,7 +237,7 @@ void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(m
 void Mela::setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index){ ZZME->set_mHiggs_wHiggs(myHiggsMass, myHiggsWidth, index); }
 void Mela::setMelaLeptonInterference(TVar::LeptonInterference myLepInterf){ myLepInterf_=myLepInterf; ZZME->set_LeptonInterference(myLepInterf); }
 void Mela::setCandidateDecayMode(TVar::CandidateDecayMode mode){ ZZME->set_CandidateDecayMode(mode); }
-void Mela::setCurrentCandidate(unsigned int icand){ ZZME->set_CurrentCandidate(icand); }
+void Mela::setCurrentCandidateFromIndex(unsigned int icand){ ZZME->set_CurrentCandidateFromIndex(icand); }
 void Mela::setCurrentCandidate(MELACandidate* cand){ ZZME->set_CurrentCandidate(cand); }
 void Mela::setInputEvent(
   SimpleParticleCollection_t* pDaughters,
@@ -327,6 +327,7 @@ MelaIO* Mela::getIORecord(){ return ZZME->get_IORecord(); }
 // Candidate functions
 MELACandidate* Mela::getCurrentCandidate(){ return ZZME->get_CurrentCandidate(); }
 int Mela::getCurrentCandidateIndex(){ return ZZME->get_CurrentCandidateIndex(); }
+int Mela::getNCandidates(){ return ZZME->get_NCandidates(); }
 std::vector<MELATopCandidate*>* Mela::getTopCandidateCollection(){ return ZZME->get_TopCandidateCollection(); }
 void Mela::reset_CandRef(){ melaCand=0; }
 
@@ -686,89 +687,11 @@ void Mela::computeP_selfDspin0(
     }
   }
 
-  computeP_selfDspin0(
+  computeP(
     prob,
     useConstant
     );
 }
-
-// You must absolutely know what you are doing if you are using the function below!
-void Mela::computeP_selfDspin0(
-  float& prob,
-  bool useConstant
-  ){
-  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP_selfDspin0" << endl;
-  reset_PAux();
-
-  melaCand = getCurrentCandidate();
-  if (!(myModel_ == TVar::SelfDefine_spin0 || myME_ == TVar::MCFM)){
-    if (myVerbosity_>=TVar::ERROR) cerr
-      << "Mela::computeP_selfDspin0: This method only applies to spin-0 self-defined process OR MCFM H(/+bkg) processes with self-def. couplings."
-      << "\n\tSet Process to SelfDefine_spin0 and ME to JHUGen, or Process to HSMHiggs, bkg*_* and ME to MCFM."
-      << endl;
-    melaCand=0;
-  }
-  if (melaCand!=0){
-    if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
-      ZZME->set_SpinZeroCouplings(
-        selfDHvvcoupl_freenorm,
-        selfDHqqcoupl,
-        selfDHggcoupl,
-        selfDHzzcoupl,
-        selfDHwwcoupl,
-        selfDHzzLambda_qsq,
-        selfDHwwLambda_qsq,
-        selfDHzzCLambda_qsq,
-        selfDHwwCLambda_qsq,
-        differentiate_HWW_HZZ
-        );
-      ZZME->computeXS(
-        myModel_,
-        myME_,
-        myProduction_,
-        prob
-        );
-    }
-    else if (myME_ == TVar::ANALYTICAL){ // Needs further generalization!
-      TLorentzVector nullVector(0, 0, 0, 0);
-      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
-      computeDecayAngles(
-        mZZ, mZ1, mZ2,
-        costheta1, costheta2, Phi,
-        costhetastar, Phi1
-        );
-      costhetastar_rrv->setVal(costhetastar);
-      costheta1_rrv->setVal(costheta1);
-      costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(Phi);
-      phi1_rrv->setVal(Phi1);
-      z1mass_rrv->setVal(mZ1);
-      z2mass_rrv->setVal(mZ2);
-      mzz_rrv->setVal(mZZ);
-      Y_rrv->setConstant(true); // Just to avoid integrating over this variable unnecessarily
-
-      configureAnalyticalPDFs();
-
-      if (myProduction_==TVar::ZZINDEPENDENT){
-        RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-        prob = integral->getVal();
-        delete integral;
-      }
-      else prob = pdf->getVal();
-
-      Y_rrv->setConstant(false);
-    }
-    else cerr << "Mela::computeP_selfDspin0: This method only works for JHUGen or MCFM or ANALYTICAL" << endl;
-
-    if (useConstant) prob *= getConstant(false);
-  }
-
-  reset_SelfDCouplings();
-  reset_CandRef();
-  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP_selfDspin0" << endl;
-}
-
-
 void Mela::computeP_selfDspin1(
   double selfDZqqcoupl_input[SIZE_ZQQ][2],
   double selfDZvvcoupl_input[SIZE_ZVV][2],
@@ -780,7 +703,7 @@ void Mela::computeP_selfDspin1(
     for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = selfDZvvcoupl_input[ic][im];
   }
 
-  computeP_selfDspin1(
+  computeP(
     prob,
     useConstant
     );
@@ -798,78 +721,11 @@ void Mela::computeP_selfDspin1(
     for (int ic=0; ic<SIZE_ZVV; ic++) selfDZvvcoupl[ic][im] = selfDZvvcoupl_input[ic][im];
   }
 
-  computeP_selfDspin1(
+  computeP(
     prob,
     useConstant
     );
 }
-void Mela::computeP_selfDspin1(
-  float& prob,
-  bool useConstant
-  ){
-  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP_selfDspin1" << endl;
-  reset_PAux();
-
-  melaCand = getCurrentCandidate();
-  if (myModel_ != TVar::SelfDefine_spin1){ cerr << "Mela::computeP_selfDspin1: This method only applies to spin1, set Process to SelfDefine_spin1!" << endl; melaCand=0; }
-  if (melaCand!=0){
-    if (myME_ == TVar::JHUGen){
-      ZZME->set_SpinOneCouplings(selfDZqqcoupl, selfDZvvcoupl);
-      ZZME->computeXS(
-        myModel_,
-        myME_,
-        myProduction_,
-        prob
-        );
-    }
-    else if (myME_ == TVar::ANALYTICAL){ // Needs generalization!
-      TLorentzVector nullVector(0, 0, 0, 0);
-      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
-      computeDecayAngles(
-        mZZ, mZ1, mZ2,
-        costheta1, costheta2, Phi,
-        costhetastar, Phi1
-        );
-      costhetastar_rrv->setVal(costhetastar);
-      costheta1_rrv->setVal(costheta1);
-      costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(Phi);
-      phi1_rrv->setVal(Phi1);
-      z1mass_rrv->setVal(mZ1);
-      z2mass_rrv->setVal(mZ2);
-      mzz_rrv->setVal(mZZ);
-
-      bool checkImCoupl = false;
-      for (int i =0; i<SIZE_ZVV; i++){
-        if (selfDZvvcoupl[i][1]!=0){
-          cerr << "Mela::computeP_selfDspin1: MELA does not support complex coupling for the moment! " << endl;
-          checkImCoupl = true;
-          break;
-        }
-      }
-      if (!checkImCoupl){
-        configureAnalyticalPDFs();
-        spin1Model->g1Val->setVal(selfDZvvcoupl[0][0]);
-        spin1Model->g2Val->setVal(selfDZvvcoupl[1][0]);
-        if (myProduction_==TVar::ZZINDEPENDENT){
-          RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-          prob = integral->getVal();
-          delete integral;
-        }
-        else prob = pdf->getVal();
-      }
-    }
-    else cerr << "Mela::computeP_selfDspin1: This method only works for JHUGen and ANALYTICAL" << endl;
-
-    if (useConstant) prob *= getConstant(false);
-  }
-
-  reset_SelfDCouplings();
-  reset_CandRef();
-  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP_selfDspin1" << endl;
-}
-
-
 void Mela::computeP_selfDspin2(
   double selfDGggcoupl_input[SIZE_GGG][2],
   double selfDGqqcoupl_input[SIZE_GQQ][2],
@@ -883,7 +739,7 @@ void Mela::computeP_selfDspin2(
     for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = selfDGvvcoupl_input[ic][im];
   }
 
-  computeP_selfDspin2(
+  computeP(
     prob,
     useConstant
     );
@@ -902,77 +758,11 @@ void Mela::computeP_selfDspin2(
     for (int ic=0; ic<SIZE_GVV; ic++) selfDGvvcoupl[ic][im] = selfDGvvcoupl_input[ic][im];
   }
 
-  computeP_selfDspin2(
+  computeP(
     prob,
     useConstant
     );
 }
-void Mela::computeP_selfDspin2(
-  float& prob,
-  bool useConstant
-  ){
-  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeP_selfDspin2" << endl;
-  reset_PAux();
-
-  melaCand = getCurrentCandidate();
-  if (myModel_ != TVar::SelfDefine_spin2){ cerr << "Mela::computeP_selfDspin2: This method only applies to spin2, set Process to SelfDefine_spin2!" << endl; melaCand=0; }
-  if (melaCand!=0){
-    if (myME_ == TVar::JHUGen){
-      ZZME->set_SpinTwoCouplings(selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
-      ZZME->computeXS(
-        myModel_,
-        myME_,
-        myProduction_,
-        prob
-        );
-    }
-    else if (myME_ == TVar::ANALYTICAL){
-      TLorentzVector nullVector(0, 0, 0, 0);
-      float mZZ=0, mZ1=0, mZ2=0, costheta1=0, costheta2=0, Phi=0, costhetastar=0, Phi1=0;
-      computeDecayAngles(
-        mZZ, mZ1, mZ2,
-        costheta1, costheta2, Phi,
-        costhetastar, Phi1
-        );
-      costhetastar_rrv->setVal(costhetastar);
-      costheta1_rrv->setVal(costheta1);
-      costheta2_rrv->setVal(costheta2);
-      phi_rrv->setVal(Phi);
-      phi1_rrv->setVal(Phi1);
-      z1mass_rrv->setVal(mZ1);
-      z2mass_rrv->setVal(mZ2);
-      mzz_rrv->setVal(mZZ);
-
-      bool checkImCoupl=false;
-      for (int i =0; i<SIZE_GVV; i++){
-        if (selfDGvvcoupl[i][1]!=0){
-          cerr << "Mela::computeP_selfDspin2: MELA does not support complex coupling for the moment! " << endl;
-          checkImCoupl = true;
-          break;
-        }
-      }
-      if (!checkImCoupl){
-        configureAnalyticalPDFs();
-
-        if (myProduction_==TVar::ZZINDEPENDENT){
-          RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-          prob = integral->getVal();
-          delete integral;
-        }
-        else prob = pdf->getVal();
-      }
-    }
-    else cerr << "Mela::computeP_selfDspin2: This method only works for JHUGen and ANALYTICAL" << endl;
-
-    if (useConstant) prob *= getConstant(false);
-  }
-
-  reset_SelfDCouplings();
-  reset_CandRef();
-  if (myVerbosity_>=TVar::DEBUG) cout << "Mela: End computeP_selfDspin2" << endl;
-}
-
-
 void Mela::computeP(
   double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
   float& prob,
@@ -1011,15 +801,20 @@ void Mela::computeP(
       z1mass_rrv->setVal(mZ1);
       z2mass_rrv->setVal(mZ2);
       mzz_rrv->setVal(mZZ);
+      Y_rrv->setConstant(true); // Just to avoid integrating over this variable unnecessarily
 
-      configureAnalyticalPDFs();
-
-      if (myProduction_==TVar::ZZINDEPENDENT){
-        RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
-        prob = integral->getVal();
-        delete integral;
+      bool computeAnaMELA = configureAnalyticalPDFs();
+      if (computeAnaMELA){
+        if (myProduction_==TVar::ZZINDEPENDENT){
+          RooAbsPdf* integral = (RooAbsPdf*)pdf->createIntegral(RooArgSet(*costhetastar_rrv, *phi1_rrv));
+          prob = integral->getVal();
+          delete integral;
+        }
+        else prob = pdf->getVal();
       }
-      else prob = pdf->getVal();
+      else if (myVerbosity_>=TVar::ERROR) cerr << "Mela::computeP: The specified anaMELA configuration is not valid!" << endl;
+
+      Y_rrv->setConstant(false);
     }
     else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
       if (!(myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  (myModel_ == TVar::bkgZZ || myModel_ == TVar::bkgWW || myModel_ == TVar::bkgZGamma || myModel_ == TVar::bkgZJJ))){
@@ -1035,6 +830,8 @@ void Mela::computeP(
           selfDHwwCLambda_qsq,
           differentiate_HWW_HZZ
           );
+        else if (myModel_ == TVar::SelfDefine_spin1) ZZME->set_SpinOneCouplings(selfDZqqcoupl, selfDZvvcoupl);
+        else if (myModel_ == TVar::SelfDefine_spin2) ZZME->set_SpinTwoCouplings(selfDGqqcoupl, selfDGggcoupl, selfDGvvcoupl);
         ZZME->computeXS(
           myModel_, myME_, myProduction_,
           prob
@@ -1265,7 +1062,7 @@ void Mela::computeProdDecP(
   reset_PAux();
   melaCand = getCurrentCandidate();
 
-  bool hasFailed = true;
+  bool hasFailed = false;
   if (myME_ != TVar::MCFM){
     cout << "Mela::computeProdDecP ME is not supported for ME " << myME_ << endl;
     hasFailed = true;
@@ -1871,10 +1668,12 @@ void Mela::computeD_gg(
 }
 
 
-void Mela::configureAnalyticalPDFs(){
+bool Mela::configureAnalyticalPDFs(){
   // 
-  // configure the analytical calculations 
+  // Configure the analytical calculations 
   // 
+  bool noPass=false;
+
   if (myModel_==TVar::bkgZZ)  pdf = qqZZmodel;
   else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF);
   else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH);
@@ -1969,7 +1768,17 @@ void Mela::configureAnalyticalPDFs(){
     }
     ggSpin0Model->makeParamsConst(true);
   }
-  else if (!spin1Model->configure(myModel_)) pdf = spin1Model->PDF;
+  else if (!spin1Model->configure(myModel_)){
+    pdf = spin1Model->PDF;
+    // Self-defined spin-1
+    if (myModel_ == TVar::SelfDefine_spin1){
+      for (int i=0; i<SIZE_ZVV; i++){ if (selfDZvvcoupl[i][1]!=0){ if (myVerbosity_>=TVar::ERROR) cerr << "Mela::configureAnalyticalPDFs: MELA does not support complex couplings for spin-1 at the moment! " << endl; noPass=true; break; } }
+      if (!noPass){
+        spin1Model->g1Val->setVal(selfDZvvcoupl[0][0]);
+        spin1Model->g2Val->setVal(selfDZvvcoupl[1][0]);
+      }
+    }
+  }
   else if (
     myModel_ == TVar::H2_g1
     || myModel_ == TVar::H2_g1g5
@@ -2008,39 +1817,49 @@ void Mela::configureAnalyticalPDFs(){
     if (myModel_ == TVar::H2_g10) spin2Model->addHypothesis(10, 1.);
     // Self-defined spin-2
     if (myModel_ == TVar::SelfDefine_spin2){
-      for (int ig=0; ig<SIZE_GVV; ig++){
-        for (int im=0; im<2; im++) ((RooRealVar*)spin2Model->couplings.bList[ig][im])->setVal(selfDGvvcoupl[ig][im]);
+      for (int i=0; i<SIZE_GVV; i++){ if (selfDGvvcoupl[i][1]!=0){ if (myVerbosity_>=TVar::ERROR) cerr << "Mela::configureAnalyticalPDFs: MELA does not support complex couplings for spin-2 at the moment! " << endl; noPass=true; break; } }
+      if (!noPass){
+        for (int ig=0; ig<SIZE_GVV; ig++){
+          for (int im=0; im<2; im++) ((RooRealVar*)spin2Model->couplings.bList[ig][im])->setVal(selfDGvvcoupl[ig][im]);
+        }
       }
     }
-    if (myProduction_ == TVar::ZZQQB){
-      spin2Model->setTensorPolarization(1, 1.);
-      spin2Model->setTensorPolarization(2, 0.);
-    }
-    else{
-      if (myModel_ == TVar::SelfDefine_spin2){
-        double c1 = 2*selfDGggcoupl[0][0] + 2.*selfDGggcoupl[1][0];
-        double c2 = -0.5*selfDGggcoupl[0][0] + selfDGggcoupl[2][0] + 2.*selfDGggcoupl[3][0];
-        double c5 = 0./*4*selfDGggcoupl[7][0]*/;
-        Double_t fppReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
-        Double_t fppImag = 1./sqrt(6.) * c5;
-        Double_t fmmReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
-        Double_t fmmImag = 1./sqrt(6.)* c5;
-        Double_t fmpReal = 1./4.*c1*2.;
-        Double_t fmpImag = 0;
-        Double_t fpp = fppImag*fppImag + fppReal*fppReal;
-        Double_t fmm = fmmImag*fmmImag + fmmReal*fmmReal;
-        Double_t fmp = fmpImag*fmpImag + fmpReal*fmpReal;
-        spin2Model->setTensorPolarization(1, 0.); // This is wrong in the strict sense of what "SelfDefine_spin2" is.
-        spin2Model->setTensorPolarization(2, 2.*fmp/(fmm+fpp+2.*fmp));
+    if (!noPass){
+      if (myProduction_ == TVar::ZZQQB){
+        spin2Model->setTensorPolarization(1, 1.);
+        spin2Model->setTensorPolarization(2, 0.);
       }
       else{
-        spin2Model->setTensorPolarization(1, 0.);
-        spin2Model->setTensorPolarization(2, 1.);
+        if (myModel_ == TVar::SelfDefine_spin2){
+          double c1 = 2*selfDGggcoupl[0][0] + 2.*selfDGggcoupl[1][0];
+          double c2 = -0.5*selfDGggcoupl[0][0] + selfDGggcoupl[2][0] + 2.*selfDGggcoupl[3][0];
+          double c5 = 0./*4*selfDGggcoupl[7][0]*/;
+          Double_t fppReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
+          Double_t fppImag = 1./sqrt(6.) * c5;
+          Double_t fmmReal = 1./sqrt(6.) * (c1/4.*2. + 2.*c2);
+          Double_t fmmImag = 1./sqrt(6.)* c5;
+          Double_t fmpReal = 1./4.*c1*2.;
+          Double_t fmpImag = 0;
+          Double_t fpp = fppImag*fppImag + fppReal*fppReal;
+          Double_t fmm = fmmImag*fmmImag + fmmReal*fmmReal;
+          Double_t fmp = fmpImag*fmpImag + fmpReal*fmpReal;
+          spin2Model->setTensorPolarization(1, 0.); // This is wrong in the strict sense of what "SelfDefine_spin2" is.
+          spin2Model->setTensorPolarization(2, 2.*fmp/(fmm+fpp+2.*fmp));
+        }
+        else{
+          spin2Model->setTensorPolarization(1, 0.);
+          spin2Model->setTensorPolarization(2, 1.);
+        }
       }
+      spin2Model->makeParamsConst(true);
     }
-    spin2Model->makeParamsConst(true);
   }
-  else if (myME_ == TVar::ANALYTICAL) cout << "Mela::configureAnalyticalPDFs -> ERROR TVar::Process not applicable!!! ME: " << myME_ << ", model: " << myModel_ << endl;
+  else if (myME_ == TVar::ANALYTICAL){
+    cout << "Mela::configureAnalyticalPDFs -> ERROR TVar::Process not applicable!!! ME: " << myME_ << ", model: " << myModel_ << endl;
+    noPass=true;
+  }
+
+  return (!noPass);
 }
 
 
