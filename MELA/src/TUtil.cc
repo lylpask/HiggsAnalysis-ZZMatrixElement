@@ -2858,7 +2858,7 @@ double TUtil::JHUGenMatEl(
   const double GeV=1./100.; // JHUGen mom. scale factor
   double MatElSq=0; // Return value
 
-  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::JHUGenMatEl: Non-JHUGen MEs are not supported" << endl; return MatElSq; }
+  if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::JHUGenMatEl: Non-JHUGen MEs are not supported" << endl; return MatElSq; }
   bool isSpinZero = (
     process == TVar::HSMHiggs
     || process == TVar::H0minus
@@ -2890,7 +2890,7 @@ double TUtil::JHUGenMatEl(
     || process == TVar::H2_g10
     || process == TVar::SelfDefine_spin2
     );
-  if (!(isSpinZero || isSpinOne || isSpinTwo)){ cerr << "TUtil::JHUGenMatEl: Process " << process << " not supported." << endl; return MatElSq; }
+  if (!(isSpinZero || isSpinOne || isSpinTwo)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::JHUGenMatEl: Process " << process << " not supported." << endl; return MatElSq; }
 
   double msq[nmsq][nmsq]={ { 0 } }; // ME**2[parton2][parton1] for each incoming parton 1 and 2, used in RcdME
   int MYIDUP_tmp[4]={ 0 }; // Initial assignment array, unconverted. 0==Unassigned
@@ -2912,7 +2912,7 @@ double TUtil::JHUGenMatEl(
     verbosity
     );
   if (mela_event.pDaughters.size()<2 || mela_event.intermediateVid.size()!=2){
-    cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
+    if (verbosity>=TVar::ERROR) cerr << "TUtil::JHUGenMatEl: Number of daughters " << mela_event.pDaughters.size() << " or number of intermediate Vs " << mela_event.intermediateVid.size() << " not supported!" << endl;
     return MatElSq;
   }
 
@@ -3065,10 +3065,10 @@ double TUtil::JHUGenMatEl(
   for (unsigned int v1=0; v1<idarray[0].size(); v1++){
     for (unsigned int v2=0; v2<idarray[1].size(); v2++){
       // Convert the particle ids to JHU convention
-      MYIDUP[0] = convertLHEreverse(&(idarray[0].at(v1).first));
-      MYIDUP[1] = convertLHEreverse(&(idarray[0].at(v1).second));
-      MYIDUP[2] = convertLHEreverse(&(idarray[1].at(v2).first));
-      MYIDUP[3] = convertLHEreverse(&(idarray[1].at(v2).second));
+      if (idarray[0].at(v1).first!=-9000) MYIDUP[0] = convertLHEreverse(&(idarray[0].at(v1).first));
+      if (idarray[0].at(v1).second!=-9000) MYIDUP[1] = convertLHEreverse(&(idarray[0].at(v1).second));
+      if (idarray[1].at(v2).first!=-9000) MYIDUP[2] = convertLHEreverse(&(idarray[1].at(v2).first));
+      if (idarray[1].at(v2).second!=-9000) MYIDUP[3] = convertLHEreverse(&(idarray[1].at(v2).second));
 
       // Check working ids
       if (verbosity>=TVar::DEBUG){ for (unsigned int idau=0; idau<4; idau++) cout << "MYIDUP[" << idau << "]=" << MYIDUP[idau] << endl; }
@@ -3076,6 +3076,11 @@ double TUtil::JHUGenMatEl(
       // Determine M_V and Ga_V in JHUGen, needed for g1 vs everything else.
       for (int ip=0; ip<2; ip++){ idfirst[ip]=MYIDUP[ip]; idsecond[ip]=MYIDUP[ip+2]; }
       __modjhugenmela_MOD_setdecaymodes(idfirst, idsecond); // Set M_V and Ga_V in JHUGen
+      if (verbosity>=TVar::DEBUG){
+        double mv, gv;
+        __modjhugenmela_MOD_getmvgv(&mv, &gv);
+        cout << "TUtil::JHUGenMatEl: M_V=" << mv/GeV << ", Ga_V=" << gv/GeV << endl;
+      }
 
       double MatElTmp=0.;
       if (production == TVar::ZZGG){
@@ -3095,7 +3100,7 @@ double TUtil::JHUGenMatEl(
       if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second))/__modparameters_MOD_scalefactor(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second)), 2);
       if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second))/__modparameters_MOD_scalefactor(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second)), 2);
 
-      if (verbosity >= TVar::DEBUG) cout << "TUtil::JHUGenMatEl: Instance MatElTmp = " << MatElTmp << '\n' << endl;
+      if (verbosity >= TVar::DEBUG) cout << "=====\nTUtil::JHUGenMatEl: Instance MatElTmp = " << MatElTmp << "\n=====" << endl;
       MatElSq += MatElTmp;
       if (MatElTmp>0.) nNonZero++;
     }
@@ -3159,8 +3164,8 @@ double TUtil::HJJMatEl(
   double MatElsq[nmsq][nmsq]={ { 0 } };
   double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
-  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::HJJMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
-  if (!(production==TVar::JJGG || production==TVar::JJVBF || production==TVar::JH)){ cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
+  if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
+  if (!(production==TVar::JJGG || production==TVar::JJVBF || production==TVar::JH)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
   // Notice that partIncCode is specific for this subroutine
   int nRequested_AssociatedJets=2;
@@ -3174,7 +3179,7 @@ double TUtil::HJJMatEl(
     mela_event,
     verbosity
     );
-  if (mela_event.pAssociated.size()==0){ cerr << "TUtil::HJJMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
+  if (mela_event.pAssociated.size()==0){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Number of associated particles is 0!" << endl; return sum_msqjk; }
 
   int MYIDUP_tmp[4]={ 0 }; // "Incoming" partons 1, 2, "outgoing" partons 3, 4
   double p4[5][4]={ { 0 } };
@@ -3697,8 +3702,8 @@ double TUtil::VHiggsMatEl(
   //      flavor_msq[jj][ii] = fx1[ii]*fx2[jj]*msq[jj][ii];
   double MatElsq[nmsq][nmsq]={ { 0 } };
 
-  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
-  if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH || production == TVar::GammaH)){ cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
+  if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::VHiggsMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
+  if (!(production == TVar::Lep_ZH || production == TVar::Lep_WH || production == TVar::Had_ZH || production == TVar::Had_WH || production == TVar::GammaH)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::VHiggsMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
   int nRequested_AssociatedJets=0;
   int nRequested_AssociatedLeptons=0;
@@ -3732,7 +3737,7 @@ double TUtil::VHiggsMatEl(
     verbosity
     );
   if ((mela_event.pAssociated.size()<2 && production!=TVar::GammaH) || (mela_event.pAssociated.size()<1 && production==TVar::GammaH)){
-    if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
+    if (verbosity>=TVar::ERROR) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
     return sum_msqjk;
   }
 
@@ -3872,7 +3877,7 @@ double TUtil::VHiggsMatEl(
   }
   else if (verbosity>=TVar::INFO && includeHiggsDecay) cerr << "TUtil::VHiggsMatEl: includeHiggsDecay=true is not supported for the present decay mode." << endl;
 
-  if (verbosity >= TVar::DEBUG){
+  if (verbosity>=TVar::DEBUG){
     for (int i=0; i<9; i++) cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
     for (int i=0; i<9; i++) cout << "id(" << i << ") = "  << vh_ids[i] << endl;
   }
@@ -3921,6 +3926,7 @@ double TUtil::VHiggsMatEl(
                 double msq=0;
                 __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                 MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
               }
               else{
                 for (int h78=0; h78<2; h78++){
@@ -3938,6 +3944,7 @@ double TUtil::VHiggsMatEl(
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                     MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                   else{
                     for (int hquark=-5; hquark<=5; hquark++){
@@ -3947,6 +3954,7 @@ double TUtil::VHiggsMatEl(
                       double msq=0;
                       __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                       MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                     }
                   }
                 }
@@ -3962,6 +3970,7 @@ double TUtil::VHiggsMatEl(
               double msq=0;
               __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
               MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
             }
             else{
               for (int h78=0; h78<2; h78++){
@@ -3979,6 +3988,7 @@ double TUtil::VHiggsMatEl(
                   double msq=0;
                   __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                   MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                 }
                 else{
                   for (int hquark=-5; hquark<=5; hquark++){
@@ -3988,6 +3998,7 @@ double TUtil::VHiggsMatEl(
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                     MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                 }
               }
@@ -4031,6 +4042,7 @@ double TUtil::VHiggsMatEl(
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                     MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                   else{
                     for (int h78=0; h78<2; h78++){
@@ -4048,6 +4060,7 @@ double TUtil::VHiggsMatEl(
                         double msq=0;
                         __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                         MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                        if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                       }
                       else{
                         for (int hquark=-5; hquark<=5; hquark++){
@@ -4057,6 +4070,7 @@ double TUtil::VHiggsMatEl(
                           double msq=0;
                           __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                           MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                          if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                         }
                       }
                     }
@@ -4082,6 +4096,7 @@ double TUtil::VHiggsMatEl(
                 double msq=0;
                 __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                 MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
               }
               else{
                 for (int h78=0; h78<2; h78++){
@@ -4099,6 +4114,7 @@ double TUtil::VHiggsMatEl(
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                     MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                   else{
                     for (int hquark=-5; hquark<=5; hquark++){
@@ -4108,6 +4124,7 @@ double TUtil::VHiggsMatEl(
                       double msq=0;
                       __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                       MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                     }
                   }
                 }
@@ -4149,8 +4166,8 @@ double TUtil::TTHiggsMatEl(
   double MatElsq[nmsq][nmsq]={ { 0 } };
   double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
-  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
-  if (production!=TVar::ttH){ cerr << "TUtil::TTHiggsMatEl: Only ttH is supported." << endl; return sum_msqjk; }
+  if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
+  if (production!=TVar::ttH){ if (verbosity>=TVar::ERROR) cerr << "TUtil::TTHiggsMatEl: Only ttH is supported." << endl; return sum_msqjk; }
 
   int partIncCode;
   int nRequested_Tops=1;
@@ -4169,31 +4186,31 @@ double TUtil::TTHiggsMatEl(
     );
 
 
-  if (topDecay>0 && mela_event.pTopDaughters.size()<1 && mela_event.pAntitopDaughters.size()<1){
-    cerr
-      << "TUtil::TTHiggsMatEl: Number of set of top daughters (" << mela_event.pTopDaughters.size() << ")"
-      << "and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
-      <<" in ttH process is not 1!" << endl;
-    return sum_msqjk;
-  }
-  else if (topDecay>0 && mela_event.pTopDaughters.at(0).size()!=3 && mela_event.pAntitopDaughters.at(0).size()!=3){
-    cerr
-      << "TUtil::TTHiggsMatEl: Number of top daughters (" << mela_event.pTopDaughters.at(0).size() << ")"
-      << "and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
-      <<" in ttH process is not 3!" << endl;
-    return sum_msqjk;
-  }
-  else if (topDecay==0 && mela_event.pStableTops.size()<1 && mela_event.pStableAntitops.size()<1){
-    cerr
+  if (topDecay==0 && (mela_event.pStableTops.size()<1 || mela_event.pStableAntitops.size()<1)){
+    if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of stable tops (" << mela_event.pStableTops.size() << ")"
       << "and number of sstable antitops (" << mela_event.pStableAntitops.size() << ")"
       <<" in ttH process is not 1!" << endl;
     return sum_msqjk;
   }
+  else if (topDecay>0 && (mela_event.pTopDaughters.size()<1 || mela_event.pAntitopDaughters.size()<1)){
+    if (verbosity>=TVar::ERROR) cerr
+      << "TUtil::TTHiggsMatEl: Number of set of top daughters (" << mela_event.pTopDaughters.size() << ")"
+      << "and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
+      <<" in ttH process are not 1!" << endl;
+    return sum_msqjk;
+  }
+  else if (topDecay>0 && (mela_event.pTopDaughters.at(0).size()!=3 || mela_event.pAntitopDaughters.at(0).size()!=3)){
+    if (verbosity>=TVar::ERROR) cerr
+      << "TUtil::TTHiggsMatEl: Number of top daughters (" << mela_event.pTopDaughters.at(0).size() << ")"
+      << "and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
+      <<" in ttH process is not 3!" << endl;
+    return sum_msqjk;
+  }
 
   SimpleParticleCollection_t topDaughters;
   SimpleParticleCollection_t antitopDaughters;
-  bool isUnknown[2]; isUnknown[0]=true; isUnknown[1]=true;
+  bool isUnknown[2]={ true, true };
 
   if (topDecay>0){
     // Daughters are assumed to have been ordered as b, Wf, Wfb already.
@@ -4205,8 +4222,8 @@ double TUtil::TTHiggsMatEl(
     for (unsigned int itop=0; itop<mela_event.pStableAntitops.size(); itop++) antitopDaughters.push_back(mela_event.pStableAntitops.at(itop));
   }
   // Check if either top is definitely identified
-  for (unsigned int itd=0; itd<topDaughters.size(); itd++){ if (topDaughters.at(itd).first!=0){ isUnknown[0]=false; break; } }
-  for (unsigned int itd=0; itd<antitopDaughters.size(); itd++){ if (antitopDaughters.at(itd).first!=0){ isUnknown[1]=false; break; } }
+  for (unsigned int itd=0; itd<topDaughters.size(); itd++){ if (!PDGHelpers::isAnUnknownJet(topDaughters.at(itd).first)){ isUnknown[0]=false; break; } }
+  for (unsigned int itd=0; itd<antitopDaughters.size(); itd++){ if (!PDGHelpers::isAnUnknownJet(antitopDaughters.at(itd).first)){ isUnknown[1]=false; break; } }
 
   // Start assigning the momenta
   // 0,1: p1 p2
@@ -4381,8 +4398,8 @@ double TUtil::BBHiggsMatEl(
   double MatElsq[nmsq][nmsq]={ { 0 } };
   double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
-  if (matrixElement!=TVar::JHUGen){ cerr << "TUtil::BBHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
-  if (production!=TVar::bbH){ cerr << "TUtil::BBHiggsMatEl: Only bbH is supported." << endl; return sum_msqjk; }
+  if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::BBHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
+  if (production!=TVar::bbH){ if (verbosity>=TVar::ERROR) cerr << "TUtil::BBHiggsMatEl: Only bbH is supported." << endl; return sum_msqjk; }
 
   int partIncCode=TVar::kUseAssociated_Jets; // Look for jets
   int nRequested_AssociatedJets=2;
@@ -4397,7 +4414,7 @@ double TUtil::BBHiggsMatEl(
     );
 
   if (mela_event.pAssociated.size()<2){
-    cerr
+    if (verbosity>=TVar::ERROR) cerr
       << "TUtil::BBHiggsMatEl: Number of stable bs (" << mela_event.pAssociated.size() << ")"
       <<" in bbH process is not 2!" << endl;
     return sum_msqjk;

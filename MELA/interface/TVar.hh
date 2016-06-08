@@ -43,9 +43,11 @@ public:
     CandidateDecay_ZW // Untested
   };
   enum VerbosityLevel {
-    ERROR = 0,
-    INFO = 1,
-    DEBUG = 2
+    SILENT = 0,
+    ERROR = 1,
+    INFO = 2,
+    DEBUG = 3,
+    DEBUG_VERBOSE = 4
   };
   enum MatrixElement{
     MCFM = 0,

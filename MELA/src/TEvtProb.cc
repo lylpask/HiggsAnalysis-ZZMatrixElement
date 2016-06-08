@@ -353,73 +353,60 @@ double TEvtProb::XsecCalc_XVV(
     //
     // By default set the Spin 0 couplings for SM case (0+m)
     Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0;
-    Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;
     for (int ic=0; ic<4; ic++){ for (int ik=0; ik<3; ik++) HvvLambda_qsq[ic][ik]=100.; }
     //
-    // set spin 2 default numbers (2+m)
+    // set spin 2 default numbers
     //
     Gqqcoupl[0][0]=1.0;  Gqqcoupl[0][1]=0.0;
     Gqqcoupl[1][0]=1.0;  Gqqcoupl[1][1]=0.0;
-    Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
-    Gvvcoupl[0][0]=1.0;  Gvvcoupl[0][1]=0.0;
-    Gvvcoupl[4][0]=1.0;  Gvvcoupl[4][1]=0.0;
     //
-    // set spin 1 default numbers (1-)
+    // set spin 1 default numbers
     //
     Zqqcoupl[0][0]=1.0;  Zqqcoupl[0][1]=0.0;
     Zqqcoupl[1][0]=1.0;  Zqqcoupl[1][1]=0.0;
-    Zvvcoupl[0][0]=1.0;  Zvvcoupl[0][1]=0.0; // 1-
 
     bool isSpinZero = false;
     bool isSpinOne = false;
     bool isSpinTwo = false;
 
-    if (process == TVar::HSMHiggs) isSpinZero = true; // Already the default
+    // 0m+
+    if (process == TVar::HSMHiggs){
+      Hvvcoupl[0][0]=1.0;
+      isSpinZero = true;
+    }
     // 0-
-    else if (process == TVar::H0minus) {
-      Hvvcoupl[0][0] = 0.0;
-      Hvvcoupl[1][0] = 0.0;
-      Hvvcoupl[2][0] = 0.0;
+    else if (process == TVar::H0minus){
       Hvvcoupl[3][0] = 1.0;
       isSpinZero = true;
     }
     // 0h+
-    else if (process == TVar::H0hplus) {
-      Hvvcoupl[0][0] = 0.0;
+    else if (process == TVar::H0hplus){
       Hvvcoupl[1][0] = 1.0;
-      Hvvcoupl[2][0] = 0.0;
-      Hvvcoupl[3][0] = 0.0;
       isSpinZero = true;
     }
     // 0+L1
     else if (process == TVar::H0_g1prime2){
-      Hvvcoupl[0][0] = 0.;
-      Hvvcoupl[11][0] = -12046.01;
+      Hvvcoupl[11][0] = 1.;
       isSpinZero = true;
     }
-    else if (process == TVar::H0_Zgs) {
-      Hvvcoupl[4][0] = 0.0688;
-      Hvvcoupl[0][0] = 0.;
+    else if (process == TVar::H0_Zgs){
+      Hvvcoupl[4][0] = 1.;
       isSpinZero = true;
     }
-    else if (process == TVar::H0_gsgs) {
-      Hvvcoupl[7][0] = -0.0898;
-      Hvvcoupl[0][0] = 0.;
+    else if (process == TVar::H0_gsgs){
+      Hvvcoupl[7][0] = 1.;
       isSpinZero = true;
     }
-    else if (process == TVar::H0_Zgs_PS) {
-      Hvvcoupl[6][0] = 0.0855;
-      Hvvcoupl[0][0] = 0.;
+    else if (process == TVar::H0_Zgs_PS){
+      Hvvcoupl[6][0] = 1.;
       isSpinZero = true;
     }
-    else if (process == TVar::H0_gsgs_PS) {
-      Hvvcoupl[9][0] = -0.0907;
-      Hvvcoupl[0][0] = 0.;
+    else if (process == TVar::H0_gsgs_PS){
+      Hvvcoupl[9][0] = 1.;
       isSpinZero = true;
     }
-    else if (process == TVar::H0_Zgsg1prime2) {
-      Hvvcoupl[30][0] = -7591.914; // +- 6.613
-      Hvvcoupl[0][0] = 0.;
+    else if (process == TVar::H0_Zgsg1prime2){
+      Hvvcoupl[30][0] = 1.;
       isSpinZero = true;
     }
     else if (process == TVar::SelfDefine_spin0){
@@ -431,215 +418,83 @@ double TEvtProb::XsecCalc_XVV(
         for (int i=0; i<4; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
         HvvCLambda_qsq[j] = (selfDSpinZeroCoupl.HzzCLambda_qsq)[j];
       }
+      if (verbosity_>=TVar::DEBUG_VERBOSE){
+        for (int j=0; j<2; j++){
+          for (int i=0; i<SIZE_HGG; i++) cout << "Hggcoupl[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.Hggcoupl)[i][j] << endl;
+          for (int i=0; i<SIZE_HVV; i++) cout << "Hvvcoupl[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.Hzzcoupl)[i][j] << endl;
+        }
+        for (int j=0; j<3; j++){
+          for (int i=0; i<4; i++) cout << "HvvLambda_qsq[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j] << endl;
+          cout << "HvvCLambda_qsq[" << j << "] = " << (selfDSpinZeroCoupl.HzzCLambda_qsq)[j] << endl;
+        }
+      }
       isSpinZero = true;
     }
 
-
-    else if (process == TVar::H2_g1g5) isSpinTwo = true; // Already the default
-    // 2h-
-    else if (process == TVar::H2_g8){
-      // gg production coupling constants
-      Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=1.0;  Gggcoupl[4][1]=0.0; // 2h-
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=1.0;  Gvvcoupl[7][1]=0.0; // 2h-
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
-      isSpinTwo = true;
-    }
-    // 2h+
-    else if (process == TVar::H2_g4){
-      // gg production coupling constants
-      Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=1.0;  Gggcoupl[3][1]=0.0; // 2h+
-      Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=1.0;  Gvvcoupl[3][1]=0.0; // 2h+
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+    // 2m+
+    else if (process == TVar::H2_g1g5){
+      Gggcoupl[0][0]=1.;
+      Gvvcoupl[0][0]=1.;
+      Gvvcoupl[4][0]=1.;
       isSpinTwo = true;
     }
     // 2b+
-    else if (process == TVar::H2_g5){
-      // gg production coupling constants
-      Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;  // 2b+
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=1.0;  Gvvcoupl[4][1]=0.0; // 2b+
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+    else if (process == TVar::H2_g1){
+      Gggcoupl[0][0]=1.;
+      Gvvcoupl[0][0]=1.;
       isSpinTwo = true;
     }
     else if (process == TVar::H2_g2){
-      // gg production coupling constants
-      Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=1.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=1.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+      Gggcoupl[1][0]=1.;
+      Gvvcoupl[1][0]=1.;
       isSpinTwo = true;
     }
     // 2h3plus
     else if (process == TVar::H2_g3){
-      // gg production coupling constants
-      Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=1.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=1.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+      Gggcoupl[2][0]=1.;
+      Gvvcoupl[2][0]=1.;
+      isSpinTwo = true;
+    }
+    // 2h+
+    else if (process == TVar::H2_g4){
+      Gggcoupl[3][0]=1.;
+      Gvvcoupl[3][0]=1.;
+      isSpinTwo = true;
+    }
+    // 2b+
+    else if (process == TVar::H2_g5){
+      Gggcoupl[0][0]=1.;
+      Gvvcoupl[4][0]=1.;
       isSpinTwo = true;
     }
     // 2h6+
     else if (process == TVar::H2_g6){
-      // gg production coupling constants
-      Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=1.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+      Gggcoupl[0][0]=1.;
+      Gvvcoupl[5][0]=1.;
       isSpinTwo = true;
     }
     // 2h7plus
     else if (process == TVar::H2_g7){
-      // gg production coupling constants
-      Gggcoupl[0][0]=1.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=0.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=1.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+      Gggcoupl[0][0]=1.;
+      Gvvcoupl[6][0]=1.;
+      isSpinTwo = true;
+    }
+    // 2h-
+    else if (process == TVar::H2_g8){
+      Gggcoupl[4][0]=1.;
+      Gvvcoupl[7][0]=1.;
       isSpinTwo = true;
     }
     // 2h9minus
     else if (process == TVar::H2_g9){
-      // gg production coupling constants
-      Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=1.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=1.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=0.0;  Gvvcoupl[9][1]=0.0;
-
+      Gggcoupl[4][0]=1.;
+      Gvvcoupl[8][0]=1.;
       isSpinTwo = true;
     }
     // 2h10minus
     else if (process == TVar::H2_g10){
-      // gg production coupling constants
-      Gggcoupl[0][0]=0.0;  Gggcoupl[0][1]=0.0;
-      Gggcoupl[1][0]=0.0;  Gggcoupl[1][1]=0.0;
-      Gggcoupl[2][0]=0.0;  Gggcoupl[2][1]=0.0;
-      Gggcoupl[3][0]=0.0;  Gggcoupl[3][1]=0.0;
-      Gggcoupl[4][0]=1.0;  Gggcoupl[4][1]=0.0;
-
-      // Graviton->ZZ coupling constants
-      Gvvcoupl[0][0]=0.0;  Gvvcoupl[0][1]=0.0;
-      Gvvcoupl[1][0]=0.0;  Gvvcoupl[1][1]=0.0;
-      Gvvcoupl[2][0]=0.0;  Gvvcoupl[2][1]=0.0;
-      Gvvcoupl[3][0]=0.0;  Gvvcoupl[3][1]=0.0;
-      Gvvcoupl[4][0]=0.0;  Gvvcoupl[4][1]=0.0;
-      Gvvcoupl[5][0]=0.0;  Gvvcoupl[5][1]=0.0;
-      Gvvcoupl[6][0]=0.0;  Gvvcoupl[6][1]=0.0;
-      Gvvcoupl[7][0]=0.0;  Gvvcoupl[7][1]=0.0;
-      Gvvcoupl[8][0]=0.0;  Gvvcoupl[8][1]=0.0;
-      Gvvcoupl[9][0]=1.0;  Gvvcoupl[9][1]=0.0;
-
+      Gggcoupl[4][0]=1.;
+      Gvvcoupl[9][0]=1.;
       isSpinTwo = true;
     }
     else if (process == TVar::SelfDefine_spin2){
@@ -651,15 +506,16 @@ double TEvtProb::XsecCalc_XVV(
       isSpinTwo = true;
     }
 
-    // 1+
-    else if (process == TVar::H1plus) {
-      // z->vv coupling constants
-      Zvvcoupl[0][0]=0.0;  Zvvcoupl[0][1]=0.0;
-      Zvvcoupl[1][0]=1.0;  Zvvcoupl[1][1]=0.0; // 1+
+    // 1-
+    else if (process == TVar::H1minus){
+      Zvvcoupl[0][0]=1.;
       isSpinOne = true;
     }
-    // 1-
-    else if (process == TVar::H1minus) isSpinOne = true; // Already the default
+    // 1+
+    else if (process == TVar::H1plus){
+      Zvvcoupl[1][0]=1.;
+      isSpinOne = true;
+    }
     else if (process == TVar::SelfDefine_spin1){
       for (int j=0; j<2; j++){
         for (int i=0; i<SIZE_ZQQ; i++) Zqqcoupl[i][j] = (selfDSpinOneCoupl.Zqqcoupl)[i][j];

@@ -20,6 +20,7 @@ public :: SetSpinZeroGGCouplings,SetSpinZeroQQCouplings
 public :: SetSpinOneCouplings
 public :: SetSpinTwoCouplings
 
+public :: GetMVGV
 public :: GetAlphaSAlphaSMZ
 
 contains
@@ -425,6 +426,12 @@ integer idV
   endif
 end subroutine
 
+subroutine GetMVGV(mv,gv)
+   implicit none
+   real(8), intent(out) :: mv,gv
+   mv=M_V
+   gv=Ga_V
+end subroutine GetMVGV
 
 subroutine GetAlphaSAlphaSMZ(val_as, val_asmz)
 implicit none

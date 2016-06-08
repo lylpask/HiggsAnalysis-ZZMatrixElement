@@ -22,6 +22,7 @@ extern "C" {
   void __modjhugenmela_MOD_settopdecays(int* flag);
 
   void __modjhugenmela_MOD_getalphasalphasmz(double* val_as, double* val_asmz);
+  void __modjhugenmela_MOD_getmvgv(double* mv, double* gv);
 
 }
 

@@ -818,7 +818,7 @@ void Mela::computeP(
     }
     else if (myME_ == TVar::JHUGen || myME_ == TVar::MCFM){
       if (!(myME_ == TVar::MCFM  && myProduction_ == TVar::ZZINDEPENDENT &&  (myModel_ == TVar::bkgZZ || myModel_ == TVar::bkgWW || myModel_ == TVar::bkgZGamma || myModel_ == TVar::bkgZJJ))){
-        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+        if (myME_ == TVar::MCFM || myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
           selfDHvvcoupl_freenorm,
           selfDHqqcoupl,
           selfDHggcoupl,

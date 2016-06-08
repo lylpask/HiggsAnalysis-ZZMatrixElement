@@ -63,7 +63,7 @@ libs: CALLING_cpHTO.o \
 	mod_JHUGenMELA.o mod_JHUGen.o \
 	mod_Higgs.o mod_Graviton.o mod_Zprime.o \
 	mod_HiggsJJ.o mod_HiggsJ.o mod_VHiggs.o \
-	mod_Topdecay.o mod_TTBHiggs.o mod_THiggs.o
+	mod_TopDecay.o mod_TTBHiggs.o mod_THiggs.o
 
 CALLING_cpHTO.o: ./CPS/CALLING_cpHTO.f
 	@echo " "
@@ -152,15 +152,15 @@ mod_VHiggs.o: mod_VHiggs.F90 mod_Parameters.F90
 	@echo " compiling mod_VHiggs.F90 with "$(Comp)
 	$(fcomp) -c mod_VHiggs.F90 
 
+mod_TopDecay.o: mod_TopDecay.F90 mod_Parameters.F90
+	@echo " "
+	@echo " compiling mod_TopDecay.F90 with "$(Comp)
+	$(fcomp) -c mod_TopDecay.F90  
+
 mod_TTBHiggs.o: mod_TTBHiggs.F90 mod_Parameters.F90
 	@echo " "
 	@echo " compiling mod_TTBHiggs.F90 with "$(Comp)
 	$(fcomp) -c mod_TTBHiggs.F90  
-
-mod_Topdecay.o: mod_TopDecay.F90 mod_Parameters.F90
-	@echo " "
-	@echo " compiling mod_TopDecay.F90 with "$(Comp)
-	$(fcomp) -c mod_TopDecay.F90  
 
 mod_THiggs.o: mod_THiggs.F90 mod_Parameters.F90
 	@echo " "
