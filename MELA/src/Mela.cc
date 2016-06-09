@@ -126,7 +126,7 @@ Mela::Mela(
   if (myVerbosity_>=TVar::DEBUG) cout << "Start newZZMatrixElement" << endl;
   ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-19).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
   if (myVerbosity_>=TVar::DEBUG) cout << "Set newZZMatrixElement masses" << endl;
-  setMelaHiggsMass(125., 0); setMelaHiggsMass(-1., 1);
+  setMelaHiggsMass(mh_, 0); setMelaHiggsMass(-1., 1);
   setMelaHiggsWidth(-1., 0); setMelaHiggsWidth(0., 1);
   setMelaLeptonInterference(TVar::DefaultLeptonInterf);
   setCandidateDecayMode(TVar::CandidateDecay_ZZ); // Default decay mode is ZZ at the start

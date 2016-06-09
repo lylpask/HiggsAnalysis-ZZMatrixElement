@@ -467,7 +467,7 @@ void testME_ProdDec_MCFM_Ping(int flavor=0){
 }
 
 
-void testME_Dec_JHUGen_Ping(int flavor=0){
+void testME_Dec_JHUGenMCFM_Ping(int flavor=0){
   int erg_tev=13;
   float mPOLE=125.;
   float wPOLE=4.07e-3;
@@ -770,4 +770,365 @@ void testME_Dec_JHUGen_Ping(int flavor=0){
   }
 }
 
+void testME_Dec_FullSim(int flavor=0){
+  int erg_tev=13;
+  float mPOLE=125.6;
+  float wPOLE=4.07e-3;
+  TString TREE_NAME = "SelectedTree";
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+  if (verbosity>=TVar::DEBUG) cout << "Mela is initialized" << endl;
+  mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.399, 91.1876, 0.23119);
+
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor!=-1 ? "2mu2e" : "4e")), "read");
+  TFile* foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_OriginalMEv2ValidationTestOnly.root", (flavor==2 ? "2mu2e" : "4e")), "recreate");
+
+  float p0plus_VAJHU;
+  float p0hplus_VAJHU;
+  float p0minus_VAJHU;
+  float p0_g1prime2_VAJHU;
+  float pg1g1prime2_VAJHU;
+  //float pg1g1prime2_pi2_VAJHU;
+  float pg1g2_VAJHU;
+  float pg1g2_pi2_VAJHU;
+  float pg1g4_VAJHU;
+  float pg1g4_pi2_VAJHU;
+
+  float p0plus_VAJHU_NEW;
+  float p0hplus_VAJHU_NEW;
+  float p0minus_VAJHU_NEW;
+  float p0_g1prime2_VAJHU_NEW;
+  float pg1g1prime2_VAJHU_NEW;
+  float pg1g1prime2_pi2_VAJHU_NEW;
+  float pg1g2_VAJHU_NEW;
+  float pg1g2_pi2_VAJHU_NEW;
+  float pg1g4_VAJHU_NEW;
+  float pg1g4_pi2_VAJHU_NEW;
+
+  float p0hplus_VAMCFM_NEW;
+  float p0minus_VAMCFM_NEW;
+  float p0_g1prime2_VAMCFM_NEW;
+  float pg1g1prime2_VAMCFM_NEW;
+  float pg1g1prime2_pi2_VAMCFM_NEW;
+  float pg1g2_VAMCFM_NEW;
+  float pg1g2_pi2_VAMCFM_NEW;
+  float pg1g4_VAMCFM_NEW;
+  float pg1g4_pi2_VAMCFM_NEW;
+
+  float p0hplus_VAMCFM_ratio_NEW;
+  float p0minus_VAMCFM_ratio_NEW;
+  float p0_g1prime2_VAMCFM_ratio_NEW;
+  float pg1g1prime2_VAMCFM_ratio_NEW;
+  float pg1g1prime2_pi2_VAMCFM_ratio_NEW;
+  float pg1g2_VAMCFM_ratio_NEW;
+  float pg1g2_pi2_VAMCFM_ratio_NEW;
+  float pg1g4_VAMCFM_ratio_NEW;
+  float pg1g4_pi2_VAMCFM_ratio_NEW;
+
+  float p0hplus_VAJHU_ratio_NEW;
+  float p0minus_VAJHU_ratio_NEW;
+  float p0_g1prime2_VAJHU_ratio_NEW;
+  float pg1g1prime2_VAJHU_ratio_NEW;
+  float pg1g1prime2_pi2_VAJHU_ratio_NEW;
+  float pg1g2_VAJHU_ratio_NEW;
+  float pg1g2_pi2_VAJHU_ratio_NEW;
+  float pg1g4_VAJHU_ratio_NEW;
+  float pg1g4_pi2_VAJHU_ratio_NEW;
+
+  float p0plus_VAMCFM, ggzz_p0plus_VAMCFM;
+  float bkg_VAMCFM, ggzz_VAMCFM;
+  float p0plus_VAMCFM_NEW, ggzz_p0plus_VAMCFM_NEW, p0plus_VAMCFM_NEW_BSMOn;
+  float bkg_VAMCFM_NEW, ggzz_VAMCFM_NEW;
+  float bkg_VAMCFM_STU, bkg_VAMCFM_TU, bkg_VAMCFM_S;
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+
+  TTree* tree = (TTree*)finput->Get(TREE_NAME);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+  tree->SetBranchAddress("p0plus_VAJHU", &p0plus_VAJHU);
+  tree->SetBranchAddress("p0hplus_VAJHU", &p0hplus_VAJHU);
+  tree->SetBranchAddress("p0minus_VAJHU", &p0minus_VAJHU);
+  tree->SetBranchAddress("p0_g1prime2_VAJHU", &p0_g1prime2_VAJHU);
+  tree->SetBranchAddress("pg1g2_VAJHU", &pg1g2_VAJHU);
+  tree->SetBranchAddress("pg1g2_pi2_VAJHU", &pg1g2_pi2_VAJHU);
+  tree->SetBranchAddress("pg1g4_VAJHU", &pg1g4_VAJHU);
+  tree->SetBranchAddress("pg1g4_pi2_VAJHU", &pg1g4_pi2_VAJHU);
+  tree->SetBranchAddress("pg1g1prime2_VAJHU", &pg1g1prime2_VAJHU);
+  tree->SetBranchAddress("bkg_VAMCFM", &bkg_VAMCFM);
+  tree->SetBranchAddress("ggzz_VAMCFM", &ggzz_VAMCFM);
+  tree->SetBranchAddress("p0plus_VAMCFM", &p0plus_VAMCFM);
+  tree->SetBranchAddress("ggzz_p0plus_VAMCFM", &ggzz_p0plus_VAMCFM);
+
+  TTree* newtree = new TTree("TestTree", "");
+  newtree->Branch("ZZMass", &mzz);
+  newtree->Branch("Z1Mass", &m1);
+  newtree->Branch("Z2Mass", &m2);
+  newtree->Branch("helcosthetaZ1", &h1);
+  newtree->Branch("helcosthetaZ2", &h2);
+  newtree->Branch("helphi", &phi);
+  newtree->Branch("costhetastar", &hs);
+  newtree->Branch("phistarZ1", &phi1);
+
+  newtree->Branch("p0plus_VAJHU", &p0plus_VAJHU);
+  newtree->Branch("p0hplus_VAJHU", &p0hplus_VAJHU);
+  newtree->Branch("p0minus_VAJHU", &p0minus_VAJHU);
+  newtree->Branch("p0_g1prime2_VAJHU", &p0_g1prime2_VAJHU);
+  newtree->Branch("pg1g2_VAJHU", &pg1g2_VAJHU);
+  newtree->Branch("pg1g2_pi2_VAJHU", &pg1g2_pi2_VAJHU);
+  newtree->Branch("pg1g4_VAJHU", &pg1g4_VAJHU);
+  newtree->Branch("pg1g4_pi2_VAJHU", &pg1g4_pi2_VAJHU);
+  newtree->Branch("pg1g1prime2_VAJHU", &pg1g1prime2_VAJHU);
+
+  newtree->Branch("p0plus_VAJHU_NEW", &p0plus_VAJHU_NEW);
+  newtree->Branch("p0hplus_VAJHU_NEW", &p0hplus_VAJHU_NEW);
+  newtree->Branch("p0minus_VAJHU_NEW", &p0minus_VAJHU_NEW);
+  newtree->Branch("p0_g1prime2_VAJHU_NEW", &p0_g1prime2_VAJHU_NEW);
+  newtree->Branch("pg1g2_VAJHU_NEW", &pg1g2_VAJHU_NEW);
+  newtree->Branch("pg1g2_pi2_VAJHU_NEW", &pg1g2_pi2_VAJHU_NEW);
+  newtree->Branch("pg1g4_VAJHU_NEW", &pg1g4_VAJHU_NEW);
+  newtree->Branch("pg1g4_pi2_VAJHU_NEW", &pg1g4_pi2_VAJHU_NEW);
+  newtree->Branch("pg1g1prime2_VAJHU_NEW", &pg1g1prime2_VAJHU_NEW);
+  newtree->Branch("pg1g1prime2_pi2_VAJHU_NEW", &pg1g1prime2_pi2_VAJHU_NEW);
+
+
+  newtree->Branch("bkg_VAMCFM", &bkg_VAMCFM);
+  newtree->Branch("ggzz_VAMCFM", &ggzz_VAMCFM);
+  newtree->Branch("p0plus_VAMCFM", &p0plus_VAMCFM);
+  newtree->Branch("ggzz_p0plus_VAMCFM", &ggzz_p0plus_VAMCFM);
+  newtree->Branch("bkg_VAMCFM_NEW", &bkg_VAMCFM_NEW);
+  newtree->Branch("ggzz_VAMCFM_NEW", &ggzz_VAMCFM_NEW);
+  newtree->Branch("p0plus_VAMCFM_NEW", &p0plus_VAMCFM_NEW);
+  newtree->Branch("ggzz_p0plus_VAMCFM_NEW", &ggzz_p0plus_VAMCFM_NEW);
+  newtree->Branch("p0plus_VAMCFM_NEW_BSMOn", &p0plus_VAMCFM_NEW_BSMOn);
+
+  newtree->Branch("p0hplus_VAMCFM_NEW", &p0hplus_VAMCFM_NEW);
+  newtree->Branch("p0minus_VAMCFM_NEW", &p0minus_VAMCFM_NEW);
+  newtree->Branch("p0_g1prime2_VAMCFM_NEW", &p0_g1prime2_VAMCFM_NEW);
+  newtree->Branch("pg1g2_VAMCFM_NEW", &pg1g2_VAMCFM_NEW);
+  newtree->Branch("pg1g2_pi2_VAMCFM_NEW", &pg1g2_pi2_VAMCFM_NEW);
+  newtree->Branch("pg1g4_VAMCFM_NEW", &pg1g4_VAMCFM_NEW);
+  newtree->Branch("pg1g4_pi2_VAMCFM_NEW", &pg1g4_pi2_VAMCFM_NEW);
+  newtree->Branch("pg1g1prime2_VAMCFM_NEW", &pg1g1prime2_VAMCFM_NEW);
+  newtree->Branch("pg1g1prime2_pi2_VAMCFM_NEW", &pg1g1prime2_pi2_VAMCFM_NEW);
+
+  newtree->Branch("p0hplus_VAMCFM_ratio_NEW", &p0hplus_VAMCFM_ratio_NEW);
+  newtree->Branch("p0minus_VAMCFM_ratio_NEW", &p0minus_VAMCFM_ratio_NEW);
+  newtree->Branch("p0_g1prime2_VAMCFM_ratio_NEW", &p0_g1prime2_VAMCFM_ratio_NEW);
+  newtree->Branch("pg1g2_VAMCFM_ratio_NEW", &pg1g2_VAMCFM_ratio_NEW);
+  newtree->Branch("pg1g2_pi2_VAMCFM_ratio_NEW", &pg1g2_pi2_VAMCFM_ratio_NEW);
+  newtree->Branch("pg1g4_VAMCFM_ratio_NEW", &pg1g4_VAMCFM_ratio_NEW);
+  newtree->Branch("pg1g4_pi2_VAMCFM_ratio_NEW", &pg1g4_pi2_VAMCFM_ratio_NEW);
+  newtree->Branch("pg1g1prime2_VAMCFM_ratio_NEW", &pg1g1prime2_VAMCFM_ratio_NEW);
+  newtree->Branch("pg1g1prime2_pi2_VAMCFM_ratio_NEW", &pg1g1prime2_pi2_VAMCFM_ratio_NEW);
+
+  newtree->Branch("p0hplus_VAJHU_ratio_NEW", &p0hplus_VAJHU_ratio_NEW);
+  newtree->Branch("p0minus_VAJHU_ratio_NEW", &p0minus_VAJHU_ratio_NEW);
+  newtree->Branch("p0_g1prime2_VAJHU_ratio_NEW", &p0_g1prime2_VAJHU_ratio_NEW);
+  newtree->Branch("pg1g2_VAJHU_ratio_NEW", &pg1g2_VAJHU_ratio_NEW);
+  newtree->Branch("pg1g2_pi2_VAJHU_ratio_NEW", &pg1g2_pi2_VAJHU_ratio_NEW);
+  newtree->Branch("pg1g4_VAJHU_ratio_NEW", &pg1g4_VAJHU_ratio_NEW);
+  newtree->Branch("pg1g4_pi2_VAJHU_ratio_NEW", &pg1g4_pi2_VAJHU_ratio_NEW);
+  newtree->Branch("pg1g1prime2_VAJHU_ratio_NEW", &pg1g1prime2_VAJHU_ratio_NEW);
+  newtree->Branch("pg1g1prime2_pi2_VAJHU_ratio_NEW", &pg1g1prime2_pi2_VAJHU_ratio_NEW);
+
+  float GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
+  if (flavor == 2){
+    GenLep1Id=13;
+    GenLep2Id=-13;
+    GenLep3Id=11;
+    GenLep4Id=-11;
+  }
+  else if (flavor == 1){
+    GenLep1Id=11;
+    GenLep2Id=-11;
+    GenLep3Id=11;
+    GenLep4Id=-11;
+  }
+  else if (flavor == 0){
+    GenLep1Id=13;
+    GenLep2Id=-13;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  for (int ev = 0; ev < min(1000, (int)tree->GetEntries()); ev++){
+    tree->GetEntry(ev);
+
+    int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
+    TLorentzVector pOrdered[4];
+    std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+    for (int ip=0; ip<min(4, (int)daus.size()); ip++) pOrdered[ip]=daus.at(ip);
+    SimpleParticleCollection_t daughters_ZZ;
+    for (unsigned int idau=0; idau<4; idau++) daughters_ZZ.push_back(SimpleParticle_t(idOrdered[idau], pOrdered[idau]));
+    mela.setInputEvent(&daughters_ZZ, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+
+    /***** ZZ *****/
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+    mela.computeP(bkg_VAMCFM_NEW, false);
+
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+    //mela.setMelaLeptonInterference(TVar::InterfOff);
+    mela.computeP(ggzz_VAMCFM_NEW, false);
+
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    //mela.setMelaLeptonInterference(TVar::InterfOff);
+    mela.computeP(p0plus_VAMCFM_NEW, false);
+
+    mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    //mela.setMelaLeptonInterference(TVar::InterfOff);
+    mela.computeP(ggzz_p0plus_VAMCFM_NEW, false);
+
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.computeP(p0plus_VAMCFM_NEW_BSMOn, false);
+
+
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.computeP(p0plus_VAJHU_NEW, false);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.computeP(p0hplus_VAJHU_NEW, false);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.computeP(p0minus_VAJHU_NEW, false);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][11][0]=-12046.01;
+    mela.computeP(p0_g1prime2_VAJHU_NEW, false);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.computeP(pg1g2_VAJHU_NEW, false);
+    pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][1][1]=1.638;
+    mela.computeP(pg1g2_pi2_VAJHU_NEW, false);
+    pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.computeP(pg1g4_VAJHU_NEW, false);
+    pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][3][1]=2.521;
+    mela.computeP(pg1g4_pi2_VAJHU_NEW, false);
+    pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][11][0]=12046.01;
+    mela.computeP(pg1g1prime2_VAJHU_NEW, false);
+    pg1g1prime2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
+
+    mela.selfDHggcoupl[0][0]=1;
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][11][1]=12046.01;
+    mela.computeP(pg1g1prime2_pi2_VAJHU_NEW, false);
+    pg1g1prime2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
+
+
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.computeP(p0plus_VAMCFM_NEW, false);
+
+    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.computeP(p0hplus_VAMCFM_NEW, false);
+
+    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.computeP(p0minus_VAMCFM_NEW, false);
+
+    mela.selfDHzzcoupl[0][11][0]=-12046.01;
+    mela.computeP(p0_g1prime2_VAMCFM_NEW, false);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.computeP(pg1g2_VAMCFM_NEW, false);
+    pg1g2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][1][1]=1.638;
+    mela.computeP(pg1g2_pi2_VAMCFM_NEW, false);
+    pg1g2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.computeP(pg1g4_VAMCFM_NEW, false);
+    pg1g4_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][3][1]=2.521;
+    mela.computeP(pg1g4_pi2_VAMCFM_NEW, false);
+    pg1g4_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][11][0]=12046.01;
+    mela.computeP(pg1g1prime2_VAMCFM_NEW, false);
+    pg1g1prime2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
+
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][11][1]=12046.01;
+    mela.computeP(pg1g1prime2_pi2_VAMCFM_NEW, false);
+    pg1g1prime2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
+
+
+    p0hplus_VAJHU_ratio_NEW = p0hplus_VAJHU_NEW/p0plus_VAJHU_NEW;
+    p0minus_VAJHU_ratio_NEW = p0minus_VAJHU_NEW/p0plus_VAJHU_NEW;
+    p0_g1prime2_VAJHU_ratio_NEW = p0_g1prime2_VAJHU_NEW/p0plus_VAJHU_NEW;
+    pg1g2_VAJHU_ratio_NEW = pg1g2_VAJHU_NEW/p0plus_VAJHU_NEW;
+    pg1g4_VAJHU_ratio_NEW = pg1g4_VAJHU_NEW/p0plus_VAJHU_NEW;
+    pg1g1prime2_VAJHU_ratio_NEW = pg1g1prime2_VAJHU_NEW/p0plus_VAJHU_NEW;
+    pg1g2_pi2_VAJHU_ratio_NEW = pg1g2_pi2_VAJHU_NEW/p0plus_VAJHU_NEW;
+    pg1g4_pi2_VAJHU_ratio_NEW = pg1g4_pi2_VAJHU_NEW/p0plus_VAJHU_NEW;
+    pg1g1prime2_pi2_VAJHU_ratio_NEW = pg1g1prime2_pi2_VAJHU_NEW/p0plus_VAJHU_NEW;
+
+    p0hplus_VAMCFM_ratio_NEW = p0hplus_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    p0minus_VAMCFM_ratio_NEW = p0minus_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    p0_g1prime2_VAMCFM_ratio_NEW = p0_g1prime2_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    pg1g2_VAMCFM_ratio_NEW = pg1g2_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    pg1g4_VAMCFM_ratio_NEW = pg1g4_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    pg1g1prime2_VAMCFM_ratio_NEW = pg1g1prime2_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    pg1g2_pi2_VAMCFM_ratio_NEW = pg1g2_pi2_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    pg1g4_pi2_VAMCFM_ratio_NEW = pg1g4_pi2_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+    pg1g1prime2_pi2_VAMCFM_ratio_NEW = pg1g1prime2_pi2_VAMCFM_NEW/p0plus_VAMCFM_NEW;
+
+
+
+    mela.resetInputEvent();
+    newtree->Fill();
+  }
+
+
+  foutput->WriteTObject(newtree);
+  foutput->Close();
+  finput->Close();
+}
 

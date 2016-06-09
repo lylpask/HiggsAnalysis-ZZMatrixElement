@@ -1140,7 +1140,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     interference_.interference=false;
     if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
       //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
-      vsymfact_.vsymfact=0.125; // Amplitude multiplication by 2d0 because of the bw34_56 flag is not removed. Te original factor in MCFM is 0.25.
+      vsymfact_.vsymfact=0.5;
       interference_.interference=true;
     }
   }
@@ -1438,7 +1438,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     vsymfact_.vsymfact=1.0;
     interference_.interference=false;
     if (definiteInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
-      vsymfact_.vsymfact=0.125; // Amplitude multiplication by 2d0 because of the bw34_56 flag is not removed. Te original factor in MCFM is 0.25.
+      vsymfact_.vsymfact=0.5;
       interference_.interference=true;
     }
 
@@ -2790,9 +2790,9 @@ double TUtil::SumMatrixElementPDF(
     // the subroutine for the calculations including the interfenrence
     // ME =  sig + inter (sign, bkg)
     else if(production == TVar::ZZGG){
-      if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2
-      else if (isZZ){
-        if (process==TVar::HSMHiggs) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
+      if (isZZ){
+        if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 old method
+        else if (process==TVar::HSMHiggs) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
         else if (process==TVar::bkgZZ_SMHiggs) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
         else if (process==TVar::bkgZZ) gg_zz_(p4[0], &(msq[5][5])); // |ggZZ|**2
         else if (process==TVar::HSMHiggs_WWZZ) gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
@@ -2818,16 +2818,12 @@ double TUtil::SumMatrixElementPDF(
       SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
     else if (production == TVar::JJVBF){
-      if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)){
-        qq_zzqq_(p4[0], msq[0]); // VBF MCFM SBI, S or B
-      }
-      else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)){
-        qq_wwqq_(p4[0], msq[0]); // VBF MCFM SBI, S or B
-      }
-      else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){ // VBF MCFM SBI, S or B
-        if (isWW){
-          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis
-        }
+      // VBF MCFM SBI, S or B
+      if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)) qq_zzqq_(p4[0], msq[0]);
+      else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)) qq_wwqq_(p4[0], msq[0]);
+      else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){
+        // Vectors are passed with ZZ as basis
+        if (isWW){ for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); }
         qq_vvqq_(p4[0], msq[0]);
       }
 

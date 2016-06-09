@@ -64,7 +64,7 @@ TEvtProb::TEvtProb(
   ResetCouplings();
   ResetRenFacScaleMode();
   ResetInputEvent();
-  SetHiggsMass(125., 4.07e-3, -1);
+  SetHiggsMass(125., -1., -1);
   SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
   if (verbosity>=TVar::DEBUG) cout << "End TEvtProb constructor" << endl;
 }
