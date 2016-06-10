@@ -80,6 +80,7 @@ public:
 
 
   float getConstant(bool useOldggZZConstants=false);
+  float getConstant_JHUGenUndecayed();
   float getConstant_m4l(bool useOldggZZConstants=false);
   void get_PAux(float& prob); // SuperProb
 

@@ -127,7 +127,7 @@ void testME_Dec_MCFM_Ping(int flavor=2){
       GenLep3Id=1;
       GenLep4Id=-1;
     }
-    else if (flavor == 4){
+    else if (flavor == 5){
       GenLep1Id=1;
       GenLep2Id=-1;
       GenLep3Id=2;
@@ -359,7 +359,7 @@ void testME_ProdDec_MCFM_Ping(int flavor=2){
     GenLep3Id=1;
     GenLep4Id=-1;
   }
-  else if (flavor == 4){
+  else if (flavor == 5){
     GenLep1Id=1;
     GenLep2Id=-1;
     GenLep3Id=2;
@@ -566,7 +566,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
       GenLep3Id=1;
       GenLep4Id=-1;
     }
-    else if (flavor == 4){
+    else if (flavor == 5){
       GenLep1Id=1;
       GenLep2Id=-1;
       GenLep3Id=2;
@@ -782,8 +782,8 @@ void testME_Dec_FullSim(int flavor=2){
   mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.399, 91.1876, 0.23119);
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
-  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor!=-1 ? "2mu2e" : "4e")), "read");
-  TFile* foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_OriginalMEv2ValidationTestOnly.root", (flavor==2 ? "2mu2e" : "4e")), "recreate");
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e")), "read");
+  TFile* foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_OriginalMEv2ValidationTestOnly.root", (flavor>=2 ? "2mu2e" : "4e")), "recreate");
 
   float p0plus_VAJHU;
   float p0hplus_VAJHU;
@@ -966,6 +966,24 @@ void testME_Dec_FullSim(int flavor=2){
     GenLep3Id=13;
     GenLep4Id=-13;
   }
+  else if (flavor == 3){
+    GenLep1Id=14;
+    GenLep2Id=-14;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  else if (flavor == 4){
+    GenLep1Id=0;
+    GenLep2Id=-0;
+    GenLep3Id=1;
+    GenLep4Id=-1;
+  }
+  else if (flavor == 5){
+    GenLep1Id=1;
+    GenLep2Id=-1;
+    GenLep3Id=2;
+    GenLep4Id=-2;
+  }
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
 
   for (int ev = 0; ev < min(1000, (int)tree->GetEntries()); ev++){
@@ -1137,14 +1155,13 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
   float wPOLE=4.07e-3;
   TString TREE_NAME = "SelectedTree";
 
-  TVar::VerbosityLevel verbosity = TVar::DEBUG;
+  TVar::VerbosityLevel verbosity = TVar::SILENT;
   Mela mela(erg_tev, mPOLE, verbosity);
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
-  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor==2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
-  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_vbfMELATest.root", (flavor==2 ? "2e2mu" : "4e")), "recreate");
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
+  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_vbfMELATest.root", (flavor>=2 ? "2e2mu" : "4e")), "recreate");
 
-  TLorentzVector nullFourVector(0, 0, 0, 0);
   float phjj_VAJHU_old;
   float pvbf_VAJHU_old;
   float phjj_VAJHU_old_NEW;
@@ -1155,7 +1172,6 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
   float pvbf0minus_VAJHU_old_NEW;
   float phjj0minus_VAJHU_old_NEW_selfD;
   float pvbf0minus_VAJHU_old_NEW_selfD;
-
 
   //float jet1Pt, jet2Pt;
   //float jet1px, jet1py, jet1pz, jet1E;
@@ -1237,14 +1253,31 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
     GenLep3Id=13;
     GenLep4Id=-13;
   }
-
+  else if (flavor == 3){
+    GenLep1Id=14;
+    GenLep2Id=-14;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  else if (flavor == 4){
+    GenLep1Id=0;
+    GenLep2Id=-0;
+    GenLep3Id=1;
+    GenLep4Id=-1;
+  }
+  else if (flavor == 5){
+    GenLep1Id=1;
+    GenLep2Id=-1;
+    GenLep3Id=2;
+    GenLep4Id=-2;
+  }
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
   int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
 
   int nEntries = tree->GetEntries();
   int recorded=0;
   for (int ev = 0; ev < nEntries; ev++){
-    if (recorded>=1) break;
+    if (recorded>=1000) break;
     tree->GetEntry(ev);
 
     if (JetPt->size()>=2 && NJets30>=2){
@@ -1265,37 +1298,37 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
       for (unsigned int idau=0; idau<4; idau++) daughters_ZZ.push_back(SimpleParticle_t(idOrdered[idau], pDaughters[idau]));
       mela.setInputEvent(&daughters_ZZ, &associated, (SimpleParticleCollection_t*)0, false);
 
-/*
+
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
-      mela.computeProdP(pvbf_VAJHU_old_NEW, true);
-*/
+      mela.computeProdP(pvbf_VAJHU_old_NEW, false);
+
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJGG);
-      mela.computeProdP(phjj_VAJHU_old_NEW, true);
-/*
+      mela.computeProdP(phjj_VAJHU_old_NEW, false);
+
       mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::JJVBF);
-      mela.computeProdP(pvbf0minus_VAJHU_old_NEW, true);
+      mela.computeProdP(pvbf0minus_VAJHU_old_NEW, false);
 
       mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::JJGG);
-      mela.computeProdP(phjj0minus_VAJHU_old_NEW, true);
+      mela.computeProdP(phjj0minus_VAJHU_old_NEW, false);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
       mela.selfDHzzcoupl[0][0][0]=1;
-      mela.computeProdP(pvbf_VAJHU_old_NEW_selfD, true);
+      mela.computeProdP(pvbf_VAJHU_old_NEW_selfD, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJGG);
       mela.selfDHggcoupl[0][0]=1;
-      mela.computeProdP(phjj_VAJHU_old_NEW_selfD, true);
+      mela.computeProdP(phjj_VAJHU_old_NEW_selfD, false);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
       mela.selfDHzzcoupl[0][3][0]=1;
-      mela.computeProdP(pvbf0minus_VAJHU_old_NEW_selfD, true);
+      mela.computeProdP(pvbf0minus_VAJHU_old_NEW_selfD, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJGG);
       mela.selfDHggcoupl[2][0]=1;
-      mela.computeProdP(phjj0minus_VAJHU_old_NEW_selfD, true);
-*/
+      mela.computeProdP(phjj0minus_VAJHU_old_NEW_selfD, false);
+
       newtree->Fill();
       recorded++;
     }

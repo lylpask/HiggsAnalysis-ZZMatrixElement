@@ -67,7 +67,7 @@ pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
   double m1, double m2
   ){
   TLorentzVector nullFourVector(0, 0, 0, 0);
-  TLorentzVector jet1massless, jet2massless;
+  TLorentzVector jet1massless(0, 0, 0, 0), jet2massless(0, 0, 0, 0);
 
   if (TUtil::forbidMassiveJets && (PDGHelpers::isAJet(jet1Id) || PDGHelpers::isAJet(jet2Id))){
     if (JetMassScheme==TVar::NoRemoval){
@@ -117,17 +117,21 @@ pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
 }
 void TUtil::adjustTopDaughters(SimpleParticleCollection_t& daughters){ // Daughters are arranged as b, Wf, Wfb
   if (daughters.size()!=3) return; // Cannot work if the number of daughters is not exactly 3.
-  TUtil::removeMassFromPair(
+  pair<TLorentzVector, TLorentzVector> corrWpair = TUtil::removeMassFromPair(
     daughters.at(1).second, daughters.at(1).first,
     daughters.at(2).second, daughters.at(2).first
     );
+  daughters.at(1).second = corrWpair.first;
+  daughters.at(2).second = corrWpair.second;
   TLorentzVector pW = daughters.at(1).second+daughters.at(2).second;
   TVector3 pW_boost_old = -pW.BoostVector();
-  TUtil::removeMassFromPair(
+  pair<TLorentzVector, TLorentzVector> corrbW = TUtil::removeMassFromPair(
     daughters.at(0).second, daughters.at(0).first,
     pW, -daughters.at(0).first, // Trick the function
     0., pW.M() // Conserve W mass, ensures Wf+Wfb=W after re-boosting Wf and Wfb to te new W frame.
     );
+  daughters.at(0).second=corrbW.first;
+  pW=corrbW.second;
   TVector3 pW_boost_new = pW.BoostVector();
   for (unsigned int idau=1; idau<daughters.size(); idau++){
     daughters.at(idau).second.Boost(pW_boost_old);
@@ -1090,7 +1094,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1131,7 +1135,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1248,7 +1252,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1319,7 +1323,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1389,7 +1393,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1430,7 +1434,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1509,7 +1513,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -1550,7 +1554,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -1592,7 +1596,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -1633,7 +1637,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -1746,7 +1750,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1787,7 +1791,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
       }
     }
     else return false;
@@ -1879,7 +1883,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -1920,7 +1924,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -1962,7 +1966,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -2003,7 +2007,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=(ewcharge_.Q[5+1]*3.+ewcharge_.Q[5+2]*2.)/5.*sqrt(3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
         }
       }
       else return false;
@@ -3108,9 +3112,9 @@ double TUtil::JHUGenMatEl(
   }
   // This constant is needed to account for the different units used in
   // JHUGen compared to the MCFM
-  double constant = 1.45e-8;
-  if (isSpinZero && production!=TVar::ZZINDEPENDENT) constant = 4.46162946e-4;
-  // == 1.45e-8/pow(0.13229060/(3.*3.141592653589793238462643383279502884197*2.4621845810181631), 2), constant was 1.45e-8 before with alpha_s=0.13229060, vev=2.4621845810181631/GeV
+  int GeVexponent_MEsq = 4-((int)mela_event.pDaughters.size())*2;
+  if (production==TVar::ZZINDEPENDENT) GeVexponent_MEsq += 2; // Amplitude missing m from production and 1/m**2 from propagator == Amplitude missing 1/m == MEsq missing 1/m**2
+  double constant = pow(GeV, -GeVexponent_MEsq);
   MatElSq *= constant;
 
   // Set RcdME information for ME and parton distributions, taking into account the mothers if id!=0 (i.e. if not unknown).
@@ -3235,7 +3239,7 @@ double TUtil::HJJMatEl(
     if (i<3){ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2 J1
     else{ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i+1][j]; } // H
   }
-  if (verbosity >= TVar::DEBUG){ for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2))/GeV << endl; }
+  if (verbosity >= TVar::DEBUG){ for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl; }
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
@@ -3709,6 +3713,9 @@ double TUtil::HJJMatEl(
     } // End loop over ic<nijchannels
   } // End production==TVar::JJVBF
 
+  int GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets)*2;
+  double constant = pow(GeV, -GeVexponent_MEsq);
+  for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   //    FOTRAN convention    -5    -4   -3   -2   -1    0   1   2   3  4  5
   //     parton flavor      bbar  cbar  sbar ubar dbar  g   d   u   s  c  b
   //      C++ convention     0      1    2    3    4    5   6   7   8  9  10
@@ -4177,6 +4184,9 @@ double TUtil::VHiggsMatEl(
     } // End loop over h56
   } // End loop over h01
 
+  int GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets+nRequested_AssociatedLeptons+nRequested_AssociatedPhotons)*2;
+  double constant = pow(GeV, -GeVexponent_MEsq);
+  for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
   // Turn H_DK off
@@ -4417,6 +4427,11 @@ double TUtil::TTHiggsMatEl(
   int defaultTopDecay=-1;
   __modjhugenmela_MOD_settopdecays(&defaultTopDecay); // reset top decay
 
+  int GeVexponent_MEsq;
+  if (topDecay>0) GeVexponent_MEsq = 4-(1+3*(nRequested_Tops+nRequested_Antitops))*2;
+  else GeVexponent_MEsq = 4-(1+nRequested_Tops+nRequested_Antitops)*2;
+  double constant = pow(GeV, -GeVexponent_MEsq);
+  for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
   //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
@@ -4551,6 +4566,10 @@ double TUtil::BBHiggsMatEl(
     __modttbhiggs_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq_tmp);
     for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
   }
+
+  int GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets)*2;
+  double constant = pow(GeV, -GeVexponent_MEsq);
+  for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
   //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
@@ -4693,17 +4712,20 @@ void TUtil::GetBoostedParticleVectors(
   if (daughters.size()>=2){
     unsigned int nffs = daughters.size()/2;
     for (unsigned int iv=0; iv<nffs; iv++){
-      TUtil::removeMassFromPair(
+      pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
         daughters.at(2*iv+0).second, daughters.at(2*iv+0).first,
         daughters.at(2*iv+1).second, daughters.at(2*iv+1).first
         );
+      daughters.at(2*iv+0).second = corrPair.first;
+      daughters.at(2*iv+1).second = corrPair.second;
     }
     if (2*nffs<daughters.size()){
       TLorentzVector tmp = nullFourVector;
-      TUtil::removeMassFromPair(
+      pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
         daughters.at(daughters.size()-1).second, daughters.at(daughters.size()-1).first,
         tmp, -9000
         );
+      daughters.at(daughters.size()-1).second = corrPair.first;
     }
   }
 
@@ -4779,17 +4801,20 @@ void TUtil::GetBoostedParticleVectors(
       if (associated_tmp.size()>=2){ // ==1 means a photon, so omit it here.
         unsigned int nffs = associated_tmp.size()/2;
         for (unsigned int iv=0; iv<nffs; iv++){
-          TUtil::removeMassFromPair(
+          pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
             associated_tmp.at(2*iv+0).second, associated_tmp.at(2*iv+0).first,
             associated_tmp.at(2*iv+1).second, associated_tmp.at(2*iv+1).first
             );
+          associated_tmp.at(2*iv+0).second = corrPair.first;
+          associated_tmp.at(2*iv+1).second = corrPair.second;
         }
         if (2*nffs<associated_tmp.size()){
           TLorentzVector tmp = nullFourVector;
-          TUtil::removeMassFromPair(
+          pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
             associated_tmp.at(associated_tmp.size()-1).second, associated_tmp.at(associated_tmp.size()-1).first,
             tmp, -9000
             );
+          associated_tmp.at(associated_tmp.size()-1).second = corrPair.first;
         }
       }
       for (unsigned int ias=0; ias<associated_tmp.size(); ias++) associated.push_back(associated_tmp.at(ias)); // Fill associated at the last step
@@ -4817,17 +4842,22 @@ void TUtil::GetBoostedParticleVectors(
       if (associated_tmp.size()>=1){
         unsigned int nffs = associated_tmp.size()/2;
         for (unsigned int iv=0; iv<nffs; iv++){
-          TUtil::removeMassFromPair(
+          if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: Removing mass from lepton pair " << 2*iv+0 << '\t' << 2*iv+1 << endl;
+          pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
             associated_tmp.at(2*iv+0).second, associated_tmp.at(2*iv+0).first,
             associated_tmp.at(2*iv+1).second, associated_tmp.at(2*iv+1).first
             );
+          associated_tmp.at(2*iv+0).second = corrPair.first;
+          associated_tmp.at(2*iv+1).second = corrPair.second;
         }
         if (2*nffs<associated_tmp.size()){
+          if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: Removing mass from last lepton  " << associated_tmp.size()-1 << endl;
           TLorentzVector tmp = nullFourVector;
-          TUtil::removeMassFromPair(
+          pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
             associated_tmp.at(associated_tmp.size()-1).second, associated_tmp.at(associated_tmp.size()-1).first,
             tmp, -9000
             );
+          associated_tmp.at(associated_tmp.size()-1).second = corrPair.first;
         }
       }
       for (unsigned int ias=0; ias<associated_tmp.size(); ias++) associated.push_back(associated_tmp.at(ias)); // Fill associated at the last step
@@ -4849,17 +4879,22 @@ void TUtil::GetBoostedParticleVectors(
       if (associated_tmp.size()>=1){
         unsigned int nffs = associated_tmp.size()/2;
         for (unsigned int iv=0; iv<nffs; iv++){
-          TUtil::removeMassFromPair(
+          if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: Removing mass from jet pair " << 2*iv+0 << '\t' << 2*iv+1 << endl;
+          pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
             associated_tmp.at(2*iv+0).second, associated_tmp.at(2*iv+0).first,
             associated_tmp.at(2*iv+1).second, associated_tmp.at(2*iv+1).first
             );
+          associated_tmp.at(2*iv+0).second = corrPair.first;
+          associated_tmp.at(2*iv+1).second = corrPair.second;
         }
         if (2*nffs<associated_tmp.size()){
+          if (verbosity>=TVar::DEBUG) cout << "TUtil::GetBoostedParticles: Removing mass from last jet  " << associated_tmp.size()-1 << endl;
           TLorentzVector tmp = nullFourVector;
-          TUtil::removeMassFromPair(
+          pair<TLorentzVector, TLorentzVector> corrPair = TUtil::removeMassFromPair(
             associated_tmp.at(associated_tmp.size()-1).second, associated_tmp.at(associated_tmp.size()-1).first,
             tmp, -9000
             );
+          associated_tmp.at(associated_tmp.size()-1).second = corrPair.first;
         }
       }
       for (unsigned int ias=0; ias<associated_tmp.size(); ias++) associated.push_back(associated_tmp.at(ias)); // Fill associated at the last step
