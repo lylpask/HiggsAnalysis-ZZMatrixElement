@@ -122,7 +122,7 @@ void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
     }
     else if (wHiggs<0.){
       _hmass = mass;
-      _hwidth = myCSW_->HiggsWidth(0, min(_hmass, 1000.));
+      _hwidth = myCSW_->HiggsWidth(_hmass);
     }
     else{
       _hmass = mass;

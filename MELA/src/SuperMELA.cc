@@ -65,24 +65,22 @@ SuperMELA::SuperMELA(
 }
 
 SuperMELA::~SuperMELA(){
-
   delete sig_CB_; delete sig_BW_; delete sig_FFT_;
   delete qqZZ_pdf_;
 
   delete n_CB_; delete alpha_CB_; delete n2_CB_; delete alpha2_CB_;
   delete mean_CB_; delete sigma_CB_; delete meanTOT_CB_;
-  delete  mean_CB_err_; delete sigma_CB_err_;
+  delete mean_CB_err_; delete sigma_CB_err_;
 
-  delete  mean_BW_;  delete  width_BW_;
+  delete mean_BW_; delete width_BW_;
 
-  delete a0_qqZZ_; delete  a1_qqZZ_; delete  a2_qqZZ_; delete  a3_qqZZ_;
-  delete a4_qqZZ_; delete  a5_qqZZ_; delete  a6_qqZZ_; delete  a7_qqZZ_;
-  delete a8_qqZZ_; delete  a9_qqZZ_; delete  a10_qqZZ_; delete a11_qqZZ_;
+  delete a0_qqZZ_; delete a1_qqZZ_; delete a2_qqZZ_; delete a3_qqZZ_;
+  delete a4_qqZZ_; delete a5_qqZZ_; delete a6_qqZZ_; delete a7_qqZZ_;
+  delete a8_qqZZ_; delete a9_qqZZ_; delete a10_qqZZ_; delete a11_qqZZ_;
   delete a12_qqZZ_; delete a13_qqZZ_;
 
   delete mH_rrv_;
   if (m4l_rrv_!=0) delete m4l_rrv_;
-
 }
 
 void SuperMELA::SetDecayChannel(string myChan){
@@ -144,7 +142,7 @@ void SuperMELA::init(){
     lowMH_=106.0;
     highMH_=141.0;
   }
-  else   calc_mZZ_range(mHVal_, lowMH_, highMH_);
+  else calc_mZZ_range(mHVal_, lowMH_, highMH_);
   if (verbose_)cout<<"Range width="<<highMH_ - lowMH_<<endl;
   m4l_rrv_=new RooRealVar("CMS_zz4l_mass", "CMS_zz4l_mass", mHVal_, lowMH_, highMH_);//this one is the variable!
   m4l_rrv_->setBins(2000, "fft");
@@ -518,15 +516,13 @@ void SuperMELA::readBkgParsFromFile(std::vector<double> &apars){
 void SuperMELA::calc_mZZ_range(const double mHVal, double &low_M, double &high_M){
   //  edm::FileInPath fip("Higgs/Higgs_CS_and_Width/txtFiles/8TeV-ggH.txt");
   //edm::FileInPath fip("Higgs/Higgs_CS_and_Width/txtFiles/YR3/8TeV-ggH.txt");
-  edm::FileInPath fip("ZZMatrixElement/MELA/data/HiggsTotalWidth.txt");
+  edm::FileInPath fip("ZZMatrixElement/MELA/data/HiggsTotalWidth_YR3.txt");
 
   string path = fip.fullPath();
   path.erase((std::find(path.rbegin(), path.rend(), '/').base()), path.end());
   HiggsCSandWidth_MELA *myCSW = new HiggsCSandWidth_MELA(path.c_str());
-  // HiggsCSandWidth *myCSW = new HiggsCSandWidth(path.c_str());
 
-  double widthHVal =  myCSW->HiggsWidth(0, mHVal);
-  //  if(verbose_)cout<<"Width="<<widthHVal<<endl;
+  double widthHVal =  myCSW->HiggsWidth(mHVal);
   double windowVal = max(widthHVal, 1.);
   double lowside = 100.;
   if (mHVal >= 275){ lowside = 180.; }
