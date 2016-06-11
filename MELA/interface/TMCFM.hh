@@ -28,13 +28,13 @@ extern "C" {
   //---------------------------------
   // Structure
   //---------------------------------
-  extern struct {
+  extern struct{
     int nproc;
   } nproc_;
 
-  extern struct {
-    bool verbose;
-  } verbose_;
+  extern struct{
+    bool qlfirst;
+  } qlfirst_;
 
 
 #define bveg1_mcfm_ bveg1_
@@ -117,9 +117,6 @@ extern "C" {
     double delg1_z, delg1_g, lambda_g, lambda_z, delk_g, delk_z, tevscale;
   } anomcoup_;
 
-  extern struct{
-    double Hbit[2]; double Bbit[2];
-  } wwbits_;
 
   //mcfm/src/Inc/masses.F
 #define masses_mcfm_ masses_
@@ -245,7 +242,6 @@ extern "C" {
     int nflav;
   } nflav_;
 
-
   extern struct {
     int lastphot;
   } lastphot_;
@@ -271,25 +267,17 @@ extern "C" {
   //##############
   // Initialization
   //##############
-  // #define mcfm_init_ mcfm_init_
-  void   mcfm_init_(char* inputfile, char* workdir);
-  void   chooser_();
-  void   coupling_();
-  void   coupling2_();
-
-  //mcfm/src/Need/boost.F
-  void boost_mcfm_(double* mass, double* p1, double* p_in, double* p_out);
-
-  // Dynamic alpha_s calculator
+  void mcfm_init_(char* inputfile, char* workdir);
+  void chooser_();
+  void coupling_();
+  void coupling2_();
+  void qlinit_();
+  void fdist_(int* ih1, double* xx, double* pdfscale, double* fx1);
   double alphas_(double* q, double* amz, int* nloop);
+  void ckmfill_(int* nwz);
 
-  //##############
-  // ME calculator
-  double lowint_(double* r, double* wgt);
-  void dotem_(int N, double* p, double* s);
 
   //###############
-  void fdist_(int* ih1, double* xx, double* pdfscale, double* fx1);
 
   // WW
 #define qqb_ww_ qqb_ww_
@@ -302,7 +290,7 @@ extern "C" {
   // ZZ->4l
 #define qqb_zz_ qqb_zz_
   void qqb_zz_(double* p, double* msq);
-  void gen4_(double* r, double* p, double* wt4);  //r(22) p(4,12)
+
 #define qqb_zz_stu_ qqb_zz_stu_ // Custom qqb->ZZ for different s, t, u channels
   void qqb_zz_stu_(double* p, double* msq, int* channeltoggle);
 
@@ -343,10 +331,6 @@ extern "C" {
 #define qqb_zgam_ qqb_zgam_
   void qqb_zgam_(double* p, double* msq);
 
-
-  // For H->WW/ZZ phase space
-  void gen4h_(double* r, double* p, double* wt4);  //r(22) p(4,12)
-
 #define qqb_hww_ qqb_hww_
   void qqb_hww_(double* p, double* msq);
 
@@ -356,39 +340,32 @@ extern "C" {
 #define qqb_hzz_tb_ qqb_hzz_tb_
   void qqb_hzz_tb_(double* p, double* msq);
 
-  // For DY
-  void gen2_(double* r, double* p, double* pswt);
-
 #define qqb_z_ qqb_z_
   void qqb_z_(double* p, double *msq);
 
-  //used by Wgam
-  void gen3_(double* r, double* p, double* pswt);
-  void gen3jet_(double* r, double* p, double* pswt);
+#define qqb_wgam_ qqb_wgam_
+  void qqb_wgam_(double* p, double* msq);
 
 #define qqb_wgam_ qqb_wgam_
   void qqb_wgam_(double* p, double* msq);
 
-  // For Wgam
-  void gen3_(double* r, double* p, double* pswt);
-  void gen3jet_(double* r, double* p, double* pswt);
-
-#define qqb_wgam_ qqb_wgam_
-  void qqb_wgam_(double* p, double* msq);
-
-  void phi3m0_(double* xth, double* xphi, double* p0, double* p1, double* p2, double* wt);
-  void breitw_(double* x1, double* mminsq, double* mmaxsq, double* rmass, double* rwidth, double* msq, double* wt);
-
-  // For W 1jet
-#define gen_njets_ gen_njets_
-  void gen_njets_(double* r, int*, double* p, double* msq);
 
 #define qqb_w_g_ qqb_w_g_
   void qqb_w_g_(double* p, double* msq);
 
-#define ckmfill_ ckmfill_
-  void ckmfill_(int* nwz);
+  //###############
 
+  double lowint_(double* r, double* wgt);
+  void dotem_(int N, double* p, double* s);
+  void boost_mcfm_(double* mass, double* p1, double* p_in, double* p_out);
+  void breitw_(double* x1, double* mminsq, double* mmaxsq, double* rmass, double* rwidth, double* msq, double* wt);
+  void phi3m0_(double* xth, double* xphi, double* p0, double* p1, double* p2, double* wt);
+  void gen2_(double* r, double* p, double* pswt);
+  void gen3_(double* r, double* p, double* pswt);
+  void gen3jet_(double* r, double* p, double* pswt);
+  void gen4_(double* r, double* p, double* wt4);
+  void gen4h_(double* r, double* p, double* wt4);
+  void gen_njets_(double* r, int*, double* p, double* msq);
 
 }
 

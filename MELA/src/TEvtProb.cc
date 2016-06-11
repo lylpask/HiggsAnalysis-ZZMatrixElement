@@ -31,16 +31,20 @@ TEvtProb::TEvtProb(
 {
   if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb constructor" << endl;
 
+  SetLeptonInterf(TVar::DefaultLeptonInterf);
+
+  /***** Initialize Higgs width reader *****/
+  string path_string = path;
+  myCSW_ = new HiggsCSandWidth_MELA(path_string);
+  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: HXS successful" << endl;
+
+  /***** Initialize MCFM *****/
   mcfm_init_((char *)"input.DAT", (char *)"./");
   if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: mcfm_init successful" << endl;
   SetEwkCouplingParameters();
   energy_.sqrts = 2.*EBEAM;
   coupling_();
-  string path_string = path;
-  myCSW_ = new HiggsCSandWidth_MELA(path_string);
-  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: HXS successful" << endl;
-  SetLeptonInterf(TVar::DefaultLeptonInterf);
-
+  qlinit_();
   // First resonance constant parameters
   spinzerohiggs_anomcoupl_.LambdaBSM=1000;
   spinzerohiggs_anomcoupl_.Lambda_z1=10000;
@@ -57,7 +61,10 @@ TEvtProb::TEvtProb(
   spinzerohiggs_anomcoupl_.Lambda2_z4=10000;
   spinzerohiggs_anomcoupl_.Lambda2_zgs1=10000;
   spinzerohiggs_anomcoupl_.Lambda2_Q=10000;
+  // Constant parameters for all processes
+  qlfirst_.qlfirst=false;
 
+  /***** Initialize JHUGen *****/
   InitJHUGenMELA(pathtoPDFSet, PDFMember);
   if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: InitJHUGenMELA successful" << endl;
 
