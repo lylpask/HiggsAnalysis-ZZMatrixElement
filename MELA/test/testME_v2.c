@@ -998,21 +998,26 @@ void testME_Dec_FullSim(int flavor=2){
     mela.setInputEvent(&daughters_ZZ, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
 
     /***** ZZ *****/
+    if (verbosity>=TVar::DEBUG) cout << "Computing bkg_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
     mela.computeP(bkg_VAMCFM_NEW, false);
 
+    if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
     //mela.setMelaLeptonInterference(TVar::InterfOff);
     mela.computeP(ggzz_VAMCFM_NEW, false);
 
+    if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     //mela.setMelaLeptonInterference(TVar::InterfOff);
     mela.computeP(p0plus_VAMCFM_NEW, false);
 
+    if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_p0plus_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
     //mela.setMelaLeptonInterference(TVar::InterfOff);
     mela.computeP(ggzz_p0plus_VAMCFM_NEW, false);
 
+    if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.selfDHzzcoupl[0][0][0]=1;
     mela.computeP(p0plus_VAMCFM_NEW_BSMOn, false);

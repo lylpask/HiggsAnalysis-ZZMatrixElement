@@ -21,12 +21,13 @@ gsW(0)
   ifstream file;
   fileName = fileLoc + "/HiggsTotalWidth_" + strAppend + ".txt";
   file.open(fileName.c_str());
-  double mass, br;
   while (!file.eof()){
+    double mass=0, br=0;
     file >> mass >> br;
     if (mass>0. && br>0.){
       mass_BR.push_back(mass);
       BR.push_back(br);
+      //cout << "mass, width = " << mass << '\t' << br << endl;
     }
   }
   file.close();
@@ -53,7 +54,12 @@ HiggsCSandWidth_MELA::~HiggsCSandWidth_MELA(){
   if (sigW!=0) delete[] sigW; sigW=0;
 }
 
-double HiggsCSandWidth_MELA::HiggsWidth(double mH){ return ((double) gsW->Eval(mH)); }
+double HiggsCSandWidth_MELA::HiggsWidth(double mH){
+  double result = (double)gsW->Eval(mH);
+  //cout << "HiggsCSandWidth_MELA::HiggsWidth: mH requested = " << mH << endl;
+  //cout << "HiggsCSandWidth_MELA::HiggsWidth: GaH requested = " << result << endl;
+  return result;
+}
 
 
 #endif
