@@ -4317,7 +4317,6 @@ double TUtil::TTHiggsMatEl(
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
   double MatElsq[nmsq][nmsq]={ { 0 } };
-  //double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
   if (production!=TVar::ttH){ if (verbosity>=TVar::ERROR) cerr << "TUtil::TTHiggsMatEl: Only ttH is supported." << endl; return sum_msqjk; }
@@ -4641,20 +4640,6 @@ double TUtil::TTHiggsMatEl(
       } // End loop over ifb1
     } // End loop over if1
   } // End loop over ib1
-  /*
-  __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
-  if (isUnknown[0] && isUnknown[1]){
-    for (unsigned int ix=0; ix<4; ix++){
-      swap(p4[3][ix], p4[4][ix]);
-      swap(p4[5][ix], p4[9][ix]);
-      swap(p4[6][ix], p4[10][ix]);
-      swap(p4[7][ix], p4[12][ix]);
-      swap(p4[8][ix], p4[11][ix]);
-    }
-    __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq_tmp);
-    for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
-  }
-  */
   /***** END TTH ME CALCULATION *****/
   int defaultTopDecay=-1;
   __modjhugenmela_MOD_settopdecays(&defaultTopDecay); // reset top decay
