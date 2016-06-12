@@ -215,9 +215,9 @@ void MELACandidate::sortDaughtersByBestZ1(){
         ||
         (isAPhoton(sortedDaughters.at(0)->id) && isAPhoton(sortedDaughters.at(1)->id) && isAPhoton(sortedDaughters.at(2)->id) && isAPhoton(sortedDaughters.at(3)->id))
         ||
-        (isUpTypeQuark(sortedDaughters.at(0)->id) && isUpTypeQuark(sortedDaughters.at(1)->id) && isUpTypeQuark(sortedDaughters.at(2)->id) && isUpTypeQuark(sortedDaughters.at(3)->id))
-        ||
         (isDownTypeQuark(sortedDaughters.at(0)->id) && isDownTypeQuark(sortedDaughters.at(1)->id) && isDownTypeQuark(sortedDaughters.at(2)->id) && isDownTypeQuark(sortedDaughters.at(3)->id))
+        ||
+        (isUpTypeQuark(sortedDaughters.at(0)->id) && isUpTypeQuark(sortedDaughters.at(1)->id) && isUpTypeQuark(sortedDaughters.at(2)->id) && isUpTypeQuark(sortedDaughters.at(3)->id))
         ||
         (isAGluon(sortedDaughters.at(0)->id) && isAGluon(sortedDaughters.at(1)->id) && isAGluon(sortedDaughters.at(2)->id) && isAGluon(sortedDaughters.at(3)->id))
         ||
@@ -234,10 +234,10 @@ void MELACandidate::sortDaughtersByBestZ1(){
       isALepton(sortedDaughters.at(0)->id) ||
       (isANeutrino(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id)) ||
       (isAPhoton(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id)) ||
-      (isUpTypeQuark(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id)) ||
-      (isDownTypeQuark(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id) && !isUpTypeQuark(sortedDaughters.at(2)->id)) ||
-      (isAGluon(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id) && !isUpTypeQuark(sortedDaughters.at(2)->id) && !isDownTypeQuark(sortedDaughters.at(2)->id)) ||
-      (isAnUnknownJet(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id) && !isUpTypeQuark(sortedDaughters.at(2)->id) && !isDownTypeQuark(sortedDaughters.at(2)->id) && !isAGluon(sortedDaughters.at(2)->id))
+      (isDownTypeQuark(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id)) ||
+      (isUpTypeQuark(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id) && !isDownTypeQuark(sortedDaughters.at(2)->id)) ||
+      (isAGluon(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id) && !isDownTypeQuark(sortedDaughters.at(2)->id) && !isUpTypeQuark(sortedDaughters.at(2)->id)) ||
+      (isAnUnknownJet(sortedDaughters.at(0)->id) && !isALepton(sortedDaughters.at(2)->id) && !isANeutrino(sortedDaughters.at(2)->id) && !isAPhoton(sortedDaughters.at(2)->id) && !isDownTypeQuark(sortedDaughters.at(2)->id) && !isUpTypeQuark(sortedDaughters.at(2)->id) && !isAGluon(sortedDaughters.at(2)->id))
       )
       )
       ||

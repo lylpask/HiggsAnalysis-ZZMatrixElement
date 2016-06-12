@@ -2705,16 +2705,15 @@ double TUtil::SumMatrixElementPDF(
   for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
 
   int NPart=npart_.npart+2;
-  double p4[4][mxpart] = { { 0 } };
-  double s[mxpart][mxpart] = { { 0 } };
-  double msq[nmsq][nmsq];
+  double p4[4][mxpart]={ { 0 } };
+  double msq[nmsq][nmsq]={ { 0 } };
   double msqjk=0;
   int channeltoggle=0;
 
   //Convert TLorentzVector into 4xNPart Matrix
   //reverse sign of incident partons
-  for(int ipar=0;ipar<2;ipar++){
-    if(mela_event.pMothers.at(ipar).second.T()>0.){
+  for (int ipar=0; ipar<2; ipar++){
+    if (mela_event.pMothers.at(ipar).second.T()>0.){
       p4[0][ipar] = -mela_event.pMothers.at(ipar).second.X();
       p4[1][ipar] = -mela_event.pMothers.at(ipar).second.Y();
       p4[2][ipar] = -mela_event.pMothers.at(ipar).second.Z();
@@ -2746,105 +2745,173 @@ double TUtil::SumMatrixElementPDF(
     MomStore[ipar]=*momTmp;
   }
 
-  if (verbosity >= TVar::DEBUG){
-    for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
-  }
+  if (verbosity >= TVar::DEBUG){ for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl; }
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
-//  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-//  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-//  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF) for MCFM ME-related calculations
-
-  //calculate invariant masses between partons/final state particles
-  for (int jdx=0; jdx< NPart; jdx++){
-    s[jdx][jdx]=0;
-    for (int kdx=jdx+1; kdx<NPart; kdx++){
-      s[jdx][kdx]=2*(p4[3][jdx]*p4[3][kdx]-p4[2][jdx]*p4[2][kdx]-p4[1][jdx]*p4[1][kdx]-p4[0][jdx]*p4[0][kdx]);
-      s[kdx][jdx]=s[jdx][kdx];
-    }
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::SumMatrixElementPDF: Set AlphaS:\n"
+      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
   }
 
-  bool passMassCuts=true;
-  if (passMassCuts){
-    if ((production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU) && process == TVar::bkgZZ){
-      if (production == TVar::ZZQQB_STU) channeltoggle=0;
-      else if (production == TVar::ZZQQB_S) channeltoggle=1;
-      else/* if (production == TVar::ZZQQB_TU)*/ channeltoggle=2;
-      qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
+  int nInstances=0;
+  if ((production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU) && process == TVar::bkgZZ){
+    if (production == TVar::ZZQQB_STU) channeltoggle=0;
+    else if (production == TVar::ZZQQB_S) channeltoggle=1;
+    else/* if (production == TVar::ZZQQB_TU)*/ channeltoggle=2;
+    qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
 
-      msqjk = msq[3][7] + msq[7][3]; // all of the unweighted MEs are the same
-      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-    }
-    else if (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB){
-      if (process == TVar::bkgZJJ) qqb_z2jet_(p4[0], msq[0]);
-      else if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
-      else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
-      else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
-
-      msqjk = msq[3][7] + msq[7][3]; // all of the unweighted MEs are the same, take uub
-      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-    }
-    // the subroutine for the calculations including the interfenrence
-    // ME =  sig + inter (sign, bkg)
-    else if(production == TVar::ZZGG){
-      if (isZZ){
-        if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 old method
-        else if (process==TVar::HSMHiggs) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
-        else if (process==TVar::bkgZZ_SMHiggs) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
-        else if (process==TVar::bkgZZ) gg_zz_(p4[0], &(msq[5][5])); // |ggZZ|**2
-        else if (process==TVar::HSMHiggs_WWZZ) gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
-        else if (process==TVar::bkgWWZZ_SMHiggs) gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
-        else if (process==TVar::bkgWWZZ) gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
-      }
-      else if (isWW){
-        if (process==TVar::HSMHiggs || process==TVar::HSMHiggs_WWZZ){
-          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis
-          gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
+    // Sum over valid MEs without PDF weights
+    // By far the dominant contribution is uub initial state.
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
+          msqjk += msq[jquark+5][iquark+5];
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
         }
-        else if (process==TVar::bkgWW_SMHiggs || process==TVar::bkgWWZZ_SMHiggs){
-          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis
-          gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
-        }
-        else if (process==TVar::bkgWW || process==TVar::bkgWWZZ){
-          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis
-          gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
-        }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
       }
-
-      msqjk = msq[5][5]; // gg-only
-      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
-    else if (production == TVar::JJVBF){
-      // VBF MCFM SBI, S or B
-      if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)) qq_zzqq_(p4[0], msq[0]);
-      else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)) qq_wwqq_(p4[0], msq[0]);
-      else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){
-        // Vectors are passed with ZZ as basis
-        if (isWW){ for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); }
-        qq_vvqq_(p4[0], msq[0]);
+    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
+  }
+  else if (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB){
+    if (process == TVar::bkgZJJ) qqb_z2jet_(p4[0], msq[0]);
+    else if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
+    else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
+    else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
+
+    // Sum over valid MEs without PDF weights
+    // By far the dominant contribution is uub initial state.
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
+          msqjk += msq[jquark+5][iquark+5];
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+        }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
       }
-
-      msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
+    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
+  }
+  else if (production == TVar::ZZGG){
+    if (isZZ){
+      if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 old method
+      else if (process==TVar::HSMHiggs) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
+      else if (process==TVar::bkgZZ_SMHiggs) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
+      else if (process==TVar::bkgZZ) gg_zz_(p4[0], &(msq[5][5])); // |ggZZ|**2
+      // The following WWZZ processes need no swapping because ZZ->4f (same type) is ordered such that 3/5 (C++: 2/4) swap gives W+W-.
+      else if (process==TVar::HSMHiggs_WWZZ) gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
+      else if (process==TVar::bkgWWZZ_SMHiggs) gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
+      else if (process==TVar::bkgWWZZ) gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
+    }
+    else if (isWW){
+      if (process==TVar::HSMHiggs || process==TVar::HSMHiggs_WWZZ){
+        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+        gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
+      }
+      else if (process==TVar::bkgWW_SMHiggs || process==TVar::bkgWWZZ_SMHiggs){
+        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+        gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
+      }
+      else if (process==TVar::bkgWW || process==TVar::bkgWWZZ){
+        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+        gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
+      }
+    }
+
+    if (
+      (
+      PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(0).first)
+      )
+      &&
+      (
+      PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(1).first)
+      )
+      ){
+      msqjk = msq[5][5];
+      if (msq[5][5]>=0.) nInstances=1;
+    }
+    else msq[5][5]=0; // Kill the ME instance if mothers are known and their ids do not match to gluons.
+    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
+  }
+  else if (production == TVar::JJVBF){
+    // VBF MCFM SBI, S or B
+    if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)) qq_zzqq_(p4[0], msq[0]);
+    else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)) qq_wwqq_(p4[0], msq[0]);
+    else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){
+      // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+      if (isWW){ for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); }
+      qq_vvqq_(p4[0], msq[0]);
+    }
+
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+        }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+      }
+    }
+    msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
 
   if (msqjk != msqjk){
-    cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
+    if (verbosity>=TVar::ERROR) cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
     msqjk=0;
   }
+  else if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::SumMatrixElementPDF: The number of ME instances: " << nInstances << ". MEsq[ip][jp] = " << endl;
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++) cout << msq[jquark+5][iquark+5] << '\t';
+      cout << endl;
+    }
+  }
 
-//  cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMatrixElementPDF: Reset AlphaS"<< endl;
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-//  cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  if (verbosity>=TVar::DEBUG) cout << "End SumMatrixElementPDF(" << msqjk << ")" << endl;
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::SumMatrixElementPDF: Reset AlphaS:\n"
+      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::SumMatrixElementPDF: Reset AlphaS result:\n"
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  if (verbosity>=TVar::DEBUG) cout << "End TUtil::SumMatrixElementPDF(" << msqjk << ")" << endl;
   return msqjk;
 }
 
@@ -2979,15 +3046,19 @@ double TUtil::JHUGenMatEl(
   // Set alphas
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
-  //  cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-  //  cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-  //  cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::JHUGenMatEl: Set AlphaS:\n"
+      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
 
   // Determine te actual ids to compute the ME. Assign ids if any are unknown.
   for (int iv=0; iv<2; iv++){ // Max. 2 vector bosons
@@ -3141,8 +3212,17 @@ double TUtil::JHUGenMatEl(
   if (verbosity >= TVar::DEBUG) cout << "TUtil::JHUGenMatEl: Final MatElSq = " << MatElSq << endl;
 
   // Reset alphas
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-  //cout << "TUtil::MatElSq = " << MatElSq << endl;
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::JHUGenMatEl: Reset AlphaS:\n"
+      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::JHUGenMatEl: Reset AlphaS result:\n"
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
   return MatElSq;
 }
 
@@ -3243,15 +3323,19 @@ double TUtil::HJJMatEl(
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
-  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::HJJMatEl: Set AlphaS:\n"
+      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
 
   // NOTE ON CHANNEL HASHES:
   // THEY ONLY RETURN ISEL>=JSEL CASES. ISEL<JSEL NEEDS TO BE DONE MANUALLY.
@@ -3725,9 +3809,17 @@ double TUtil::HJJMatEl(
   }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
-  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::HJJMatEl: Reset AlphaS:\n"
+      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::HJJMatEl: Reset AlphaS result:\n"
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
   return sum_msqjk;
 }
 
@@ -3931,15 +4023,19 @@ double TUtil::VHiggsMatEl(
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
-  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::VHiggsMatEl: Set AlphaS:\n"
+      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
 
   const double allowed_helicities[2] = { -1, 1 }; // L,R
   for (int h01 = 0; h01 < 2; h01++){
@@ -4195,10 +4291,17 @@ double TUtil::VHiggsMatEl(
     __modjhugenmela_MOD_sethdk(&HDKon);
   }
 
-  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::VHiggsMatEl: Reset AlphaS:\n"
+      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::VHiggsMatEl: Reset AlphaS result:\n"
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
   return sum_msqjk;
 }
 
@@ -4401,15 +4504,19 @@ double TUtil::TTHiggsMatEl(
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
-  //cout << "Default scales: " << defaultRenScale << '\t' << defaultFacScale << endl;
   int defaultNloop = nlooprun_.nlooprun;
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::TTHiggsMatEl: Set AlphaS:\n"
+      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
 
   __modjhugenmela_MOD_settopdecays(&topDecay);
   __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
@@ -4434,9 +4541,17 @@ double TUtil::TTHiggsMatEl(
   for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
-  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::TTHiggsMatEl: Reset AlphaS:\n"
+      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::TTHiggsMatEl: Reset AlphaS result:\n"
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
   return sum_msqjk;
 }
 
@@ -4555,10 +4670,15 @@ double TUtil::BBHiggsMatEl(
   int defaultNflav = nflav_.nflav;
   string defaultPdflabel = pdlabel_.pdlabel;
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-  //cout << "renQ: " << renQ << " x " << event_scales->ren_scale_factor << endl;
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-  //cout << "facQ: " << facQ << " x " << event_scales->fac_scale_factor << endl;
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
+  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::BBHiggsMatEl: Set AlphaS:\n"
+      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
 
   __modttbhiggs_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);
   if (isUnknown[0] && isUnknown[1]){
@@ -4572,9 +4692,17 @@ double TUtil::BBHiggsMatEl(
   for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
-  //cout << "Before reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel); // Protection for other probabilities
-  //cout << "Default scale reset: " << scale_.scale << '\t' << facscale_.facscale << endl;
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::BBHiggsMatEl: Reset AlphaS:\n"
+      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
+  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+  if (verbosity>=TVar::DEBUG){
+    cout
+      << "TUtil::BBHiggsMatEl: Reset AlphaS result:\n"
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+  }
   return sum_msqjk;
 }
 
@@ -4646,7 +4774,7 @@ double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double 
   ComputePDF(p0, p1, fx1, fx2, EBEAM, verbosity);
   if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMEPDF: Setting RcdME"<< endl;
   RcdME->setPartonWeights(fx1, fx2);
-  RcdME->setMEArray(msq,true);
+  RcdME->setMEArray(msq, true);
   RcdME->computeWeightedMEArray();
   //RcdME->getWeightedMEArray(wgt_msq);
   if (verbosity>=TVar::DEBUG) cout << "End TUtil::SumMEPDF"<< endl;

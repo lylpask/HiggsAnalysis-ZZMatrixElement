@@ -1403,7 +1403,7 @@ void testME_Dec_ZZWWComparison_FullSim(){
   float pg1g4_VAJHU_ratio_NEW;
   float pg1g4_pi2_VAJHU_ratio_NEW;
 
-  float p0plus_VAMCFM_NEW, ggzz_p0plus_VAMCFM_NEW, p0plus_VAMCFM_NEW_BSMOn;
+  float p0plus_VAMCFM_NEW, ggzz_p0plus_VAMCFM_NEW, p0plus_VAMCFM_NEW_BSMOn, ggzz_p0plus_VAMCFM_NEW_BSMOn;
   float bkg_VAMCFM_NEW, ggzz_VAMCFM_NEW;
 
   float p0plus_WW_VAJHU_NEW;
@@ -1447,7 +1447,7 @@ void testME_Dec_ZZWWComparison_FullSim(){
   float pg1g4_WW_VAJHU_ratio_NEW;
   float pg1g4_pi2_WW_VAJHU_ratio_NEW;
 
-  float p0plus_WW_VAMCFM_NEW, ggzz_p0plus_WW_VAMCFM_NEW, p0plus_WW_VAMCFM_NEW_BSMOn;
+  float p0plus_WW_VAMCFM_NEW, ggzz_p0plus_WW_VAMCFM_NEW, p0plus_WW_VAMCFM_NEW_BSMOn, ggzz_p0plus_WW_VAMCFM_NEW_BSMOn;
   float bkg_WW_VAMCFM_NEW, ggzz_WW_VAMCFM_NEW;
 
   float mzz = 126.;
@@ -1495,6 +1495,7 @@ void testME_Dec_ZZWWComparison_FullSim(){
   newtree->Branch("p0plus_VAMCFM_NEW", &p0plus_VAMCFM_NEW);
   newtree->Branch("ggzz_p0plus_VAMCFM_NEW", &ggzz_p0plus_VAMCFM_NEW);
   newtree->Branch("p0plus_VAMCFM_NEW_BSMOn", &p0plus_VAMCFM_NEW_BSMOn);
+  newtree->Branch("ggzz_p0plus_VAMCFM_NEW_BSMOn", &ggzz_p0plus_VAMCFM_NEW_BSMOn);
 
   newtree->Branch("p0hplus_VAMCFM_NEW", &p0hplus_VAMCFM_NEW);
   newtree->Branch("p0minus_VAMCFM_NEW", &p0minus_VAMCFM_NEW);
@@ -1542,6 +1543,7 @@ void testME_Dec_ZZWWComparison_FullSim(){
   newtree->Branch("p0plus_WW_VAMCFM_NEW", &p0plus_WW_VAMCFM_NEW);
   newtree->Branch("ggzz_p0plus_WW_VAMCFM_NEW", &ggzz_p0plus_WW_VAMCFM_NEW);
   newtree->Branch("p0plus_WW_VAMCFM_NEW_BSMOn", &p0plus_WW_VAMCFM_NEW_BSMOn);
+  newtree->Branch("ggzz_p0plus_WW_VAMCFM_NEW_BSMOn", &ggzz_p0plus_WW_VAMCFM_NEW_BSMOn);
 
   newtree->Branch("p0hplus_WW_VAMCFM_NEW", &p0hplus_WW_VAMCFM_NEW);
   newtree->Branch("p0minus_WW_VAMCFM_NEW", &p0minus_WW_VAMCFM_NEW);
@@ -1626,6 +1628,10 @@ void testME_Dec_ZZWWComparison_FullSim(){
     mela.selfDHzzcoupl[0][0][0]=1;
     mela.computeP(p0plus_VAMCFM_NEW_BSMOn, false);
 
+    if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_p0plus_VAMCFM_NEW_BSMOn" << endl;
+    mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.computeP(ggzz_p0plus_VAMCFM_NEW_BSMOn, false);
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
@@ -1773,6 +1779,10 @@ void testME_Dec_ZZWWComparison_FullSim(){
     mela.selfDHzzcoupl[0][0][0]=1;
     mela.computeP(p0plus_WW_VAMCFM_NEW_BSMOn, false);
 
+    if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_p0plus_WW_VAMCFM_NEW_BSMOn" << endl;
+    mela.setProcess(TVar::bkgWW_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.computeP(ggzz_p0plus_WW_VAMCFM_NEW_BSMOn, false);
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
