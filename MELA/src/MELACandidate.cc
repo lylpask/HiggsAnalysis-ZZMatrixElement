@@ -1,4 +1,5 @@
 #include <ZZMatrixElement/MELA/interface/MELACandidate.h>
+#include "TMath.h"
 
 using namespace PDGHelpers;
 
@@ -115,7 +116,15 @@ void MELACandidate::sortDaughtersInitial(){
     if (
       (dtmp->charge()+df[0]->charge()==0 && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
       ||
-      (std::abs(dtmp->charge()+df[0]->charge())==1 && PDGHelpers::HVVmass==PDGHelpers::Wmass)
+      (
+      PDGHelpers::HVVmass==PDGHelpers::Wmass
+      &&
+      (
+      (std::abs(dtmp->charge()+df[0]->charge())==1 && TMath::Sign(1, dtmp->id)==-TMath::Sign(1, df[0]->id))
+      ||
+      (PDGHelpers::isAnUnknownJet(dtmp->id) && PDGHelpers::isAnUnknownJet(df[0]->id))
+      )
+      )
       ){
       df[1] = dtmp;
       tmpDindex[1] = j;
