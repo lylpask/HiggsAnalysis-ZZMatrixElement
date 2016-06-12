@@ -4317,7 +4317,7 @@ double TUtil::TTHiggsMatEl(
   const double GeV=1./100.; // JHUGen mom. scale factor
   double sum_msqjk = 0;
   double MatElsq[nmsq][nmsq]={ { 0 } };
-  double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
+  //double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
 
   if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::TTHiggsMatEl: Non-JHUGen MEs are not supported." << endl; return sum_msqjk; }
   if (production!=TVar::ttH){ if (verbosity>=TVar::ERROR) cerr << "TUtil::TTHiggsMatEl: Only ttH is supported." << endl; return sum_msqjk; }
@@ -4343,7 +4343,7 @@ double TUtil::TTHiggsMatEl(
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of stable tops (" << mela_event.pStableTops.size() << ")"
       << "and number of sstable antitops (" << mela_event.pStableAntitops.size() << ")"
-      <<" in ttH process is not 1!" << endl;
+      <<" in ttH process are not 1!" << endl;
     return sum_msqjk;
   }
   else if (topDecay>0 && (mela_event.pTopDaughters.size()<1 || mela_event.pAntitopDaughters.size()<1)){
@@ -4357,7 +4357,7 @@ double TUtil::TTHiggsMatEl(
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of top daughters (" << mela_event.pTopDaughters.at(0).size() << ")"
       << "and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
-      <<" in ttH process is not 3!" << endl;
+      <<" in ttH process are not 3!" << endl;
     return sum_msqjk;
   }
 
@@ -4410,84 +4410,96 @@ double TUtil::TTHiggsMatEl(
   }
 
   // Assign top momenta
+  // t(4) -> b(9) W+(10) (-> f(12) fb(11))
+  const unsigned int t_pos=4;
+  const unsigned int b_pos=9;
+  const unsigned int Wp_pos=10;
+  const unsigned int Wpf_pos=12;
+  const unsigned int Wpfb_pos=11;
   for (unsigned int ipar=0; ipar<topDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(topDaughters.at(ipar).second);
     if (topDaughters.size()==1){
-      p4[4][0] = momTmp->T()*GeV;
-      p4[4][1] = momTmp->X()*GeV;
-      p4[4][2] = momTmp->Y()*GeV;
-      p4[4][3] = momTmp->Z()*GeV;
+      p4[t_pos][0] = momTmp->T()*GeV;
+      p4[t_pos][1] = momTmp->X()*GeV;
+      p4[t_pos][2] = momTmp->Y()*GeV;
+      p4[t_pos][3] = momTmp->Z()*GeV;
     }
     // size==3
     else if (ipar==0){ // b
-      p4[9][0] = momTmp->T()*GeV;
-      p4[9][1] = momTmp->X()*GeV;
-      p4[9][2] = momTmp->Y()*GeV;
-      p4[9][3] = momTmp->Z()*GeV;
+      p4[b_pos][0] = momTmp->T()*GeV;
+      p4[b_pos][1] = momTmp->X()*GeV;
+      p4[b_pos][2] = momTmp->Y()*GeV;
+      p4[b_pos][3] = momTmp->Z()*GeV;
     }
     else if (ipar==2){ // Wfb
-      p4[11][0] = momTmp->T()*GeV;
-      p4[11][1] = momTmp->X()*GeV;
-      p4[11][2] = momTmp->Y()*GeV;
-      p4[11][3] = momTmp->Z()*GeV;
-      p4[10][0] += p4[11][0];
-      p4[10][1] += p4[11][1];
-      p4[10][2] += p4[11][2];
-      p4[10][3] += p4[11][3];
+      p4[Wpfb_pos][0] = momTmp->T()*GeV;
+      p4[Wpfb_pos][1] = momTmp->X()*GeV;
+      p4[Wpfb_pos][2] = momTmp->Y()*GeV;
+      p4[Wpfb_pos][3] = momTmp->Z()*GeV;
+      p4[Wp_pos][0] += p4[Wpfb_pos][0];
+      p4[Wp_pos][1] += p4[Wpfb_pos][1];
+      p4[Wp_pos][2] += p4[Wpfb_pos][2];
+      p4[Wp_pos][3] += p4[Wpfb_pos][3];
     }
     else/* if (ipar==1)*/{ // Wf
-      p4[12][0] = momTmp->T()*GeV;
-      p4[12][1] = momTmp->X()*GeV;
-      p4[12][2] = momTmp->Y()*GeV;
-      p4[12][3] = momTmp->Z()*GeV;
-      p4[10][0] += p4[12][0];
-      p4[10][1] += p4[12][1];
-      p4[10][2] += p4[12][2];
-      p4[10][3] += p4[12][3];
+      p4[Wpf_pos][0] = momTmp->T()*GeV;
+      p4[Wpf_pos][1] = momTmp->X()*GeV;
+      p4[Wpf_pos][2] = momTmp->Y()*GeV;
+      p4[Wpf_pos][3] = momTmp->Z()*GeV;
+      p4[Wp_pos][0] += p4[Wpf_pos][0];
+      p4[Wp_pos][1] += p4[Wpf_pos][1];
+      p4[Wp_pos][2] += p4[Wpf_pos][2];
+      p4[Wp_pos][3] += p4[Wpf_pos][3];
     }
     MomStore[6] = MomStore[6] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
-  if (topDaughters.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=9; ip<=10; ip++) p4[4][ix] = p4[ip][ix]; } }
+  if (topDaughters.size()!=1){ for (unsigned int ix=0; ix<4; ix++){ for (unsigned int ip=b_pos; ip<=Wp_pos; ip++) p4[t_pos][ix] = p4[ip][ix]; } }
 
   // Assign antitop momenta
+  // tb(3) -> bb(5) W-(6) (-> f(7) fb(8))
+  const unsigned int tb_pos=3;
+  const unsigned int bb_pos=5;
+  const unsigned int Wm_pos=6;
+  const unsigned int Wmf_pos=7;
+  const unsigned int Wmfb_pos=8;
   for (unsigned int ipar=0; ipar<antitopDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(antitopDaughters.at(ipar).second);
     if (antitopDaughters.size()==1){
-      p4[3][0] = momTmp->T()*GeV;
-      p4[3][1] = momTmp->X()*GeV;
-      p4[3][2] = momTmp->Y()*GeV;
-      p4[3][3] = momTmp->Z()*GeV;
+      p4[tb_pos][0] = momTmp->T()*GeV;
+      p4[tb_pos][1] = momTmp->X()*GeV;
+      p4[tb_pos][2] = momTmp->Y()*GeV;
+      p4[tb_pos][3] = momTmp->Z()*GeV;
     }
     // size==3
     else if (ipar==0){ // bb
-      p4[5][0] = momTmp->T()*GeV;
-      p4[5][1] = momTmp->X()*GeV;
-      p4[5][2] = momTmp->Y()*GeV;
-      p4[5][3] = momTmp->Z()*GeV;
+      p4[bb_pos][0] = momTmp->T()*GeV;
+      p4[bb_pos][1] = momTmp->X()*GeV;
+      p4[bb_pos][2] = momTmp->Y()*GeV;
+      p4[bb_pos][3] = momTmp->Z()*GeV;
     }
     else if (ipar==1){ // Wf
-      p4[7][0] = momTmp->T()*GeV;
-      p4[7][1] = momTmp->X()*GeV;
-      p4[7][2] = momTmp->Y()*GeV;
-      p4[7][3] = momTmp->Z()*GeV;
-      p4[6][0] += p4[7][0];
-      p4[6][1] += p4[7][1];
-      p4[6][2] += p4[7][2];
-      p4[6][3] += p4[7][3];
+      p4[Wmf_pos][0] = momTmp->T()*GeV;
+      p4[Wmf_pos][1] = momTmp->X()*GeV;
+      p4[Wmf_pos][2] = momTmp->Y()*GeV;
+      p4[Wmf_pos][3] = momTmp->Z()*GeV;
+      p4[Wm_pos][0] += p4[Wmf_pos][0];
+      p4[Wm_pos][1] += p4[Wmf_pos][1];
+      p4[Wm_pos][2] += p4[Wmf_pos][2];
+      p4[Wm_pos][3] += p4[Wmf_pos][3];
     }
     else/* if (ipar==1)*/{ // Wfb
-      p4[8][0] = momTmp->T()*GeV;
-      p4[8][1] = momTmp->X()*GeV;
-      p4[8][2] = momTmp->Y()*GeV;
-      p4[8][3] = momTmp->Z()*GeV;
-      p4[6][0] += p4[8][0];
-      p4[6][1] += p4[8][1];
-      p4[6][2] += p4[8][2];
-      p4[6][3] += p4[8][3];
+      p4[Wmfb_pos][0] = momTmp->T()*GeV;
+      p4[Wmfb_pos][1] = momTmp->X()*GeV;
+      p4[Wmfb_pos][2] = momTmp->Y()*GeV;
+      p4[Wmfb_pos][3] = momTmp->Z()*GeV;
+      p4[Wm_pos][0] += p4[Wmfb_pos][0];
+      p4[Wm_pos][1] += p4[Wmfb_pos][1];
+      p4[Wm_pos][2] += p4[Wmfb_pos][2];
+      p4[Wm_pos][3] += p4[Wmfb_pos][3];
     }
     MomStore[7] = MomStore[7] + (*momTmp); // MomStore (I1, I2, 0, 0, 0, H, J1, J2)
   }
-  if (antitopDaughters.size()!=1){ for (int ix=0; ix<4; ix++){ for (int ip=5; ip<=6; ip++) p4[3][ix] = p4[ip][ix]; } }
+  if (antitopDaughters.size()!=1){ for (unsigned int ix=0; ix<4; ix++){ for (unsigned int ip=5; ip<=6; ip++) p4[tb_pos][ix] = p4[ip][ix]; } }
 
   for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
@@ -4519,6 +4531,117 @@ double TUtil::TTHiggsMatEl(
   }
 
   __modjhugenmela_MOD_settopdecays(&topDecay);
+  /***** BEGIN TTH ME CALCULATION *****/
+  for (unsigned int ib1=0; ib1<3; ib1++){
+    if (topDaughters.size()==1 && ib1!=0) continue;
+    else if (topDaughters.size()==3 && !PDGHelpers::isAnUnknownJet(topDaughters.at(0).first) && ib1!=0) continue;
+    unsigned int b1index;
+    if (ib1==0) b1index = b_pos;
+    else if (ib1==1) b1index = Wpf_pos;
+    else b1index = Wpfb_pos;
+    for (unsigned int if1=0; if1<3; if1++){
+      if (topDaughters.size()==1 && if1!=0) continue;
+      else if (topDaughters.size()==3 && !PDGHelpers::isAnUnknownJet(topDaughters.at(1).first) && if1!=0) continue;
+      unsigned int f1index;
+      if (if1==0) f1index = Wpf_pos;
+      else if (if1==2) f1index = b_pos;
+      else f1index = Wpfb_pos;
+      for (unsigned int ifb1=0; ifb1<3; ifb1++){
+        if (topDaughters.size()==1 && ifb1!=0) continue;
+        else if (topDaughters.size()==3 && !PDGHelpers::isAnUnknownJet(topDaughters.at(2).first) && ifb1!=0) continue;
+        unsigned int fb1index;
+        if (ifb1==2) fb1index = Wpf_pos;
+        else if (ifb1==1) fb1index = b_pos;
+        else fb1index = Wpfb_pos;
+
+        if (b1index==f1index || b1index==fb1index || f1index==fb1index) continue;
+
+        for (unsigned int ib2=0; ib2<3; ib2++){
+          if (antitopDaughters.size()==1 && ib2!=0) continue;
+          else if (antitopDaughters.size()==3 && !PDGHelpers::isAnUnknownJet(antitopDaughters.at(0).first) && ib2!=0) continue;
+          unsigned int b2index;
+          if (ib2==0) b2index = bb_pos;
+          else if (ib2==1) b2index = Wmf_pos;
+          else b2index = Wmfb_pos;
+          for (unsigned int if2=0; if2<3; if2++){
+            if (antitopDaughters.size()==1 && if2!=0) continue;
+            else if (antitopDaughters.size()==3 && !PDGHelpers::isAnUnknownJet(antitopDaughters.at(1).first) && if2!=0) continue;
+            unsigned int f2index;
+            if (if2==0) f2index = Wmf_pos;
+            else if (if2==2) f2index = bb_pos;
+            else f2index = Wmfb_pos;
+            for (unsigned int ifb2=0; ifb2<3; ifb2++){
+              if (antitopDaughters.size()==1 && ifb2!=0) continue;
+              else if (antitopDaughters.size()==3 && !PDGHelpers::isAnUnknownJet(antitopDaughters.at(2).first) && ifb2!=0) continue;
+              unsigned int fb2index;
+              if (ifb2==2) fb2index = Wmf_pos;
+              else if (ifb2==1) fb2index = bb_pos;
+              else fb2index = Wmfb_pos;
+
+              if (b2index==f2index || b2index==fb2index || f2index==fb2index) continue;
+
+              double p4_current[13][4]={ { 0 } };
+              for (unsigned int ix=0; ix<4; ix++){
+                for (unsigned int ip=0; ip<=2; ip++) p4_current[ip][ix] = p4[ip][ix]; // I1, I2, H do not change.
+                p4_current[t_pos][ix] = p4[t_pos][ix]; // t does not change.
+                p4_current[b1index][ix] = p4[b_pos][ix]; // Assign b to different position.
+                p4_current[f1index][ix] = p4[Wpf_pos][ix]; // Assign Wp->f? to different position.
+                p4_current[fb1index][ix] = p4[Wpfb_pos][ix]; // Assign Wp->?fb to different position.
+                p4_current[Wp_pos][ix] = p4_current[Wpf_pos][ix] + p4_current[Wpfb_pos][ix]; // Re-sum W+ momentum.
+
+                p4_current[tb_pos][ix] = p4[tb_pos][ix]; // tb does not change.
+                p4_current[b2index][ix] = p4[bb_pos][ix]; // Assign bb to different position.
+                p4_current[f2index][ix] = p4[Wmf_pos][ix]; // Assign Wm->f? to different position.
+                p4_current[fb2index][ix] = p4[Wmfb_pos][ix]; // Assign Wm->?fb to different position.
+                p4_current[Wm_pos][ix] = p4_current[Wmf_pos][ix] + p4_current[Wmfb_pos][ix]; // Re-sum W- momentum.
+              }
+              if (verbosity>=TVar::DEBUG){
+                cout
+                  << "TUtil::TTHiggsMatEl: Unswapped instance for "
+                  << "b(" << b_pos << ") -> " << b1index << ", "
+                  << "Wpf(" << Wpf_pos << ") -> " << f1index << ", "
+                  << "Wpfb(" << Wpfb_pos << ") -> " << fb1index << ", "
+                  << "bb(" << bb_pos << ") -> " << b2index << ", "
+                  << "Wmf(" << Wmf_pos << ") -> " << f2index << ", "
+                  << "Wmfb(" << Wmfb_pos << ") -> " << fb2index << endl;
+                for (int ii=0; ii<13; ii++){ cout << "p4_instance[" << ii << "] = "; for (int jj=0; jj<4; jj++) cout << p4_current[ii][jj]/GeV << '\t'; cout << endl; }
+                cout << endl;
+              }
+
+              double MatElsq_tmp[nmsq][nmsq]={ { 0 } };
+              double MatElsq_tmp_swap[nmsq][nmsq]={ { 0 } };
+              __modttbhiggs_MOD_evalxsec_pp_ttbh(p4_current, &topProcess, MatElsq_tmp);
+              if (isUnknown[0] && isUnknown[1]){
+                for (unsigned int ix=0; ix<4; ix++){
+                  swap(p4_current[t_pos][ix], p4_current[tb_pos][ix]);
+                  swap(p4_current[b_pos][ix], p4_current[bb_pos][ix]);
+                  swap(p4_current[Wp_pos][ix], p4_current[Wm_pos][ix]);
+                  swap(p4_current[Wpf_pos][ix], p4_current[Wmf_pos][ix]);
+                  swap(p4_current[Wpfb_pos][ix], p4_current[Wmfb_pos][ix]);
+                }
+                __modttbhiggs_MOD_evalxsec_pp_ttbh(p4_current, &topProcess, MatElsq_tmp_swap);
+                for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq_tmp[iy][ix] = (MatElsq_tmp[iy][ix]+MatElsq_tmp_swap[iy][ix])/2.; }
+              }
+              for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] += MatElsq_tmp[iy][ix]; }
+              if (verbosity>=TVar::DEBUG){
+                cout
+                  << "TUtil::TTHiggsMatEl: Swapped instance for "
+                  << "b(" << b_pos << ") -> " << b1index << ", "
+                  << "Wpf(" << Wpf_pos << ") -> " << f1index << ", "
+                  << "Wpfb(" << Wpfb_pos << ") -> " << fb1index << ", "
+                  << "bb(" << bb_pos << ") -> " << b2index << ", "
+                  << "Wmf(" << Wmf_pos << ") -> " << f2index << ", "
+                  << "Wmfb(" << Wmfb_pos << ") -> " << fb2index << endl;
+                for (int ii=0; ii<13; ii++){ cout << "p4_instance[" << ii << "] = "; for (int jj=0; jj<4; jj++) cout << p4_current[ii][jj]/GeV << '\t'; cout << endl; }
+                cout << endl;
+              }
+            } // End loop over ifb2
+          } // End loop over if2
+        } // End loop over ib2
+      } // End loop over ifb1
+    } // End loop over if1
+  } // End loop over ib1
+  /*
   __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq);
   if (isUnknown[0] && isUnknown[1]){
     for (unsigned int ix=0; ix<4; ix++){
@@ -4531,8 +4654,18 @@ double TUtil::TTHiggsMatEl(
     __modttbhiggs_MOD_evalxsec_pp_ttbh(p4, &topProcess, MatElsq_tmp);
     for (int ix=0; ix<11; ix++){ for (int iy=0; iy<11; iy++) MatElsq[iy][ix] = (MatElsq[iy][ix]+MatElsq_tmp[iy][ix])/2.; }
   }
+  */
+  /***** END TTH ME CALCULATION *****/
   int defaultTopDecay=-1;
   __modjhugenmela_MOD_settopdecays(&defaultTopDecay); // reset top decay
+
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::TTHiggsMatEl: MEsq[ip][jp] = " << endl;
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++) cout << MatElsq[jquark+5][iquark+5] << '\t';
+      cout << endl;
+    }
+  }
 
   int GeVexponent_MEsq;
   if (topDecay>0) GeVexponent_MEsq = 4-(1+3*(nRequested_Tops+nRequested_Antitops))*2;
@@ -5054,7 +5187,7 @@ void TUtil::GetBoostedParticleVectors(
   vector<MELATopCandidate*> tops;
   vector<MELATopCandidate*> topbars;
   vector<MELATopCandidate*> unknowntops;
-  if (code%TVar::kUseAssociated_StableTops==0 && code%TVar::kUseAssociated_UnstableTops==0 && verbosity>=TVar::INFO) cerr << "TUtil::GetBoostedParticleVectors: Stable and unstable tops ar not supported at the same time!"  << endl;
+  if (code%TVar::kUseAssociated_StableTops==0 && code%TVar::kUseAssociated_UnstableTops==0 && verbosity>=TVar::INFO) cerr << "TUtil::GetBoostedParticleVectors: Stable and unstable tops are not supported at the same time!"  << endl;
   else if (code%TVar::kUseAssociated_StableTops==0 || code%TVar::kUseAssociated_UnstableTops==0){
 
     for (int itop=0; itop<melaCand->getNAssociatedTops(); itop++){
@@ -5071,6 +5204,7 @@ void TUtil::GetBoostedParticleVectors(
           ) particleArray->push_back((MELATopCandidate*)theTop);
       }
     }
+    if (verbosity>=TVar::DEBUG){ cout << "TUtil::GetBoostedParticleVectors: tops.size=" << tops.size() << ", topbars.size=" << topbars.size() << ", unknowntops.size=" << unknowntops.size() << endl; }
 
     // Fill the stable/unstable top arrays
     for (unsigned int itop=0; itop<tops.size(); itop++){
@@ -5417,8 +5551,8 @@ MELATopCandidate* TUtil::ConvertTopCandidate(
   }
   else if (TopDaughters->size()==3){
     MELAParticle* bottom = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
-    MELAParticle* Wf = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
-    MELAParticle* Wfb = new MELAParticle((TopDaughters->at(0)).first, (TopDaughters->at(0)).second);
+    MELAParticle* Wf = new MELAParticle((TopDaughters->at(1)).first, (TopDaughters->at(1)).second);
+    MELAParticle* Wfb = new MELAParticle((TopDaughters->at(2)).first, (TopDaughters->at(2)).second);
 
     if (Wf->id<0 || Wfb->id>0){
       MELAParticle* parttmp = Wf;

@@ -1336,6 +1336,176 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
 
       newtree->Fill();
       recorded++;
+      mela.resetInputEvent();
+    }
+  }
+
+
+  foutput->WriteTObject(newtree);
+  delete newtree;
+  foutput->Close();
+  finput->Close();
+}
+
+void testME_ProdP_TTHBBH_FullSim(){
+  int erg_tev=8;
+  float mPOLE=125.6;
+  float wPOLE=4.07e-3;
+  TString TREE_NAME = "SelectedTree";
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), "2mu2e", "2e2mu"), "read");
+  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_ttHbbHMELATest.root", "2e2mu"), "recreate");
+
+  float pbbh_VAJHU_old_NEW;
+  float ptth_VAJHU_old_NEW;
+  float pbbh_VAJHU_old_NEW_selfD;
+  float ptth_VAJHU_old_NEW_selfD;
+  float pbbh0minus_VAJHU_old_NEW;
+  float ptth0minus_VAJHU_old_NEW;
+  float pbbh0minus_VAJHU_old_NEW_selfD;
+  float ptth0minus_VAJHU_old_NEW_selfD;
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+
+  TTree* tree = (TTree*)finput->Get(TREE_NAME);
+  tree->SetBranchAddress("NJets30", &NJets30);
+  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("ZZPt", &ZZPt);
+  tree->SetBranchAddress("ZZEta", &ZZEta);
+  tree->SetBranchAddress("ZZPhi", &ZZPhi);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+
+  TTree* newtree = new TTree("TestTree", "");
+  newtree->Branch("pbbh_VAJHU_old_NEW", &pbbh_VAJHU_old_NEW);
+  newtree->Branch("ptth_VAJHU_old_NEW", &ptth_VAJHU_old_NEW);
+  newtree->Branch("pbbh0minus_VAJHU_old_NEW", &pbbh0minus_VAJHU_old_NEW);
+  newtree->Branch("ptth0minus_VAJHU_old_NEW", &ptth0minus_VAJHU_old_NEW);
+  newtree->Branch("pbbh_VAJHU_old_NEW_selfD", &pbbh_VAJHU_old_NEW_selfD);
+  newtree->Branch("ptth_VAJHU_old_NEW_selfD", &ptth_VAJHU_old_NEW_selfD);
+  newtree->Branch("pbbh0minus_VAJHU_old_NEW_selfD", &pbbh0minus_VAJHU_old_NEW_selfD);
+  newtree->Branch("ptth0minus_VAJHU_old_NEW_selfD", &ptth0minus_VAJHU_old_NEW_selfD);
+  newtree->Branch("ZZMass", &mzz);
+
+  float GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
+  GenLep1Id=13;
+  GenLep2Id=-13;
+  GenLep3Id=11;
+  GenLep4Id=-11;
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+  int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
+
+  int nEntries = tree->GetEntries();
+  int recorded=0;
+  for (int ev = 0; ev < nEntries; ev++){
+    if (recorded>=1000) break;
+    tree->GetEntry(ev);
+
+    if (JetPt->size()>=2 && NJets30>=2){
+      TLorentzVector jet1(0, 0, 1e-3, 1e-3), jet2(0, 0, 1e-3, 1e-3), higgs(0, 0, 0, 0);
+      jet1.SetPtEtaPhiM(JetPt->at(0), JetEta->at(0), JetPhi->at(0), JetMass->at(0));
+      jet2.SetPtEtaPhiM(JetPt->at(1), JetEta->at(1), JetPhi->at(1), JetMass->at(1));
+      higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+      TVector3 boostH = higgs.BoostVector();
+
+      SimpleParticleCollection_t associated;
+      associated.push_back(SimpleParticle_t(0, jet1));
+      associated.push_back(SimpleParticle_t(0, jet2));
+
+      TLorentzVector pDaughters[4];
+      std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+      for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+      SimpleParticleCollection_t daughters;
+      for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(idOrdered[idau], pDaughters[idau]));
+      mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+      // This is some hack to get top daughter four-vectors
+      SimpleParticleCollection_t topDaughters;
+      topDaughters.push_back(SimpleParticle_t(0, jet1));
+      for (unsigned int idau=0; idau<2; idau++) topDaughters.push_back(SimpleParticle_t(0, pDaughters[idau]));
+      mela.appendTopCandidate(&topDaughters);
+      SimpleParticleCollection_t antitopDaughters;
+      antitopDaughters.push_back(SimpleParticle_t(0, jet2));
+      for (unsigned int idau=2; idau<4; idau++) antitopDaughters.push_back(SimpleParticle_t(0, pDaughters[idau]));
+      mela.appendTopCandidate(&antitopDaughters);
+
+      if (verbosity>=TVar::DEBUG){
+        cout << "Mela candidates summary:" << endl;
+        for (int ic=0; ic<mela.getNCandidates(); ic++){
+          cout << "Candidate " << ic << endl;
+          mela.setCurrentCandidateFromIndex(ic);
+          TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
+        }
+        cout << endl;
+      }
+
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ttH);
+      mela.computeProdP_ttH(ptth_VAJHU_old_NEW, 2, 0, false);
+
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::bbH);
+      mela.computeProdP_ttH(pbbh_VAJHU_old_NEW, 2, 0, false);
+
+      mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::ttH);
+      mela.computeProdP_ttH(ptth0minus_VAJHU_old_NEW, 2, 0, false);
+
+      mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::bbH);
+      mela.computeProdP_ttH(pbbh0minus_VAJHU_old_NEW, 2, 0, false);
+
+
+      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ttH);
+      mela.selfDHqqcoupl[0][0]=1;
+      mela.computeProdP_ttH(ptth_VAJHU_old_NEW_selfD, 2, 0, false);
+
+      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::bbH);
+      mela.selfDHqqcoupl[0][0]=1;
+      mela.computeProdP_ttH(pbbh_VAJHU_old_NEW_selfD, 2, 0, false);
+
+      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ttH);
+      mela.selfDHqqcoupl[1][0]=1;
+      mela.computeProdP_ttH(ptth0minus_VAJHU_old_NEW_selfD, 2, 0, false);
+
+      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::bbH);
+      mela.selfDHqqcoupl[1][0]=1;
+      mela.computeProdP_ttH(pbbh0minus_VAJHU_old_NEW_selfD, 2, 0, false);
+
+      newtree->Fill();
+      recorded++;
+      mela.resetInputEvent();
     }
   }
 

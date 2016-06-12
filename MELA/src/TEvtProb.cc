@@ -378,17 +378,17 @@ double TEvtProb::XsecCalc_XVV(
 
     // 0m+
     if (process == TVar::HSMHiggs){
-      Hvvcoupl[0][0]=1.0;
+      Hvvcoupl[0][0]=1.;
       isSpinZero = true;
     }
     // 0-
     else if (process == TVar::H0minus){
-      Hvvcoupl[3][0] = 1.0;
+      Hvvcoupl[3][0] = 1.;
       isSpinZero = true;
     }
     // 0h+
     else if (process == TVar::H0hplus){
-      Hvvcoupl[1][0] = 1.0;
+      Hvvcoupl[1][0] = 1.;
       isSpinZero = true;
     }
     // 0+L1
@@ -668,27 +668,27 @@ double TEvtProb::XsecCalcXJJ(
 
   // 0-
   if (process == TVar::H0minus){
-    Hggcoupl[0][0] = 0.0;
-    Hggcoupl[2][0] = 1.0;
+    Hggcoupl[0][0] = 0.;
+    Hggcoupl[2][0] = 1.;
 
-    Hzzcoupl[0][0] = 0.0;
-    Hzzcoupl[3][0] = 1.0;
-    Hwwcoupl[0][0] = 0.0;
-    Hwwcoupl[3][0] = 1.0;
+    Hzzcoupl[0][0] = 0.;
+    Hzzcoupl[3][0] = 1.;
+    Hwwcoupl[0][0] = 0.;
+    Hwwcoupl[3][0] = 1.;
   }
   // 0+h
   else if (process == TVar::H0hplus) { // No need to re-set ggcoupl
-    Hzzcoupl[0][0] = 0.0;
-    Hzzcoupl[1][0] = 1.0;
-    Hwwcoupl[0][0] = 0.0;
-    Hwwcoupl[1][0] = 1.0;
+    Hzzcoupl[0][0] = 0.;
+    Hzzcoupl[1][0] = 1.;
+    Hwwcoupl[0][0] = 0.;
+    Hwwcoupl[1][0] = 1.;
   }
   // 0+L1
   else if (process == TVar::H0_g1prime2){ // No need to re-set ggcoupl
     Hzzcoupl[0][0] = 0.;
-    Hzzcoupl[11][0] = -12046.01;
+    Hzzcoupl[11][0] = 1.;
     Hwwcoupl[0][0] = 0.;
-    Hwwcoupl[11][0] = -12046.01;
+    Hwwcoupl[11][0] = 1.;
   }
   else if (process == TVar::SelfDefine_spin0){
     for (int j=0; j<2; j++){
@@ -777,22 +777,22 @@ double TEvtProb::XsecCalc_VX(
 
     // 0-
     if (process == TVar::H0minus) {
-      Hvvcoupl[0][0] = 0.0;
-      Hvvcoupl[1][0] = 0.0;
-      Hvvcoupl[2][0] = 0.0;
-      Hvvcoupl[3][0] = 1.0;
+      Hvvcoupl[0][0] = 0.;
+      Hvvcoupl[1][0] = 0.;
+      Hvvcoupl[2][0] = 0.;
+      Hvvcoupl[3][0] = 1.;
     }
     // 0h+
     else if (process == TVar::H0hplus) {
-      Hvvcoupl[0][0] = 0.0;
-      Hvvcoupl[1][0] = 1.0;
-      Hvvcoupl[2][0] = 0.0;
-      Hvvcoupl[3][0] = 0.0;
+      Hvvcoupl[0][0] = 0.;
+      Hvvcoupl[1][0] = 1.;
+      Hvvcoupl[2][0] = 0.;
+      Hvvcoupl[3][0] = 0.;
     }
     // 0+L1
     else if (process == TVar::H0_g1prime2){
       Hvvcoupl[0][0] = 0.;
-      Hvvcoupl[11][0] = -12046.01;
+      Hvvcoupl[11][0] = 1.;
     }
     else if (process == TVar::SelfDefine_spin0){
       for (int i=0; i<SIZE_HVV; i++){ for (int j=0; j<2; j++) Hvvcoupl[i][j] = (selfDSpinZeroCoupl.Hzzcoupl)[i][j]; }
@@ -836,13 +836,13 @@ double TEvtProb::XsecCalc_TTX(
 
   if (matrixElement == TVar::JHUGen){
     // By default set the spin-0 couplings for SM case
-    Hqqcoupl[0][0]=1;  Hqqcoupl[0][1]=0;   // first/second number is the real/imaginary part
+    Hqqcoupl[0][0]=1.;  Hqqcoupl[0][1]=0.;   // first/second number is the real/imaginary part
     for (int i = 1; i<SIZE_HQQ; i++){ for (int com=0; com<2; com++) Hqqcoupl[i][com] = 0; }
 
     // 0-
     if (process == TVar::H0minus) {
-      Hqqcoupl[0][0] = 0;
-      Hqqcoupl[1][0] = 1;
+      Hqqcoupl[0][0] = 0.;
+      Hqqcoupl[1][0] = 1.;
     }
     else if (process == TVar::SelfDefine_spin0){
       for (int i=0; i<SIZE_HQQ; i++){ for (int j=0; j<2; j++) Hqqcoupl[i][j] = (selfDSpinZeroCoupl.Hqqcoupl)[i][j]; }
