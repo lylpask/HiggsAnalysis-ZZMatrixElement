@@ -148,7 +148,50 @@ void TUtil::computeFakeJet(TLorentzVector realJet, TLorentzVector others, TLoren
   fakeJet.SetE(fakeJet.P());
 }
 
-/***** Decay *****/
+/***** Complex Boost *****/
+std::pair<TLorentzVector, TLorentzVector> TUtil::ComplexBoost(TVector3 beta, TLorentzVector p4){
+  double bx=beta.X();
+  double by=beta.Y();
+  double bz=beta.Z();
+
+  double bp = bx*p4.X() + by*p4.Y() + bz*p4.Z();
+  double b2 = bx*bx + by*by + bz*bz;
+  double gammasqinv = 1.-b2;
+
+  double gamma=0.;
+  double gammap_real=0;
+  double gammap_imag=0;
+  TLorentzVector p4new_real(0, 0, 0, 0), p4new_imag(0, 0, 0, 0);
+  if (gammasqinv>0.){
+    gamma = 1./sqrt(gammasqinv);
+    if (b2>0.) gammap_real = (gamma-1.)/b2;
+
+    p4new_real.SetX(p4.X() + gammap_real*bp*bx + gamma*bx*p4.T());
+    p4new_real.SetY(p4.Y() + gammap_real*bp*by + gamma*by*p4.T());
+    p4new_real.SetZ(p4.Z() + gammap_real*bp*bz + gamma*bz*p4.T());
+    p4new_real.SetT(gamma*(p4.T() + bp));
+  }
+  else if (gammasqinv<0.){
+    gamma = -1./sqrt(-gammasqinv);
+    if (b2>0.){
+      gammap_real = -1./b2;
+      gammap_imag = gamma/b2;
+    }
+
+    p4new_real.SetX(p4.X() + gammap_real*bp*bx);
+    p4new_real.SetY(p4.Y() + gammap_real*bp*by);
+    p4new_real.SetZ(p4.Z() + gammap_real*bp*bz);
+    p4new_real.SetT(0.);
+    p4new_imag.SetX(gammap_imag*bp*bx + gamma*bx*p4.T());
+    p4new_imag.SetY(gammap_imag*bp*by + gamma*by*p4.T());
+    p4new_imag.SetZ(gammap_imag*bp*bz + gamma*bz*p4.T());
+    p4new_imag.SetT(gamma*(p4.T() + bp));
+  }
+
+  return (pair<TLorentzVector, TLorentzVector>(p4new_real, p4new_imag));
+}
+
+/***** Decay angles *****/
 void TUtil::computeAngles(
   TLorentzVector p4M11, int Z1_lept1Id,
   TLorentzVector p4M12, int Z1_lept2Id,
@@ -536,7 +579,7 @@ void TUtil::computeAnglesCS(
   }
 }
 
-/***** Associated production *****/
+/***** Associated production angles *****/
 void TUtil::computeVBFangles(
   float& costhetastar,
   float& costheta1,
@@ -616,7 +659,7 @@ void TUtil::computeVBFangles(
       int diff1Id = jet1Id-injet1Id;
       int diff2Id = jet2Id-injet2Id;
       if (
-        !(
+        !( // THIS IS A NOT-IF!
         (diff1Id==0 && diff2Id==0 && !(injet1Id==21 || injet2Id==21)) // Two Z bosons
         ||
         ((fabs(diff1Id)==1 || fabs(diff1Id)==3 || fabs(diff1Id)==5) && (fabs(diff2Id)==1 || fabs(diff2Id)==3 || fabs(diff2Id)==5)) // Two W bosons, do not check W+ vs W-
@@ -645,27 +688,210 @@ void TUtil::computeVBFangles(
   jet1massless.Transform(ZZframe);
   jet2massless.Transform(ZZframe);
 
-  TLorentzVector V1 = P1-jet1massless; // V1 = (-p12) - p11 = -Z1
-  TLorentzVector V2 = P2-jet2massless; // V2 = (-p22) - p21 = -Z2
-  Q2V1 = -V1.M2();
-  Q2V2 = -V2.M2();
+  TLorentzVector fermion1, fermion2, antifermion1, antifermion2;
+  // Consider cases with gen. partons
+  // By default, fermion1/2 are jet1/2 unless incoming partons are specifically anti-quarks!
+  if (injet1!=0 && injet1Id<0){
+    fermion1=-P1;
+    antifermion1 = jet1massless;
+  }
+  else{
+    fermion1 = jet1massless;
+    antifermion1=-P1;
+  }
+  if (injet2!=0 && injet2Id<0){
+    fermion2=-P2;
+    antifermion2 = jet2massless;
+  }
+  else{
+    fermion2 = jet2massless;
+    antifermion2=-P2;
+  }
 
-  costhetastar = -V1.Vect().Unit().Dot(p4Z2.Vect().Unit());
-  costheta1 = -V1.Vect().Unit().Dot(jet1massless.Vect().Unit());
-  costheta2 = -V2.Vect().Unit().Dot(jet2massless.Vect().Unit());
-
-  TVector3 normvec1 = P1.Vect().Cross(jet1massless.Vect()).Unit(); // p11 x p12 = (-p12) x p11
-  TVector3 normvec2 = P2.Vect().Cross(jet2massless.Vect()).Unit(); // p21 x p22 = (-p22) x p21
-  TVector3 normvec3 = V1.Vect().Cross(p4Z2.Vect()).Unit(); // == z x Z1
-
+  // Computations in the frame of X
+  TLorentzVector V1 = fermion1 + antifermion1; // Outgoing V1
+  TLorentzVector V2 = fermion2 + antifermion2; // Outgoing V2
+  TVector3 normvec1 = fermion1.Vect().Cross(antifermion1.Vect()).Unit(); // p11 x p12
+  TVector3 normvec2 = fermion2.Vect().Cross(antifermion2.Vect()).Unit(); // p21 x p22
+  TVector3 normvec3 = p4Z2.Vect().Cross(V1.Vect()).Unit(); // z x V1
   double cosPhi = normvec1.Dot(normvec2);
-  double sgnPhi = normvec1.Cross(normvec2).Dot(-V1.Vect());
+  double sgnPhi = normvec1.Cross(normvec2).Dot(V1.Vect());
+  if (fabs(sgnPhi)>0.) sgnPhi = sgnPhi/fabs(sgnPhi);
   double cosPhi1 = normvec1.Dot(normvec3);
-  double sgnPhi1 = normvec1.Cross(normvec3).Dot(-V1.Vect());
+  double sgnPhi1 = normvec1.Cross(normvec3).Dot(V1.Vect());
+  if (fabs(sgnPhi1)>0.) sgnPhi1 = sgnPhi1/fabs(sgnPhi1);
   if (fabs(cosPhi)>1) cosPhi *= 1./fabs(cosPhi);
   if (fabs(cosPhi1)>1) cosPhi1 *= 1./fabs(cosPhi1);
-  Phi = TMath::Sign(acos(-cosPhi), sgnPhi);            //TMath::Sign(a,b) = |a|*(b/|b|)
-  Phi1 = TMath::Sign(acos(cosPhi1), sgnPhi1);
+  Phi = acos(-cosPhi)*sgnPhi;
+  Phi1 = acos(cosPhi1)*sgnPhi1;
+  costhetastar = V1.Vect().Unit().Dot(p4Z2.Vect().Unit()); // Note that p4Z2 is still in outgoing convention, so in incoming terms, this is equivalent to putting p4Z1.
+  Q2V1 = -(V1.M2());
+  Q2V2 = -(V2.M2());
+
+  // Computations that would have been in the frame of X had V1 and V2 not been virtual
+  costheta1 = V1.Vect().Unit().Dot(fermion1.Vect().Unit());
+  costheta2 = V2.Vect().Unit().Dot(fermion2.Vect().Unit());
+}
+void TUtil::computeVBFangles_ComplexBoost(
+  float& costhetastar,
+  float& costheta1_real, float& costheta1_imag,
+  float& costheta2_real, float& costheta2_imag,
+  float& Phi,
+  float& Phi1,
+  float& Q2V1,
+  float& Q2V2,
+  TLorentzVector p4M11, int Z1_lept1Id,
+  TLorentzVector p4M12, int Z1_lept2Id,
+  TLorentzVector p4M21, int Z2_lept1Id,
+  TLorentzVector p4M22, int Z2_lept2Id,
+  TLorentzVector jet1, int jet1Id,
+  TLorentzVector jet2, int jet2Id,
+  TLorentzVector* injet1, int injet1Id, // Gen. partons in lab frame
+  TLorentzVector* injet2, int injet2Id
+  ){
+  TLorentzVector nullFourVector(0, 0, 0, 0);
+  if (p4M12==nullFourVector || p4M22==nullFourVector){
+    pair<TLorentzVector, TLorentzVector> f13Pair = TUtil::removeMassFromPair(p4M11, Z1_lept1Id, p4M21, Z2_lept1Id);
+    p4M11 = f13Pair.first;
+    p4M21 = f13Pair.second;
+  }
+  else if (p4M11==nullFourVector || p4M21==nullFourVector){
+    pair<TLorentzVector, TLorentzVector> f24Pair = TUtil::removeMassFromPair(p4M12, Z1_lept2Id, p4M22, Z2_lept2Id);
+    p4M12 = f24Pair.first;
+    p4M22 = f24Pair.second;
+  }
+  else{
+    pair<TLorentzVector, TLorentzVector> f12Pair = TUtil::removeMassFromPair(p4M11, Z1_lept1Id, p4M12, Z1_lept2Id);
+    pair<TLorentzVector, TLorentzVector> f34Pair = TUtil::removeMassFromPair(p4M21, Z2_lept1Id, p4M22, Z2_lept2Id);
+    p4M11 = f12Pair.first;
+    p4M12 = f12Pair.second;
+    p4M21 = f34Pair.first;
+    p4M22 = f34Pair.second;
+  }
+
+  TLorentzVector jet1massless, jet2massless;
+  pair<TLorentzVector, TLorentzVector> jetPair = TUtil::removeMassFromPair(jet1, jet1Id, jet2, jet2Id);
+  jet1massless = jetPair.first;
+  jet2massless = jetPair.second;
+
+  //build Z 4-vectors
+  TLorentzVector p4Z1 = p4M11 + p4M12;
+  TLorentzVector p4Z2 = p4M21 + p4M22;
+  TLorentzVector pH = p4Z1+p4Z2;
+  //jet1 is defined as going forwards (bigger pz), jet2 going backwards (smaller pz)
+  if (jet1massless.Z() < jet2massless.Z()) { swap(jet1massless, jet2massless); swap(jet1Id, jet2Id); }
+
+  //Find the incoming partons - first boost so the pT(HJJ) = 0, then boost away the pz.
+  //This preserves the z direction.  Then assume that the partons come in this z direction.
+  //This is exactly correct at LO (since pT=0 anyway).
+  //Then associate the one going forwards with jet1 and the one going backwards with jet2
+  TLorentzRotation movingframe;
+  TLorentzVector pHJJ = pH+jet1massless+jet2massless;
+  TLorentzVector pHJJ_perp(pHJJ.X(), pHJJ.Y(), 0, pHJJ.T());
+  movingframe.Boost(-pHJJ_perp.BoostVector());
+  pHJJ.Boost(-pHJJ_perp.BoostVector());
+  movingframe.Boost(-pHJJ.BoostVector());
+  pHJJ.Boost(-pHJJ.BoostVector());   //make sure to boost HJJ AFTER boosting movingframe
+
+  TLorentzVector P1(0, 0, pHJJ.T()/2, pHJJ.T()/2);
+  TLorentzVector P2(0, 0, -pHJJ.T()/2, pHJJ.T()/2);
+  // Transform incoming partons back to original frame
+  P1.Transform(movingframe.Inverse());
+  P2.Transform(movingframe.Inverse());
+  //movingframe, HJJ, and HJJ_T will not be used anymore
+  if (injet1!=0 && injet2!=0){ // Handle gen. partons if they are available
+    if (fabs((*injet1+*injet2).P()-pHJJ.P())<pHJJ.P()*1e-4){
+      P1=*injet1;
+      P2=*injet2;
+      if (P1.Z() < P2.Z()){
+        swap(P1, P2);
+        swap(injet1Id, injet2Id);
+      }
+      // In the case of gen. partons, check if the intermediates are a Z or a W.
+      int diff1Id = jet1Id-injet1Id;
+      int diff2Id = jet2Id-injet2Id;
+      if (
+        !( // THIS IS A NOT-IF!
+        (diff1Id==0 && diff2Id==0 && !(injet1Id==21 || injet2Id==21)) // Two Z bosons
+        ||
+        ((fabs(diff1Id)==1 || fabs(diff1Id)==3 || fabs(diff1Id)==5) && (fabs(diff2Id)==1 || fabs(diff2Id)==3 || fabs(diff2Id)==5)) // Two W bosons, do not check W+ vs W-
+        )
+        ){
+        int diff12Id = jet1Id-injet2Id;
+        int diff21Id = jet2Id-injet1Id;
+        if (
+          ((diff12Id==0 || diff21Id==0) && !(injet1Id==21 || injet2Id==21)) // At least one Z boson
+          ||
+          ((fabs(diff12Id)==1 || fabs(diff12Id)==3 || fabs(diff12Id)==5) || (fabs(diff21Id)==1 || fabs(diff21Id)==3 || fabs(diff21Id)==5)) // At least one W boson
+          ){
+          swap(P1, P2);
+          swap(injet1Id, injet2Id);
+        }
+      }
+    }
+  }
+
+  TLorentzRotation ZZframe;
+  ZZframe.Boost(-pH.BoostVector());
+  P1.Transform(ZZframe);
+  P2.Transform(ZZframe);
+  p4Z1.Transform(ZZframe);
+  p4Z2.Transform(ZZframe);
+  jet1massless.Transform(ZZframe);
+  jet2massless.Transform(ZZframe);
+
+  TLorentzVector fermion1, fermion2, antifermion1, antifermion2;
+  // Consider cases with gen. partons
+  // By default, fermion1/2 are jet1/2 unless incoming partons are specifically anti-quarks!
+  if (injet1!=0 && injet1Id<0){
+    fermion1=-P1;
+    antifermion1 = jet1massless;
+  }
+  else{
+    fermion1 = jet1massless;
+    antifermion1=-P1;
+  }
+  if (injet2!=0 && injet2Id<0){
+    fermion2=-P2;
+    antifermion2 = jet2massless;
+  }
+  else{
+    fermion2 = jet2massless;
+    antifermion2=-P2;
+  }
+
+  // Computations in the frame of X
+  TLorentzVector V1 = fermion1 + antifermion1; // Outgoing V1
+  TLorentzVector V2 = fermion2 + antifermion2; // Outgoing V2
+  TVector3 normvec1 = fermion1.Vect().Cross(antifermion1.Vect()).Unit(); // p11 x p12
+  TVector3 normvec2 = fermion2.Vect().Cross(antifermion2.Vect()).Unit(); // p21 x p22
+  TVector3 normvec3 = p4Z2.Vect().Cross(V1.Vect()).Unit(); // z x V1
+  double cosPhi = normvec1.Dot(normvec2);
+  double sgnPhi = normvec1.Cross(normvec2).Dot(V1.Vect());
+  if (fabs(sgnPhi)>0.) sgnPhi = sgnPhi/fabs(sgnPhi);
+  double cosPhi1 = normvec1.Dot(normvec3);
+  double sgnPhi1 = normvec1.Cross(normvec3).Dot(V1.Vect());
+  if (fabs(sgnPhi1)>0.) sgnPhi1 = sgnPhi1/fabs(sgnPhi1);
+  if (fabs(cosPhi)>1) cosPhi *= 1./fabs(cosPhi);
+  if (fabs(cosPhi1)>1) cosPhi1 *= 1./fabs(cosPhi1);
+  Phi = acos(-cosPhi)*sgnPhi;
+  Phi1 = acos(cosPhi1)*sgnPhi1;
+  costhetastar = V1.Vect().Unit().Dot(p4Z2.Vect().Unit()); // Note that p4Z2 is still in outgoing convention, so in incoming terms, this is equivalent to putting p4Z1.
+  Q2V1 = -(V1.M2());
+  Q2V2 = -(V2.M2());
+
+  // Up to here, everything has to be the same as TUtil::computeVBFangles
+  // Computations that would have been truly in the frame of X had V1 and V2 not been virtual:
+  // Use TUtil::ComplexBoost to evade imaginary gamma problems when beta**2<0
+  pair<TLorentzVector, TLorentzVector> V2_BV1 = TUtil::ComplexBoost(V1.BoostVector(), V2);
+  pair<TLorentzVector, TLorentzVector> fermion1_BV1 = TUtil::ComplexBoost(V1.BoostVector(), fermion1);
+  costheta1_real = -(V2_BV1.first.Vect().Unit().Dot(fermion1_BV1.first.Vect().Unit()) - V2_BV1.second.Vect().Unit().Dot(fermion1_BV1.second.Vect().Unit()));
+  costheta1_imag = -(V2_BV1.first.Vect().Unit().Dot(fermion1_BV1.second.Vect().Unit()) + V2_BV1.second.Vect().Unit().Dot(fermion1_BV1.first.Vect().Unit()));
+
+  pair<TLorentzVector, TLorentzVector> V1_BV2 = TUtil::ComplexBoost(V2.BoostVector(), V1);
+  pair<TLorentzVector, TLorentzVector> fermion2_BV2 = TUtil::ComplexBoost(V2.BoostVector(), fermion2);
+  costheta2_real = -(V1_BV2.first.Vect().Unit().Dot(fermion2_BV2.first.Vect().Unit()) - V1_BV2.second.Vect().Unit().Dot(fermion2_BV2.second.Vect().Unit()));
+  costheta2_imag = -(V1_BV2.first.Vect().Unit().Dot(fermion2_BV2.second.Vect().Unit()) + V1_BV2.second.Vect().Unit().Dot(fermion2_BV2.first.Vect().Unit()));
 }
 void TUtil::computeVHangles(
   float& costhetastar,

@@ -65,6 +65,9 @@ namespace TUtil{
   // Compute a fake jet from the massless jets
   void computeFakeJet(TLorentzVector realJet, TLorentzVector others, TLorentzVector& fakeJet); // Input massive + higgs -> output massless fake jet
 
+  // TLorentzVector::Boost in complex plane
+  std::pair<TLorentzVector, TLorentzVector> ComplexBoost(TVector3 beta, TLorentzVector p4);
+
   /// Compute decay angles from the lepton four-vectors and pdgIds.  
   /// Theta1 is the angle corresponding to Z1.
   /// Z1_lept1 and  Z1_lept2 are supposed to come from the same Z.
@@ -108,8 +111,25 @@ namespace TUtil{
     TLorentzVector p4M22, int Z2_lept2Id,
     TLorentzVector jet1, int jet1Id,
     TLorentzVector jet2, int jet2Id,
-    TLorentzVector* injet1, int injet1Id, // Gen. partons in lab frame
-    TLorentzVector* injet2, int injet2Id
+    TLorentzVector* injet1=0, int injet1Id=0, // Gen. partons in lab frame
+    TLorentzVector* injet2=0, int injet2Id=0
+    );
+  void computeVBFangles_ComplexBoost(
+    float& costhetastar,
+    float& costheta1_real, float& costheta1_imag,
+    float& costheta2_real, float& costheta2_imag,
+    float& Phi,
+    float& Phi1,
+    float& Q2V1,
+    float& Q2V2,
+    TLorentzVector p4M11, int Z1_lept1Id,
+    TLorentzVector p4M12, int Z1_lept2Id,
+    TLorentzVector p4M21, int Z2_lept1Id,
+    TLorentzVector p4M22, int Z2_lept2Id,
+    TLorentzVector jet1, int jet1Id,
+    TLorentzVector jet2, int jet2Id,
+    TLorentzVector* injet1=0, int injet1Id=0, // Gen. partons in lab frame
+    TLorentzVector* injet2=0, int injet2Id=0
     );
   void computeVHangles(
     float& costhetastar,
@@ -123,8 +143,8 @@ namespace TUtil{
     TLorentzVector p4M22, int Z2_lept2Id,
     TLorentzVector jet1, int jet1Id,
     TLorentzVector jet2, int jet2Id,
-    TLorentzVector* injet1, int injet1Id, // Gen. partons in lab frame
-    TLorentzVector* injet2, int injet2Id
+    TLorentzVector* injet1=0, int injet1Id=0, // Gen. partons in lab frame
+    TLorentzVector* injet2=0, int injet2Id=0
     );
 
   // Parameter settings
