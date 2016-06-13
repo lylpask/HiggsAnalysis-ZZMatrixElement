@@ -71,7 +71,7 @@ TEvtProb::TEvtProb(
   ResetCouplings();
   ResetRenFacScaleMode();
   ResetInputEvent();
-  SetHiggsMass(125., -1., -1);
+  SetPrimaryHiggsMass(125.);
   SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
   if (verbosity>=TVar::DEBUG) cout << "End TEvtProb constructor" << endl;
 }
@@ -120,6 +120,7 @@ void TEvtProb::SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVa
   event_scales.fac_scale_factor = fac_sf;
 }
 void TEvtProb::AllowSeparateWWCouplings(bool doAllow){ SetJHUGenDistinguishWWCouplings(doAllow); selfDSpinZeroCoupl.allow_WWZZSeparation(doAllow); }
+void TEvtProb::SetPrimaryHiggsMass(double mass){ PrimaryHMass=mass; SetHiggsMass(PrimaryHMass, -1., -1); }
 void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
   // Regular, first resonance
   if (whichResonance==1 || whichResonance==-1){
@@ -249,6 +250,7 @@ void TEvtProb::ResetInputEvent(){
 SpinZeroCouplings* TEvtProb::GetSelfDSpinZeroCouplings(){ return selfDSpinZeroCoupl.getRef(); }
 SpinOneCouplings* TEvtProb::GetSelfDSpinOneCouplings(){ return selfDSpinOneCoupl.getRef(); }
 SpinTwoCouplings* TEvtProb::GetSelfDSpinTwoCouplings(){ return selfDSpinTwoCoupl.getRef(); }
+double TEvtProb::GetPrimaryHiggsMass(){ return PrimaryHMass; }
 MelaIO* TEvtProb::GetIORecord(){ return RcdME.getRef(); }
 MELACandidate* TEvtProb::GetCurrentCandidate(){ return melaCand; }
 int TEvtProb::GetCurrentCandidateIndex(){

@@ -72,6 +72,7 @@ public:
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void ResetCouplings();
 
+  void SetPrimaryHiggsMass(double mass);
   void SetHiggsMass(double mass, double wHiggs=-1., int whichResonance=-1);
 
   void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
@@ -129,6 +130,7 @@ public:
   SpinZeroCouplings* GetSelfDSpinZeroCouplings();
   SpinOneCouplings* GetSelfDSpinOneCouplings();
   SpinTwoCouplings* GetSelfDSpinTwoCouplings();
+  double GetPrimaryHiggsMass();
   MelaIO* GetIORecord();
   MELACandidate* GetCurrentCandidate();
   int GetCurrentCandidateIndex(); // Return the index of current melaCand in the candList array, or -1 if it does not exist
@@ -144,6 +146,7 @@ protected:
   TVar::Production production;
   TVar::VerbosityLevel verbosity;
   TVar::LeptonInterference leptonInterf;
+  double PrimaryHMass;
   double _hmass;
   double _hwidth;
   double _h2mass;

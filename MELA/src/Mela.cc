@@ -126,6 +126,7 @@ Mela::Mela(
   if (myVerbosity_>=TVar::DEBUG) cout << "Start newZZMatrixElement" << endl;
   ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-23).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
   if (myVerbosity_>=TVar::DEBUG) cout << "Set newZZMatrixElement masses" << endl;
+  setMelaPrimaryHiggsMass(mh_);
   setMelaHiggsMass(mh_, 0); setMelaHiggsMass(-1., 1);
   setMelaHiggsWidth(-1., 0); setMelaHiggsWidth(0., 1);
   setMelaLeptonInterference(TVar::DefaultLeptonInterf);
@@ -232,6 +233,7 @@ void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Pro
 }
 void Mela::setVerbosity(TVar::VerbosityLevel verbosity_){ myVerbosity_=verbosity_; if(ZZME!=0) ZZME->set_Verbosity(myVerbosity_); }
 // Should be called per-event
+void Mela::setMelaPrimaryHiggsMass(double myHiggsMass){ ZZME->set_PrimaryHiggsMass(myHiggsMass); }
 void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myHiggsMass, index); }
 void Mela::setMelaHiggsWidth(double myHiggsWidth, int index){ ZZME->set_wHiggs(myHiggsWidth, index); }
 void Mela::setMelaHiggsMassWidth(double myHiggsMass, double myHiggsWidth, int index){ ZZME->set_mHiggs_wHiggs(myHiggsMass, myHiggsWidth, index); }

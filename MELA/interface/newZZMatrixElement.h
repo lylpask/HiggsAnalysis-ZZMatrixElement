@@ -80,6 +80,7 @@ public:
   //
   void set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf); // Sets variables exclusive to Xcal2
   void set_LHAgrid(const char* path, int pdfmember=0); // Sets variable exclusive to Xcal2
+  void set_PrimaryHiggsMass(double mh);
   void set_CandidateDecayMode(TVar::CandidateDecayMode mode); // Sets variables exclusive to Xcal2
   void set_CurrentCandidateFromIndex(unsigned int icand); // Sets variables exclusive to Xcal2
   void set_CurrentCandidate(MELACandidate* cand); // Sets variables exclusive to Xcal2

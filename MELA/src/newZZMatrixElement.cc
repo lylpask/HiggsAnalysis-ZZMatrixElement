@@ -22,6 +22,7 @@ newZZMatrixElement::newZZMatrixElement(
   if (processVerbosity>=TVar::DEBUG) cout << "Begin newZZMatrixElement constructor" << endl;
 
   // Set default parameters explicitly
+  set_PrimaryHiggsMass(125.);
   set_mHiggs(125., 0); set_wHiggs(-1., 0);
   set_mHiggs(-1., 1); set_wHiggs(0., 1);
 
@@ -114,6 +115,7 @@ void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizat
   Xcal2.SetRenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
 void newZZMatrixElement::set_CandidateDecayMode(TVar::CandidateDecayMode mode){ Xcal2.SetCandidateDecayMode(mode); }
+void newZZMatrixElement::set_PrimaryHiggsMass(double mh){ Xcal2.SetPrimaryHiggsMass(mh); }
 void newZZMatrixElement::set_CurrentCandidateFromIndex(unsigned int icand){ Xcal2.SetCurrentCandidateFromIndex(icand); }
 void newZZMatrixElement::set_CurrentCandidate(MELACandidate* cand){ Xcal2.SetCurrentCandidate(cand); }
 void newZZMatrixElement::set_InputEvent(
@@ -164,7 +166,7 @@ void newZZMatrixElement::set_mHiggs_wHiggs(double mh_, double gah_, int index){
     mHiggs[index] = mh_;
     wHiggs[index] = gah_;
   }
-  else cerr << "newZZMatrixElement::set_HiggsMassWidth: Only resonances 0 (regular) and 1 (additional, possibly high-mass) are supported" << endl;
+  else cerr << "newZZMatrixElement::set_mHiggs_wHiggs: Only resonances 0 (regular) and 1 (additional, possibly high-mass) are supported" << endl;
 }
 // reset_MCFM_EWKParameters resets the MCFM EW parameters to those specified. This function is a wrapper around the TEvtProb version.
 void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
@@ -174,6 +176,7 @@ void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemm
 // resetPerEvent resets the mass, width and lepton interference settings and deletes the temporary input objects newZZMatrixElement owns.
 void newZZMatrixElement::resetPerEvent(){
   // Protection against forgetfulness; custom width has to be set per-computation
+  set_mHiggs(Xcal2.GetPrimaryHiggsMass(), 0); // Sets mHiggs[0]
   if (wHiggs[0]>=0.) set_wHiggs(-1., 0);
 
   if (mHiggs[1]>=0.) set_mHiggs(-1., 1);

@@ -3009,7 +3009,18 @@ double TUtil::SumMatrixElementPDF(
           PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
           )
           ){
-          msqjk += msq[jquark+5][iquark+5];
+          if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            &&
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            ) msqjk = msq[jquark+5][-jquark+5];
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[-iquark+5][iquark+5];
+          else msqjk += msq[jquark+5][iquark+5];
           if (msq[jquark+5][iquark+5]>0.) nInstances++;
         }
         else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
@@ -3036,7 +3047,18 @@ double TUtil::SumMatrixElementPDF(
           PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
           )
           ){
-          msqjk += msq[jquark+5][iquark+5];
+          if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            &&
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            ) msqjk = msq[jquark+5][-jquark+5];
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[-iquark+5][iquark+5];
+          else msqjk += msq[jquark+5][iquark+5];
           if (msq[jquark+5][iquark+5]>0.) nInstances++;
         }
         else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
