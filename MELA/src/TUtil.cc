@@ -4243,8 +4243,7 @@ double TUtil::VHiggsMatEl(
   else if (verbosity>=TVar::INFO && includeHiggsDecay) cerr << "TUtil::VHiggsMatEl: includeHiggsDecay=true is not supported for the present decay mode." << endl;
 
   if (verbosity>=TVar::DEBUG){
-    for (int i=0; i<9; i++) cout << "p4[0] = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
-    for (int i=0; i<9; i++) cout << "id(" << i << ") = "  << vh_ids[i] << endl;
+    for (int i=0; i<9; i++) cout << "p4(" << vh_ids[i] << ") = "  << p4[i][0] << ", " <<  p4[i][1] << ", "  <<  p4[i][2] << ", "  <<  p4[i][3] << "\n";
   }
 
   double defaultRenScale = scale_.scale;
@@ -4283,6 +4282,7 @@ double TUtil::VHiggsMatEl(
 
           if (production==TVar::Had_ZH){
             for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+              if (outgoing1==0) continue;
               vh_ids[5] = outgoing1;
               vh_ids[6] = -outgoing1;
               if (
@@ -4379,8 +4379,14 @@ double TUtil::VHiggsMatEl(
           vh_ids[0] = incoming1;
           if (MYIDUP_prod[0]!=0 && MYIDUP_prod[0]!=vh_ids[0]) continue;
 
-          for (int incoming2 = -nf; incoming2 < 0; incoming2++){
-            if (abs(incoming2)==abs(incoming1) || TMath::Sign(1, incoming1)==TMath::Sign(1, incoming2)) continue;
+          for (int incoming2 = -nf; incoming2 <= nf; incoming2++){
+            if (abs(incoming2)==abs(incoming1) || TMath::Sign(1, incoming1)==TMath::Sign(1, incoming2) || abs(incoming1)%2==abs(incoming2)%2 || incoming2==0) continue;
+            if (
+              (PDGHelpers::isUpTypeQuark(incoming1) && incoming1>0)
+              ||
+              (PDGHelpers::isUpTypeQuark(incoming2) && incoming2>0)
+              ) vh_ids[2]=24;
+            else vh_ids[2]=-24;
 
             vh_ids[1] = incoming2;
             if (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1]) continue;
@@ -4388,16 +4394,16 @@ double TUtil::VHiggsMatEl(
             if (production==TVar::Had_WH){
               for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
                 for (int outgoing2=-nf; outgoing2<=nf; outgoing2++){
-                  if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2)) continue;
+                  if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2) || abs(outgoing1)%2==abs(outgoing2)%2 || outgoing1==0 || outgoing2==0) continue;
 
                   // Determine whether the decay is from a W+ or a W-
                   if (
                     (PDGHelpers::isUpTypeQuark(outgoing1) && outgoing1>0)
                     ||
                     (PDGHelpers::isUpTypeQuark(outgoing2) && outgoing2>0)
-                    ) vh_ids[2]=24;
-                  else vh_ids[2]=-24;
-                  vh_ids[3] = vh_ids[2];
+                    ) vh_ids[3]=24;
+                  else vh_ids[3]=-24;
+                  if (vh_ids[3]!=vh_ids[2]) continue;
 
                   vh_ids[5] = outgoing1;
                   vh_ids[6] = outgoing2;
@@ -4454,9 +4460,9 @@ double TUtil::VHiggsMatEl(
                 (PDGHelpers::isANeutrino(MYIDUP_prod[2]) && MYIDUP_prod[2]>0)
                 ||
                 (PDGHelpers::isANeutrino(MYIDUP_prod[3]) && MYIDUP_prod[3]>0)
-                ) vh_ids[2]=24;
-              else vh_ids[2]=-24;
-              vh_ids[3] = vh_ids[2];
+                ) vh_ids[3]=24;
+              else vh_ids[3]=-24;
+              if (vh_ids[3]!=vh_ids[2]) continue;
 
               vh_ids[5] = MYIDUP_prod[2];
               vh_ids[6] = MYIDUP_prod[3];
