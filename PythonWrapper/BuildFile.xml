@@ -1,6 +1,5 @@
 <use name="boost"/>
-<use name="rootcintex"/>
-<use name="rootrflx"/>
+<use name="rootcore"/>
 <use name="roofitcore"/>
 <use name="FWCore/PythonParameterSet"/>
 <use name="ZZMatrixElement/MEMCalculators"/>

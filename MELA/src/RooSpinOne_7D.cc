@@ -7,7 +7,7 @@
  // Your description goes here... 
 
 #include "Riostream.h" 
-#include "RooSpinOne_7D.h" 
+#include <ZZMatrixElement/MELA/interface/RooSpinOne_7D.h>
 #include "RooAbsReal.h" 
 #include "RooAbsCategory.h" 
 #include <math.h> 

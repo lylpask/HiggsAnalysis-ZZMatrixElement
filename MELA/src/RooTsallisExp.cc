@@ -1,4 +1,4 @@
-#include "RooTsallisExp.h"
+#include <ZZMatrixElement/MELA/interface/RooTsallisExp.h>
 
 #include <iostream>
 #include <math.h>

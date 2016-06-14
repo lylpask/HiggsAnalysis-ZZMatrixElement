@@ -6,7 +6,7 @@
 
 // Your description goes here... 
 
-#include "RooRapidityBkg.h" 
+#include <ZZMatrixElement/MELA/interface/RooRapidityBkg.h>
 
 #include <math.h> 
 
