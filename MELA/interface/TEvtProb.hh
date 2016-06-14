@@ -39,7 +39,7 @@
 #include "TCouplings.hh"
 #include "TVar.hh"
 #include "TUtil.hh"
-#include <ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h>
+#include <ZZMatrixElement/MELA/interface/MELAHXSWidth.h>
 
 
 //----------------------------------------
@@ -152,7 +152,7 @@ protected:
   double _h2mass;
   double _h2width;
   double EBEAM;
-  HiggsCSandWidth_MELA* myCSW_;
+  MELAHXSWidth* myCSW_;
   event_scales_type event_scales;
 
   SpinZeroCouplings selfDSpinZeroCoupl;

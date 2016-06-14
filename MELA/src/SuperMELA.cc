@@ -4,7 +4,7 @@
 #include "RooArgSet.h"
 #include "RooArgList.h"
 //#include "Higgs/Higgs_CS_and_Width/include/HiggsCSandWidth.h"
-#include <ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h>
+#include <ZZMatrixElement/MELA/interface/MELAHXSWidth.h>
 #include "RooPlot.h"
 #include <FWCore/ParameterSet/interface/FileInPath.h>
 
@@ -520,7 +520,7 @@ void SuperMELA::calc_mZZ_range(const double mHVal, double &low_M, double &high_M
 
   string path = fip.fullPath();
   path.erase((std::find(path.rbegin(), path.rend(), '/').base()), path.end());
-  HiggsCSandWidth_MELA *myCSW = new HiggsCSandWidth_MELA(path.c_str());
+  MELAHXSWidth *myCSW = new MELAHXSWidth(path.c_str());
 
   double widthHVal =  myCSW->HiggsWidth(mHVal);
   double windowVal = max(widthHVal, 1.);

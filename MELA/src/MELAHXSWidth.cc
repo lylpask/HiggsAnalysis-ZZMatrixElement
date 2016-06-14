@@ -1,18 +1,15 @@
-#ifndef HIGGSCSANDWIDTH_CC
-#define HIGGSCSANDWIDTH_CC
-
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
 #include <fstream>
 #include "TROOT.h"
 #include "TF1.h"
-#include <ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h>
+#include <ZZMatrixElement/MELA/interface/MELAHXSWidth.h>
 
 using namespace std;
 
 
-HiggsCSandWidth_MELA::HiggsCSandWidth_MELA(std::string fileLoc, std::string strAppend) :
+MELAHXSWidth::MELAHXSWidth(std::string fileLoc, std::string strAppend) :
 xmhW(0),
 sigW(0),
 graphW(0),
@@ -47,20 +44,17 @@ gsW(0)
 }
 
 
-HiggsCSandWidth_MELA::~HiggsCSandWidth_MELA(){
+MELAHXSWidth::~MELAHXSWidth(){
   if (gsW!=0) delete gsW; gsW=0;
   if (graphW!=0) delete graphW; graphW=0;
   if (xmhW!=0) delete[] xmhW; xmhW=0;
   if (sigW!=0) delete[] sigW; sigW=0;
 }
 
-double HiggsCSandWidth_MELA::HiggsWidth(double mH){
+double MELAHXSWidth::HiggsWidth(double mH){
   double result = (double)gsW->Eval(mH);
-  //cout << "HiggsCSandWidth_MELA::HiggsWidth: mH requested = " << mH << endl;
-  //cout << "HiggsCSandWidth_MELA::HiggsWidth: GaH requested = " << result << endl;
+  //cout << "MELAHXSWidth::HiggsWidth: mH requested = " << mH << endl;
+  //cout << "MELAHXSWidth::HiggsWidth: GaH requested = " << result << endl;
   return result;
 }
-
-
-#endif
 

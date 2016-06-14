@@ -1,15 +1,15 @@
-#ifndef HIGGSCSANDWIDTH_H
-#define HIGGSCSANDWIDTH_H
+#ifndef MELAHXSWIDTH_H
+#define MELAHXSWIDTH_H
 
 #include <string>
 #include "TGraph.h"
 #include "TSpline.h"
 
 
-class HiggsCSandWidth_MELA{
+class MELAHXSWidth{
 public:
-  HiggsCSandWidth_MELA(std::string fileLoc = "../txtFiles", std::string strAppend="YR3");
-  ~HiggsCSandWidth_MELA();
+  MELAHXSWidth(std::string fileLoc = "../txtFiles", std::string strAppend="YR3");
+  ~MELAHXSWidth();
   double HiggsWidth(double mH);
 protected:
   std::string fileName;

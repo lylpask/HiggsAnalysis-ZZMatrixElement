@@ -35,7 +35,7 @@ TEvtProb::TEvtProb(
 
   /***** Initialize Higgs width reader *****/
   string path_string = path;
-  myCSW_ = new HiggsCSandWidth_MELA(path_string);
+  myCSW_ = new MELAHXSWidth(path_string);
   if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: HXS successful" << endl;
 
   /***** Initialize MCFM *****/
