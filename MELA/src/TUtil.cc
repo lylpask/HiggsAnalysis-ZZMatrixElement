@@ -3260,15 +3260,16 @@ double TUtil::JHUGenMatEl(
       TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
       int* idtmp = &(mela_event.pDaughters.at(ipar).first);
 
-      int arrindex = ipar;
-      if (PDGHelpers::isAPhoton(*idtmp) && ipar==1) arrindex=2; // In GG
+      int arrindex = 2*ipar;
       if (!PDGHelpers::isAnUnknownJet(*idtmp)) MYIDUP_tmp[arrindex] = *idtmp;
-      else MYIDUP_tmp[ipar] = 0;
+      else MYIDUP_tmp[arrindex] = 0;
+      MYIDUP_tmp[arrindex+1] = -9000;
       p4[arrindex+2][0] = momTmp->T()*GeV;
       p4[arrindex+2][1] = momTmp->X()*GeV;
       p4[arrindex+2][2] = momTmp->Y()*GeV;
       p4[arrindex+2][3] = momTmp->Z()*GeV;
       MomStore[arrindex+2] = *momTmp;
+      if (verbosity >= TVar::DEBUG) cout << "MYIDUP_tmp[" << arrindex << "(" << ipar << ")" << "]=" << MYIDUP_tmp[arrindex] << endl;
     }
   }
   else{
