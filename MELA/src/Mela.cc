@@ -371,8 +371,8 @@ float Mela::getConstant_m4l(bool useOldggZZConstants){
   float constant = 1;
   if (melaCand==0) return constant;
 
-  bool is4l = melaCand->daughtersInterfere();
-  double mZZ = melaCand->m();
+  //bool is4l = melaCand->daughtersInterfere();
+  //double mZZ = melaCand->m();
 
   if (useOldggZZConstants && (myME_ == TVar::MCFM || myME_ == TVar::JHUGen) && myProduction_ == TVar::ZZGG && myModel_==TVar::bkgZZ_SMHiggs){
 
