@@ -36,6 +36,10 @@ extern "C" {
     bool qlfirst;
   } qlfirst_;
 
+  extern struct{
+    bool Qflag, Gflag, QandGflag;
+  } flags_;
+
 
 #define bveg1_mcfm_ bveg1_
   extern struct{

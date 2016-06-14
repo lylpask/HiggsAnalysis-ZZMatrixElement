@@ -23,7 +23,7 @@ using namespace RooFit;
 using namespace std;
 
 
-void testME_Dec_MCFM_Ping(int flavor=2){
+void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
   int erg_tev=13;
   float mPOLE=125.;
   float wPOLE=4.07e-3;
@@ -94,7 +94,7 @@ void testME_Dec_MCFM_Ping(int flavor=2){
     { 22.7864275656, -0.15136300982222117, -0.90077551414353962, -22.767866345236371 }
   };
 
-  for (int ev = 0; ev < 1; ev++){
+  for (int ev = 2; ev < 3; ev++){
     if (flavor == 2){
       GenLep1Id=13;
       GenLep2Id=-13;
@@ -154,6 +154,23 @@ void testME_Dec_MCFM_Ping(int flavor=2){
     for (unsigned int idau=0; idau<2; idau++) daughters_ZG.push_back(SimpleParticle_t(idOrdered[idau], pOrdered_ZG[idau]));
     for (unsigned int idau=2; idau<3; idau++) daughters_ZG.push_back(SimpleParticle_t(22, pOrdered_ZG[idau]));
 
+    // Some gymnastics to get pseudo-mothers for these events
+    TLorentzVector pTotal = pOrdered[0]+pOrdered[1]+pOrdered[2]+pOrdered[3];
+    TLorentzVector pTotal_dummy=pTotal;
+    TLorentzVector pTotal_perp(pTotal.X(), pTotal.Y(), 0, pTotal.T());
+    pTotal_dummy.Boost(-pTotal_perp.BoostVector());
+    TLorentzVector pMothers[2];
+    pMothers[0].SetXYZT(0, 0, (pTotal_dummy.Z()+pTotal_dummy.T())/2., (pTotal_dummy.Z()+pTotal_dummy.T())/2.);
+    pMothers[1].SetXYZT(0, 0, (pTotal_dummy.Z()-pTotal_dummy.T())/2., (-pTotal_dummy.Z()+pTotal_dummy.T())/2.);
+    for (int im=0; im<2; im++) pMothers[im].Boost(pTotal_perp.BoostVector());
+    SimpleParticleCollection_t mothers_QQB;
+    for (unsigned int im=0; im<2; im++) mothers_QQB.push_back(SimpleParticle_t(1-2*im, pMothers[im]));
+    SimpleParticleCollection_t mothers_GG;
+    for (unsigned int im=0; im<2; im++) mothers_GG.push_back(SimpleParticle_t(21, pMothers[im]));
+    SimpleParticleCollection_t* mothersPtr=0;
+    if (useMothers==1) mothersPtr=&mothers_GG;
+    else if (useMothers==2) mothersPtr=&mothers_QQB;
+
     TLorentzVector pOrdered_GG[3];
     pOrdered_GG[0]=pOrdered[0]+pOrdered[1];
     pOrdered_GG[1]=pOrdered[2]+pOrdered[3];
@@ -161,76 +178,102 @@ void testME_Dec_MCFM_Ping(int flavor=2){
     for (unsigned int idau=0; idau<2; idau++) daughters_GG.push_back(SimpleParticle_t(22, pOrdered_GG[idau]));
 
     mela.setCandidateDecayMode(TVar::CandidateDecay_WW);
-    mela.setInputEvent(&daughters_WW, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_WW, (SimpleParticleCollection_t*)0, mothersPtr, (mothersPtr!=0));
     mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
-    mela.setInputEvent(&daughters_WWasZZ, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_WWasZZ, (SimpleParticleCollection_t*)0, mothersPtr, (mothersPtr!=0));
     mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
-    mela.setInputEvent(&daughters_ZZ, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
-    mela.setInputEvent(&daughters_ZG, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_ZZ, (SimpleParticleCollection_t*)0, mothersPtr, (mothersPtr!=0));
+    mela.setInputEvent(&daughters_ZG, (SimpleParticleCollection_t*)0, mothersPtr, (mothersPtr!=0));
     mela.setCandidateDecayMode(TVar::CandidateDecay_GG);
-    mela.setInputEvent(&daughters_GG, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+    mela.setInputEvent(&daughters_GG, (SimpleParticleCollection_t*)0, mothersPtr, (mothersPtr!=0));
 
     int cindex;
 
     /***** WW *****/
     cindex=0;
     mela.setCurrentCandidateFromIndex(cindex);
+
     float pVAMCFM_qqWW_bkg;
     mela.setProcess(TVar::bkgWW, TVar::MCFM, TVar::ZZQQB);
-    mela.computeP(pVAMCFM_qqWW_bkg, true);
+    mela.computeP(pVAMCFM_qqWW_bkg, false);
     cout << "pVAMCFM_qqWW_bkg: " << pVAMCFM_qqWW_bkg << '\n' << endl;
 
     float pVAMCFM_ggVV_total;
     mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_total, true);
+    mela.computeP(pVAMCFM_ggVV_total, false);
     cout << "pVAMCFM_ggVV_total: " << pVAMCFM_ggVV_total << '\n' << endl;
     float pVAMCFM_ggVV_bkg;
     mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_bkg, true);
+    mela.computeP(pVAMCFM_ggVV_bkg, false);
     cout << "pVAMCFM_ggVV_bkg: " << pVAMCFM_ggVV_bkg << '\n' << endl;
     float pVAMCFM_ggVV_sig;
     mela.setProcess(TVar::HSMHiggs_WWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_sig, true);
+    mela.computeP(pVAMCFM_ggVV_sig, false);
     cout << "pVAMCFM_ggVV_sig: " << pVAMCFM_ggVV_sig << '\n' << endl;
 
     float pVAMCFM_ggWW_total;
-    mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWW_total, true);
+    mela.setProcess(TVar::bkgWW_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggWW_total, false);
     cout << "pVAMCFM_ggWW_total: " << pVAMCFM_ggWW_total << '\n' << endl;
     float pVAMCFM_ggWW_bkg;
-    mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWW_bkg, true);
+    mela.setProcess(TVar::bkgWW, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggWW_bkg, false);
     cout << "pVAMCFM_ggWW_bkg: " << pVAMCFM_ggWW_bkg << '\n' << endl;
     float pVAMCFM_ggWW_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWW_sig, true);
+    mela.computeP(pVAMCFM_ggWW_sig, false);
     cout << "pVAMCFM_ggWW_sig: " << pVAMCFM_ggWW_sig << '\n' << endl;
 
     /***** WW (as ZZ) *****/
     cindex=1;
     mela.setCurrentCandidateFromIndex(cindex);
+
+    float pVAMCFM_ggVV_fromZZ_total;
+    mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggVV_fromZZ_total, false);
+    cout << "pVAMCFM_ggVV_fromZZ_total: " << pVAMCFM_ggVV_fromZZ_total << '\n' << endl;
+    float pVAMCFM_ggVV_fromZZ_bkg;
+    mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggVV_fromZZ_bkg, false);
+    cout << "pVAMCFM_ggVV_fromZZ_bkg: " << pVAMCFM_ggVV_fromZZ_bkg << '\n' << endl;
+    float pVAMCFM_ggVV_fromZZ_sig;
+    mela.setProcess(TVar::HSMHiggs_WWZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggVV_fromZZ_sig, false);
+    cout << "pVAMCFM_ggVV_fromZZ_sig: " << pVAMCFM_ggVV_fromZZ_sig << '\n' << endl;
+
     float pVAMCFM_ggZZ_total;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggZZ_total, true);
+    mela.computeP(pVAMCFM_ggZZ_total, false);
     cout << "pVAMCFM_ggZZ_total: " << pVAMCFM_ggZZ_total << '\n' << endl;
     float pVAMCFM_ggZZ_bkg;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggZZ_bkg, true);
+    mela.computeP(pVAMCFM_ggZZ_bkg, false);
     cout << "pVAMCFM_ggZZ_bkg: " << pVAMCFM_ggZZ_bkg << '\n' << endl;
     float pVAMCFM_ggWWasZZ_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWWasZZ_sig, true);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig, false);
     cout << "pVAMCFM_ggWWasZZ_sig: " << pVAMCFM_ggWWasZZ_sig << '\n' << endl;
 
     /***** ZZ *****/
     cindex=2;
     mela.setCurrentCandidateFromIndex(cindex);
+
+    float pVAMCFM_qqZZ_bkg;
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
+    mela.computeP(pVAMCFM_qqZZ_bkg, false);
+    cout << "pVAMCFM_qqZZ_bkg: " << pVAMCFM_qqZZ_bkg << '\n' << endl;
+
+    float pVAMCFM_qqZJJ_bkg;
+    mela.setProcess(TVar::bkgZJJ, TVar::MCFM, TVar::ZZQQB);
+    mela.computeP(pVAMCFM_qqZJJ_bkg, false);
+    cout << "pVAMCFM_qqZJJ_bkg: " << pVAMCFM_qqZJJ_bkg << '\n' << endl;
+
     float pVAMCFM_ggZZ_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP(pVAMCFM_ggZZ_sig, true);
+    mela.computeP(pVAMCFM_ggZZ_sig, false);
     cout << "pVAMCFM_ggZZ_sig: " << pVAMCFM_ggZZ_sig << '\n' << endl;
 
     float pVAMCFM_ZZ_sig_selfDg1;
@@ -239,7 +282,7 @@ void testME_Dec_MCFM_Ping(int flavor=2){
     mela.selfDHzzcoupl[0][0][0]=1.0;
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP(pVAMCFM_ZZ_sig_selfDg1, true);
+    mela.computeP(pVAMCFM_ZZ_sig_selfDg1, false);
     cout << "pVAMCFM_ggZZ_sig_selfDg1: " << pVAMCFM_ZZ_sig_selfDg1 << '\n' << endl;
 
     /***** ZG *****/
@@ -247,7 +290,7 @@ void testME_Dec_MCFM_Ping(int flavor=2){
     mela.setCurrentCandidateFromIndex(cindex);
     float pVAMCFM_ZG_bkg;
     mela.setProcess(TVar::bkgZGamma, TVar::MCFM, TVar::ZZQQB);
-    mela.computeP(pVAMCFM_ZG_bkg, true);
+    mela.computeP(pVAMCFM_ZG_bkg, false);
     cout << "pVAMCFM_qqZG_bkg: " << pVAMCFM_ZG_bkg << '\n' << endl;
 
     if (verbosity>=TVar::DEBUG){
