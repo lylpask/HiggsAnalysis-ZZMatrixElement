@@ -1,5 +1,5 @@
-#ifndef MELACOMBINEPDFS
-#define MELACOMBINEPDFS
+#ifndef MELACOMBINEPDFS_H
+#define MELACOMBINEPDFS_H
 
 #include "RooAbsPdf.h"
 #include "RooRealProxy.h"

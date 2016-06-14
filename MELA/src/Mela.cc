@@ -124,7 +124,7 @@ Mela::Mela(
   symlink(path_nnpdf.fullPath().c_str(), path_nnpdf_c);
   if (myVerbosity_>=TVar::DEBUG) cout << path_nnpdf_c << " -> " << path_nnpdf.fullPath().c_str() << endl;
   if (myVerbosity_>=TVar::DEBUG) cout << "Start newZZMatrixElement" << endl;
-  ZZME = new  newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-23).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
+  ZZME = new newZZMatrixElement(path_nnpdf_c, pdfmember, path.substr(0, path.length()-23).c_str(), 1000.*LHCsqrts/2., myVerbosity_);
   if (myVerbosity_>=TVar::DEBUG) cout << "Set newZZMatrixElement masses" << endl;
   setMelaPrimaryHiggsMass(mh_);
   setMelaHiggsMass(mh_, 0); setMelaHiggsMass(-1., 1);
@@ -176,7 +176,7 @@ Mela::Mela(
   string cpath=cardfile.fullPath();
   //cout << cpath.substr(0,cpath.length()-14).c_str()  <<endl;
   super->SetPathToCards(cpath.substr(0, cpath.length()-14).c_str());
-  super->SetVerbosity(false);
+  super->SetVerbosity((myVerbosity_>=TVar::DEBUG));
   // cout << "starting superMELA initialization" << endl;
   super->init();
   //cout << "after supermela" << endl;
@@ -193,7 +193,8 @@ Mela::Mela(
 }
 
 Mela::~Mela(){
-//  cout << "begin destructor" << endl;  
+  if (myVerbosity_>=TVar::DEBUG) cout << "Begin Mela destructor" << endl;
+
   //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
 
@@ -205,6 +206,7 @@ Mela::~Mela(){
   delete spin1Model;
   delete spin2Model;
   delete qqZZmodel;
+
   // ...then delete the observables.
   delete mzz_rrv;
   delete z1mass_rrv; 
@@ -221,7 +223,7 @@ Mela::~Mela(){
   delete super;
   delete myR;
 
-//  cout << "end destructor" << endl;
+  if (myVerbosity_>=TVar::DEBUG) cout << "End Mela destructor" << endl;
 }
 
 // Set-functions
@@ -231,7 +233,7 @@ void Mela::setProcess(TVar::Process myModel, TVar::MatrixElement myME, TVar::Pro
   myME_ = myME;
   myProduction_ = myProduction;
 }
-void Mela::setVerbosity(TVar::VerbosityLevel verbosity_){ myVerbosity_=verbosity_; if(ZZME!=0) ZZME->set_Verbosity(myVerbosity_); }
+void Mela::setVerbosity(TVar::VerbosityLevel verbosity_){ myVerbosity_=verbosity_; if (ZZME!=0) ZZME->set_Verbosity(myVerbosity_); if (super!=0) super->SetVerbosity((myVerbosity_>=TVar::DEBUG)); }
 // Should be called per-event
 void Mela::setMelaPrimaryHiggsMass(double myHiggsMass){ ZZME->set_PrimaryHiggsMass(myHiggsMass); }
 void Mela::setMelaHiggsMass(double myHiggsMass, int index){ ZZME->set_mHiggs(myHiggsMass, index); }
