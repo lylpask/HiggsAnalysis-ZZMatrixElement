@@ -145,9 +145,13 @@ void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
 
   // Second resonance
   if (whichResonance==2){
-    if (wHiggs<=0. || mass<0.){
+    if (mass<0.){
       _h2mass = -1;
       _h2width = 0;
+    }
+    else if (wHiggs<0.){
+      _h2mass = mass;
+      _h2width = myCSW_->HiggsWidth(_h2mass);
     }
     else{
       _h2mass = mass;
@@ -164,6 +168,13 @@ void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
     spinzerohiggs_anomcoupl_.h2width = _h2width;
     //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
   }
+
+  if (verbosity) cout
+    << "TEvtProb::SetHiggsMass(" << mass << ", " << wHiggs << ", " << whichResonance << "):\n"
+    << '\t' << "hmass: " << _hmass << ", " << _hwidth << '\n'
+    << '\t' << "h2mass: " << _h2mass << ", " << _h2width << '\n'
+    << '\t' << "MCFM hmass: " << masses_mcfm_.hmass << ", " << masses_mcfm_.hwidth << '\n'
+    << '\t' << "MCFM h2mass: " << spinzerohiggs_anomcoupl_.h2mass << ", " << spinzerohiggs_anomcoupl_.h2width << endl;
 }
 void TEvtProb::SetInputEvent(
   SimpleParticleCollection_t* pDaughters,
