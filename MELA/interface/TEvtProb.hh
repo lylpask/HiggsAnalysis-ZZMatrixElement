@@ -165,6 +165,10 @@ protected:
   std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
   std::vector<MELATopCandidate*> topCandList; // Container of candidate objects, for bookkeeping to delete later
 
+  // Initialization functions
+  void InitializeMCFM();
+  void InitializeJHUGen(const char* pathtoPDFSet, int PDFMember);
+
   // Check if at least one input candidate is present
   bool CheckInputPresent();
   void SetRcdCandPtr();

@@ -39,6 +39,34 @@ TEvtProb::TEvtProb(
   if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: HXS successful" << endl;
 
   /***** Initialize MCFM *****/
+  InitializeMCFM();
+
+  /***** Initialize JHUGen *****/
+  InitializeJHUGen(pathtoPDFSet, PDFMember);
+
+  /***** Initialize schemes *****/
+  ResetCouplings();
+  ResetRenFacScaleMode();
+  ResetInputEvent();
+  SetPrimaryHiggsMass(125.); // Should come after InitializeMCFM and InitializeJHUGen
+  SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb constructor" << endl;
+}
+
+TEvtProb::~TEvtProb(){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb destructor" << endl;
+
+  ResetInputEvent();
+  if (myCSW_!=0) delete myCSW_;
+
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb destructor" << endl;
+}
+
+
+void TEvtProb::InitializeMCFM(){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb::InitializeMCFM" << endl;
+
   mcfm_init_((char *)"input.DAT", (char *)"./");
   if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: mcfm_init successful" << endl;
   SetEwkCouplingParameters();
@@ -64,36 +92,17 @@ TEvtProb::TEvtProb(
   // Constant parameters for all processes
   qlfirst_.qlfirst=false;
 
-  /***** Initialize JHUGen *****/
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb::InitializeMCFM" << endl;
+}
+void TEvtProb::InitializeJHUGen(const char* pathtoPDFSet, int PDFMember){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb::InitializeJHUGen" << endl;
+
   InitJHUGenMELA(pathtoPDFSet, PDFMember);
-  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: InitJHUGenMELA successful" << endl;
 
-  ResetCouplings();
-  ResetRenFacScaleMode();
-  ResetInputEvent();
-  SetPrimaryHiggsMass(125.);
-  SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
-  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb constructor" << endl;
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb::InitializeJHUGen" << endl;
 }
 
 
-TEvtProb::~TEvtProb(){
-  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb destructor" << endl;
-  ResetInputEvent();
-  if (myCSW_!=0) delete myCSW_;
-  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb destructor" << endl;
-}
-
-/*
-void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ){
-  ewinput_.Gf_inp = ext_Gf;
-  ewinput_.aemmz_inp = ext_aemmz;
-  ewinput_.wmass_inp = ext_mW;
-  ewinput_.zmass_inp = ext_mZ;
-  ewinput_.xw_inp = 1.-pow(ext_mW/ext_mZ,2);
-  coupling_();
-}
-*/
 
 // Set NNPDF driver path
 void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){

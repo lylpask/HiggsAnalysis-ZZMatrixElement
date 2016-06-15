@@ -313,7 +313,7 @@ void MELACandidate::sortDaughtersByBestZ1(){
       pZ1p = pZ2p;
       pZ2p = ptmp;
     }
-    if (std::abs(pZ1p.M() - PDGHelpers::HVVmass)<std::abs(pZ1.M() - PDGHelpers::HVVmass) || (std::abs(pZ1p.M() - PDGHelpers::HVVmass)==std::abs(pZ1.M() - PDGHelpers::HVVmass) && pZ2p.Pt()>pZ2.Pt()) ){
+    if (std::abs(pZ1p.M() - PDGHelpers::HVVmass)<std::abs(pZ1.M() - PDGHelpers::HVVmass) || (std::abs(pZ1p.M() - PDGHelpers::HVVmass)==std::abs(pZ1.M() - PDGHelpers::HVVmass) && pZ2p.Pt()>pZ2.Pt())){
       for (int i=0; i<2; i++){
         for (int j=0; j<2; j++) orderedDs[i][j] = orderedDps[i][j];
       }
