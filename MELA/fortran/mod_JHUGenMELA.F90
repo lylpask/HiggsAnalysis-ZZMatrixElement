@@ -165,6 +165,22 @@ subroutine SetSpinZeroVVCouplings(vvcoupl, cqsq, Lambda_qsq, useWWcoupl)
       ghz3_prime7  = vvcoupl(37)
       ghz4_prime6  = vvcoupl(38)
       ghz4_prime7  = vvcoupl(39)
+
+      ! Set includeGammaStar based on the actual coupling values
+      if(&
+         ghzgs1_prime2.ne.czero .or. &
+         ghzgs2.ne.czero .or.        &
+         ghzgs3.ne.czero .or.        &
+         ghzgs4.ne.czero .or.        &
+         ghgsgs2.ne.czero .or.       &
+         ghgsgs3.ne.czero .or.       &
+         ghgsgs4.ne.czero            &
+      ) then
+         includeGammaStar=.true.
+      else
+         includeGammaStar=.false.
+      endif
+
    else
       cw_q1sq = cqsq(1)
       Lambda_w11 = Lambda_qsq(1,1)
