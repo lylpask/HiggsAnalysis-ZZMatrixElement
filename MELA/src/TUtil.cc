@@ -3968,13 +3968,65 @@ double TUtil::HJJMatEl(
             if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  MatElsq_tmp[jsel+5][isel+5] << '\t' << avgfac << endl;
           }
         }
-        else{ // code==0 means WW->H is also possible with no interference to ZZ->H, and code==2 means the same except interference to ZZ->H could occur for some outgoing quark flavors.
+        else if (code==0){ // code==0 means WW->H is also possible with no interference to ZZ->H, for example u ub -> d db.
           vector<int> possible_rsel;
           vector<int> possible_ssel;
           if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
           else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
           if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
           else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+
+          // Compute MEs for a single combination and take the CKM matrix out
+          rsel=possible_rsel.at(0)*TMath::Sign(1, isel); // Always possible
+          ssel=possible_ssel.at(0)*TMath::Sign(1, jsel); // Always possible
+          double msqtmp[nmsq][nmsq]={ { 0 } };
+          double msqtmp_swap[nmsq][nmsq]={ { 0 } };
+          double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2)*pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+          // 0-2 + 1-3
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, msqtmp);
+          msqtmp[jsel+5][isel+5] /= ckm_takeout;
+          // 0-3 + 1-2
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, msqtmp_swap);
+          msqtmp_swap[jsel+5][isel+5] /= ckm_takeout;
+
+          // Combine the ME and ME_swap based on actual ids
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
+              ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
+              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+              double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2)*pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+              if (
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                ){
+                MatElsq_tmp[jsel+5][isel+5] = msqtmp[jsel+5][isel+5] * ckmval;
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  MatElsq_tmp[jsel+5][isel+5] << '\t' << avgfac << endl;
+              }
+              if (
+                rsel!=ssel
+                &&
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                ){
+                MatElsq_tmp[jsel+5][isel+5] = msqtmp_swap[jsel+5][isel+5] * ckmval;
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  MatElsq_tmp[jsel+5][isel+5] << '\t' << avgfac << endl;
+              }
+            }
+          }
+        }
+        else{ // code==2 means states with WW/ZZ interference allowed, for example u1 d2 -> u3 d4 + d4 u3.
+          vector<int> possible_rsel;
+          vector<int> possible_ssel;
+          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          // Loop over all possible combinations to get interference correct
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
               rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
@@ -4041,7 +4093,58 @@ double TUtil::HJJMatEl(
             if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  MatElsq_tmp[jsel+5][isel+5] << '\t' << avgfac << endl;
           }
         }
-        else{ // code==0 means WW->H is also possible with no interference to ZZ->H, and code==2 means the same except interference to ZZ->H could occur for some outgoing quark flavors.
+        else if (code==0){ // code==0 means WW->H is also possible with no interference to ZZ->H, for example u ub -> d db.
+          vector<int> possible_rsel;
+          vector<int> possible_ssel;
+          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+
+          // Compute MEs for a single combination and take the CKM matrix out
+          rsel=possible_rsel.at(0)*TMath::Sign(1, isel); // Always possible
+          ssel=possible_ssel.at(0)*TMath::Sign(1, jsel); // Always possible
+          double msqtmp[nmsq][nmsq]={ { 0 } };
+          double msqtmp_swap[nmsq][nmsq]={ { 0 } };
+          double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2)*pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+          // 0-2 + 1-3
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, msqtmp);
+          msqtmp[jsel+5][isel+5] /= ckm_takeout;
+          // 0-3 + 1-2
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, msqtmp_swap);
+          msqtmp_swap[jsel+5][isel+5] /= ckm_takeout;
+
+          // Combine the ME and ME_swap based on actual ids
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
+              ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
+              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+              double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2)*pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+              if (
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                ){
+                MatElsq_tmp[jsel+5][isel+5] = msqtmp[jsel+5][isel+5] * ckmval;
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  MatElsq_tmp[jsel+5][isel+5] << '\t' << avgfac << endl;
+              }
+              if (
+                rsel!=ssel
+                &&
+                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                &&
+                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                ){
+                MatElsq_tmp[jsel+5][isel+5] = msqtmp_swap[jsel+5][isel+5] * ckmval;
+                MatElsq[jsel+5][isel+5] += MatElsq_tmp[jsel+5][isel+5]*avgfac; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  MatElsq_tmp[jsel+5][isel+5] << '\t' << avgfac << endl;
+              }
+            }
+          }
+        }
+        else{ // code==2 means states with WW/ZZ interference allowed, for example u1 d2 -> u3 d4 + d4 u3.
           vector<int> possible_rsel;
           vector<int> possible_ssel;
           if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
