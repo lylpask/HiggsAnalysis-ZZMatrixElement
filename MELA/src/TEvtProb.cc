@@ -178,7 +178,7 @@ void TEvtProb::SetHiggsMass(double mass, double wHiggs, int whichResonance){
     //SetJHUGenHiggsMassWidth(_h2mass, _h2width); // Second resonance is not implemented in JHUGen yet.
   }
 
-  if (verbosity) cout
+  if (verbosity>=TVar::DEBUG) cout
     << "TEvtProb::SetHiggsMass(" << mass << ", " << wHiggs << ", " << whichResonance << "):\n"
     << '\t' << "hmass: " << _hmass << ", " << _hwidth << '\n'
     << '\t' << "h2mass: " << _h2mass << ", " << _h2width << '\n'
