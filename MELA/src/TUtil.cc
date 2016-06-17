@@ -1162,7 +1162,7 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
   }
   return Q;
 }
-void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
+void TUtil::SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons){
   bool hasReset=false;
   if (multiplier_ren<=0. || multiplier_fac<=0.){
     cerr << "TUtil::SetAlphaS: Invalid scale multipliers" << endl;
@@ -1223,7 +1223,7 @@ void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double 
   double mufac_jhu = facscale_.facscale*GeV;
   __modjhugenmela_MOD_setmurenfac(&muren_jhu, &mufac_jhu);
   __modkinematics_MOD_evalalphas();
-  __modjhugenmela_MOD_getalphasalphasmz(&(qcdcouple_.as), &(couple_.amz));
+  TUtil::GetAlphaS(&(qcdcouple_.as), &(couple_.amz));
 
   qcdcouple_.gsq = 4.0*TMath::Pi()*qcdcouple_.as;
   qcdcouple_.ason2pi = qcdcouple_.as/(2.0*TMath::Pi());
@@ -1236,6 +1236,12 @@ void TUtil::SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double 
   cout << "My Q_ren: " << Q_ren << " | My alpha_s: " << qcdcouple_.as << " at order " << nlooprun_.nlooprun << " with a(m_Z): " << couple_.amz << '\t'
   << "Nflav: " << nflav_.nflav << endl;
   */
+}
+void TUtil::GetAlphaS(double* alphas_, double* alphasmz_){
+  double alphasVal=0, alphasmzVal=0;
+  __modjhugenmela_MOD_getalphasalphasmz(&alphasVal, &alphasmzVal);
+  if (alphas_!=0) *alphas_ = alphasVal;
+  if (alphasmz_!=0) *alphasmz_ = alphasmzVal;
 }
 bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand){
   if (cand==0){ cerr << "TUtil::MCFM_chooser: Invalid candidate!" << endl; return false; } // Invalid candidate
@@ -2984,12 +2990,18 @@ double TUtil::SumMatrixElementPDF(
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  double alphasVal, alphasmzVal;
+  GetAlphaS(&alphasVal, &alphasmzVal);
+  RcdME->setRenormalizationScale(renQ);
+  RcdME->setFactorizationScale(facQ);
+  RcdME->setAlphaS(alphasVal);
+  RcdME->setAlphaSatMZ(alphasmzVal);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::SumMatrixElementPDF: Set AlphaS:\n"
       << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
   int nInstances=0;
@@ -3335,12 +3347,18 @@ double TUtil::JHUGenMatEl(
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l"); // Set AlphaS(|Q|/2, mynloop, mynflav, mypartonPDF)
+  double alphasVal, alphasmzVal;
+  GetAlphaS(&alphasVal, &alphasmzVal);
+  RcdME->setRenormalizationScale(renQ);
+  RcdME->setFactorizationScale(facQ);
+  RcdME->setAlphaS(alphasVal);
+  RcdME->setAlphaSatMZ(alphasmzVal);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::JHUGenMatEl: Set AlphaS:\n"
       << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
   // Determine te actual ids to compute the ME. Assign ids if any are unknown.
@@ -3612,12 +3630,18 @@ double TUtil::HJJMatEl(
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  double alphasVal, alphasmzVal;
+  GetAlphaS(&alphasVal, &alphasmzVal);
+  RcdME->setRenormalizationScale(renQ);
+  RcdME->setFactorizationScale(facQ);
+  RcdME->setAlphaS(alphasVal);
+  RcdME->setAlphaSatMZ(alphasmzVal);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::HJJMatEl: Set AlphaS:\n"
       << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
   // NOTE ON CHANNEL HASHES:
@@ -4414,12 +4438,18 @@ double TUtil::VHiggsMatEl(
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  double alphasVal, alphasmzVal;
+  GetAlphaS(&alphasVal, &alphasmzVal);
+  RcdME->setRenormalizationScale(renQ);
+  RcdME->setFactorizationScale(facQ);
+  RcdME->setAlphaS(alphasVal);
+  RcdME->setAlphaSatMZ(alphasmzVal);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::VHiggsMatEl: Set AlphaS:\n"
       << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
   const double allowed_helicities[2] = { -1, 1 }; // L,R
@@ -4913,12 +4943,18 @@ double TUtil::TTHiggsMatEl(
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  double alphasVal, alphasmzVal;
+  GetAlphaS(&alphasVal, &alphasmzVal);
+  RcdME->setRenormalizationScale(renQ);
+  RcdME->setFactorizationScale(facQ);
+  RcdME->setAlphaS(alphasVal);
+  RcdME->setAlphaSatMZ(alphasmzVal);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::TTHiggsMatEl: Set AlphaS:\n"
       << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
   __modjhugenmela_MOD_settopdecays(&topDecay);
@@ -5182,12 +5218,18 @@ double TUtil::BBHiggsMatEl(
   double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
   double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
   SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+  double alphasVal, alphasmzVal;
+  GetAlphaS(&alphasVal, &alphasmzVal);
+  RcdME->setRenormalizationScale(renQ);
+  RcdME->setFactorizationScale(facQ);
+  RcdME->setAlphaS(alphasVal);
+  RcdME->setAlphaSatMZ(alphasmzVal);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::BBHiggsMatEl: Set AlphaS:\n"
       << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " x " << event_scales->ren_scale_factor << ", facQ: " << facQ << " x " << event_scales->fac_scale_factor << '\n'
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
   __modttbhiggs_MOD_evalxsec_pp_bbbh(p4, &botProcess, MatElsq);

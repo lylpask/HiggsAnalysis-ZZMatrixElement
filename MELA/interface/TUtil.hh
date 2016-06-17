@@ -150,7 +150,8 @@ namespace TUtil{
   // Parameter settings
   void SetEwkCouplingParameters();
   double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]);
-  void SetAlphaS(double Q_ren, double Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons);
+  void SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons); // Q_ren/fac -> Q_ren/fac * multiplier_ren/fac
+  void GetAlphaS(double* alphas_, double* alphasmz_); // Get last alpha_s value set
   bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand);
 
   // JHUGen-specific wrappers

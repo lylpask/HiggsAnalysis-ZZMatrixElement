@@ -16,6 +16,11 @@ private:
   double weightedMEsq[nmsq][nmsq];
   double sumME;
 
+  double Qren;
+  double Qfac;
+  double alphas_mz;
+  double alphas_Qren;
+
 public:
 
   MELACandidate* melaCand; // Persistent container of the four-vectors, not owned by MelaIO
@@ -31,6 +36,8 @@ public:
     }
   }
   MelaIO* getRef(){ return this; }
+
+  // ME-related I/O
   void setPartonWeights(
     double partonOneWeight_[nmsq],
     double partonTwoWeight_[nmsq]
@@ -84,13 +91,13 @@ public:
   MelaIO(){ melaCand=0; reset(); }
   virtual ~MelaIO(){};
 
-  double getSumME(){ return sumME; }
+  double getSumME()const{ return sumME; }
   void getWeightedMEArray(double MEsq_[nmsq][nmsq]){
     for (int ix=0; ix<nmsq; ix++){
       for (int iy=0; iy<nmsq; iy++) MEsq_[ix][iy] = weightedMEsq[ix][iy];
     }
   }
-  void getUnweightedMEArray(double MEsq_[nmsq][nmsq]){
+  void getUnweightedMEArray(double MEsq_[nmsq][nmsq])const{
     for (int ix=0; ix<nmsq; ix++){
       for (int iy=0; iy<nmsq; iy++) MEsq_[ix][iy] = MEsq[ix][iy];
     }
@@ -98,12 +105,24 @@ public:
   void getPartonWeights(
     double partonOneWeight_[nmsq],
     double partonTwoWeight_[nmsq]
-    ){
+    )const{
     for (int ix=0; ix<nmsq; ix++){
       partonOneWeight_[ix] = partonWeight[0][ix];
       partonTwoWeight_[ix] = partonWeight[1][ix];
     }
   }
+
+
+  // Scale-related I/O
+  void setRenormalizationScale(const double& val){ Qren=val; }
+  double getRenormalizationScale()const{ return Qren; }
+  void setFactorizationScale(const double& val){ Qfac=val; }
+  double getFactorizationScale()const{ return Qfac; }
+  void setAlphaS(const double& val){ alphas_Qren=val; }
+  double getAlphaS()const{ return alphas_Qren; }
+  void setAlphaSatMZ(const double& val){ alphas_mz=val; }
+  double getAlphaSatMZ()const{ return alphas_mz; }
+
 
   ClassDef(MelaIO, 0)
 };
