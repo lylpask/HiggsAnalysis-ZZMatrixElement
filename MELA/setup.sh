@@ -5,7 +5,7 @@ if [[ "$1" == *"clean"* ]];then
 	scramv1 b "$@"
 	pushd ${CMSSW_BASE}/src/ZZMatrixElement/MELA/fortran/
 	make clean
-	rm ../data/${SCRAM_ARCH}/libjhugenmela.so
+	rm -f ../data/${SCRAM_ARCH}/libjhugenmela.so
 	popd
 else
 	pushd ${CMSSW_BASE}/src/ZZMatrixElement/MELA/fortran/
