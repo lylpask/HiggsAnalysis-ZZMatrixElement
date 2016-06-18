@@ -345,7 +345,7 @@ float Mela::getConstant(bool useOldggZZConstants){
     myME_ == TVar::JHUGen
     &&
     (
-    myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF
+    myProduction_ == TVar::JJQCD || myProduction_ == TVar::JJVBF
     ||
     myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Had_ZH
     ||
@@ -405,7 +405,7 @@ float Mela::getConstant_JHUGenUndecayed(){
   if (melaCand==0) return constant;
 
   if (myME_ == TVar::JHUGen){
-    if (myProduction_ == TVar::JJGG){
+    if (myProduction_ == TVar::JJQCD){
 
     }
     else if (myProduction_ == TVar::JJVBF){
@@ -953,7 +953,7 @@ void Mela::computeProdP(
       TLorentzVector jet1massless(0, 0, 0, 0);
       TLorentzVector jet2massless(0, 0, 0, 0);
       higgs=melaCand->p4;
-      if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
+      if (myProduction_ == TVar::JJQCD || myProduction_ == TVar::JJVBF){
         int njets=0;
         for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
           if (melaCand->getAssociatedJet(ip)->passSelection){
@@ -1117,7 +1117,7 @@ void Mela::computeProdP(
       }
 
 
-      if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF){
+      if (myProduction_ == TVar::JJQCD || myProduction_ == TVar::JJVBF){
         if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
           selfDHvvcoupl_freenorm,
           selfDHqqcoupl,
@@ -1136,7 +1136,7 @@ void Mela::computeProdP(
           ); // Higgs + 2 jets: SBF or WBF
         if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
       }
-      else if (myProduction_ == TVar::JH){
+      else if (myProduction_ == TVar::JQCD){
         // No anomalous couplings are implemented in HJ
         ZZME->computeProdXS_JH(
           myModel_, myME_, myProduction_,
@@ -1487,7 +1487,7 @@ bool Mela::configureAnalyticalPDFs(){
   bool noPass=false;
 
   if (myModel_==TVar::bkgZZ)  pdf = qqZZmodel;
-  else if (myProduction_ == TVar::JJGG || myProduction_ == TVar::JJVBF);
+  else if (myProduction_ == TVar::JJQCD || myProduction_ == TVar::JJVBF);
   else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH);
   else if (
     myModel_ == TVar::HSMHiggs

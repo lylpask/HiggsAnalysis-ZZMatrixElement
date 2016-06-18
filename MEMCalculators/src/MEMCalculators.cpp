@@ -292,8 +292,8 @@ MEMs::MEMs(double collisionEnergy, double sKD_mass, string PDFName, bool debug_)
 
     MELAprodMap[kJJ_SMHiggs_VBF]	=TVar::JJVBF;
     MELAprodMap[kJJ_0minus_VBF]		=TVar::JJVBF;
-    MELAprodMap[kJJ_SMHiggs_GG]		=TVar::JJGG;
-    MELAprodMap[kJJ_0minus_GG]		=TVar::JJGG;
+    MELAprodMap[kJJ_SMHiggs_GG]		=TVar::JJQCD;
+    MELAprodMap[kJJ_0minus_GG]		=TVar::JJQCD;
     MELAprodMap[kJJ_SMHiggs_VH]		=TVar::Had_ZH;
     MELAprodMap[kJJ_0minus_VH]		=TVar::Had_ZH;
 
@@ -920,7 +920,7 @@ int MEMs::cacheMELAcalculation(int process, MEMCalcs calculator, vector<TLorentz
     );
 
   //if(MELAprocMap[static_cast<Processes>(process)] == TVar::HJJVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::PSHJJVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::HJJNONVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::PSHJJNONVBF )
-  //	if(MELAprodMap[static_cast<Processes>(process)] == TVar::JJVBF|| MELAprodMap[static_cast<Processes>(process)] == TVar::JJGG || MELAprodMap[static_cast<Processes>(process)] == TVar::JJVH)
+  //	if(MELAprodMap[static_cast<Processes>(process)] == TVar::JJVBF|| MELAprodMap[static_cast<Processes>(process)] == TVar::JJQCD || MELAprodMap[static_cast<Processes>(process)] == TVar::JJVH)
   //  if(process == kJJ_SMHiggs_VBF || process == kJJ_0minus_VBF || process == kJJ_SMHiggs_GG || process == kJJ_0minus_GG || process == kJJ_0minus_VH || process == kJJ_SMHiggs_VH)
   if (process == kJJ_SMHiggs_VBF || process == kJJ_0minus_VBF || process == kJJ_SMHiggs_GG || process == kJJ_0minus_GG)
   {

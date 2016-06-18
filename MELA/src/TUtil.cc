@@ -1109,9 +1109,9 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
   else if (scheme == TVar::DefaultScaleScheme){
     if (matrixElement==TVar::JHUGen){
       if (
-        production==TVar::JJGG
+        production==TVar::JJQCD
         || production==TVar::JJVBF
-        || production==TVar::JH
+        || production==TVar::JQCD
         || production==TVar::ZZGG
         || production==TVar::ZZQQB
         || production==TVar::ZZQQB_STU
@@ -1129,9 +1129,9 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
     }
     else if (matrixElement==TVar::MCFM){
       if (
-        production==TVar::JJGG
+        production==TVar::JJQCD
         || production==TVar::JJVBF
-        || production==TVar::JH
+        || production==TVar::JQCD
         || production==TVar::ZZGG
         || production==TVar::ZZQQB
         || production==TVar::ZZQQB_STU
@@ -3547,11 +3547,11 @@ double TUtil::HJJMatEl(
   double msq_tmp=0; // For "*_exact"
 
   if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
-  if (!(production==TVar::JJGG || production==TVar::JJVBF || production==TVar::JH)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
+  if (!(production==TVar::JJQCD || production==TVar::JJVBF || production==TVar::JQCD)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
   // Notice that partIncCode is specific for this subroutine
   int nRequested_AssociatedJets=2;
-  if (production == TVar::JH) nRequested_AssociatedJets=1;
+  if (production == TVar::JQCD) nRequested_AssociatedJets=1;
   int partIncCode=TVar::kUseAssociated_Jets; // Only use associated partons in the pT=0 frame boost
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
@@ -3647,7 +3647,7 @@ double TUtil::HJJMatEl(
 
   // NOTE ON CHANNEL HASHES:
   // THEY ONLY RETURN ISEL>=JSEL CASES. ISEL<JSEL NEEDS TO BE DONE MANUALLY.
-  if (production == TVar::JH){ // Computation is already for all possible qqb/qg/qbg/gg, and incoming q, qb and g flavor have 1-1 correspondence to the outgoing jet flavor.
+  if (production == TVar::JQCD){ // Computation is already for all possible qqb/qg/qbg/gg, and incoming q, qb and g flavor have 1-1 correspondence to the outgoing jet flavor.
     __modhiggsj_MOD_evalamp_hj(pOneJet, MatElsq_tmp);
     for (int isel=-5; isel<=5; isel++){
       if (MYIDUP_tmp[0]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel)) continue;
@@ -3663,7 +3663,7 @@ double TUtil::HJJMatEl(
       }
     }
   }
-  else if (production==TVar::JJGG){
+  else if (production==TVar::JJQCD){
     int ijsel[3][121];
     int nijchannels=77;
     __modhiggsjj_MOD_get_hjjchannelhash_nosplit(ijsel, &nijchannels);
@@ -3947,7 +3947,7 @@ double TUtil::HJJMatEl(
         }
       } // End swapped isel<jsel cases
     } // End loop over ic<nijchannels
-  } // End production==TVar::JJGG
+  } // End production==TVar::JJQCD
   else if (production==TVar::JJVBF){
     // NEW COMPUTATION
     int isel, jsel, rsel, ssel;

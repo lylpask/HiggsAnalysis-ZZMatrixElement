@@ -62,9 +62,9 @@ public:
     ZZQQB_S = 3,
     ZZQQB_TU = 4,
     ZZINDEPENDENT= 5,
-    JJGG = 6, // SBF
+    JJQCD = 6, // SBF
     JJVBF = 7, // WBF or WBF(+)Had_VH
-    JH = 8, // H + 1 jet
+    JQCD = 8, // ? + 1 jet
     Lep_ZH = 9, // ZH, Z->ll/nunu
     Lep_WH = 10, // W(+/-)H, W->lnu
     Had_ZH = 11, // ZH, Z->uu/dd
