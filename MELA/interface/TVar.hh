@@ -47,7 +47,8 @@ public:
     ERROR = 1,
     INFO = 2,
     DEBUG = 3,
-    DEBUG_VERBOSE = 4
+    DEBUG_VERBOSE = 4,
+    DEBUG_MECHECK = 5
   };
   enum MatrixElement{
     MCFM = 0,

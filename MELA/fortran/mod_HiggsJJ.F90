@@ -807,7 +807,7 @@ return
     subroutine EvalAmp_SBFH_UnSymm_SA_Select_exact(p,iSel,jSel,rSel,sSel,res)
     real(dp), intent(in) :: p(4,5)
     integer, intent(in) :: iSel,jSel,rSel,sSel!,flavor_tag ! flavor_tag for TEST
-    real(dp), intent(out) :: res(-5:5,-5:5)
+    real(dp), intent(out) :: res
     real(dp) :: sprod(4,4)
     complex(dp) :: za(4,4), zb(4,4)
     real(dp) :: restmp, restmpid
@@ -817,7 +817,7 @@ return
 
 	restmp=0.0_dp
 	restmpid=0.0_dp
-	res(:,:)=0.0_dp
+	res=0.0_dp
 	isGGGG=.false.
 	isQQGG=.false.
 	isQQQQ=.false.
@@ -1038,7 +1038,7 @@ return
 	endif
 
    restmp = restmp * (2d0/3d0*alphas**2)**2
-	res(iSel,jSel) = restmp
+	res = restmp
 	return
   end subroutine
 
@@ -2267,7 +2267,7 @@ return
   SUBROUTINE EvalAmp_WBFH_UnSymm_SA_Select_exact(p,iSel,jSel,rSel,sSel,res)
     implicit none
     real(dp), intent(in) :: p(4,5)
-    real(dp), intent(out) :: res(-5:5,-5:5)
+    real(dp), intent(out) :: res
     integer, intent(in) :: iSel,jSel,rSel,sSel
     complex(dp) :: amp_z(-1:1,-1:1), amp_z_b(-1:1,-1:1)
     complex(dp) :: amp_w(-1:1,-1:1)
@@ -2284,7 +2284,7 @@ return
     !print *, "Begin EvalAmp_WBFH_UnSymm_SA_Select_exact"
     !print *, "iSel: ",iSel,", jSel: ",jSel," rSel: ",rSel," sSel: ",sSel
 
-    res(:,:)=0.0_dp
+    res=0.0_dp
 
     ZZ_fusion=.false.
     WW_fusion=.false.
@@ -2425,7 +2425,7 @@ return
 
     restmp = restmp * aveqq
     if(abs(iSel).eq.pdfBot_ .or. abs(jSel).eq.pdfBot_) restmp = restmp * tagbot
-    res(iSel,jSel) = restmp
+    res = restmp
 
     RETURN
   END SUBROUTINE EvalAmp_WBFH_UnSymm_SA_Select_exact

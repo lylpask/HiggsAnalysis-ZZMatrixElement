@@ -1307,7 +1307,7 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
   float wPOLE=4.07e-3;
   TString TREE_NAME = "SelectedTree";
 
-  TVar::VerbosityLevel verbosity = TVar::DEBUG_VERBOSE;
+  TVar::VerbosityLevel verbosity = TVar::DEBUG_MECHECK;
   Mela mela(erg_tev, mPOLE, verbosity);
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
@@ -1453,7 +1453,7 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
 
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
       mela.computeProdP(pvbf_VAJHU_old_NEW, false);
-
+/*
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJGG);
       mela.computeProdP(phjj_VAJHU_old_NEW, false);
 
@@ -1480,7 +1480,7 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJGG);
       mela.selfDHggcoupl[2][0]=1;
       mela.computeProdP(phjj0minus_VAJHU_old_NEW_selfD, false);
-
+      */
       newtree->Fill();
       recorded++;
       mela.resetInputEvent();
