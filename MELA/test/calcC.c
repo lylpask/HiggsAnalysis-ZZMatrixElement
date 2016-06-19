@@ -523,8 +523,8 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHIggs_8TeV(){
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
   TProfile* hmesq_jetPtoEScale = new TProfile("P_MomentumToEnergy", "", nbins, binning); hmesq_jetPtoEScale->Sumw2();
-  TProfile* hmesqaux_conserveDifermMass = new TProfile("PAux_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
-  TProfile* hmesqaux_jetPtoEScale = new TProfile("PAux_MomentumToEnergy", "", nbins, binning); hmesq_jetPtoEScale->Sumw2();
+  TProfile* hmesqaux_conserveDifermMass = new TProfile("PAux_ConserveDifermionMass", "", nbins, binning); hmesqaux_conserveDifermMass->Sumw2();
+  TProfile* hmesqaux_jetPtoEScale = new TProfile("PAux_MomentumToEnergy", "", nbins, binning); hmesqaux_jetPtoEScale->Sumw2();
 
 
   TTree* newtree=0;

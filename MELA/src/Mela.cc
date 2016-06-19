@@ -977,7 +977,7 @@ void Mela::computeProdP(
         int nGrid=11;
         std::vector<double> etaArray;
         std::vector<double> pArray;
-        double eta_max = 15;
+        double eta_max = 10;
         if (jet2massless.Pt()>0.) eta_max = max(eta_max, 1.2*fabs(jet2massless.Eta()));
         double eta_min = -eta_max;
 
@@ -1012,7 +1012,7 @@ void Mela::computeProdP(
 
         double* xGrid;
         double* yGrid;
-        const double grid_precision = 0.05;
+        const double grid_precision = 0.20;
         int ctr_iter=0;
         for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
           if (pArray[iG]==pArray[iG+1]) continue;
@@ -1083,6 +1083,8 @@ void Mela::computeProdP(
           delete xGrid;
           delete yGrid;
         }
+
+        if (myVerbosity_>=TVar::DEBUG) cout << "Mela::computeProdP: Number of iterations for JVBF eta integration: " << ctr_iter << endl;
 
         auxiliaryProb = 0;
         int iGFirst=0, iGLast=nGrid-1;
