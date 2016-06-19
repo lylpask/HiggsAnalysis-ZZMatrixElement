@@ -2996,6 +2996,8 @@ double TUtil::SumMatrixElementPDF(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::SumMatrixElementPDF: Set AlphaS:\n"
@@ -3353,6 +3355,8 @@ double TUtil::JHUGenMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::JHUGenMatEl: Set AlphaS:\n"
@@ -3637,6 +3641,8 @@ double TUtil::HJJMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::HJJMatEl: Set AlphaS:\n"
@@ -4915,6 +4921,8 @@ double TUtil::VHiggsMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::VHiggsMatEl: Set AlphaS:\n"
@@ -5425,6 +5433,8 @@ double TUtil::TTHiggsMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::TTHiggsMatEl: Set AlphaS:\n"
@@ -5700,6 +5710,8 @@ double TUtil::BBHiggsMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::BBHiggsMatEl: Set AlphaS:\n"

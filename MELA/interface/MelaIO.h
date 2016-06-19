@@ -21,6 +21,8 @@ private:
   double alphas_mz;
   double alphas_Qren;
 
+  double MH_GaH[nSupportedHiggses][2];
+
 public:
 
   MELACandidate* melaCand; // Persistent container of the four-vectors, not owned by MelaIO
@@ -34,6 +36,11 @@ public:
         weightedMEsq[ix][iy]=0;
       }
     }
+    Qren=0;
+    Qfac=0;
+    alphas_mz=0;
+    alphas_Qren=0;
+    for (unsigned int jh=0; jh<nSupportedHiggses; jh++){ for (unsigned int img=0; img<2; img++) MH_GaH[jh][img]=0; } 
   }
   MelaIO* getRef(){ return this; }
 
@@ -122,6 +129,10 @@ public:
   double getAlphaS()const{ return alphas_Qren; }
   void setAlphaSatMZ(const double& val){ alphas_mz=val; }
   double getAlphaSatMZ()const{ return alphas_mz; }
+
+  // Mass-related I/O
+  void setHiggsMassWidth(const double& mass_, const double& width_, int jh){ if (jh<nSupportedHiggses){ MH_GaH[jh][0]=mass_; MH_GaH[jh][1]=width_; } }
+  void getHiggsMassWidth(double& mass_, double& width_, int jh)const{ if (jh<nSupportedHiggses){ mass_=MH_GaH[jh][0]; width_=MH_GaH[jh][1]; } }
 
 
   ClassDef(MelaIO, 0)

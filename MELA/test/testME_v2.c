@@ -1505,7 +1505,7 @@ void testME_ProdP_VH_FullSim(){
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
   TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), "2mu2e", "2e2mu"), "read");
-  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_ttHbbHMELATest.root", "2e2mu"), "recreate");
+  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_vhMELATest.root", "2e2mu"), "recreate");
 
   float pwh_leptonic_VAJHU_old_NEW;
   float pzh_leptonic_VAJHU_old_NEW;
@@ -1633,13 +1633,12 @@ void testME_ProdP_VH_FullSim(){
         cout << endl;
       }
 
-/*
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::Lep_ZH);
       mela.computeProdP_VH(pzh_leptonic_VAJHU_old_NEW, false, false);
-*/
+
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::Lep_WH);
       mela.computeProdP_VH(pwh_leptonic_VAJHU_old_NEW, false, false);
-/*
+
       mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::Lep_ZH);
       mela.computeProdP_VH(pzh0minus_leptonic_VAJHU_old_NEW, false, false);
 
@@ -1652,7 +1651,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
-      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0]=1;
       mela.computeProdP_VH(pwh_leptonic_VAJHU_old_NEW_selfD, false, false);
 
 
@@ -1661,7 +1660,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh0minus_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
-      mela.selfDHggcoupl[2][0]=1;
+      mela.selfDHzzcoupl[2][0]=1;
       mela.computeProdP_VH(pwh0minus_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::Had_ZH);
@@ -1682,7 +1681,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0]=1;
       mela.computeProdP_VH(pwh_hadronic_VAJHU_old_NEW_selfD, false, false);
 
 
@@ -1691,9 +1690,9 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh0minus_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHggcoupl[2][0]=1;
+      mela.selfDHzzcoupl[2][0]=1;
       mela.computeProdP_VH(pwh0minus_hadronic_VAJHU_old_NEW_selfD, false, false);
-*/
+
       newtree->Fill();
       recorded++;
       mela.resetInputEvent();
