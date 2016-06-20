@@ -2112,8 +2112,7 @@ MELARelBWUFParam::MELARelBWUFParam(
   mH("mH", "mH", this, _mH),
   scaleParam("scaleParam", "scaleParam", this, _scaleParam),
   widthSF(_widthSF)
-{
-}
+{}
 
 MELARelBWUFParam::MELARelBWUFParam(
   const MELARelBWUFParam& other, const char* name) :
