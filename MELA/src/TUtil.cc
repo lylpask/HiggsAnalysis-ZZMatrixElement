@@ -15,7 +15,7 @@ namespace TUtil{
   bool forbidMassiveLeptons = true;
   bool forbidMassiveJets = true;
   TVar::FermionMassRemoval LeptonMassScheme = TVar::ConserveDifermionMass;
-  TVar::FermionMassRemoval JetMassScheme = TVar::MomentumToEnergy;
+  TVar::FermionMassRemoval JetMassScheme = TVar::ConserveDifermionMass;
 }
 
 /***************************************************/
@@ -3184,6 +3184,14 @@ double TUtil::SumMatrixElementPDF(
     msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
 
+  // Set aL/R 1,2 into RcdME
+  if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
+  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) || PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
+  else RcdME->setVDaughterCouplings(0., 0., 0);
+  if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
+  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1)) || PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
+  else RcdME->setVDaughterCouplings(0., 0., 1);
+
   if (msqjk != msqjk){
     if (verbosity>=TVar::ERROR) cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
     msqjk=0;
@@ -3437,6 +3445,19 @@ double TUtil::JHUGenMatEl(
     }
   }
 
+  // Variables to set L1/2 and R1/2 couplings into RcdME
+  const int ZZmode=0, WWmode=10, ggmode=20, Zgmode=30;
+  int VVmode=-1;
+  if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) VVmode=WWmode;
+  else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) VVmode=ZZmode;
+  else if (PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1))) VVmode=ggmode;
+  else if (
+    (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)))
+    ||
+    (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0)))
+    ) VVmode=Zgmode;
+  double aL1=0, aL2=0, aR1=0, aR2=0;
+
   int nNonZero=0;
   for (unsigned int v1=0; v1<idarray[0].size(); v1++){
     for (unsigned int v2=0; v2<idarray[1].size(); v2++){
@@ -3457,6 +3478,19 @@ double TUtil::JHUGenMatEl(
         __modjhugenmela_MOD_getmvgv(&mv, &gv);
         cout << "TUtil::JHUGenMatEl: M_V=" << mv/GeV << ", Ga_V=" << gv/GeV << endl;
       }
+
+      // Sum over possible left/right couplings of the Vs
+      int idtmp[4];
+      idtmp[0] = idarray[0].at(v1).first;
+      idtmp[1] = idarray[0].at(v1).second;
+      idtmp[2] = idarray[1].at(v2).first;
+      idtmp[3] = idarray[1].at(v2).second;
+      double aLRtmp[4]={ 0 };
+      __modjhugenmela_MOD_getdecaycouplings(&VVmode, idtmp, &(aLRtmp[0]), &(aLRtmp[1]), &(aLRtmp[2]), &(aLRtmp[3]));
+      aL1 = sqrt(pow(aL1, 2)+pow(aLRtmp[0], 2));
+      aR1 = sqrt(pow(aR1, 2)+pow(aLRtmp[1], 2));
+      aL2 = sqrt(pow(aL2, 2)+pow(aLRtmp[2], 2));
+      aR2 = sqrt(pow(aR2, 2)+pow(aLRtmp[3], 2));
 
       double MatElTmp=0.;
       if (production == TVar::ZZGG){
@@ -3486,6 +3520,11 @@ double TUtil::JHUGenMatEl(
     cout << "TUtil::JHUGenMatEl: Number of matrix element instances computed: " << nNonZero << endl;
     cout << "TUtil::JHUGenMatEl: MatElSq after division = " << MatElSq << endl;
   }
+
+  // Set aL/R 1,2 into RcdME
+  RcdME->setVDaughterCouplings(aL1, aR1, 0);
+  RcdME->setVDaughterCouplings(aL2, aR2, 1);
+
   // This constant is needed to account for the different units used in
   // JHUGen compared to the MCFM
   int GeVexponent_MEsq = 4-((int)mela_event.pDaughters.size())*2;
