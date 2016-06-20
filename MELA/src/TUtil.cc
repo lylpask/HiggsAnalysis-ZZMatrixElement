@@ -1317,8 +1317,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1326,7 +1326,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1358,8 +1358,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1367,7 +1367,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1478,8 +1478,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1487,7 +1487,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1549,8 +1549,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1558,7 +1558,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1619,8 +1619,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1628,7 +1628,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1660,8 +1660,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1669,7 +1669,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1739,8 +1739,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1748,7 +1748,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1780,8 +1780,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1789,7 +1789,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1822,8 +1822,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1831,7 +1831,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1863,8 +1863,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1872,7 +1872,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1976,8 +1976,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1985,7 +1985,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -2017,8 +2017,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -2026,7 +2026,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -2109,8 +2109,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2118,7 +2118,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2150,8 +2150,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2159,7 +2159,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2192,8 +2192,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2201,7 +2201,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2233,8 +2233,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2242,7 +2242,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -3186,10 +3186,10 @@ double TUtil::SumMatrixElementPDF(
 
   // Set aL/R 1,2 into RcdME
   if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
-  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) || PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
+  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(1., 0., 0);
   else RcdME->setVDaughterCouplings(0., 0., 0);
   if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
-  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1)) || PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
+  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(1., 0., 1);
   else RcdME->setVDaughterCouplings(0., 0., 1);
 
   if (msqjk != msqjk){
@@ -3480,17 +3480,24 @@ double TUtil::JHUGenMatEl(
       }
 
       // Sum over possible left/right couplings of the Vs
-      int idtmp[4];
-      idtmp[0] = idarray[0].at(v1).first;
-      idtmp[1] = idarray[0].at(v1).second;
-      idtmp[2] = idarray[1].at(v2).first;
-      idtmp[3] = idarray[1].at(v2).second;
       double aLRtmp[4]={ 0 };
-      __modjhugenmela_MOD_getdecaycouplings(&VVmode, idtmp, &(aLRtmp[0]), &(aLRtmp[1]), &(aLRtmp[2]), &(aLRtmp[3]));
-      aL1 = sqrt(pow(aL1, 2)+pow(aLRtmp[0], 2));
-      aR1 = sqrt(pow(aR1, 2)+pow(aLRtmp[1], 2));
-      aL2 = sqrt(pow(aL2, 2)+pow(aLRtmp[2], 2));
-      aR2 = sqrt(pow(aR2, 2)+pow(aLRtmp[3], 2));
+      __modjhugenmela_MOD_getdecaycouplings(&VVmode, MYIDUP, &(aLRtmp[0]), &(aLRtmp[1]), &(aLRtmp[2]), &(aLRtmp[3]));
+      if (idarray[0].size()>1){
+        aL1 = sqrt(pow(aL1, 2)+pow(aLRtmp[0], 2));
+        aR1 = sqrt(pow(aR1, 2)+pow(aLRtmp[1], 2));
+      }
+      else{
+        aL1 = aLRtmp[0];
+        aR1 = aLRtmp[1];
+      }
+      if (idarray[1].size()>1){
+        aL2 = sqrt(pow(aL2, 2)+pow(aLRtmp[2], 2));
+        aR2 = sqrt(pow(aR2, 2)+pow(aLRtmp[3], 2));
+      }
+      else{
+        aL2 = aLRtmp[2];
+        aR2 = aLRtmp[3];
+      }
 
       double MatElTmp=0.;
       if (production == TVar::ZZGG){

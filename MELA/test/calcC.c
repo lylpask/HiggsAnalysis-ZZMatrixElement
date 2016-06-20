@@ -674,7 +674,10 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
 }
 
 
-/* SPECIFIC COMMENT: OUTPUT ME DIVIDED BY ALPHAS(MZ)**4 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION */
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY 
+- ALPHAS(MZ)**4 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION
+*/
 void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
   int erg_tev=sqrts;
   float mPOLE=125.;
@@ -1302,7 +1305,12 @@ fits well.
 
 
 
-/* SPECIFIC COMMENT: OUTPUT ME DIVIDED BY ALPHAS(MZ)**2 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION, AND ALSO BY H(1)-PROPAGATOR */
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY
+- ALPHAS(MZ)**2 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION
+- H(1) PROPAGATOR
+- (aL1**2+aR1**2)*(aL2**2+aR2**2) TO REMAIN INDEPENDENT OF CHANNEL
+*/
 void get_PAvgProfile_JHUGen_ZZGG_HSMHiggs(){
   int erg_tev=8;
   float mPOLE=125.;
@@ -1502,6 +1510,11 @@ void get_PAvgProfile_JHUGen_ZZGG_HSMHiggs(){
       propagator = 1./(pow(pow(mzz, 2)-pow(mh, 2), 2) + pow(mh*gah, 2));
       mesq_conserveDifermMass /= pow(alphasVal, 2);
       mesq_conserveDifermMass /= propagator;
+      double aL1, aR1, aL2, aR2;
+      mela.getIORecord()->getVDaughterCouplings(aL1, aR1, 0);
+      mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
+      if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
+      if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
       mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
 
@@ -1541,7 +1554,12 @@ void get_PAvgProfile_JHUGen_ZZGG_HSMHiggs(){
 }
 
 
-/* SPECIFIC COMMENT: OUTPUT ME DIVIDED BY ALPHAS(MZ)**2 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION, AND ALSO BY H(1)-PROPAGATOR */
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY
+- ALPHAS(MZ)**2 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION
+- H(1) PROPAGATOR
+- (aL1**2+aR1**2)*(aL2**2+aR2**2) TO REMAIN INDEPENDENT OF CHANNEL
+*/
 void get_PAvgProfile_MCFM_ZZGG_HSMHiggs(){
   int erg_tev=8;
   float mPOLE=125.;
@@ -1741,6 +1759,11 @@ void get_PAvgProfile_MCFM_ZZGG_HSMHiggs(){
       propagator = 1./(pow(pow(mzz, 2)-pow(mh, 2), 2) + pow(mh*gah, 2));
       mesq_conserveDifermMass /= pow(alphasVal, 2);
       mesq_conserveDifermMass /= propagator;
+      double aL1, aR1, aL2, aR2;
+      mela.getIORecord()->getVDaughterCouplings(aL1, aR1, 0);
+      mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
+      if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
+      if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
       mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
 
@@ -1780,7 +1803,11 @@ void get_PAvgProfile_MCFM_ZZGG_HSMHiggs(){
 }
 
 
-/* SPECIFIC COMMENT: OUTPUT ME DIVIDED BY ALPHAS(MZ)**2 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION */
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY
+- ALPHAS(MZ)**2 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION
+- (aL1**2+aR1**2)*(aL2**2+aR2**2) TO REMAIN INDEPENDENT OF CHANNEL
+*/
 void get_PAvgProfile_MCFM_ZZGG_bkgZZ(){
   int erg_tev=8;
   float mPOLE=125.;
@@ -1946,6 +1973,11 @@ void get_PAvgProfile_MCFM_ZZGG_bkgZZ(){
       mela.computeP(mesq_conserveDifermMass, false);
       alphasVal = mela.getIORecord()->getAlphaSatMZ();
       mesq_conserveDifermMass /= pow(alphasVal, 2);
+      double aL1, aR1, aL2, aR2;
+      mela.getIORecord()->getVDaughterCouplings(aL1, aR1, 0);
+      mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
+      if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
+      if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
       mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 
@@ -1989,7 +2021,10 @@ void get_PAvgProfile_MCFM_ZZGG_bkgZZ(){
   foutput->Close();
 }
 
-/* SPECIFIC COMMENT: NONE */
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY
+- (aL1**2+aR1**2)*(aL2**2+aR2**2) TO REMAIN INDEPENDENT OF CHANNEL
+*/
 void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
   int erg_tev=8;
   float mPOLE=125.;
@@ -2156,8 +2191,11 @@ void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
 
       TUtil::setLeptonMassScheme(TVar::ConserveDifermionMass);
       mela.computeP(mesq_conserveDifermMass, false);
-      //alphasVal = mela.getIORecord()->getAlphaSatMZ();
-      //mesq_conserveDifermMass /= pow(alphasVal, 2);
+      double aL1, aR1, aL2, aR2;
+      mela.getIORecord()->getVDaughterCouplings(aL1, aR1, 0);
+      mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
+      if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
+      if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
       mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 

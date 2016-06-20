@@ -457,6 +457,7 @@ real(8), intent(out) :: val_as, val_asmz
    val_asmz=alphas_mz
 end subroutine
 
+! This subroutine is slightly different form the one in the decay MEs in the sense that onshell photon returns 0,0 instead of 1,1
 subroutine GetDecayCouplings(VVMode,idordered,aL1,aR1,aL2,aR2)
    implicit none
    integer, intent(in) :: VVMode,idordered(6:9)
@@ -564,15 +565,15 @@ subroutine GetDecayCouplings(VVMode,idordered,aL1,aR1,aL2,aR2)
          aL1=0d0
          aR1=0d0
       endif
-      aL2=1d0
-      aR2=1d0
+      aL2=0d0
+      aR2=0d0
 
    elseif( VVMode.eq.ggMode ) then
    !        gamma gamma DECAYS
-      aL1=1d0
-      aR1=1d0
-      aL2=1d0
-      aR2=1d0
+      aL1=0d0
+      aR1=0d0
+      aL2=0d0
+      aR2=0d0
 
    elseif( VVMode.eq.gsgMode ) then
    !        gamma* gamma DECAYS
@@ -595,8 +596,8 @@ subroutine GetDecayCouplings(VVMode,idordered,aL1,aR1,aL2,aR2)
          aL1=0d0
          aR1=0d0
       endif
-      aL2=1d0
-      aR2=1d0
+      aL2=0d0
+      aR2=0d0
 
    elseif( VVMode.eq.gsZMode ) then
    !        gamma* Z DECAYS
