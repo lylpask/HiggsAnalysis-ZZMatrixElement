@@ -92,7 +92,6 @@ public:
   };
 
   enum Process{
-
     HSMHiggs,    //0+, call this for MCFM |H|**2.
     H0minus,    //0-
     H0hplus,    //0h+

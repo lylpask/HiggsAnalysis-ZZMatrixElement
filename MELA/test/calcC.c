@@ -18,6 +18,7 @@
 #include "TChain.h"
 #include "TString.h"
 #include "TF1.h"
+#include "TSpline.h"
 #include "TCanvas.h"
 #include "TH1F.h"
 #include "TH2F.h"
