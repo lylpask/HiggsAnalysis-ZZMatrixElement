@@ -52,7 +52,6 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
   else if (fcnMid!=0) result = fcnMid->Eval(candMass);
   else return result;
 
-  result = pow(10., result);
   if (
     (processME==TVar::JHUGen || processME==TVar::MCFM)
     &&
@@ -60,6 +59,8 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
     &&
     processProc==TVar::HSMHiggs
     ){
+    result = pow(10., result);
+
     double alphasVal, propagator, mh, gah;
     alphasVal = RcdME->getAlphaSatMZ();
     RcdME->getHiggsMassWidth(mh, gah, 0);
@@ -80,6 +81,8 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
     &&
     processProc==TVar::bkgZZ
     ){
+    result = pow(10., result);
+
     double alphasVal;
     alphasVal = RcdME->getAlphaSatMZ();
     result *= pow(alphasVal, 2);
@@ -97,6 +100,8 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
     &&
     processProc==TVar::bkgZZ
     ){
+    result = pow(10., result);
+
     double aL1, aR1, aL2, aR2;
     RcdME->getVDaughterCouplings(aL1, aR1, 0);
     RcdME->getVDaughterCouplings(aL2, aR2, 1);
@@ -110,6 +115,8 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
     &&
     processProc==TVar::HSMHiggs
     ){
+    result = pow(10., result);
+
     double alphasVal;
     alphasVal = RcdME->getAlphaSatMZ();
     result *= pow(alphasVal, 3);
@@ -121,6 +128,8 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
     &&
     processProc==TVar::HSMHiggs
     ){
+    result = pow(10., result);
+
     double alphasVal;
     alphasVal = RcdME->getAlphaSatMZ();
     result *= pow(alphasVal, 4);

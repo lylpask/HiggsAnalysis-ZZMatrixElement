@@ -130,7 +130,7 @@ public:
     H2_g10, // 2h10-
 
     bkgZGamma,    //Z+gamma
-    bkgZJJ,    //Z + 2 jets
+    bkgZJets,    //Z + 0/1/2 jets (ZZGG, JQCD, JJQCD)
     bkgZZ,    //qq/gg->ZZ
     bkgWW,    //qq/gg->WW
     bkgWWZZ,    //gg->ZZ+WW

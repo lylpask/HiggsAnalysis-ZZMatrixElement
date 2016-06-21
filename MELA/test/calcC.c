@@ -1306,6 +1306,923 @@ fits well.
 */
 
 
+/* SPECIFIC COMMENT: NONE */
+void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
+  int erg_tev=sqrts;
+  float mPOLE=125.;
+  TString TREE_NAME = "SelectedTree";
+  bool writeFinalTree=false;
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  std::vector<short>* LepLepId=0;
+  TBranch* bLepLepId=0;
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+  float jetptetaphimass[2][4];
+
+  float mesq_conserveDifermMass=0;
+  float mesq_jetPtoEScale=0;
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+  int LepID[4]={ 13, -13, 11, -11 };
+
+  TString cinput_main;
+  if (sqrts==13) cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/4l/160225";
+  else return;
+  const int nSamples = 33;
+  TString strSamples[nSamples]={
+    "VBFH115/ZZ4lAnalysis.root",
+    "VBFH120/ZZ4lAnalysis.root",
+    "VBFH124/ZZ4lAnalysis.root",
+    "VBFH125/ZZ4lAnalysis.root",
+    "VBFH126/ZZ4lAnalysis.root",
+    "VBFH130/ZZ4lAnalysis.root",
+    "VBFH135/ZZ4lAnalysis.root",
+    "VBFH140/ZZ4lAnalysis.root",
+    "VBFH145/ZZ4lAnalysis.root",
+    "VBFH150/ZZ4lAnalysis.root",
+    "VBFH155/ZZ4lAnalysis.root",
+    "VBFH160/ZZ4lAnalysis.root",
+    "VBFH165/ZZ4lAnalysis.root",
+    "VBFH170/ZZ4lAnalysis.root",
+    "VBFH175/ZZ4lAnalysis.root",
+    "VBFH180/ZZ4lAnalysis.root",
+    "VBFH190/ZZ4lAnalysis.root",
+    "VBFH200/ZZ4lAnalysis.root",
+    "VBFH210/ZZ4lAnalysis.root",
+    "VBFH230/ZZ4lAnalysis.root",
+    "VBFH250/ZZ4lAnalysis.root",
+    "VBFH270/ZZ4lAnalysis.root",
+    "VBFH300/ZZ4lAnalysis.root",
+    "VBFH350/ZZ4lAnalysis.root",
+    "VBFH400/ZZ4lAnalysis.root",
+    "VBFH450/ZZ4lAnalysis.root",
+    "VBFH500/ZZ4lAnalysis.root",
+    "VBFH550/ZZ4lAnalysis.root",
+    "VBFH600/ZZ4lAnalysis.root",
+    "VBFH700/ZZ4lAnalysis.root",
+    "VBFH750/ZZ4lAnalysis.root",
+    "VBFH800/ZZ4lAnalysis.root",
+    "VBFH900/ZZ4lAnalysis.root"
+  };
+
+  TChain* tree = new TChain(TREE_NAME, "");
+  for (int is=0; is<nSamples; is++) tree->Add(Form("%s/%s", cinput_main.Data(), (strSamples[is]).Data()));
+  tree->SetBranchAddress("nCleanedJetsPt30", &NJets30);
+  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("ZZPt", &ZZPt);
+  tree->SetBranchAddress("ZZEta", &ZZEta);
+  tree->SetBranchAddress("ZZPhi", &ZZPhi);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+  tree->SetBranchAddress("LepLepId", &LepLepId, &bLepLepId);
+
+  const int nTotalEntries = tree->GetEntries();
+  cout << "Ntotalentries = " << nTotalEntries << endl;
+
+  TTree* tmptree = new TTree("IntermediateTree", "");
+  tmptree->Branch("ZZMass", &mzz);
+  tmptree->Branch("ZZPt", &ZZPt);
+  tmptree->Branch("ZZEta", &ZZEta);
+  tmptree->Branch("ZZPhi", &ZZPhi);
+  tmptree->Branch("Z1Mass", &m1);
+  tmptree->Branch("Z2Mass", &m2);
+  tmptree->Branch("helcosthetaZ1", &h1);
+  tmptree->Branch("helcosthetaZ2", &h2);
+  tmptree->Branch("helphi", &phi);
+  tmptree->Branch("costhetastar", &hs);
+  tmptree->Branch("phistarZ1", &phi1);
+  tmptree->Branch("NJets30", &NJets30);
+  tmptree->Branch("Lep1ID", &(LepID[0]));
+  tmptree->Branch("Lep2ID", &(LepID[1]));
+  tmptree->Branch("Lep3ID", &(LepID[2]));
+  tmptree->Branch("Lep4ID", &(LepID[3]));
+  tmptree->Branch("jet1pt", &(jetptetaphimass[0][0]));
+  tmptree->Branch("jet2pt", &(jetptetaphimass[1][0]));
+  tmptree->Branch("jet1eta", &(jetptetaphimass[0][1]));
+  tmptree->Branch("jet2eta", &(jetptetaphimass[1][1]));
+  tmptree->Branch("jet1phi", &(jetptetaphimass[0][2]));
+  tmptree->Branch("jet2phi", &(jetptetaphimass[1][2]));
+  tmptree->Branch("jet1mass", &(jetptetaphimass[0][3]));
+  tmptree->Branch("jet2mass", &(jetptetaphimass[1][3]));
+
+  TRandom3 randomthrow(1234567);
+  double portion_to_keep = 1;
+  if (nTotalEntries>1000000) portion_to_keep = 9.95e5/tree->GetEntries("nCleanedJetsPt30>=2");
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree->GetEntry(ev);
+    if (NJets30>=2 && JetPt->size()>=2){
+      for (int ij=0; ij<2; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+      double rndnum = randomthrow.Uniform();
+      if (rndnum<=portion_to_keep) tmptree->Fill();
+    }
+  }
+
+  const int nEntries = tmptree->GetEntries();
+  if (nEntries>=1000000){
+    cerr << "TMath::Sort will experience problems. Aborting!" << endl;
+    delete tmptree;
+    delete tree;
+    assert(0);
+  }
+  int* index = new int[nEntries];
+  tmptree->Draw("ZZMass", "", "goff");
+  TMath::Sort(nEntries, tmptree->GetV1(), index, false);
+
+  tmptree->GetEntry(index[0]);
+  float firstVal=mzz;
+  tmptree->GetEntry(index[nEntries-1]);
+  float lastVal=mzz;
+  float infimum = (float)((int)firstVal); infimum -= (float)(((int)infimum)%10);
+  float supremum = (float)((int)(lastVal+0.5)); supremum += (float)(10-((int)supremum)%10);
+  cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
+
+  int nbins=0;
+  int divisor=11000;
+  while (nbins<50){
+    if (divisor>1000) divisor -= 1000;
+    else if (divisor>100) divisor -= 100;
+    else break;
+    nbins=nEntries/divisor+1;
+  }
+  cout << "nbins=" << nbins << endl;
+  if (nbins<3) cerr << "Not enough bins!" << endl;
+  float* binning = new float[nbins+1];
+  binning[0]=infimum;
+  binning[nbins]=supremum;
+  int ev_stepsize = nEntries/nbins;
+  cout << "Event step size: " << ev_stepsize << endl;
+  cout << "Boundary (" << 0 << ") = " << binning[0] << endl;
+  for (int ix=1; ix<nbins; ix++){
+    int ev = index[ix*ev_stepsize];
+    tmptree->GetEntry(ev);
+    float bhigh = mzz;
+    ev = index[ix*ev_stepsize-1];
+    float blow = mzz;
+    binning[ix]=(bhigh+blow)*0.5;
+    cout << "Boundary (" << ix << ")= " << binning[ix] << " [event " << ev << ", step " << ix*ev_stepsize << "]" << endl;
+  }
+  cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
+  delete[] index;
+
+  TFile* foutput = new TFile(Form("pAvg_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
+
+  TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
+  TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
+  TProfile* hmesq_jetPtoEScale = new TProfile("P_MomentumToEnergy", "", nbins, binning); hmesq_jetPtoEScale->Sumw2();
+
+
+  TTree* newtree=0;
+  if (writeFinalTree){
+    newtree = new TTree("FinalTree", "");
+    newtree->Branch("mesq_conserveDifermMass", &mesq_conserveDifermMass);
+    newtree->Branch("mesq_jetPtoEScale", &mesq_jetPtoEScale);
+    newtree->Branch("ZZMass", &mzz);
+  }
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  for (int ev = 0; ev < nEntries; ev++){
+    tmptree->GetEntry(ev); // No need for ordering anymore
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+
+    TLorentzVector jet[2], higgs;
+    for (int ij=0; ij<2; ij++) jet[ij].SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+    higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+    TVector3 boostH = higgs.BoostVector();
+
+    SimpleParticleCollection_t associated;
+    associated.push_back(SimpleParticle_t(0, jet[0]));
+    associated.push_back(SimpleParticle_t(0, jet[1]));
+
+    TLorentzVector pDaughters[4];
+    std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+    for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+    SimpleParticleCollection_t daughters;
+    for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+    mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+    bool doFill=true;
+    mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
+    TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+
+    mela.computeProdP(mesq_conserveDifermMass, false);
+    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
+
+    TUtil::setJetMassScheme(TVar::MomentumToEnergy);
+    mela.computeProdP(mesq_jetPtoEScale, false);
+    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    if (isnan(mesq_jetPtoEScale) || isinf(mesq_jetPtoEScale)) doFill=false;
+
+    if (doFill){
+      hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
+      hmesq_jetPtoEScale->Fill(mzz, mesq_jetPtoEScale);
+      hvar->Fill(mzz, mzz);
+    }
+
+    if (writeFinalTree) newtree->Fill();
+    mela.resetInputEvent();
+  }
+
+  double* xexyey[2][4];
+  for (int inorm=0; inorm<2; inorm++){
+    for (int ix=0; ix<4; ix++) xexyey[inorm][ix] = new double[nbins];
+    for (int bin=0; bin<nbins; bin++){
+      xexyey[inorm][0][bin] = hvar->GetBinContent(bin+1);
+      xexyey[inorm][1][bin] = hvar->GetBinError(bin+1);
+
+      if (inorm==0) cout << "Bin " << bin << " x-center: " << xexyey[inorm][0][bin] << " +- " << xexyey[inorm][1][bin] << endl;
+
+      if (inorm==0){
+        xexyey[inorm][2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
+        xexyey[inorm][3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      }
+      else{
+        xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
+        xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
+      }
+    }
+  }
+
+  for (int inorm=0; inorm<2; inorm++){
+    TGraphErrors* tg = new TGraphErrors(nbins, xexyey[inorm][0], xexyey[inorm][2], xexyey[inorm][1], xexyey[inorm][3]);
+    if (inorm==0) tg->SetName("tg_P_ConserveDifermionMass");
+    else tg->SetName("tg_P_MomentumToEnergy");
+    foutput->WriteTObject(tg);
+    delete tg;
+  }
+
+  for (int inorm=0; inorm<2; inorm++){
+    for (int ix=0; ix<4; ix++) delete[] xexyey[inorm][ix];
+  }
+  foutput->WriteTObject(hmesq_jetPtoEScale);
+  foutput->WriteTObject(hmesq_conserveDifermMass);
+  foutput->WriteTObject(hvar);
+  if (writeFinalTree) foutput->WriteTObject(newtree);
+  if (writeFinalTree) delete newtree;
+  delete hmesq_conserveDifermMass;
+  delete hmesq_jetPtoEScale;
+  delete hvar;
+  foutput->Close();
+  delete[] binning;
+  delete tmptree;
+  delete tree;
+}
+
+
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY
+- ALPHAS(MZ)**4 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION
+*/
+void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
+  int erg_tev=sqrts;
+  float mPOLE=125.;
+  TString TREE_NAME = "ZZTree/candTree";
+  bool writeFinalTree=false;
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  std::vector<short>* LepLepId=0;
+  TBranch* bLepLepId=0;
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+  float jetptetaphimass[2][4];
+
+  float mesq_conserveDifermMass=0;
+  float mesq_jetPtoEScale=0;
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+  int LepID[4]={ 13, -13, 11, -11 };
+
+  TString cinput_main;
+  if (sqrts==13) cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/4l/160225";
+  else return;
+  const int nSamples = 35;
+  TString strSamples[nSamples]={
+    "ggH91_GaZ/ZZ4lAnalysis.root",
+    "ggH115/ZZ4lAnalysis.root",
+    "ggH120/ZZ4lAnalysis.root",
+    "ggH124/ZZ4lAnalysis.root",
+    "ggH125/ZZ4lAnalysis.root",
+    "ggH126/ZZ4lAnalysis.root",
+    "ggH130/ZZ4lAnalysis.root",
+    "ggH135/ZZ4lAnalysis.root",
+    "ggH140/ZZ4lAnalysis.root",
+    "ggH145/ZZ4lAnalysis.root",
+    "ggH150/ZZ4lAnalysis.root",
+    "ggH155/ZZ4lAnalysis.root",
+    "ggH160/ZZ4lAnalysis.root",
+    "ggH165/ZZ4lAnalysis.root",
+    "ggH170/ZZ4lAnalysis.root",
+    "ggH175/ZZ4lAnalysis.root",
+    "ggH180/ZZ4lAnalysis.root",
+    "ggH190/ZZ4lAnalysis.root",
+    "ggH200/ZZ4lAnalysis.root",
+    "ggH210/ZZ4lAnalysis.root",
+    "ggH230/ZZ4lAnalysis.root",
+    "ggH250/ZZ4lAnalysis.root",
+    "ggH270/ZZ4lAnalysis.root",
+    "ggH300/ZZ4lAnalysis.root",
+    "ggH350/ZZ4lAnalysis.root",
+    "ggH400/ZZ4lAnalysis.root",
+    "ggH450/ZZ4lAnalysis.root",
+    "ggH500/ZZ4lAnalysis.root",
+    "ggH550/ZZ4lAnalysis.root",
+    "ggH600/ZZ4lAnalysis.root",
+    "ggH700/ZZ4lAnalysis.root",
+    "ggH750/ZZ4lAnalysis.root",
+    "ggH800/ZZ4lAnalysis.root",
+    "ggH900/ZZ4lAnalysis.root",
+    "ggH1000/ZZ4lAnalysis.root"
+  };
+
+  TChain* tree = new TChain(TREE_NAME, "");
+  for (int is=0; is<nSamples; is++) tree->Add(Form("%s/%s", cinput_main.Data(), (strSamples[is]).Data()));
+  tree->SetBranchAddress("nCleanedJetsPt30", &NJets30);
+  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("ZZPt", &ZZPt);
+  tree->SetBranchAddress("ZZEta", &ZZEta);
+  tree->SetBranchAddress("ZZPhi", &ZZPhi);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+  tree->SetBranchAddress("LepLepId", &LepLepId, &bLepLepId);
+
+  const int nTotalEntries = tree->GetEntries();
+  cout << "Ntotalentries = " << nTotalEntries << endl;
+
+  TTree* tmptree = new TTree("IntermediateTree", "");
+  tmptree->Branch("ZZMass", &mzz);
+  tmptree->Branch("ZZPt", &ZZPt);
+  tmptree->Branch("ZZEta", &ZZEta);
+  tmptree->Branch("ZZPhi", &ZZPhi);
+  tmptree->Branch("Z1Mass", &m1);
+  tmptree->Branch("Z2Mass", &m2);
+  tmptree->Branch("helcosthetaZ1", &h1);
+  tmptree->Branch("helcosthetaZ2", &h2);
+  tmptree->Branch("helphi", &phi);
+  tmptree->Branch("costhetastar", &hs);
+  tmptree->Branch("phistarZ1", &phi1);
+  tmptree->Branch("NJets30", &NJets30);
+  tmptree->Branch("Lep1ID", &(LepID[0]));
+  tmptree->Branch("Lep2ID", &(LepID[1]));
+  tmptree->Branch("Lep3ID", &(LepID[2]));
+  tmptree->Branch("Lep4ID", &(LepID[3]));
+  tmptree->Branch("jet1pt", &(jetptetaphimass[0][0]));
+  tmptree->Branch("jet2pt", &(jetptetaphimass[1][0]));
+  tmptree->Branch("jet1eta", &(jetptetaphimass[0][1]));
+  tmptree->Branch("jet2eta", &(jetptetaphimass[1][1]));
+  tmptree->Branch("jet1phi", &(jetptetaphimass[0][2]));
+  tmptree->Branch("jet2phi", &(jetptetaphimass[1][2]));
+  tmptree->Branch("jet1mass", &(jetptetaphimass[0][3]));
+  tmptree->Branch("jet2mass", &(jetptetaphimass[1][3]));
+
+  TRandom3 randomthrow(1234567);
+  double portion_to_keep = 1;
+  if (nTotalEntries>1000000) portion_to_keep = 9.95e5/tree->GetEntries("nCleanedJetsPt30>=2");
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree->GetEntry(ev);
+    if (NJets30>=2 && JetPt->size()>=2){
+      for (unsigned int il=0; il<(unsigned int)min((int)LepLepId->size(), 4); il++) LepID[il] = (int)LepLepId->at(il);
+      for (int ij=0; ij<2; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+      double rndnum = randomthrow.Uniform();
+      if (rndnum<=portion_to_keep) tmptree->Fill();
+    }
+  }
+
+  const int nEntries = tmptree->GetEntries();
+  if (nEntries>=1000000){
+    cerr << "TMath::Sort will experience problems. Aborting!" << endl;
+    delete tmptree;
+    delete tree;
+    assert(0);
+  }
+  int* index = new int[nEntries];
+  tmptree->Draw("ZZMass", "", "goff");
+  TMath::Sort(nEntries, tmptree->GetV1(), index, false);
+
+  tmptree->GetEntry(index[0]);
+  float firstVal=mzz;
+  tmptree->GetEntry(index[nEntries-1]);
+  float lastVal=mzz;
+  float infimum = (float)((int)firstVal); infimum -= (float)(((int)infimum)%10);
+  float supremum = (float)((int)(lastVal+0.5)); supremum += (float)(10-((int)supremum)%10);
+  cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
+
+  int nbins=0;
+  int divisor=11000;
+  while (nbins<50){
+    if (divisor>1000) divisor -= 1000;
+    else if (divisor>100) divisor -= 100;
+    else break;
+    nbins=nEntries/divisor+1;
+  }
+  cout << "nbins=" << nbins << endl;
+  if (nbins<3) cerr << "Not enough bins!" << endl;
+  float* binning = new float[nbins+1];
+  binning[0]=infimum;
+  binning[nbins]=supremum;
+  int ev_stepsize = nEntries/nbins;
+  cout << "Event step size: " << ev_stepsize << endl;
+  cout << "Boundary (" << 0 << ") = " << binning[0] << endl;
+  for (int ix=1; ix<nbins; ix++){
+    int ev = index[ix*ev_stepsize];
+    tmptree->GetEntry(ev);
+    float bhigh = mzz;
+    ev = index[ix*ev_stepsize-1];
+    float blow = mzz;
+    binning[ix]=(bhigh+blow)*0.5;
+    cout << "Boundary (" << ix << ")= " << binning[ix] << " [event " << ev << ", step " << ix*ev_stepsize << "]" << endl;
+  }
+  cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
+  delete[] index;
+
+  TFile* foutput = new TFile(Form("pAvg_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
+
+  TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
+  TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
+  TProfile* hmesq_jetPtoEScale = new TProfile("P_MomentumToEnergy", "", nbins, binning); hmesq_jetPtoEScale->Sumw2();
+
+  TTree* newtree=0;
+  if (writeFinalTree){
+    newtree = new TTree("FinalTree", "");
+    newtree->Branch("mesq_conserveDifermMass", &mesq_conserveDifermMass);
+    newtree->Branch("mesq_jetPtoEScale", &mesq_jetPtoEScale);
+    newtree->Branch("ZZMass", &mzz);
+  }
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  for (int ev = 0; ev < nEntries; ev++){
+    tmptree->GetEntry(ev); // No need for ordering anymore
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+
+    TLorentzVector jet[2], higgs;
+    for (int ij=0; ij<2; ij++) jet[ij].SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+    higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+    TVector3 boostH = higgs.BoostVector();
+
+    SimpleParticleCollection_t associated;
+    associated.push_back(SimpleParticle_t(0, jet[0]));
+    associated.push_back(SimpleParticle_t(0, jet[1]));
+
+    TLorentzVector pDaughters[4];
+    std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+    for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+    SimpleParticleCollection_t daughters;
+    for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+    mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+    double alphasVal;
+    bool doFill=true;
+    mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
+
+    TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+    mela.computeProdP(mesq_conserveDifermMass, false);
+    alphasVal = mela.getIORecord()->getAlphaSatMZ();
+    mesq_conserveDifermMass /= pow(alphasVal, 4);
+    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
+
+    TUtil::setJetMassScheme(TVar::MomentumToEnergy);
+    mela.computeProdP(mesq_jetPtoEScale, false);
+    alphasVal = mela.getIORecord()->getAlphaSatMZ();
+    mesq_jetPtoEScale /= pow(alphasVal, 4);
+    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    if (isnan(mesq_jetPtoEScale) || isinf(mesq_jetPtoEScale)) doFill=false;
+
+    if (doFill){
+      hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
+      hmesq_jetPtoEScale->Fill(mzz, mesq_jetPtoEScale);
+      hvar->Fill(mzz, mzz);
+    }
+
+    if (writeFinalTree) newtree->Fill();
+    mela.resetInputEvent();
+  }
+
+  double* xexyey[2][4];
+  for (int inorm=0; inorm<2; inorm++){
+    for (int ix=0; ix<4; ix++) xexyey[inorm][ix] = new double[nbins];
+    for (int bin=0; bin<nbins; bin++){
+      xexyey[inorm][0][bin] = hvar->GetBinContent(bin+1);
+      xexyey[inorm][1][bin] = hvar->GetBinError(bin+1);
+
+      if (inorm==0) cout << "Bin " << bin << " x-center: " << xexyey[inorm][0][bin] << " +- " << xexyey[inorm][1][bin] << endl;
+
+      if (inorm==0){
+        xexyey[inorm][2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
+        xexyey[inorm][3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      }
+      else{
+        xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
+        xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
+      }
+    }
+  }
+
+  for (int inorm=0; inorm<2; inorm++){
+    TGraphErrors* tg = new TGraphErrors(nbins, xexyey[inorm][0], xexyey[inorm][2], xexyey[inorm][1], xexyey[inorm][3]);
+    if (inorm==0) tg->SetName("tg_P_ConserveDifermionMass");
+    else tg->SetName("tg_P_MomentumToEnergy");
+    foutput->WriteTObject(tg);
+    delete tg;
+  }
+
+  for (int inorm=0; inorm<2; inorm++){
+    for (int ix=0; ix<4; ix++) delete[] xexyey[inorm][ix];
+  }
+  foutput->WriteTObject(hmesq_jetPtoEScale);
+  foutput->WriteTObject(hmesq_conserveDifermMass);
+  foutput->WriteTObject(hvar);
+  if (writeFinalTree) foutput->WriteTObject(newtree);
+  if (writeFinalTree) delete newtree;
+  delete hmesq_conserveDifermMass;
+  delete hmesq_jetPtoEScale;
+  delete hvar;
+  foutput->Close();
+  delete[] binning;
+  delete tmptree;
+  delete tree;
+}
+
+
+/* SPECIFIC COMMENT: OUTPUT ME DIVIDED BY ALPHAS(MZ)**3 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION */
+void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
+  int erg_tev=sqrts;
+  float mPOLE=125.;
+  TString TREE_NAME = "ZZTree/candTree";
+  bool writeFinalTree=false;
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  std::vector<short>* LepLepId=0;
+  TBranch* bLepLepId=0;
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+  float jetptetaphimass[2][4];
+
+  float mesq_conserveDifermMass=0;
+  float mesq_jetPtoEScale=0;
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+  int LepID[4]={ 13, -13, 11, -11 };
+
+  TString cinput_main;
+  if (sqrts==13) cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/4l/160225";
+  else return;
+  const int nSamples = 34;
+  TString strSamples[nSamples]={
+    //"ggH91_GaZ/ZZ4lAnalysis.root",
+    "ggH115/ZZ4lAnalysis.root",
+    "ggH120/ZZ4lAnalysis.root",
+    "ggH124/ZZ4lAnalysis.root",
+    "ggH125/ZZ4lAnalysis.root",
+    "ggH126/ZZ4lAnalysis.root",
+    "ggH130/ZZ4lAnalysis.root",
+    "ggH135/ZZ4lAnalysis.root",
+    "ggH140/ZZ4lAnalysis.root",
+    "ggH145/ZZ4lAnalysis.root",
+    "ggH150/ZZ4lAnalysis.root",
+    "ggH155/ZZ4lAnalysis.root",
+    "ggH160/ZZ4lAnalysis.root",
+    "ggH165/ZZ4lAnalysis.root",
+    "ggH170/ZZ4lAnalysis.root",
+    "ggH175/ZZ4lAnalysis.root",
+    "ggH180/ZZ4lAnalysis.root",
+    "ggH190/ZZ4lAnalysis.root",
+    "ggH200/ZZ4lAnalysis.root",
+    "ggH210/ZZ4lAnalysis.root",
+    "ggH230/ZZ4lAnalysis.root",
+    "ggH250/ZZ4lAnalysis.root",
+    "ggH270/ZZ4lAnalysis.root",
+    "ggH300/ZZ4lAnalysis.root",
+    "ggH350/ZZ4lAnalysis.root",
+    "ggH400/ZZ4lAnalysis.root",
+    "ggH450/ZZ4lAnalysis.root",
+    "ggH500/ZZ4lAnalysis.root",
+    "ggH550/ZZ4lAnalysis.root",
+    "ggH600/ZZ4lAnalysis.root",
+    "ggH700/ZZ4lAnalysis.root",
+    "ggH750/ZZ4lAnalysis.root",
+    "ggH800/ZZ4lAnalysis.root",
+    "ggH900/ZZ4lAnalysis.root",
+    "ggH1000/ZZ4lAnalysis.root"
+  };
+
+  TChain* tree = new TChain(TREE_NAME, "");
+  for (int is=0; is<nSamples; is++) tree->Add(Form("%s/%s", cinput_main.Data(), (strSamples[is]).Data()));
+  tree->SetBranchAddress("nCleanedJetsPt30", &NJets30);
+  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("ZZPt", &ZZPt);
+  tree->SetBranchAddress("ZZEta", &ZZEta);
+  tree->SetBranchAddress("ZZPhi", &ZZPhi);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+  tree->SetBranchAddress("LepLepId", &LepLepId, &bLepLepId);
+
+  const int nTotalEntries = tree->GetEntries();
+  cout << "Ntotalentries = " << nTotalEntries << endl;
+
+  TTree* tmptree = new TTree("IntermediateTree", "");
+  tmptree->Branch("ZZMass", &mzz);
+  tmptree->Branch("ZZPt", &ZZPt);
+  tmptree->Branch("ZZEta", &ZZEta);
+  tmptree->Branch("ZZPhi", &ZZPhi);
+  tmptree->Branch("Z1Mass", &m1);
+  tmptree->Branch("Z2Mass", &m2);
+  tmptree->Branch("helcosthetaZ1", &h1);
+  tmptree->Branch("helcosthetaZ2", &h2);
+  tmptree->Branch("helphi", &phi);
+  tmptree->Branch("costhetastar", &hs);
+  tmptree->Branch("phistarZ1", &phi1);
+  tmptree->Branch("Lep1ID", &(LepID[0]));
+  tmptree->Branch("Lep2ID", &(LepID[1]));
+  tmptree->Branch("Lep3ID", &(LepID[2]));
+  tmptree->Branch("Lep4ID", &(LepID[3]));
+  tmptree->Branch("NJets30", &NJets30);
+  tmptree->Branch("jet1pt", &(jetptetaphimass[0][0]));
+  tmptree->Branch("jet2pt", &(jetptetaphimass[1][0]));
+  tmptree->Branch("jet1eta", &(jetptetaphimass[0][1]));
+  tmptree->Branch("jet2eta", &(jetptetaphimass[1][1]));
+  tmptree->Branch("jet1phi", &(jetptetaphimass[0][2]));
+  tmptree->Branch("jet2phi", &(jetptetaphimass[1][2]));
+  tmptree->Branch("jet1mass", &(jetptetaphimass[0][3]));
+  tmptree->Branch("jet2mass", &(jetptetaphimass[1][3]));
+
+  TRandom3 randomthrow(1234567);
+  double portion_to_keep = 1;
+  if (nTotalEntries>1000000) portion_to_keep = 9.95e5/tree->GetEntries("nCleanedJetsPt30==1");
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree->GetEntry(ev);
+    if (NJets30==1 && JetPt->size()>=1){
+      for (unsigned int il=0; il<(unsigned int)min((int)LepLepId->size(), 4); il++) LepID[il] = (int)LepLepId->at(il);
+      for (unsigned int ij=0; ij<1; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+      double rndnum = randomthrow.Uniform();
+      if (rndnum<=portion_to_keep) tmptree->Fill();
+    }
+  }
+
+  const int nEntries = tmptree->GetEntries();
+  if (nEntries>=1000000){
+    cerr << "TMath::Sort will experience problems. Aborting!" << endl;
+    delete tmptree;
+    delete tree;
+    assert(0);
+  }
+  int* index = new int[nEntries];
+  tmptree->Draw("ZZMass", "", "goff");
+  TMath::Sort(nEntries, tmptree->GetV1(), index, false);
+
+  tmptree->GetEntry(index[0]);
+  float firstVal=mzz;
+  tmptree->GetEntry(index[nEntries-1]);
+  float lastVal=mzz;
+  float infimum = (float)((int)firstVal); infimum -= (float)(((int)infimum)%10);
+  float supremum = (float)((int)(lastVal+0.5)); supremum += (float)(10-((int)supremum)%10);
+  cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
+
+  int nbins=0;
+  int divisor=11000;
+  while (nbins<50){
+    if (divisor>1000) divisor -= 1000;
+    else if (divisor>100) divisor -= 100;
+    else break;
+    nbins=nEntries/divisor+1;
+  }
+  cout << "nbins=" << nbins << endl;
+  if (nbins<3) cerr << "Not enough bins!" << endl;
+  float* binning = new float[nbins+1];
+  binning[0]=infimum;
+  binning[nbins]=supremum;
+  int ev_stepsize = nEntries/nbins;
+  cout << "Event step size: " << ev_stepsize << endl;
+  cout << "Boundary (" << 0 << ") = " << binning[0] << endl;
+  for (int ix=1; ix<nbins; ix++){
+    int ev = index[ix*ev_stepsize];
+    tmptree->GetEntry(ev);
+    float bhigh = mzz;
+    ev = index[ix*ev_stepsize-1];
+    float blow = mzz;
+    binning[ix]=(bhigh+blow)*0.5;
+    cout << "Boundary (" << ix << ")= " << binning[ix] << " [event " << ev << ", step " << ix*ev_stepsize << "]" << endl;
+  }
+  cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
+  delete[] index;
+
+  TFile* foutput = new TFile(Form("pAvg_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
+
+  TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
+  TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
+  TProfile* hmesq_jetPtoEScale = new TProfile("P_MomentumToEnergy", "", nbins, binning); hmesq_jetPtoEScale->Sumw2();
+
+  TTree* newtree=0;
+  if (writeFinalTree){
+    newtree = new TTree("FinalTree", "");
+    newtree->Branch("mesq_conserveDifermMass", &mesq_conserveDifermMass);
+    newtree->Branch("mesq_jetPtoEScale", &mesq_jetPtoEScale);
+    newtree->Branch("ZZMass", &mzz);
+  }
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  for (int ev = 0; ev < nEntries; ev++){
+    tmptree->GetEntry(ev); // No need for ordering anymore
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+
+    TLorentzVector jet, higgs;
+    for (int ij=0; ij<1; ij++) jet.SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+    higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+    TVector3 boostH = higgs.BoostVector();
+
+    SimpleParticleCollection_t associated;
+    associated.push_back(SimpleParticle_t(0, jet));
+
+    TLorentzVector pDaughters[4];
+    std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+    for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+    SimpleParticleCollection_t daughters;
+    for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+    mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+    hvar->Fill(mzz, mzz);
+
+    double alphasVal;
+
+    mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JQCD);
+    TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+    mela.computeProdP(mesq_conserveDifermMass, false);
+    if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)){
+      cout << "Candidate vectors are " << endl;
+      for (int idau=0; idau<4; idau++) cout << pDaughters[idau].X() << '\t' << pDaughters[idau].Y() << '\t' << pDaughters[idau].Z() << '\t' << pDaughters[idau].T() << endl;
+      cout << jet.X() << '\t' << jet.Y() << '\t' << jet.Z() << '\t' << jet.T() << endl;
+      cout << jet.Pt() << '\t' << jet.Eta() << '\t' << jet.Phi() << '\t' << jet.M() << endl;
+    }
+    alphasVal = mela.getIORecord()->getAlphaSatMZ();
+    mesq_conserveDifermMass /= pow(alphasVal, 3);
+    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
+
+    TUtil::setJetMassScheme(TVar::MomentumToEnergy);
+    mela.computeProdP(mesq_jetPtoEScale, false);
+    alphasVal = mela.getIORecord()->getAlphaSatMZ();
+    mesq_jetPtoEScale /= pow(alphasVal, 3);
+    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    hmesq_jetPtoEScale->Fill(mzz, mesq_jetPtoEScale);
+
+
+    if (writeFinalTree) newtree->Fill();
+    mela.resetInputEvent();
+  }
+
+  double* xexyey[2][4];
+  for (int inorm=0; inorm<2; inorm++){
+    for (int ix=0; ix<4; ix++) xexyey[inorm][ix] = new double[nbins];
+    for (int bin=0; bin<nbins; bin++){
+      xexyey[inorm][0][bin] = hvar->GetBinContent(bin+1);
+      xexyey[inorm][1][bin] = hvar->GetBinError(bin+1);
+
+      if (inorm==0) cout << "Bin " << bin << " x-center: " << xexyey[inorm][0][bin] << " +- " << xexyey[inorm][1][bin] << endl;
+
+      if (inorm==0){
+        xexyey[inorm][2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
+        xexyey[inorm][3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      }
+      else{
+        xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
+        xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
+      }
+    }
+  }
+
+  for (int inorm=0; inorm<2; inorm++){
+    TGraphErrors* tg = new TGraphErrors(nbins, xexyey[inorm][0], xexyey[inorm][2], xexyey[inorm][1], xexyey[inorm][3]);
+    if (inorm==0) tg->SetName("tg_P_ConserveDifermionMass");
+    else tg->SetName("tg_P_MomentumToEnergy");
+    foutput->WriteTObject(tg);
+    delete tg;
+  }
+
+  for (int inorm=0; inorm<2; inorm++){
+    for (int ix=0; ix<4; ix++) delete[] xexyey[inorm][ix];
+  }
+  foutput->WriteTObject(hmesq_jetPtoEScale);
+  foutput->WriteTObject(hmesq_conserveDifermMass);
+  foutput->WriteTObject(hvar);
+  if (writeFinalTree) foutput->WriteTObject(newtree);
+  if (writeFinalTree) delete newtree;
+  delete hmesq_conserveDifermMass;
+  delete hmesq_jetPtoEScale;
+  delete hvar;
+  foutput->Close();
+  delete[] binning;
+  delete tmptree;
+  delete tree;
+}
+
 
 
 /*
@@ -2242,6 +3159,248 @@ void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
   foutput->Close();
 }
 
+/*
+SPECIFIC COMMENT: OUTPUT ME DIVIDED BY
+- (aL1**2+aR1**2)*(aL2**2+aR2**2) TO REMAIN INDEPENDENT OF CHANNEL
+*/
+void get_PAvgProfile_MCFM_JJQCD_bkgZJets_13TeV_2l2q(){
+  int erg_tev=13;
+  float mPOLE=125.;
+  TString TREE_NAME = "ZZTree/candTree";
+  const bool writeFinalTree=false;
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  float mesq_conserveDifermMass=0;
+  float mzz;
+  float m1;
+  float m2;
+  float h1;
+  float h2;
+  float phi;
+  float hs;
+  float phi1;
+  vector<Float_t>* mzz_array=0;
+  vector<Float_t>* m1_array=0;
+  vector<Float_t>* m2_array=0;
+  vector<Float_t>* h1_array=0;
+  vector<Float_t>* h2_array=0;
+  vector<Float_t>* phi_array=0;
+  vector<Float_t>* hs_array=0;
+  vector<Float_t>* phi1_array=0;
+  vector<Short_t>* ZZsel=0;
+  vector<Short_t>* ZZCandType=0;
+  int LepID[4]={ 0, 0, 11, -11 };
+
+  TString cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/2l2q/";
+  const int nSamples = 2;
+  TString strSamples[nSamples]={
+    "ZZ2l2qAnalysis_DY2JetsToLL.root",
+    "ZZ2l2qAnalysis_DYJetsToLL.root"
+  };
+
+  TFile* foutput = new TFile("pAvg_MCFM_JJQCD_bkgZJets_13TeV_2l2q.root", "recreate");
+
+  gROOT->cd();
+  TChain* tree = new TChain(TREE_NAME, "");
+  for (int is=0; is<nSamples; is++) tree->Add(Form("%s/%s", cinput_main.Data(), (strSamples[is]).Data()));
+  tree->SetBranchAddress("ZZCandType", &ZZCandType);
+  tree->SetBranchAddress("ZZsel", &ZZsel);
+  tree->SetBranchAddress("ZZMass", &mzz_array);
+  tree->SetBranchAddress("Z1Mass", &m1_array);
+  tree->SetBranchAddress("Z2Mass", &m2_array);
+  tree->SetBranchAddress("helcosthetaZ1", &h1_array);
+  tree->SetBranchAddress("helcosthetaZ2", &h2_array);
+  tree->SetBranchAddress("helphi", &phi_array);
+  tree->SetBranchAddress("costhetastar", &hs_array);
+  tree->SetBranchAddress("phistarZ1", &phi1_array);
+
+  int nTotalEntries = tree->GetEntries();
+
+  TTree* tmptree = new TTree("IntermediateTree", "");
+  tmptree->Branch("ZZMass", &mzz);
+  tmptree->Branch("Z1Mass", &m1);
+  tmptree->Branch("Z2Mass", &m2);
+  tmptree->Branch("helcosthetaZ1", &h1);
+  tmptree->Branch("helcosthetaZ2", &h2);
+  tmptree->Branch("helphi", &phi);
+  tmptree->Branch("costhetastar", &hs);
+  tmptree->Branch("phistarZ1", &phi1);
+
+  unsigned int ctr=0;
+  cout << "Nrawentries = " << nTotalEntries << endl;
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree->GetEntry(ev);
+    for (unsigned int j=0; j < ZZsel->size(); j++){
+      if (ZZsel->at(j)>=90 && (ZZCandType->at(j)==2 || ZZCandType->at(j)==1)){
+        if (ctr%100==0) cout << "Event " << ctr << " being recorded at actual event " << ev << "." << endl;
+        mzz=mzz_array->at(j);
+        m1=m1_array->at(j);
+        h1=h1_array->at(j);
+        m2=m2_array->at(j);
+        h2=h2_array->at(j);
+        hs=hs_array->at(j);
+        phi=phi_array->at(j);
+        phi1=phi1_array->at(j);
+        tmptree->Fill();
+        ctr++;
+      }
+    }
+  }
+
+  nTotalEntries=tmptree->GetEntries();
+  cout << "Ntotalentries = " << nTotalEntries << endl;
+
+  TTree* tmptree2 = new TTree("IntermediateTree2", "");
+  tmptree2->Branch("ZZMass", &mzz);
+  tmptree2->Branch("Z1Mass", &m1);
+  tmptree2->Branch("Z2Mass", &m2);
+  tmptree2->Branch("helcosthetaZ1", &h1);
+  tmptree2->Branch("helcosthetaZ2", &h2);
+  tmptree2->Branch("helphi", &phi);
+  tmptree2->Branch("costhetastar", &hs);
+  tmptree2->Branch("phistarZ1", &phi1);
+
+  TRandom3 randomthrow(1234567);
+  double portion_to_keep = 1;
+  if (nTotalEntries>1000000) portion_to_keep = 9.95e5/nTotalEntries;
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tmptree->GetEntry(ev);
+    double rndnum = randomthrow.Uniform();
+    if (rndnum<=portion_to_keep) tmptree2->Fill();
+  }
+  delete tmptree;
+  tmptree=tmptree2;
+
+  const int nEntries = tmptree->GetEntries();
+  if (nEntries>=1000000){
+    cerr << "TMath::Sort will experience problems. Aborting!" << endl;
+    delete tmptree;
+    delete tree;
+    assert(0);
+  }
+  int* index = new int[nEntries];
+  tmptree->Draw("ZZMass", "", "goff");
+  TMath::Sort(nEntries, tmptree->GetV1(), index, false);
+
+  tmptree->GetEntry(index[0]);
+  float firstVal=mzz;
+  tmptree->GetEntry(index[nEntries-1]);
+  float lastVal=mzz;
+  float infimum = (float)((int)firstVal); infimum -= (float)(((int)infimum)%10);
+  float supremum = (float)((int)(lastVal+0.5)); supremum += (float)(10-((int)supremum)%10);
+  cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
+
+  int nbins=0;
+  int divisor=11000;
+  while (nbins<50){
+    if (divisor>1000) divisor -= 1000;
+    else if (divisor>100) divisor -= 100;
+    else break;
+    nbins=nEntries/divisor+1;
+  }
+  cout << "nbins=" << nbins << endl;
+  if (nbins<3) cerr << "Not enough bins!" << endl;
+  float* binning = new float[nbins+1];
+  binning[0]=infimum;
+  binning[nbins]=supremum;
+  int ev_stepsize = nEntries/nbins;
+  cout << "Event step size: " << ev_stepsize << endl;
+  cout << "Boundary (" << 0 << ") = " << binning[0] << endl;
+  for (int ix=1; ix<nbins; ix++){
+    int ev = index[ix*ev_stepsize];
+    tmptree->GetEntry(ev);
+    float bhigh = mzz;
+    ev = index[ix*ev_stepsize-1];
+    float blow = mzz;
+    binning[ix]=(bhigh+blow)*0.5;
+    cout << "Boundary (" << ix << ")= " << binning[ix] << " [event " << ev << ", step " << ix*ev_stepsize << "]" << endl;
+  }
+  cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
+  delete[] index;
+
+  foutput->cd();
+  TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
+  TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
+
+  TTree* newtree=0;
+  if (writeFinalTree){
+    newtree = new TTree("FinalTree", "");
+    newtree->Branch("mesq_conserveDifermMass", &mesq_conserveDifermMass);
+    newtree->Branch("ZZMass", &mzz);
+  }
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  for (int ev = 0; ev < nEntries; ev++){
+    tmptree->GetEntry(ev); // No need for ordering anymore
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+
+    TLorentzVector pDaughters[4];
+    std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+    for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); }
+    SimpleParticleCollection_t daughters;
+    for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+    mela.setInputEvent(&daughters, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+
+    //double alphasVal;
+    bool doFill=true;
+    mela.setProcess(TVar::bkgZJets, TVar::MCFM, TVar::JJQCD);
+
+    TUtil::setLeptonMassScheme(TVar::ConserveDifermionMass);
+    mela.computeP(mesq_conserveDifermMass, false);
+    double aL1, aR1, aL2, aR2;
+    mela.getIORecord()->getVDaughterCouplings(aL1, aR1, 0);
+    mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
+    if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
+    if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
+    cout << "aL1: " << aL1 << '\t';
+    cout << "aR1: " << aR1 << '\t';
+    cout << "aL2: " << aL2 << '\t';
+    cout << "aR2: " << aR2 << endl;
+    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
+
+    if (doFill){
+      hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
+      hvar->Fill(mzz, mzz);
+    }
+
+    if (writeFinalTree) newtree->Fill();
+    mela.resetInputEvent();
+  }
+
+  double* xexyey[4];
+  for (int ix=0; ix<4; ix++) xexyey[ix] = new double[nbins];
+  for (int bin=0; bin<nbins; bin++){
+    xexyey[0][bin] = hvar->GetBinContent(bin+1);
+    xexyey[1][bin] = hvar->GetBinError(bin+1);
+
+    cout << "Bin " << bin << " x-center: " << xexyey[0][bin] << " +- " << xexyey[1][bin] << endl;
+    xexyey[2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
+    xexyey[3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+  }
+
+
+  TGraphErrors* tg = new TGraphErrors(nbins, xexyey[0], xexyey[2], xexyey[1], xexyey[3]);
+  tg->SetName(Form("tg_%s", hmesq_conserveDifermMass->GetName()));
+  foutput->WriteTObject(tg);
+  delete tg;
+
+  for (int ix=0; ix<4; ix++) delete[] xexyey[ix];
+  foutput->WriteTObject(hmesq_conserveDifermMass);
+  foutput->WriteTObject(hvar);
+  if (writeFinalTree) foutput->WriteTObject(newtree);
+  if (writeFinalTree) delete newtree;
+  delete hmesq_conserveDifermMass;
+  delete hvar;
+  delete[] binning;
+  delete tmptree;
+  delete tree;
+
+  foutput->Close();
+}
 
 /* SPECIFIC COMMENT: Convert a TGraph to a TSpline3 */
 TSpline3* convertGraphToSpline3(TGraph* tg, double* dfirst=0, double* dlast=0){
@@ -2964,5 +4123,56 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
   finput->Close();
 }
 
+/* SPECIFIC COMMENT: NONE */
+void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_13TeV_2l2q(int sqrts=13){
+  TFile* finput = new TFile(Form("pAvg_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "read");
+  TFile* foutput = new TFile(Form("pAvgSmooth_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "recreate");
+  const unsigned int ngraphs=1;
+  TString strtg[ngraphs]={
+    "tg_P_ConserveDifermionMass"
+  };
+
+  for (unsigned int ig=0; ig<ngraphs; ig++){
+    finput->cd();
+    TGraphErrors* tg = 0;
+    tg = (TGraphErrors*)finput->Get(Form("%s_%s", strtg[ig].Data(), "%s"));
+    tg->SetName(strtg[ig]);
+    if (tg==0){ cerr << strtg[ig] << " does not exist." << endl; continue; }
+    foutput->cd();
+    foutput->WriteTObject(tg);
+    tg->SetName(Form("%s_Smooth", tg->GetName()));
+    regularizeSlice(tg);
+    foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1timesX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
+  }
+  foutput->Close();
+  finput->Close();
+}
 
 

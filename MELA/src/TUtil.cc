@@ -1427,9 +1427,9 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   else if (
     ndau>=4
     &&
-    (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB)
+    production == TVar::JJQCD
     &&
-    process == TVar::bkgZJJ
+    process == TVar::bkgZJets
     ){
     // -- 44 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4))+f(p5)+f(p6)'
     // these settings are identical to use the chooser_() function
@@ -3046,64 +3046,41 @@ double TUtil::SumMatrixElementPDF(
     SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
   else if (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB){
-    if (process == TVar::bkgZJJ){
-      qqb_z2jet_(p4[0], msq[0]);
+    if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
+    else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
+    else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
 
-      for (int iquark=-5; iquark<=5; iquark++){
-        for (int jquark=-5; jquark<=5; jquark++){
+    // Sum over valid MEs without PDF weights
+    // By far the dominant contribution is uub initial state.
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
           if (
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-            )
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
             &&
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-            )
-            ){
-            if (msq[jquark+5][iquark+5]>0.) nInstances++;
-          }
-          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            ) msqjk = msq[jquark+5][-jquark+5];
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[-iquark+5][iquark+5];
+          else msqjk += msq[jquark+5][iquark+5];
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
         }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
       }
-      msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
-    else{
-      if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
-      else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
-      else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
-
-      // Sum over valid MEs without PDF weights
-      // By far the dominant contribution is uub initial state.
-      for (int iquark=-5; iquark<=5; iquark++){
-        for (int jquark=-5; jquark<=5; jquark++){
-          if (
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-            )
-            &&
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-            )
-            ){
-            if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
-              &&
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-              ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
-            else if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
-              ) msqjk = msq[jquark+5][-jquark+5];
-            else if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-              ) msqjk = msq[-iquark+5][iquark+5];
-            else msqjk += msq[jquark+5][iquark+5];
-            if (msq[jquark+5][iquark+5]>0.) nInstances++;
-          }
-          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
-        }
-      }
-      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-    }
+    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
   else if (production == TVar::ZZGG){
     if (isZZ){
@@ -3183,6 +3160,27 @@ double TUtil::SumMatrixElementPDF(
     }
     msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
+  else if (production == TVar::JJQCD){
+    if (process == TVar::bkgZJets) qqb_z2jet_(p4[0], msq[0]);
+
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+        }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+      }
+    }
+    msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
+  }
 
   // Set aL/R 1,2 into RcdME
   if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
@@ -3191,6 +3189,12 @@ double TUtil::SumMatrixElementPDF(
   if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
   else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(1., 0., 1);
   else RcdME->setVDaughterCouplings(0., 0., 1);
+  // Reset some of these couplings if the decay is not actually ZZ or WW.
+  if (
+    process==TVar::bkgZJets
+    ||
+    process==TVar::bkgZGamma
+    ) RcdME->setVDaughterCouplings(0., 0., 1);
 
   if (msqjk != msqjk){
     if (verbosity>=TVar::ERROR) cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
@@ -4741,6 +4745,19 @@ double TUtil::HJJMatEl(
     for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[ii][jj] << '\t'; cout << endl; }
   }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
+  /*
+  if (verbosity >= TVar::ERROR && (std::isnan(sum_msqjk) || std::isinf(sum_msqjk))){
+    cout << "TUtil::HJJMatEl: FAILURE!" << endl;
+    cout << "MatElsq:\n";
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[ii][jj] << '\t'; cout << endl; }
+    double fx[2][nmsq];
+    RcdME->getPartonWeights(fx[0], fx[1]);
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < 2; jj++) cout << fx[jj][ii] << '\t'; cout << endl; }
+    for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl;
+    TUtil::PrintCandidateSummary(RcdME->melaCand);
+    cout << endl;
+  }
+  */
 
   if (verbosity>=TVar::DEBUG){
     cout
@@ -5870,8 +5887,12 @@ double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double 
 
 // Propagator reweighting
 double TUtil::ResonancePropagator(double shat, TVar::ResonancePropagatorScheme scheme){
+  const double GeV=1./100.; // JHUGen mom. scale factor
   int isch=(int)scheme;
-  return __modkinematics_MOD_getbwpropagator(&shat, &isch);
+  double shat_jhu = shat*GeV;
+  double prop = __modkinematics_MOD_getbwpropagator(&shat_jhu, &isch);
+  prop *= pow(GeV, 4);
+  return prop;
 }
 
 

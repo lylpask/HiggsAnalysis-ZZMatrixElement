@@ -264,7 +264,7 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
     cout << "pVAMCFM_qqZZ_bkg: " << pVAMCFM_qqZZ_bkg << '\n' << endl;
 
     float pVAMCFM_qqZJJ_bkg;
-    mela.setProcess(TVar::bkgZJJ, TVar::MCFM, TVar::ZZQQB);
+    mela.setProcess(TVar::bkgZJets, TVar::MCFM, TVar::JJQCD);
     mela.computeP(pVAMCFM_qqZJJ_bkg, false);
     cout << "pVAMCFM_qqZJJ_bkg: " << pVAMCFM_qqZJJ_bkg << '\n' << endl;
 
