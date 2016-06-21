@@ -17,6 +17,8 @@
 #include "TTree.h"
 #include "TChain.h"
 #include "TString.h"
+#include "TF1.h"
+#include "TCanvas.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TH3F.h"
@@ -2240,6 +2242,110 @@ void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
 }
 
 
+/* SPECIFIC COMMENT: Convert a TGraph to a TSpline3 */
+TSpline3* convertGraphToSpline3(TGraph* tg, double* dfirst=0, double* dlast=0){
+  unsigned int nbins = tg->GetN();
+  double* xy[2]={
+    tg->GetX(),
+    tg->GetY()
+  };
+  double derivative_first = (xy[1][1]-xy[1][0])/(xy[0][1]-xy[0][0]);
+  double derivative_last = (xy[1][nbins-1]-xy[1][nbins-2])/(xy[0][nbins-1]-xy[0][nbins-2]);
+  TSpline3* spline = new TSpline3("spline", tg, "b1e1", derivative_first, derivative_last);
+  spline->SetName(Form("sp_%s", tg->GetName()));
+  if (dfirst!=0) *dfirst=derivative_first;
+  if (dlast!=0) *dlast=derivative_last;
+  return spline;
+}
+
+/* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0+a1*exp(x) */
+TF1* getFcn_a0plusa1expX(TSpline3* sp, double xmin, double xmax, bool useLowBound){
+  double x, y, s;
+  if (useLowBound) x = sp->GetXmin();
+  else x = sp->GetXmax();
+  y = sp->Eval(x);
+  s = sp->Derivative(x);
+
+  double a0, a1;
+  a0 = y-s;
+  a1 = s*exp(-x);
+
+  TString fcnName;
+  if (useLowBound) fcnName = Form("lowFcn_%s", sp->GetName());
+  else fcnName = Form("highFcn_%s", sp->GetName());
+  TF1* fcn = new TF1(fcnName, "[0]+[1]*exp(x)", xmin, xmax);
+  fcn->SetParameter(0, a0);
+  fcn->SetParameter(1, a1);
+
+  return fcn;
+}
+
+/* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0+a1/x */
+TF1* getFcn_a0plusa1overX(TSpline3* sp, double xmin, double xmax, bool useLowBound){
+  double x, y, s;
+  if (useLowBound) x = sp->GetXmin();
+  else x = sp->GetXmax();
+  y = sp->Eval(x);
+  s = sp->Derivative(x);
+
+  double a0, a1;
+  a0 = y+s*x;
+  a1 = -s*pow(x, 2);
+
+  TString fcnName;
+  if (useLowBound) fcnName = Form("lowFcn_%s", sp->GetName());
+  else fcnName = Form("highFcn_%s", sp->GetName());
+  TF1* fcn = new TF1(fcnName, "[0]+[1]/x", xmin, xmax);
+  fcn->SetParameter(0, a0);
+  fcn->SetParameter(1, a1);
+
+  return fcn;
+}
+
+/* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0/x**2-a1/x */
+TF1* getFcn_a0overX2minusa1overX(TSpline3* sp, double xmin, double xmax, bool useLowBound){
+  double x, y, s;
+  if (useLowBound) x = sp->GetXmin();
+  else x = sp->GetXmax();
+  y = sp->Eval(x);
+  s = sp->Derivative(x);
+
+  double a0, a1;
+  a0 = -y*pow(x, 2)-s*pow(x, 3);;
+  a1 = -2.*y*x-s*pow(x, 2);;
+
+  TString fcnName;
+  if (useLowBound) fcnName = Form("lowFcn_%s", sp->GetName());
+  else fcnName = Form("highFcn_%s", sp->GetName());
+  TF1* fcn = new TF1(fcnName, "[0]/x/x-[1]/x", xmin, xmax);
+  fcn->SetParameter(0, a0);
+  fcn->SetParameter(1, a1);
+
+  return fcn;
+}
+
+/* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0+a1*x */
+TF1* getFcn_a0plusa1timesX(TSpline3* sp, double xmin, double xmax, bool useLowBound){
+  double x, y, s;
+  if (useLowBound) x = sp->GetXmin();
+  else x = sp->GetXmax();
+  y = sp->Eval(x);
+  s = sp->Derivative(x);
+
+  double a0, a1;
+  a0 = y-s*x;
+  a1 = s;
+
+  TString fcnName;
+  if (useLowBound) fcnName = Form("lowFcn_%s", sp->GetName());
+  else fcnName = Form("highFcn_%s", sp->GetName());
+  TF1* fcn = new TF1(fcnName, "[0]+[1]*x", xmin, xmax);
+  fcn->SetParameter(0, a0);
+  fcn->SetParameter(1, a1);
+
+  return fcn;
+}
+
 /* SPECIFIC COMMENT: THIS FUNCTION TAKES A TGRAPHERRORS AND MODIFIES IT DIRECTLY. THE OPTIONAL STD::VECTOR IS FOR FIXING <P> FOR CERTAIN X-VALUES. */
 void regularizeSlice(TGraphErrors* tgSlice, std::vector<double>* fixedX=0, double omitbelow=0.){
   unsigned int nbins_slice = tgSlice->GetN();
@@ -2374,6 +2480,33 @@ void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
     tg->SetName(Form("%s_Smooth", tg->GetName()));
     regularizeSlice(tg);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1timesX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1timesX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
@@ -2399,6 +2532,33 @@ void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
     tg->SetName(Form("%s_Smooth", tg->GetName()));
     regularizeSlice(tg);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1timesX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
@@ -2424,6 +2584,33 @@ void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs_7or8TeV(int sqrts=8){
     tg->SetName(Form("%s_Smooth", tg->GetName()));
     regularizeSlice(tg);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1timesX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
@@ -2463,6 +2650,33 @@ void produce_get_PAvgSmooth_JHUGen_ZZGG_HSMHiggs(){
     }
     regularizeSlice(tg, &fixedX);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1overX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
@@ -2517,6 +2731,33 @@ void produce_get_PAvgSmooth_MCFM_ZZGG_HSMHiggs(){
     }
     regularizeSlice(tg, &fixedX);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1overX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
@@ -2579,6 +2820,33 @@ void produce_get_PAvgSmooth_MCFM_ZZGG_bkgZZ(){
     }
     regularizeSlice(tg, &fixedX);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1expX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1overX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
@@ -2637,6 +2905,33 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
     }
     regularizeSlice(tg, &fixedX, omitbelow);
     foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1overX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
   }
   foutput->Close();
   finput->Close();
