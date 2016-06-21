@@ -2311,8 +2311,8 @@ TF1* getFcn_a0overX2minusa1overX(TSpline3* sp, double xmin, double xmax, bool us
   s = sp->Derivative(x);
 
   double a0, a1;
-  a0 = -y*pow(x, 2)-s*pow(x, 3);;
-  a1 = -2.*y*x-s*pow(x, 2);;
+  a0 = -y*pow(x, 2)-s*pow(x, 3);
+  a1 = -2.*y*x-s*pow(x, 2);
 
   TString fcnName;
   if (useLowBound) fcnName = Form("lowFcn_%s", sp->GetName());
@@ -2322,6 +2322,32 @@ TF1* getFcn_a0overX2minusa1overX(TSpline3* sp, double xmin, double xmax, bool us
   fcn->SetParameter(1, a1);
 
   return fcn;
+}
+
+/* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0+a1/x-(a1/x)**2 */
+TF1* getFcn_a0plusXPinvminusXpsqinv(TSpline3* sp, double xmin, double xmax, bool useLowBound){
+  double x, y, s;
+  if (useLowBound) x = sp->GetXmin();
+  else x = sp->GetXmax();
+  y = sp->Eval(x);
+  s = sp->Derivative(x);
+
+  double a0, a1;
+  double disc = 1.+8.*x*s;
+  if (disc>0.){
+    a1 = x/4.*(1.+sqrt(disc));
+    a0 = y-a1/x+pow(a1/x, 2);
+    cout << x << '\t' << a0 << '\t' << a1 << '\t' << s << '\t' << y << endl;
+
+    TString fcnName;
+    if (useLowBound) fcnName = Form("lowFcn_%s", sp->GetName());
+    else fcnName = Form("highFcn_%s", sp->GetName());
+    TF1* fcn = new TF1(fcnName, "[0]+[1]/x-pow([1]/x, 2)", xmin, xmax);
+    fcn->SetParameter(0, a0);
+    fcn->SetParameter(1, a1);
+    return fcn;
+  }
+  else return getFcn_a0plusa1overX(sp, xmin, xmax, useLowBound);
 }
 
 /* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0+a1*x */
@@ -2823,7 +2849,7 @@ void produce_get_PAvgSmooth_MCFM_ZZGG_bkgZZ(){
 
     TSpline3* sp = convertGraphToSpline3(tg);
     TF1* lowFcn = getFcn_a0plusa1expX(sp, 0, (tg->GetX())[0], true);
-    TF1* highFcn = getFcn_a0plusa1overX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    TF1* highFcn = getFcn_a0plusXPinvminusXpsqinv(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
     lowFcn->SetNpx(1000);
     highFcn->SetNpx(10000);
 
@@ -2908,7 +2934,7 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
 
     TSpline3* sp = convertGraphToSpline3(tg);
     TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
-    TF1* highFcn = getFcn_a0plusa1overX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    TF1* highFcn = getFcn_a0plusXPinvminusXpsqinv(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
     lowFcn->SetNpx(1000);
     highFcn->SetNpx(10000);
 
