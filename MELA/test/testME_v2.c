@@ -1320,7 +1320,7 @@ void testME_Dec_FullSim(int flavor=2, bool useConstants=false, bool useBkgSample
 }
 
 void testME_ProdP_VBFHJJ_FullSim(int flavor=2, bool useConstants=false, bool useBkgSample=false){
-  int erg_tev=8;
+  int erg_tev=13;
   float mPOLE=125.6;
   float wPOLE=4.07e-3;
   TString TREE_NAME = "SelectedTree";
