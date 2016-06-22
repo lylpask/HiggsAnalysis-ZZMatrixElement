@@ -81,10 +81,8 @@ public:
   std::vector<MELATopCandidate*>* getTopCandidateCollection();
 
 
-  float getConstant(bool useOldggZZConstants=false);
-  float getConstant_JHUGenUndecayed();
-  float getConstant_m4l(bool useOldggZZConstants=false);
-  void get_PAux(float& prob); // SuperProb
+  float getConstant();
+  void getPAux(float& prob); // SuperProb
 
   void computeDecayAngles(
     float& qH,
@@ -194,12 +192,18 @@ public:
   // Calculation of X propagator
   void getXPropagator(TVar::ResonancePropagatorScheme scheme, float& prop);
 
-  //***SuperMela***//
+  //*** SuperMela ***//
   void computePM4l(
     TVar::SuperMelaSyst syst,
     float& prob
     );
 
+  //*** Dgg10 ***//
+  void computeD_gg(
+    TVar::MatrixElement myME,
+    TVar::Process myType,
+    float& prob
+    );
 
   // Access ZZMEs Calculate4Momentum
   std::vector<TLorentzVector> calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi);
@@ -224,12 +228,6 @@ public:
   RooRealVar* phi1_rrv;
   RooRealVar* Y_rrv;
   RooRealVar* upFrac_rrv;
-
-  void computeD_gg(
-    TVar::MatrixElement myME,
-    TVar::Process myType,
-    float& prob
-    );
 
   // Self-define arrays are now members of MELA.
   // There are a lot of them!
@@ -309,12 +307,11 @@ protected:
   void reset_CandRef();
 
   void constructDggr(
-    float mzz,
-    int flavor, // (1,2,3) for (4e,4mu,2e2mu)
     float bkg_VAMCFM_noscale,
     float ggzz_VAMCFM_noscale,
     float ggHZZ_prob_pure_noscale,
     float ggHZZ_prob_int_noscale,
+    float widthScale,
     float& myDggr
     );
 
@@ -327,6 +324,9 @@ protected:
     const char* relpath,
     const char* spname
     );
+  float getConstant_JHUGenUndecayed();
+  float getConstant_4l();
+  float getConstant_2l2q();
 
 };
 

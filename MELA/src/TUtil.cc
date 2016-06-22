@@ -89,7 +89,7 @@ pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
     }
   }
   else if (TUtil::forbidMassiveLeptons && (PDGHelpers::isALepton(jet1Id) || PDGHelpers::isANeutrino(jet1Id) || PDGHelpers::isALepton(jet2Id) || PDGHelpers::isANeutrino(jet2Id))){
-    if (forbidMassiveLeptons==TVar::NoRemoval){
+    if (LeptonMassScheme==TVar::NoRemoval){
       jet1massless=jet1;
       jet2massless=jet2;
     }

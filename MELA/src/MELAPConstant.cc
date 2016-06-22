@@ -30,15 +30,26 @@ MelaPConstant::MelaPConstant(
 MelaPConstant::~MelaPConstant(){}
 
 void MelaPConstant::GetFcnFromFile(const char* path, const char* spname){
-  TFile* fin = TFile::Open(path, "read");
-  gROOT->cd();
   TString spname_core = spname;
   spname_core.Append("_Smooth");
   spname_core.Prepend("sp_tg_");
-  TString spname_low = spname_core; spname_low.Prepend("lowFcn_"); fcnLow = (TF1*)fin->Get(spname_low);
-  TString spname_high = spname_core; spname_high.Prepend("highFcn_"); fcnHigh = (TF1*)fin->Get(spname_high);
-  TString spname_mid = spname_core; fcnMid = (TSpline3*)fin->Get(spname_mid);
-  fin->Close();
+  //cout << "MelaPConstant::GetFcnFromFile: Extracting " << spname_core << " from file " << path << endl;
+
+  TFile* fin = TFile::Open(path, "read");
+  gROOT->cd();
+
+  if (fin!=0 && !fin->IsZombie() && fin->IsOpen()){
+    TString spname_low = spname_core; spname_low.Prepend("lowFcn_");
+    fcnLow = (TF1*)fin->Get(spname_low);
+
+    TString spname_high = spname_core; spname_high.Prepend("highFcn_");
+    fcnHigh = (TF1*)fin->Get(spname_high);
+
+    TString spname_mid = spname_core;
+    fcnMid = (TSpline3*)fin->Get(spname_mid);
+  }
+  else cerr << "MelaPConstant::GetFcnFromFile: Failed to open file in path " << path << endl;
+  if (fin!=0 && fin->IsOpen()) fin->Close();
 }
 
 double MelaPConstant::Eval(MelaIO* RcdME)const{
@@ -134,6 +145,7 @@ double MelaPConstant::Eval(MelaIO* RcdME)const{
     alphasVal = RcdME->getAlphaSatMZ();
     result *= pow(alphasVal, 4);
   }
+  else result = pow(10., result);
 
   return result;
 }

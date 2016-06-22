@@ -597,7 +597,7 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
     mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
     TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
     mela.computeProdP(mesq_conserveDifermMass, false);
-    mela.get_PAux(mesqaux_conserveDifermMass);
+    mela.getPAux(mesqaux_conserveDifermMass);
     mesqaux_conserveDifermMass *= mesq_conserveDifermMass;
     mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     mesqaux_conserveDifermMass = log10(mesqaux_conserveDifermMass);
@@ -606,7 +606,7 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
-    mela.get_PAux(mesqaux_jetPtoEScale);
+    mela.getPAux(mesqaux_jetPtoEScale);
     mesqaux_jetPtoEScale *= mesq_jetPtoEScale;
     mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     mesqaux_jetPtoEScale = log10(mesqaux_jetPtoEScale);
@@ -3644,6 +3644,72 @@ void regularizeSlice(TGraphErrors* tgSlice, std::vector<double>* fixedX=0, doubl
   for (unsigned int ix=0; ix<4; ix++) delete[] xexyey_mod[ix];
 }
 
+TGraphErrors* removePointsBetween(TGraphErrors* tgSlice, double xmin, double xmax){
+  const unsigned int nbins_slice = tgSlice->GetN();
+  double* xexyey_slice[4]={
+    tgSlice->GetX(),
+    tgSlice->GetEX(),
+    tgSlice->GetY(),
+    tgSlice->GetEY()
+  };
+
+  double xexyey[4][nbins_slice];
+  unsigned int ctr=0;
+  for (unsigned int iy=0; iy<nbins_slice; iy++){
+    if (xexyey_slice[0][iy]<=xmax && xexyey_slice[0][iy]>=xmin) continue;
+    for (unsigned int ix=0; ix<4; ix++) xexyey[ix][ctr] = xexyey_slice[ix][iy];
+    cout << "Point " << ctr << " X: " << xexyey[0][ctr] << endl;
+    ctr++;
+  }
+  cout << "removePointsBetween: " << "Starting number of points " << nbins_slice << " final number " << ctr << endl;
+  TGraphErrors* tgSlice_new = new TGraphErrors(ctr, xexyey[0], xexyey[2], xexyey[1], xexyey[3]);
+  tgSlice_new->SetName(tgSlice->GetName());
+  tgSlice_new->SetTitle(tgSlice->GetTitle());
+  return tgSlice_new;
+}
+
+TGraphErrors* replacePointsBetween(TGraphErrors* tgSlice, double xmin, double xmax){
+  const unsigned int nbins_slice = tgSlice->GetN();
+  double* xexyey_slice[4]={
+    tgSlice->GetX(),
+    tgSlice->GetEX(),
+    tgSlice->GetY(),
+    tgSlice->GetEY()
+  };
+
+  double xexyey[4][nbins_slice];
+  unsigned int lowbin=0, highbin=0;
+  for (unsigned int iy=0; iy<nbins_slice; iy++){
+    if (xexyey_slice[0][iy]<xmin) lowbin=iy;
+    if (xexyey_slice[0][iy]>xmax){ highbin=iy; break; }
+  }
+  cout << "Low bin " << lowbin << " at " << xexyey_slice[0][lowbin] << endl;
+  cout << "High bin " << highbin << " at " << xexyey_slice[0][highbin] << endl;
+
+  for (unsigned int iy=0; iy<nbins_slice; iy++){
+    if (xexyey_slice[0][iy]<=xmax && xexyey_slice[0][iy]>=xmin){
+      for (unsigned int ix=0; ix<4; ix++){
+        double xlow = xexyey_slice[0][lowbin];
+        double xhigh = xexyey_slice[0][highbin];
+        double ylow = xexyey_slice[ix][lowbin];
+        double yhigh = xexyey_slice[ix][highbin];
+        double val;
+        if (ix==0) val = xexyey_slice[0][iy];
+        else if (ix==2) val = ylow + (yhigh-ylow)/(xhigh-xlow)*(xexyey_slice[0][iy]-xlow);
+        else val = sqrt(pow(ylow, 2) + pow((yhigh-ylow)/(xhigh-xlow)*(xexyey_slice[0][iy]-xlow), 2));
+        xexyey[ix][iy] = val;
+      }
+    }
+    else{
+      for (unsigned int ix=0; ix<4; ix++) xexyey[ix][iy] = xexyey_slice[ix][iy];
+    }
+    cout << "Point " << iy << " X: " << xexyey[0][iy] << endl;
+  }
+  TGraphErrors* tgSlice_new = new TGraphErrors(nbins_slice, xexyey[0], xexyey[2], xexyey[1], xexyey[3]);
+  tgSlice_new->SetName(tgSlice->GetName());
+  tgSlice_new->SetTitle(tgSlice->GetTitle());
+  return tgSlice_new;
+}
 
 /* SPECIFIC COMMENT: NONE */
 void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q(int sqrts=13){
@@ -4141,6 +4207,7 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
       omitbelow=192.;
     }
     regularizeSlice(tg, &fixedX, omitbelow);
+    tg = replacePointsBetween(tg, 110., 160.); // How to kill an artificial peak
     foutput->WriteTObject(tg);
 
     TSpline3* sp = convertGraphToSpline3(tg);
@@ -4169,6 +4236,7 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
     delete highFcn;
     delete lowFcn;
     delete sp;
+    delete tg;
   }
   foutput->Close();
   finput->Close();

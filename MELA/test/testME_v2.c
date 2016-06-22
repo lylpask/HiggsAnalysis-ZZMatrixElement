@@ -23,7 +23,7 @@ using namespace RooFit;
 using namespace std;
 
 
-void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
+void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=false){
   int erg_tev=13;
   float mPOLE=125.;
   float wPOLE=4.07e-3;
@@ -195,33 +195,33 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
 
     float pVAMCFM_qqWW_bkg;
     mela.setProcess(TVar::bkgWW, TVar::MCFM, TVar::ZZQQB);
-    mela.computeP(pVAMCFM_qqWW_bkg, false);
+    mela.computeP(pVAMCFM_qqWW_bkg, useConstants);
     cout << "pVAMCFM_qqWW_bkg: " << pVAMCFM_qqWW_bkg << '\n' << endl;
 
     float pVAMCFM_ggVV_total;
     mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_total, false);
+    mela.computeP(pVAMCFM_ggVV_total, useConstants);
     cout << "pVAMCFM_ggVV_total: " << pVAMCFM_ggVV_total << '\n' << endl;
     float pVAMCFM_ggVV_bkg;
     mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_bkg, false);
+    mela.computeP(pVAMCFM_ggVV_bkg, useConstants);
     cout << "pVAMCFM_ggVV_bkg: " << pVAMCFM_ggVV_bkg << '\n' << endl;
     float pVAMCFM_ggVV_sig;
     mela.setProcess(TVar::HSMHiggs_WWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_sig, false);
+    mela.computeP(pVAMCFM_ggVV_sig, useConstants);
     cout << "pVAMCFM_ggVV_sig: " << pVAMCFM_ggVV_sig << '\n' << endl;
 
     float pVAMCFM_ggWW_total;
     mela.setProcess(TVar::bkgWW_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWW_total, false);
+    mela.computeP(pVAMCFM_ggWW_total, useConstants);
     cout << "pVAMCFM_ggWW_total: " << pVAMCFM_ggWW_total << '\n' << endl;
     float pVAMCFM_ggWW_bkg;
     mela.setProcess(TVar::bkgWW, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWW_bkg, false);
+    mela.computeP(pVAMCFM_ggWW_bkg, useConstants);
     cout << "pVAMCFM_ggWW_bkg: " << pVAMCFM_ggWW_bkg << '\n' << endl;
     float pVAMCFM_ggWW_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWW_sig, false);
+    mela.computeP(pVAMCFM_ggWW_sig, useConstants);
     cout << "pVAMCFM_ggWW_sig: " << pVAMCFM_ggWW_sig << '\n' << endl;
 
     /***** WW (as ZZ) *****/
@@ -230,28 +230,28 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
 
     float pVAMCFM_ggVV_fromZZ_total;
     mela.setProcess(TVar::bkgWWZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_fromZZ_total, false);
+    mela.computeP(pVAMCFM_ggVV_fromZZ_total, useConstants);
     cout << "pVAMCFM_ggVV_fromZZ_total: " << pVAMCFM_ggVV_fromZZ_total << '\n' << endl;
     float pVAMCFM_ggVV_fromZZ_bkg;
     mela.setProcess(TVar::bkgWWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_fromZZ_bkg, false);
+    mela.computeP(pVAMCFM_ggVV_fromZZ_bkg, useConstants);
     cout << "pVAMCFM_ggVV_fromZZ_bkg: " << pVAMCFM_ggVV_fromZZ_bkg << '\n' << endl;
     float pVAMCFM_ggVV_fromZZ_sig;
     mela.setProcess(TVar::HSMHiggs_WWZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggVV_fromZZ_sig, false);
+    mela.computeP(pVAMCFM_ggVV_fromZZ_sig, useConstants);
     cout << "pVAMCFM_ggVV_fromZZ_sig: " << pVAMCFM_ggVV_fromZZ_sig << '\n' << endl;
 
     float pVAMCFM_ggZZ_total;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggZZ_total, false);
-    cout << "pVAMCFM_ggZZ_total: " << pVAMCFM_ggZZ_total << '\n' << endl;
+    mela.computeP(pVAMCFM_ggZZ_total, useConstants);
+    cout << "pVAMCFM_ggZZ_total from WW as ZZ: " << pVAMCFM_ggZZ_total << '\n' << endl;
     float pVAMCFM_ggZZ_bkg;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggZZ_bkg, false);
-    cout << "pVAMCFM_ggZZ_bkg: " << pVAMCFM_ggZZ_bkg << '\n' << endl;
+    mela.computeP(pVAMCFM_ggZZ_bkg, useConstants);
+    cout << "pVAMCFM_ggZZ_bkg from WW as ZZ: " << pVAMCFM_ggZZ_bkg << '\n' << endl;
     float pVAMCFM_ggWWasZZ_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.computeP(pVAMCFM_ggWWasZZ_sig, false);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig, useConstants);
     cout << "pVAMCFM_ggWWasZZ_sig: " << pVAMCFM_ggWWasZZ_sig << '\n' << endl;
 
     /***** ZZ *****/
@@ -260,20 +260,28 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
 
     float pVAMCFM_qqZZ_bkg;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
-    mela.computeP(pVAMCFM_qqZZ_bkg, false);
+    mela.computeP(pVAMCFM_qqZZ_bkg, useConstants);
     cout << "pVAMCFM_qqZZ_bkg: " << pVAMCFM_qqZZ_bkg << '\n' << endl;
 
     float pVAMCFM_qqZJJ_bkg;
     mela.setProcess(TVar::bkgZJets, TVar::MCFM, TVar::JJQCD);
-    mela.computeP(pVAMCFM_qqZJJ_bkg, false);
+    mela.computeP(pVAMCFM_qqZJJ_bkg, useConstants);
     cout << "pVAMCFM_qqZJJ_bkg: " << pVAMCFM_qqZJJ_bkg << '\n' << endl;
+
+    mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggZZ_total, useConstants);
+    cout << "pVAMCFM_ggZZ_total: " << pVAMCFM_ggZZ_total << '\n' << endl;
+
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
+    mela.computeP(pVAMCFM_ggZZ_bkg, useConstants);
+    cout << "pVAMCFM_ggZZ_bkg: " << pVAMCFM_ggZZ_bkg << '\n' << endl;
 
     float pVAMCFM_ggZZ_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP(pVAMCFM_ggZZ_sig, false);
+    mela.computeP(pVAMCFM_ggZZ_sig, useConstants);
     cout << "pVAMCFM_ggZZ_sig: " << pVAMCFM_ggZZ_sig << '\n' << endl;
 
     float pVAMCFM_ZZ_sig_selfDg1;
@@ -282,7 +290,7 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
     mela.selfDHzzcoupl[0][0][0]=1.0;
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
-    mela.computeP(pVAMCFM_ZZ_sig_selfDg1, false);
+    mela.computeP(pVAMCFM_ZZ_sig_selfDg1, useConstants);
     cout << "pVAMCFM_ggZZ_sig_selfDg1: " << pVAMCFM_ZZ_sig_selfDg1 << '\n' << endl;
 
     /***** ZG *****/
@@ -290,7 +298,7 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0){
     mela.setCurrentCandidateFromIndex(cindex);
     float pVAMCFM_ZG_bkg;
     mela.setProcess(TVar::bkgZGamma, TVar::MCFM, TVar::ZZQQB);
-    mela.computeP(pVAMCFM_ZG_bkg, false);
+    mela.computeP(pVAMCFM_ZG_bkg, useConstants);
     cout << "pVAMCFM_qqZG_bkg: " << pVAMCFM_ZG_bkg << '\n' << endl;
 
     if (verbosity>=TVar::DEBUG){
@@ -917,7 +925,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
   }
 }
 
-void testME_Dec_FullSim(int flavor=2){
+void testME_Dec_FullSim(int flavor=2, bool useConstants=false, bool useBkgSample=false){
   int erg_tev=8;
   float mPOLE=125.6;
   float wPOLE=4.07e-3;
@@ -929,8 +937,16 @@ void testME_Dec_FullSim(int flavor=2){
   mela.resetMCFM_EWKParameters(1.16639E-05, 1./128., 80.399, 91.1876, 0.23119);
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
-  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e")), "read");
-  TFile* foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_OriginalMEv2ValidationTestOnly.root", (flavor>=2 ? "2mu2e" : "4e")), "recreate");
+  TFile* finput;
+  TFile* foutput;
+  if (!useBkgSample){
+    finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e")), "read");
+    foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_OriginalMEv2ValidationTestOnly.root", (flavor>=2 ? "2mu2e" : "4e")), "recreate");
+  }
+  else{
+    finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
+    foutput = new TFile(Form("HZZ4lTree_ZZTo%s_OriginalMEv2ValidationTestOnly.root", (flavor>=2 ? "2e2mu" : "4e")), "recreate");
+  }
 
   float p0plus_VAJHU;
   float p0hplus_VAJHU;
@@ -1133,8 +1149,10 @@ void testME_Dec_FullSim(int flavor=2){
   }
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
 
-  for (int ev = 0; ev < min(1000, (int)tree->GetEntries()); ev++){
+  for (int ev = 0; ev < (!useBkgSample ? min(1000, (int)tree->GetEntries()) : (int)tree->GetEntries()); ev++){
     tree->GetEntry(ev);
+
+    if (ev%10000 == 0) cout << "Processing event " << ev << endl;
 
     int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
     TLorentzVector pOrdered[4];
@@ -1147,128 +1165,128 @@ void testME_Dec_FullSim(int flavor=2){
     /***** ZZ *****/
     if (verbosity>=TVar::DEBUG) cout << "Computing bkg_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZQQB);
-    mela.computeP(bkg_VAMCFM_NEW, false);
+    mela.computeP(bkg_VAMCFM_NEW, useConstants);
 
     if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::bkgZZ, TVar::MCFM, TVar::ZZGG);
     //mela.setMelaLeptonInterference(TVar::InterfOff);
-    mela.computeP(ggzz_VAMCFM_NEW, false);
+    mela.computeP(ggzz_VAMCFM_NEW, useConstants);
 
     if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     //mela.setMelaLeptonInterference(TVar::InterfOff);
-    mela.computeP(p0plus_VAMCFM_NEW, false);
+    mela.computeP(p0plus_VAMCFM_NEW, useConstants);
 
     if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_p0plus_VAMCFM_NEW" << endl;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
     //mela.setMelaLeptonInterference(TVar::InterfOff);
-    mela.computeP(ggzz_p0plus_VAMCFM_NEW, false);
+    mela.computeP(ggzz_p0plus_VAMCFM_NEW, useConstants);
 
     if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.selfDHzzcoupl[0][0][0]=1;
-    mela.computeP(p0plus_VAMCFM_NEW_BSMOn, false);
-
+    mela.computeP(p0plus_VAMCFM_NEW_BSMOn, useConstants);
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
     mela.selfDHggcoupl[0][0]=1;
     mela.selfDHzzcoupl[0][0][0]=1;
-    mela.computeP(p0plus_VAJHU_NEW, false);
+    mela.computeP(p0plus_VAJHU_NEW, useConstants);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
-    mela.computeP(p0hplus_VAJHU_NEW, false);
+    if (!useBkgSample){
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.computeP(p0hplus_VAJHU_NEW, useConstants);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
-    mela.computeP(p0minus_VAJHU_NEW, false);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.computeP(p0minus_VAJHU_NEW, useConstants);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=-12046.01;
-    mela.computeP(p0_g1prime2_VAJHU_NEW, false);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][11][0]=-12046.01;
+      mela.computeP(p0_g1prime2_VAJHU_NEW, useConstants);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
-    mela.computeP(pg1g2_VAJHU_NEW, false);
-    pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.computeP(pg1g2_VAJHU_NEW, useConstants);
+      pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][1]=1.638;
-    mela.computeP(pg1g2_pi2_VAJHU_NEW, false);
-    pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][1][1]=1.638;
+      mela.computeP(pg1g2_pi2_VAJHU_NEW, useConstants);
+      pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
-    mela.computeP(pg1g4_VAJHU_NEW, false);
-    pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.computeP(pg1g4_VAJHU_NEW, useConstants);
+      pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][1]=2.521;
-    mela.computeP(pg1g4_pi2_VAJHU_NEW, false);
-    pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][3][1]=2.521;
+      mela.computeP(pg1g4_pi2_VAJHU_NEW, useConstants);
+      pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=12046.01;
-    mela.computeP(pg1g1prime2_VAJHU_NEW, false);
-    pg1g1prime2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][11][0]=12046.01;
+      mela.computeP(pg1g1prime2_VAJHU_NEW, useConstants);
+      pg1g1prime2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][1]=12046.01;
-    mela.computeP(pg1g1prime2_pi2_VAJHU_NEW, false);
-    pg1g1prime2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
+      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][11][1]=12046.01;
+      mela.computeP(pg1g1prime2_pi2_VAJHU_NEW, useConstants);
+      pg1g1prime2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
 
 
-    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+      mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.computeP(p0plus_VAMCFM_NEW, false);
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.computeP(p0plus_VAMCFM_NEW, useConstants);
 
-    mela.selfDHzzcoupl[0][1][0]=1.638;
-    mela.computeP(p0hplus_VAMCFM_NEW, false);
+      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.computeP(p0hplus_VAMCFM_NEW, useConstants);
 
-    mela.selfDHzzcoupl[0][3][0]=2.521;
-    mela.computeP(p0minus_VAMCFM_NEW, false);
+      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.computeP(p0minus_VAMCFM_NEW, useConstants);
 
-    mela.selfDHzzcoupl[0][11][0]=-12046.01;
-    mela.computeP(p0_g1prime2_VAMCFM_NEW, false);
+      mela.selfDHzzcoupl[0][11][0]=-12046.01;
+      mela.computeP(p0_g1prime2_VAMCFM_NEW, useConstants);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
-    mela.computeP(pg1g2_VAMCFM_NEW, false);
-    pg1g2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.computeP(pg1g2_VAMCFM_NEW, useConstants);
+      pg1g2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][1]=1.638;
-    mela.computeP(pg1g2_pi2_VAMCFM_NEW, false);
-    pg1g2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][1][1]=1.638;
+      mela.computeP(pg1g2_pi2_VAMCFM_NEW, useConstants);
+      pg1g2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
-    mela.computeP(pg1g4_VAMCFM_NEW, false);
-    pg1g4_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.computeP(pg1g4_VAMCFM_NEW, useConstants);
+      pg1g4_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][1]=2.521;
-    mela.computeP(pg1g4_pi2_VAMCFM_NEW, false);
-    pg1g4_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][3][1]=2.521;
+      mela.computeP(pg1g4_pi2_VAMCFM_NEW, useConstants);
+      pg1g4_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=12046.01;
-    mela.computeP(pg1g1prime2_VAMCFM_NEW, false);
-    pg1g1prime2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][11][0]=12046.01;
+      mela.computeP(pg1g1prime2_VAMCFM_NEW, useConstants);
+      pg1g1prime2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][1]=12046.01;
-    mela.computeP(pg1g1prime2_pi2_VAMCFM_NEW, false);
-    pg1g1prime2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
-
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][11][1]=12046.01;
+      mela.computeP(pg1g1prime2_pi2_VAMCFM_NEW, useConstants);
+      pg1g1prime2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
+    }
 
     p0hplus_VAJHU_ratio_NEW = p0hplus_VAJHU_NEW/p0plus_VAJHU_NEW;
     p0minus_VAJHU_ratio_NEW = p0minus_VAJHU_NEW/p0plus_VAJHU_NEW;
@@ -1301,18 +1319,26 @@ void testME_Dec_FullSim(int flavor=2){
   finput->Close();
 }
 
-void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
+void testME_ProdP_VBFHJJ_FullSim(int flavor=2, bool useConstants=false, bool useBkgSample=false){
   int erg_tev=8;
   float mPOLE=125.6;
   float wPOLE=4.07e-3;
   TString TREE_NAME = "SelectedTree";
 
-  TVar::VerbosityLevel verbosity = TVar::DEBUG_MECHECK;
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
   Mela mela(erg_tev, mPOLE, verbosity);
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
-  TFile* finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
-  TFile* foutput = new TFile(Form("HZZ4lTree_ZZTo%s_vbfMELATest.root", (flavor>=2 ? "2e2mu" : "4e")), "recreate");
+  TFile* finput;
+  TFile* foutput;
+  if (useBkgSample){
+    finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
+    foutput = new TFile(Form("HZZ4lTree_ZZTo%s_vbfMELATest.root", (flavor>=2 ? "2e2mu" : "4e")), "recreate");
+  }
+  else{
+    finput = new TFile(Form("%s/%s/HZZ4lTree_VBF0P_H125.6.root", cinput_main.Data(), (flavor==2 ? "2mu2e" : "4e")), "read");
+    foutput = new TFile("HZZ4lTree_VBF0P_H125.6_vbfMELATest.root", "recreate");
+  }
 
   float phjj_VAJHU_old;
   float pvbf_VAJHU_old;
@@ -1429,7 +1455,7 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
   int nEntries = tree->GetEntries();
   int recorded=0;
   for (int ev = 0; ev < nEntries; ev++){
-    if (recorded>=(verbosity>=TVar::DEBUG ? 1 : 1000)) break;
+    if (recorded>=(verbosity>=TVar::DEBUG ? 1 : (!useBkgSample ? 1000 : nEntries))) break;
     tree->GetEntry(ev);
 
     if (JetPt->size()>=2 && NJets30>=2){
@@ -1452,34 +1478,34 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2){
 
 
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
-      mela.computeProdP(pvbf_VAJHU_old_NEW, false);
-/*
-      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
-      mela.computeProdP(phjj_VAJHU_old_NEW, false);
+      mela.computeProdP(pvbf_VAJHU_old_NEW, useConstants);
 
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
+      mela.computeProdP(phjj_VAJHU_old_NEW, useConstants);
+      /*
       mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::JJVBF);
-      mela.computeProdP(pvbf0minus_VAJHU_old_NEW, false);
+      mela.computeProdP(pvbf0minus_VAJHU_old_NEW, useConstants);
 
       mela.setProcess(TVar::H0minus, TVar::JHUGen, TVar::JJQCD);
-      mela.computeProdP(phjj0minus_VAJHU_old_NEW, false);
+      mela.computeProdP(phjj0minus_VAJHU_old_NEW, useConstants);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
       mela.selfDHzzcoupl[0][0][0]=1;
-      mela.computeProdP(pvbf_VAJHU_old_NEW_selfD, false);
+      mela.computeProdP(pvbf_VAJHU_old_NEW_selfD, useConstants);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJQCD);
       mela.selfDHggcoupl[0][0]=1;
-      mela.computeProdP(phjj_VAJHU_old_NEW_selfD, false);
+      mela.computeProdP(phjj_VAJHU_old_NEW_selfD, useConstants);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
       mela.selfDHzzcoupl[0][3][0]=1;
-      mela.computeProdP(pvbf0minus_VAJHU_old_NEW_selfD, false);
+      mela.computeProdP(pvbf0minus_VAJHU_old_NEW_selfD, useConstants);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJQCD);
       mela.selfDHggcoupl[2][0]=1;
-      mela.computeProdP(phjj0minus_VAJHU_old_NEW_selfD, false);
+      mela.computeProdP(phjj0minus_VAJHU_old_NEW_selfD, useConstants);
       */
       newtree->Fill();
       recorded++;
@@ -1651,7 +1677,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
-      mela.selfDHzzcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
       mela.computeProdP_VH(pwh_leptonic_VAJHU_old_NEW_selfD, false, false);
 
 
@@ -1660,7 +1686,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh0minus_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
-      mela.selfDHzzcoupl[2][0]=1;
+      mela.selfDHzzcoupl[0][2][0]=1;
       mela.computeProdP_VH(pwh0minus_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::Had_ZH);
@@ -1681,7 +1707,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHzzcoupl[0][0]=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
       mela.computeProdP_VH(pwh_hadronic_VAJHU_old_NEW_selfD, false, false);
 
 
@@ -1690,7 +1716,7 @@ void testME_ProdP_VH_FullSim(){
       mela.computeProdP_VH(pzh0minus_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHzzcoupl[2][0]=1;
+      mela.selfDHzzcoupl[0][2][0]=1;
       mela.computeProdP_VH(pwh0minus_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       newtree->Fill();
