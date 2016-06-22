@@ -28,20 +28,21 @@ Please adhere to the following coding conventions:
 #include <ZZMatrixElement/MELA/interface/RooqqZZ_JHU.h>
 #include <ZZMatrixElement/MELA/interface/SuperMELA.h>
 
-#include <RooMsgService.h>
-#include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TH3F.h>
-#include <TGraph.h>
-#include <TSpline.h>
 #include <vector>
-
 #include <string>
 #include <cstdio>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#include "RooMsgService.h"
+#include "TFile.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
+#include "TGraph.h"
+#include "TSpline.h"
+#include "TString.h"
 
 
 using namespace std;
@@ -132,61 +133,28 @@ Mela::Mela(
   setMelaLeptonInterference(TVar::DefaultLeptonInterf);
   setCandidateDecayMode(TVar::CandidateDecay_ZZ); // Default decay mode is ZZ at the start
 
-  // 
-  // configure the JHUGEn and MCFM calculations 
-  // 
-  // load TGraphs for VAMCFM scale factors
-  if (myVerbosity_>=TVar::DEBUG) cout << "Get c-constant histograms" << endl;
-  edm::FileInPath ScaleFactorFile("ZZMatrixElement/MELA/data/scaleFactors.root");
-  TFile* sf = TFile::Open(ScaleFactorFile.fullPath().c_str(), "r");
-  vaScale_4e    = (TGraph*)sf->Get("scaleFactors_4e");
-  vaScale_4mu   = (TGraph*)sf->Get("scaleFactors_4mu");
-  vaScale_2e2mu = (TGraph*)sf->Get("scaleFactors_2e2mu");
-  sf->Close();
-  edm::FileInPath DggScaleFactorFile("ZZMatrixElement/MELA/data/scalefactor_DggZZ.root");
-  //cout << DggScaleFactorFile.fullPath().c_str() << endl;
-  TFile* af = new TFile(DggScaleFactorFile.fullPath().c_str(), "r");
-  DggZZ_scalefactor = (TGraph*)af->Get("scalefactor");
-  af->Close();
-  assert(vaScale_4e);
-  assert(vaScale_4mu);
-  assert(vaScale_2e2mu);
-  assert(DggZZ_scalefactor);
 
-  //
-  // setup supermela
-  //
+  /***** CONSTANTS FOR MATRIX ELEMENTS *****/
+  getPConstantHandles();
 
-  //deactivate generation messages
+  /***** SuperMELA *****/
+  // Deactivate generation messages
   RooMsgService::instance().getStream(1).removeTopic(NumIntegration);
   RooMsgService::instance().setStreamStatus(1, kFALSE);
   RooMsgService::instance().setStreamStatus(0, kFALSE);// silence also the error messages, but should really be looked at.
 
-  myR=new TRandom3(35797);
-  //  cout << "before supermela" << endl;
-
+  myRandomNumber=new TRandom3(35797);
   if (myVerbosity_>=TVar::DEBUG) cout << "Start superMELA" << endl;
   int superMELA_LHCsqrts = LHCsqrts;
   if (superMELA_LHCsqrts > maxSqrts) superMELA_LHCsqrts = maxSqrts;
   super = new SuperMELA(mh_, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
   char cardpath[500];
   sprintf(cardpath, "ZZMatrixElement/MELA/data/CombinationInputs/SM_inputs_%dTeV/inputs_4mu.txt", superMELA_LHCsqrts);
-  //cout << "before supermela, pathToCards: " <<cardpath<< endl;
   edm::FileInPath cardfile(cardpath);
   string cpath=cardfile.fullPath();
-  //cout << cpath.substr(0,cpath.length()-14).c_str()  <<endl;
   super->SetPathToCards(cpath.substr(0, cpath.length()-14).c_str());
   super->SetVerbosity((myVerbosity_>=TVar::DEBUG));
-  // cout << "starting superMELA initialization" << endl;
   super->init();
-  //cout << "after supermela" << endl;
-  if (myVerbosity_>=TVar::DEBUG) cout << "Get more c-constant histograms" << endl;
-  edm::FileInPath CTotBkgFile("ZZMatrixElement/MELA/data/ZZ4l-C_TotalBkgM4lGraph.root");
-  TFile* finput_ctotbkg = TFile::Open(CTotBkgFile.fullPath().c_str(), "read");
-  for (int i=0; i<3; i++) tgtotalbkg[i] = 0;
-  setCTotalBkgGraphs(finput_ctotbkg, tgtotalbkg);
-  finput_ctotbkg->Close();
-  for (int i=0; i<3; i++) assert(tgtotalbkg[i]);
 
   reset_SelfDCouplings();
   if (myVerbosity_>=TVar::DEBUG) cout << "End Mela constructor" << endl;
@@ -198,15 +166,11 @@ Mela::~Mela(){
   //setRemoveLeptonMasses(false); // Use Run 1 scheme for not removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
   setRemoveLeptonMasses(true); // Use Run 2 scheme for removing lepton masses. Notice the switch itself is defined as an extern, so it has to be set to default value at the destructor!
 
-  for (int i=0; i<3; i++){ if (tgtotalbkg[i] != 0) delete tgtotalbkg[i]; }
-  if (DggZZ_scalefactor!=0) delete DggZZ_scalefactor;
-
-  // Let the derived RooFit objects come first...
+  // Delete the derived RooFit objects first...
   delete ggSpin0Model;
   delete spin1Model;
   delete spin2Model;
   delete qqZZmodel;
-
   // ...then delete the observables.
   delete mzz_rrv;
   delete z1mass_rrv; 
@@ -221,7 +185,10 @@ Mela::~Mela(){
 
   delete ZZME;
   delete super;
-  delete myR;
+  delete myRandomNumber;
+
+  // Delete ME constant handles
+  deletePConstantHandles();
 
   if (myVerbosity_>=TVar::DEBUG) cout << "End Mela destructor" << endl;
 }
@@ -1364,7 +1331,7 @@ void Mela::computePM4l(TVar::SuperMelaSyst syst, float& prob){
         float sigmaCB=float(super->GetSigShapeParameter("sigmaCB"));
         if (syst == TVar::SMSyst_ScaleUp) mZZtmp = mZZ*(1.0+meanErr);
         else if (syst == TVar::SMSyst_ScaleDown) mZZtmp = mZZ*(1.0-meanErr);
-        else if (syst == TVar::SMSyst_ResUp || syst ==  TVar::SMSyst_ResDown) mZZtmp= myR->Gaus(mZZ, sigmaErr*sigmaCB);
+        else if (syst == TVar::SMSyst_ResUp || syst ==  TVar::SMSyst_ResDown) mZZtmp= myRandomNumber->Gaus(mZZ, sigmaErr*sigmaCB);
 
         if (mZZtmp>180. || mZZtmp<100.) mZZtmp=mZZ;
         std::pair<double, double> m4lP = super->M4lProb(mZZtmp);
@@ -1379,30 +1346,6 @@ void Mela::computePM4l(TVar::SuperMelaSyst syst, float& prob){
 }
 
 
-void Mela::setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]){ // Hope it has only 3 members in the array
-  string tgname = "C_TotalBkgM4l_";
-
-  float rValues[6]={ 1, 5, 10, 15, 20, 25 }; // Possible r Values
-
-  for (int flavor=0; flavor<3; flavor++){
-    float myWidth = 1;
-
-    char crValue[20];
-
-    int rCode = 2; // r=10
-    myWidth = rValues[rCode];
-    sprintf(crValue, "D_Gamma_gg_r%.0f", myWidth);
-
-    string ctgM4L = tgname;
-    string strChannel;
-    if (flavor==0) strChannel = "4e"; // Check this
-    else if (flavor==1) strChannel = "4mu"; // and this
-    else strChannel = "2mu2e";
-    ctgM4L = ctgM4L + strChannel + "_";
-    ctgM4L = ctgM4L + crValue;
-    tgC[flavor] = (TGraph*)fcontainer->Get(ctgM4L.c_str());
-  }
-}
 void Mela::constructDggr(
   float mzz,
   int flavor,
@@ -1412,7 +1355,7 @@ void Mela::constructDggr(
   float ggHZZ_prob_int_noscale,
   float& myDggr
   ){
-  float ctotal_bkg = tgtotalbkg[flavor-1]->Eval(mzz);
+  float ctotal_bkg = 1; // FIXME
 
   float rValues[6]={ 1, 5, 10, 15, 20, 25 };
   float total_sig_ME;
@@ -1462,9 +1405,6 @@ void Mela::computeD_gg(
     }
 
     if (!hasFailed){
-      TVar::LeptonInterference deflepinterf = myLepInterf_;
-      setMelaLeptonInterference(TVar::InterfOff); // Override lepton interference setting
-
       float bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, bkgHZZ_prob_noscale;
       setProcess(TVar::bkgZZ, myME, TVar::ZZGG); computeP(ggzz_VAMCFM_noscale, false);
       setProcess(TVar::HSMHiggs, myME, TVar::ZZGG); computeP(ggHZZ_prob_pure_noscale, false);
@@ -1472,8 +1412,6 @@ void Mela::computeD_gg(
       ggHZZ_prob_int_noscale = bkgHZZ_prob_noscale - ggHZZ_prob_pure_noscale -  ggzz_VAMCFM_noscale;
       setProcess(TVar::bkgZZ, myME, TVar::ZZQQB); computeP(bkg_VAMCFM_noscale, false);
       constructDggr(melaCand->m(), flavor, bkg_VAMCFM_noscale, ggzz_VAMCFM_noscale, ggHZZ_prob_pure_noscale, ggHZZ_prob_int_noscale, prob);
-
-      setMelaLeptonInterference(deflepinterf); // Restore lepton interference setting
     }
   }
 
@@ -1676,4 +1614,135 @@ bool Mela::configureAnalyticalPDFs(){
   return (!noPass);
 }
 
+
+void Mela::getPConstantHandles(){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Begin Mela::getPConstantHandles" << endl;
+
+  // Find closest sqrts allowable
+  const unsigned int npossiblesqrts=3;
+  const double possible_sqrts[npossiblesqrts]={ 7, 8, 13 };
+  unsigned int sqrts_index=0;
+  double sqrtsdiff = 99.; // Some large number
+  for (unsigned isq=0; isq<npossiblesqrts; isq++){
+    double diff = fabs(LHCsqrts-possible_sqrts[isq]);
+    if (diff<sqrtsdiff){ sqrts_index=isq; sqrtsdiff=diff; }
+  }
+  const double chsqrts=possible_sqrts[sqrts_index];
+  TString strsqrts=Form("%.0f%s", chsqrts, "TeV");
+
+  // Initialize all to 0
+  for (unsigned int isch=0; isch<(unsigned int)(TVar::nFermionMassRemovalSchemes-1); isch++){
+    pAvgSmooth_JHUGen_JJQCD_HSMHiggs[isch]=0;
+    //
+    pAvgSmooth_JHUGen_JJVBF_HSMHiggs[isch]=0;
+    //
+    pAvgSmooth_JHUGen_JQCD_HSMHiggs[isch]=0;
+    //
+  }
+  //
+  pAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q=0;
+  //
+  pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4mu=0;
+  pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4e=0;
+  pAvgSmooth_JHUGen_ZZGG_HSMHiggs_2mu2e=0;
+  //
+  pAvgSmooth_MCFM_ZZGG_HSMHiggs_4mu=0;
+  pAvgSmooth_MCFM_ZZGG_HSMHiggs_4e=0;
+  pAvgSmooth_MCFM_ZZGG_HSMHiggs_2mu2e=0;
+  //
+  pAvgSmooth_MCFM_ZZGG_bkgZZ_4mu=0;
+  pAvgSmooth_MCFM_ZZGG_bkgZZ_4e=0;
+  pAvgSmooth_MCFM_ZZGG_bkgZZ_2mu2e=0;
+  //
+  pAvgSmooth_MCFM_ZZQQB_bkgZZ_4mu=0;
+  pAvgSmooth_MCFM_ZZQQB_bkgZZ_4e=0;
+  pAvgSmooth_MCFM_ZZQQB_bkgZZ_2mu2e=0;
+
+
+  TString filename, spname;
+
+  //
+  filename = "pAvgSmooth_JHUGen_ZZGG_HSMHiggs";
+  spname = "P_ConserveDifermionMass_4mu";
+  pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4mu = getPConstantHandle(TVar::JHUGen, TVar::ZZGG, TVar::HSMHiggs, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_4e";
+  pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4e = getPConstantHandle(TVar::JHUGen, TVar::ZZGG, TVar::HSMHiggs, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_2mu2e";
+  pAvgSmooth_JHUGen_ZZGG_HSMHiggs_2mu2e = getPConstantHandle(TVar::JHUGen, TVar::ZZGG, TVar::HSMHiggs, filename.Data(), spname.Data());
+  //
+  filename = "pAvgSmooth_MCFM_ZZGG_HSMHiggs";
+  spname = "P_ConserveDifermionMass_4mu";
+  pAvgSmooth_MCFM_ZZGG_HSMHiggs_4mu = getPConstantHandle(TVar::MCFM, TVar::ZZGG, TVar::HSMHiggs, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_4e";
+  pAvgSmooth_MCFM_ZZGG_HSMHiggs_4e = getPConstantHandle(TVar::MCFM, TVar::ZZGG, TVar::HSMHiggs, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_2mu2e";
+  pAvgSmooth_MCFM_ZZGG_HSMHiggs_2mu2e = getPConstantHandle(TVar::MCFM, TVar::ZZGG, TVar::HSMHiggs, filename.Data(), spname.Data());
+  //
+  filename = "pAvgSmooth_MCFM_ZZGG_bkgZZ";
+  spname = "P_ConserveDifermionMass_4mu";
+  pAvgSmooth_MCFM_ZZGG_bkgZZ_4mu = getPConstantHandle(TVar::MCFM, TVar::ZZGG, TVar::bkgZZ, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_4e";
+  pAvgSmooth_MCFM_ZZGG_bkgZZ_4e = getPConstantHandle(TVar::MCFM, TVar::ZZGG, TVar::bkgZZ, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_2mu2e";
+  pAvgSmooth_MCFM_ZZGG_bkgZZ_2mu2e = getPConstantHandle(TVar::MCFM, TVar::ZZGG, TVar::bkgZZ, filename.Data(), spname.Data());
+  //
+  filename = "pAvgSmooth_MCFM_ZZQQB_bkgZZ";
+  spname = "P_ConserveDifermionMass_4mu";
+  pAvgSmooth_MCFM_ZZQQB_bkgZZ_4mu = getPConstantHandle(TVar::MCFM, TVar::ZZQQB, TVar::bkgZZ, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_4e";
+  pAvgSmooth_MCFM_ZZQQB_bkgZZ_4e = getPConstantHandle(TVar::MCFM, TVar::ZZQQB, TVar::bkgZZ, filename.Data(), spname.Data());
+  spname = "P_ConserveDifermionMass_2mu2e";
+  pAvgSmooth_MCFM_ZZQQB_bkgZZ_2mu2e = getPConstantHandle(TVar::MCFM, TVar::ZZQQB, TVar::bkgZZ, filename.Data(), spname.Data());
+  //
+
+  if (myVerbosity_>=TVar::DEBUG) cout << "End Mela::getPConstantHandles" << endl;
+}
+MelaPConstant* Mela::getPConstantHandle(
+  TVar::MatrixElement me_,
+  TVar::Production prod_,
+  TVar::Process proc_,
+  const char* relpath,
+  const char* spname
+  ){
+  if (myVerbosity_>=TVar::DEBUG) cout << "Begin Mela::getPConstantHandle" << endl;
+
+  TString path = "ZZMatrixElement/MELA/data/";
+  path.Append(relpath);
+  edm::FileInPath cfile(path.Data());
+  string cfile_fullpath = cfile.fullPath();
+  MelaPConstant* pchandle = new MelaPConstant(me_, prod_, proc_, cfile_fullpath.c_str(), spname);
+
+  if (myVerbosity_>=TVar::DEBUG) cout << "End Mela::getPConstantHandle" << endl;
+  return pchandle;
+}
+
+void Mela::deletePConstantHandles(){
+  for (unsigned int isch=0; isch<(unsigned int)(TVar::nFermionMassRemovalSchemes-1); isch++){
+    if (pAvgSmooth_JHUGen_JJQCD_HSMHiggs[isch]!=0) delete pAvgSmooth_JHUGen_JJQCD_HSMHiggs[isch];
+    //
+    if (pAvgSmooth_JHUGen_JJVBF_HSMHiggs[isch]!=0) delete pAvgSmooth_JHUGen_JJVBF_HSMHiggs[isch];
+    //
+    if (pAvgSmooth_JHUGen_JQCD_HSMHiggs[isch]!=0) delete pAvgSmooth_JHUGen_JQCD_HSMHiggs[isch];
+    //
+  }
+  //
+  if (pAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q!=0) delete pAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q;
+  //
+  if (pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4mu!=0) delete pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4mu;
+  if (pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4e!=0) delete pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4e;
+  if (pAvgSmooth_JHUGen_ZZGG_HSMHiggs_2mu2e!=0) delete pAvgSmooth_JHUGen_ZZGG_HSMHiggs_2mu2e;
+  //
+  if (pAvgSmooth_MCFM_ZZGG_HSMHiggs_4mu!=0) delete pAvgSmooth_MCFM_ZZGG_HSMHiggs_4mu;
+  if (pAvgSmooth_MCFM_ZZGG_HSMHiggs_4e!=0) delete pAvgSmooth_MCFM_ZZGG_HSMHiggs_4e;
+  if (pAvgSmooth_MCFM_ZZGG_HSMHiggs_2mu2e!=0) delete pAvgSmooth_MCFM_ZZGG_HSMHiggs_2mu2e;
+  //
+  if (pAvgSmooth_MCFM_ZZGG_bkgZZ_4mu!=0) delete pAvgSmooth_MCFM_ZZGG_bkgZZ_4mu;
+  if (pAvgSmooth_MCFM_ZZGG_bkgZZ_4e!=0) delete pAvgSmooth_MCFM_ZZGG_bkgZZ_4e;
+  if (pAvgSmooth_MCFM_ZZGG_bkgZZ_2mu2e!=0) delete pAvgSmooth_MCFM_ZZGG_bkgZZ_2mu2e;
+  //
+  if (pAvgSmooth_MCFM_ZZQQB_bkgZZ_4mu!=0) delete pAvgSmooth_MCFM_ZZQQB_bkgZZ_4mu;
+  if (pAvgSmooth_MCFM_ZZQQB_bkgZZ_4e!=0) delete pAvgSmooth_MCFM_ZZQQB_bkgZZ_4e;
+  if (pAvgSmooth_MCFM_ZZQQB_bkgZZ_2mu2e!=0) delete pAvgSmooth_MCFM_ZZQQB_bkgZZ_2mu2e;
+  //
+}
 

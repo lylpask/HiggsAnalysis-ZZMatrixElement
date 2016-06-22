@@ -1107,6 +1107,7 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
     for (int c=2; c<mxpart; c++) Q += p[c].Pt(); // Scalar sum of all pTs
   }
   else if (scheme == TVar::DefaultScaleScheme){
+    // Defaults are dynamic scales except in ttH and bbH.
     if (matrixElement==TVar::JHUGen){
       if (
         production==TVar::JJQCD
@@ -1125,7 +1126,11 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
         Q = fabs(pTotal.M());
       }
-      else if (production==TVar::ttH || production==TVar::bbH) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
+      else if (
+        production==TVar::ttH
+        ||
+        production==TVar::bbH
+        ) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
     }
     else if (matrixElement==TVar::MCFM){
       if (
@@ -1148,7 +1153,7 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
       else if (
         production==TVar::ttH
         || production==TVar::bbH
-        ){
+        ){ // ttH and bbH are not implemented through MCFM, will need revision if they are implemented.
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5]+p[6]+p[7];
         Q = fabs(pTotal.M());
       }
@@ -3751,15 +3756,14 @@ double TUtil::HJJMatEl(
             // Only compute u-ub. The amplitude is multiplied by nf=5
             rsel=1;
             ssel=-1;
-            double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
             if (
               (partonIsUnknown[2] || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0))
               &&
               (partonIsUnknown[3] || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
               (partonIsUnknown[2] || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
@@ -3767,8 +3771,8 @@ double TUtil::HJJMatEl(
               (partonIsUnknown[3] || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
           else{ // gg->gg
@@ -3785,15 +3789,14 @@ double TUtil::HJJMatEl(
           }
         }
         else if (isel==0 || jsel==0){ // qg/qbg/gq/gqb->qg/qbg/gq/gqb
-          double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
           if (
             (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
             &&
             (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
@@ -3801,8 +3804,8 @@ double TUtil::HJJMatEl(
             (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
         else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
@@ -3822,15 +3825,14 @@ double TUtil::HJJMatEl(
             if (abs(isel)!=1){ rsel=1; ssel=-1; } // Make sure rsel, ssel are not of same flavor as isel, jsel
             else{ rsel=2; ssel=-2; }
             // The amplitude is aready multiplied by nf-1, so no need to calculate everything (nf-1) times.
-            double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
               (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
@@ -3838,20 +3840,19 @@ double TUtil::HJJMatEl(
               (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
           else{ // qQb/qbQ->qQb/qbQ
-            double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
               (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
@@ -3859,21 +3860,20 @@ double TUtil::HJJMatEl(
               (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
         }
         else{
-          double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
           if (
             (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
             (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
@@ -3883,8 +3883,8 @@ double TUtil::HJJMatEl(
             (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
       } // End unswapped isel>=jsel cases
@@ -3905,15 +3905,14 @@ double TUtil::HJJMatEl(
         ){
         // isel==jsel==0 is already eliminated by isel!=jsel condition
         if (isel==0 || jsel==0){ // qg/qbg/gq/gqb->qg/qbg/gq/gqb
-          double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
           if (
             (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
             &&
             (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
@@ -3921,8 +3920,8 @@ double TUtil::HJJMatEl(
             (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
         else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
@@ -3942,15 +3941,14 @@ double TUtil::HJJMatEl(
             if (abs(isel)!=1){ rsel=1; ssel=-1; } // Make sure rsel, ssel are not of same flavor as isel, jsel
             else{ rsel=2; ssel=-2; }
             // The amplitude is aready multiplied by nf-1, so no need to calculate everything (nf-1) times.
-            double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
               (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
@@ -3958,20 +3956,19 @@ double TUtil::HJJMatEl(
               (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
           else{ // qQb/qbQ->qQb/qbQ
-            double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3]) avgfac=0.5;
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
               (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
               (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
@@ -3979,21 +3976,20 @@ double TUtil::HJJMatEl(
               (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
         }
         else{
-          double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
           if (
             (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
             (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
@@ -4003,8 +3999,8 @@ double TUtil::HJJMatEl(
             (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
       } // End swapped isel<jsel cases
@@ -4294,7 +4290,6 @@ double TUtil::HJJMatEl(
         ){ // Do it this way to be able to swap isel and jsel later
         if (code==1){ // Only ZZ->H possible
           // rsel=isel and ssel=jsel already
-          double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
           if (
             (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
@@ -4325,8 +4320,8 @@ double TUtil::HJJMatEl(
             }
             else if (ijselIsUpType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_udbar_zz_ijrs1234[0];
             else if (ijselIsDownType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_dubar_zz_ijrs1234[0];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
@@ -4360,8 +4355,8 @@ double TUtil::HJJMatEl(
             }
             else if (ijselIsUpType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_udbar_zz_ijrs1243[0];
             else if (ijselIsDownType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_dubar_zz_ijrs1243[0];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
           }
         }
         else if (code==0){ // code==0 means WW->H is also possible with no interference to ZZ->H, for example u ub -> d db.
@@ -4389,8 +4384,7 @@ double TUtil::HJJMatEl(
             rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);;
-              double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
                 (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
@@ -4400,8 +4394,8 @@ double TUtil::HJJMatEl(
                 if (ijselIsUpType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_uubar_ww_ijrs1234[0];
                 else if (ijselIsDownType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ddbar_ww_ijrs1234[0];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
               }
               if (
                 rsel!=ssel
@@ -4414,8 +4408,8 @@ double TUtil::HJJMatEl(
                 if (ijselIsUpType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_uubar_ww_ijrs1243[0];
                 else if (ijselIsDownType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ddbar_ww_ijrs1243[0];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
               }
             }
           }
@@ -4445,8 +4439,7 @@ double TUtil::HJJMatEl(
             rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);;
-              double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
                 (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
@@ -4459,17 +4452,13 @@ double TUtil::HJJMatEl(
                     else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ubardbar_wwonly_ijrs1234[0];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  if (verbosity>=TVar::DEBUG_MECHECK){
-                    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                    cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  }
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
               }
               if (
@@ -4486,17 +4475,13 @@ double TUtil::HJJMatEl(
                     else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ubardbar_wwonly_ijrs1243[0];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  if (verbosity>=TVar::DEBUG_MECHECK){
-                    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                    cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  }
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
               }
             }
@@ -4529,7 +4514,6 @@ double TUtil::HJJMatEl(
         // isel==jsel==0 is already eliminated by isel!=jsel condition
         if (code==1){ // Only ZZ->H possible
           // rsel=isel and ssel=jsel already
-          double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
           if (
             (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
@@ -4560,8 +4544,8 @@ double TUtil::HJJMatEl(
             }
             else if (ijselIsUpType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_udbar_zz_ijrs1234[1];
             else if (ijselIsDownType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_dubar_zz_ijrs1234[1];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
@@ -4595,8 +4579,8 @@ double TUtil::HJJMatEl(
             }
             else if (ijselIsUpType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_udbar_zz_ijrs1243[1];
             else if (ijselIsDownType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_dubar_zz_ijrs1243[1];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
           }
         }
         else if (code==0){ // code==0 means WW->H is also possible with no interference to ZZ->H, for example u ub -> d db.
@@ -4624,8 +4608,7 @@ double TUtil::HJJMatEl(
             rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);;
-              double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
                 (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
@@ -4635,8 +4618,8 @@ double TUtil::HJJMatEl(
                 if (ijselIsUpType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_uubar_ww_ijrs1234[1];
                 else if (ijselIsDownType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ddbar_ww_ijrs1234[1];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
               }
               if (
                 rsel!=ssel
@@ -4649,8 +4632,8 @@ double TUtil::HJJMatEl(
                 if (ijselIsUpType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_uubar_ww_ijrs1243[1];
                 else if (ijselIsDownType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ddbar_ww_ijrs1243[1];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
               }
             }
           }
@@ -4680,8 +4663,7 @@ double TUtil::HJJMatEl(
             rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);;
-              double avgfac=1.; if (partonIsUnknown[2] && partonIsUnknown[3] && rsel!=ssel) avgfac=0.5;
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
                 (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
@@ -4694,13 +4676,13 @@ double TUtil::HJJMatEl(
                     else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ubardbar_wwonly_ijrs1234[1];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
               }
               if (
@@ -4717,13 +4699,13 @@ double TUtil::HJJMatEl(
                     else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ubardbar_wwonly_ijrs1243[1];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
               }
             }

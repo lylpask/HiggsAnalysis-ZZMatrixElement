@@ -82,10 +82,11 @@ public:
   enum FermionMassRemoval{
     NoRemoval = 0,
     ConserveDifermionMass = 1,
-    MomentumToEnergy=2
+    MomentumToEnergy = 2,
+    nFermionMassRemovalSchemes = 3
   };
   enum ResonancePropagatorScheme{
-    NoPropagator=1,
+    NoPropagator=0,
     RunningWidth=1,
     FixedWidth=2,
     CPS=3

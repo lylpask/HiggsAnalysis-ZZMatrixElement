@@ -1306,11 +1306,18 @@ fits well.
 */
 
 
+/***** 13 TeV Samples *****/
+/*
+SPECIFIC COMMENT:
+- NJets30 -> nCleanedJetsPt30
+- vector<double> -> vector<float>
+*/
+
 /* SPECIFIC COMMENT: NONE */
 void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
   int erg_tev=sqrts;
   float mPOLE=125.;
-  TString TREE_NAME = "SelectedTree";
+  TString TREE_NAME = "ZZTree/candTree";
   bool writeFinalTree=false;
 
   TVar::VerbosityLevel verbosity = TVar::ERROR;
@@ -1320,14 +1327,14 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
   TBranch* bLepLepId=0;
 
   short NJets30;
-  std::vector<double>* JetPt=0;
-  std::vector<double>* JetEta=0;
-  std::vector<double>* JetPhi=0;
-  std::vector<double>* JetMass=0;
-  std::vector<double> myJetPt;
-  std::vector<double> myJetEta;
-  std::vector<double> myJetPhi;
-  std::vector<double> myJetMass;
+  std::vector<float>* JetPt=0;
+  std::vector<float>* JetEta=0;
+  std::vector<float>* JetPhi=0;
+  std::vector<float>* JetMass=0;
+  std::vector<float> myJetPt;
+  std::vector<float> myJetEta;
+  std::vector<float> myJetPhi;
+  std::vector<float> myJetMass;
   TBranch* bJetPt=0;
   TBranch* bJetEta=0;
   TBranch* bJetPhi=0;
@@ -1623,14 +1630,14 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
   TBranch* bLepLepId=0;
 
   short NJets30;
-  std::vector<double>* JetPt=0;
-  std::vector<double>* JetEta=0;
-  std::vector<double>* JetPhi=0;
-  std::vector<double>* JetMass=0;
-  std::vector<double> myJetPt;
-  std::vector<double> myJetEta;
-  std::vector<double> myJetPhi;
-  std::vector<double> myJetMass;
+  std::vector<float>* JetPt=0;
+  std::vector<float>* JetEta=0;
+  std::vector<float>* JetPhi=0;
+  std::vector<float>* JetMass=0;
+  std::vector<float> myJetPt;
+  std::vector<float> myJetEta;
+  std::vector<float> myJetPhi;
+  std::vector<float> myJetMass;
   TBranch* bJetPt=0;
   TBranch* bJetEta=0;
   TBranch* bJetPhi=0;
@@ -1653,9 +1660,9 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
   TString cinput_main;
   if (sqrts==13) cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/4l/160225";
   else return;
-  const int nSamples = 35;
+  const int nSamples = 34;
   TString strSamples[nSamples]={
-    "ggH91_GaZ/ZZ4lAnalysis.root",
+    //"ggH91_GaZ/ZZ4lAnalysis.root",
     "ggH115/ZZ4lAnalysis.root",
     "ggH120/ZZ4lAnalysis.root",
     "ggH124/ZZ4lAnalysis.root",
@@ -1930,18 +1937,14 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
   TBranch* bLepLepId=0;
 
   short NJets30;
-  std::vector<double>* JetPt=0;
-  std::vector<double>* JetEta=0;
-  std::vector<double>* JetPhi=0;
-  std::vector<double>* JetMass=0;
-  std::vector<double> myJetPt;
-  std::vector<double> myJetEta;
-  std::vector<double> myJetPhi;
-  std::vector<double> myJetMass;
-  TBranch* bJetPt=0;
-  TBranch* bJetEta=0;
-  TBranch* bJetPhi=0;
-  TBranch* bJetMass=0;
+  std::vector<float>* JetPt=0;
+  std::vector<float>* JetEta=0;
+  std::vector<float>* JetPhi=0;
+  std::vector<float>* JetMass=0;
+  std::vector<float> myJetPt;
+  std::vector<float> myJetEta;
+  std::vector<float> myJetPhi;
+  std::vector<float> myJetMass;
   float jetptetaphimass[2][4];
 
   float mesq_conserveDifermMass=0;
@@ -2002,10 +2005,10 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
   TChain* tree = new TChain(TREE_NAME, "");
   for (int is=0; is<nSamples; is++) tree->Add(Form("%s/%s", cinput_main.Data(), (strSamples[is]).Data()));
   tree->SetBranchAddress("nCleanedJetsPt30", &NJets30);
-  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
-  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
-  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
-  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+  tree->SetBranchAddress("JetPt", &JetPt);
+  tree->SetBranchAddress("JetEta", &JetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass);
   tree->SetBranchAddress("ZZMass", &mzz);
   tree->SetBranchAddress("ZZPt", &ZZPt);
   tree->SetBranchAddress("ZZEta", &ZZEta);
@@ -2155,12 +2158,6 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
     mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JQCD);
     TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
     mela.computeProdP(mesq_conserveDifermMass, false);
-    if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)){
-      cout << "Candidate vectors are " << endl;
-      for (int idau=0; idau<4; idau++) cout << pDaughters[idau].X() << '\t' << pDaughters[idau].Y() << '\t' << pDaughters[idau].Z() << '\t' << pDaughters[idau].T() << endl;
-      cout << jet.X() << '\t' << jet.Y() << '\t' << jet.Z() << '\t' << jet.T() << endl;
-      cout << jet.Pt() << '\t' << jet.Eta() << '\t' << jet.Phi() << '\t' << jet.M() << endl;
-    }
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_conserveDifermMass /= pow(alphasVal, 3);
     mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
@@ -2222,6 +2219,8 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
   delete tmptree;
   delete tree;
 }
+
+
 
 
 
@@ -3647,7 +3646,59 @@ void regularizeSlice(TGraphErrors* tgSlice, std::vector<double>* fixedX=0, doubl
 
 
 /* SPECIFIC COMMENT: NONE */
-void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
+void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q(int sqrts=13){
+  TFile* finput = new TFile(Form("pAvg_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "read");
+  TFile* foutput = new TFile(Form("pAvgSmooth_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "recreate");
+  const unsigned int ngraphs=1;
+  TString strtg[ngraphs]={
+    "tg_P_ConserveDifermionMass"
+  };
+
+  for (unsigned int ig=0; ig<ngraphs; ig++){
+    finput->cd();
+    TGraphErrors* tg = 0;
+    tg = (TGraphErrors*)finput->Get(Form("%s_%s", strtg[ig].Data(), "%s"));
+    tg->SetName(strtg[ig]);
+    if (tg==0){ cerr << strtg[ig] << " does not exist." << endl; continue; }
+    foutput->cd();
+    foutput->WriteTObject(tg);
+    tg->SetName(Form("%s_Smooth", tg->GetName()));
+    regularizeSlice(tg);
+    foutput->WriteTObject(tg);
+
+    TSpline3* sp = convertGraphToSpline3(tg);
+    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
+    TF1* highFcn = getFcn_a0plusa1timesX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
+    lowFcn->SetNpx(1000);
+    highFcn->SetNpx(10000);
+
+    foutput->WriteTObject(sp);
+    foutput->WriteTObject(lowFcn);
+    foutput->WriteTObject(highFcn);
+
+    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
+    ctest->cd();
+    tg->GetXaxis()->SetRangeUser(0, 20000);
+    tg->Draw("ae1p");
+    sp->Draw("csame");
+    lowFcn->Draw("csame");
+    highFcn->Draw("csame");
+    ctest->RedrawAxis();
+    ctest->Modified();
+    ctest->Update();
+    foutput->WriteTObject(ctest);
+    ctest->Close();
+
+    delete highFcn;
+    delete lowFcn;
+    delete sp;
+  }
+  foutput->Close();
+  finput->Close();
+}
+
+/* SPECIFIC COMMENT: NONE */
+void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs(int sqrts=8){
   TFile* finput = new TFile(Form("pAvg_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
   const unsigned int ngraphs=2;
@@ -3699,7 +3750,7 @@ void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
 }
 
 /* SPECIFIC COMMENT: NONE */
-void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
+void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs(int sqrts=8){
   TFile* finput = new TFile(Form("pAvg_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
   const unsigned int ngraphs=2;
@@ -3751,7 +3802,7 @@ void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
 }
 
 /* SPECIFIC COMMENT: NONE */
-void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs_7or8TeV(int sqrts=8){
+void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs(int sqrts=8){
   TFile* finput = new TFile(Form("pAvg_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
   const unsigned int ngraphs=2;
@@ -4123,56 +4174,5 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
   finput->Close();
 }
 
-/* SPECIFIC COMMENT: NONE */
-void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_13TeV_2l2q(int sqrts=13){
-  TFile* finput = new TFile(Form("pAvg_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "read");
-  TFile* foutput = new TFile(Form("pAvgSmooth_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "recreate");
-  const unsigned int ngraphs=1;
-  TString strtg[ngraphs]={
-    "tg_P_ConserveDifermionMass"
-  };
-
-  for (unsigned int ig=0; ig<ngraphs; ig++){
-    finput->cd();
-    TGraphErrors* tg = 0;
-    tg = (TGraphErrors*)finput->Get(Form("%s_%s", strtg[ig].Data(), "%s"));
-    tg->SetName(strtg[ig]);
-    if (tg==0){ cerr << strtg[ig] << " does not exist." << endl; continue; }
-    foutput->cd();
-    foutput->WriteTObject(tg);
-    tg->SetName(Form("%s_Smooth", tg->GetName()));
-    regularizeSlice(tg);
-    foutput->WriteTObject(tg);
-
-    TSpline3* sp = convertGraphToSpline3(tg);
-    TF1* lowFcn = getFcn_a0plusa1overX(sp, 0, (tg->GetX())[0], true);
-    TF1* highFcn = getFcn_a0plusa1timesX(sp, (tg->GetX())[tg->GetN()-1], 20000., false);
-    lowFcn->SetNpx(1000);
-    highFcn->SetNpx(10000);
-
-    foutput->WriteTObject(sp);
-    foutput->WriteTObject(lowFcn);
-    foutput->WriteTObject(highFcn);
-
-    TCanvas* ctest = new TCanvas("test", "", 8, 30, 800, 800);
-    ctest->cd();
-    tg->GetXaxis()->SetRangeUser(0, 20000);
-    tg->Draw("ae1p");
-    sp->Draw("csame");
-    lowFcn->Draw("csame");
-    highFcn->Draw("csame");
-    ctest->RedrawAxis();
-    ctest->Modified();
-    ctest->Update();
-    foutput->WriteTObject(ctest);
-    ctest->Close();
-
-    delete highFcn;
-    delete lowFcn;
-    delete sp;
-  }
-  foutput->Close();
-  finput->Close();
-}
 
 

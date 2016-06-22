@@ -28,6 +28,7 @@ class SuperMELA;
 
 #include <ZZMatrixElement/MELA/interface/TVar.hh>
 #include <ZZMatrixElement/MELA/interface/TEvtProb.hh>
+#include <ZZMatrixElement/MELA/interface/MelaPConstant.h>
 #include <ZZMatrixElement/MELA/interface/ScalarPdfFactory_ggH.h>
 #include <ZZMatrixElement/MELA/interface/VectorPdfFactory.h>
 #include <ZZMatrixElement/MELA/interface/TensorPdfFactory_HVV.h>
@@ -209,9 +210,9 @@ public:
   VectorPdfFactory* spin1Model;
   TensorPdfFactory_HVV* spin2Model;
   RooqqZZ_JHU_ZgammaZZ_fast* qqZZmodel;
-  SuperMELA* super;
-  TRandom3 *myR; // random number for resolution systematics
 
+  SuperMELA* super;
+  TRandom3* myRandomNumber; // random number for resolution systematics
 
   RooRealVar* mzz_rrv;
   RooRealVar* z1mass_rrv;
@@ -224,22 +225,6 @@ public:
   RooRealVar* Y_rrv;
   RooRealVar* upFrac_rrv;
 
-  TGraph* vaScale_4e;
-  TGraph* vaScale_4mu;
-  TGraph* vaScale_2e2mu;
-  TGraph* DggZZ_scalefactor;
-  void setCTotalBkgGraphs(TFile* fcontainer, TGraph* tgC[]);
-  void constructDggr(
-    float mzz,
-    int flavor, // (1,2,3) for (4e,4mu,2e2mu)
-    float bkg_VAMCFM_noscale,
-    float ggzz_VAMCFM_noscale,
-    float ggHZZ_prob_pure_noscale,
-    float ggHZZ_prob_int_noscale,
-    float& myDggr
-    );
-
-  TGraph* tgtotalbkg[3];
   void computeD_gg(
     TVar::MatrixElement myME,
     TVar::Process myType,
@@ -287,6 +272,34 @@ protected:
 
   MELACandidate* melaCand; // Pointer to persistent TEvtProb object
 
+  /***** ME CONSTANT HANDLES *****/
+  // Constants that vary with sqrts due to application of PDFs
+  //
+  MelaPConstant* pAvgSmooth_JHUGen_JJQCD_HSMHiggs[TVar::nFermionMassRemovalSchemes-1];
+  //
+  MelaPConstant* pAvgSmooth_JHUGen_JJVBF_HSMHiggs[TVar::nFermionMassRemovalSchemes-1];
+  //
+  MelaPConstant* pAvgSmooth_JHUGen_JQCD_HSMHiggs[TVar::nFermionMassRemovalSchemes-1];
+  //
+  MelaPConstant* pAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q;
+  // Decay ME constants that do not use PDFs
+  //
+  MelaPConstant* pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4mu;
+  MelaPConstant* pAvgSmooth_JHUGen_ZZGG_HSMHiggs_4e;
+  MelaPConstant* pAvgSmooth_JHUGen_ZZGG_HSMHiggs_2mu2e;
+  //
+  MelaPConstant* pAvgSmooth_MCFM_ZZGG_HSMHiggs_4mu;
+  MelaPConstant* pAvgSmooth_MCFM_ZZGG_HSMHiggs_4e;
+  MelaPConstant* pAvgSmooth_MCFM_ZZGG_HSMHiggs_2mu2e;
+  //
+  MelaPConstant* pAvgSmooth_MCFM_ZZGG_bkgZZ_4mu;
+  MelaPConstant* pAvgSmooth_MCFM_ZZGG_bkgZZ_4e;
+  MelaPConstant* pAvgSmooth_MCFM_ZZGG_bkgZZ_2mu2e;
+  //
+  MelaPConstant* pAvgSmooth_MCFM_ZZQQB_bkgZZ_4mu;
+  MelaPConstant* pAvgSmooth_MCFM_ZZQQB_bkgZZ_4e;
+  MelaPConstant* pAvgSmooth_MCFM_ZZQQB_bkgZZ_2mu2e;
+
   //
   // Functions
   //
@@ -294,6 +307,27 @@ protected:
   void reset_SelfDCouplings();
   void reset_PAux(); // SuperProb reset
   void reset_CandRef();
+
+  void constructDggr(
+    float mzz,
+    int flavor, // (1,2,3) for (4e,4mu,2e2mu)
+    float bkg_VAMCFM_noscale,
+    float ggzz_VAMCFM_noscale,
+    float ggHZZ_prob_pure_noscale,
+    float ggHZZ_prob_int_noscale,
+    float& myDggr
+    );
+
+  void getPConstantHandles();
+  void deletePConstantHandles();
+  MelaPConstant* getPConstantHandle(
+    TVar::MatrixElement me_,
+    TVar::Production prod_,
+    TVar::Process proc_,
+    const char* relpath,
+    const char* spname
+    );
+
 };
 
 #endif
