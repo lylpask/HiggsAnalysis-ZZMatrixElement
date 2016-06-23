@@ -54,7 +54,7 @@ SuperMELA::SuperMELA(
   qqZZ_pdf_=0;
 
   verbose_=false;
-  mH_rrv_=new RooRealVar("mH", "mH", mHVal_, 0., sqrts_);
+  mH_rrv_=new RooRealVar("mH", "mH", mHVal_, 0., sqrts_*1000.);
   m4l_rrv_=0;
   strChan_=channel;
 
@@ -145,7 +145,7 @@ void SuperMELA::init(){
   //calc_mZZ_range(mHVal_, lowMH_, highMH_);
   //if (verbose_)cout << "Range width=" << highMH_ - lowMH_ << endl;
   lowMH_=0.;
-  highMH_=sqrts_;
+  highMH_=sqrts_*1000.;
   m4l_rrv_=new RooRealVar("CMS_zz4l_mass", "CMS_zz4l_mass", mHVal_, lowMH_, highMH_);
   m4l_rrv_->setBins(2000, "fft");
   m4l_rrv_->setRange("shape", lowMH_, highMH_);
@@ -224,7 +224,7 @@ void SuperMELA::init(){
   if (verbose_){ std::cout << "Signal Mean vals -> Correction: " << corr_mean_sig.getVal() << "  Mean: " << mean_CB_->getVal() << "  Total: " << meanTOT_CB_->getVal() << std::endl; }
   sigma_CB_=new RooFormulaVar("CMS_zz4l_sigma_m_sig", Form("(%s)*(1+@1)", str_sigma_CB.c_str()), RooArgList(*mH_rrv_, corr_sigma_sig));
 
-  //for high-mass one neesd also a gamma RooFormulaVar, 
+  //for high-mass one also needs a gamma RooFormulaVar, 
   if (mean_BW_) delete mean_BW_;
   if (width_BW_) delete width_BW_;
   sprintf(rrvName, "CMS_zz4l_mean_BW_sig_%s_%d", strChan_.c_str(), int(sqrts_));

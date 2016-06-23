@@ -1238,7 +1238,6 @@ void Mela::computePM4l(TVar::SuperMelaSyst syst, float& prob){
         else if (syst == TVar::SMSyst_ScaleDown) mZZtmp = mZZ*(1.0-meanErr);
         else if (syst == TVar::SMSyst_ResUp || syst ==  TVar::SMSyst_ResDown) mZZtmp= myRandomNumber->Gaus(mZZ, sigmaErr*sigmaCB);
 
-        if (mZZtmp>180. || mZZtmp<100.) mZZtmp=mZZ;
         std::pair<double, double> m4lP = super->M4lProb(mZZtmp);
         if (myModel_ == TVar::HSMHiggs) prob = m4lP.first;
         else if (myModel_ == TVar::bkgZZ) prob = m4lP.second;
