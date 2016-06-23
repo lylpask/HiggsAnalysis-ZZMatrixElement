@@ -2470,3 +2470,166 @@ void testME_Dec_ZZWWComparison_FullSim(){
   finput->Close();
 }
 
+void testME_SuperMela_FullSim(int flavor=2, bool useBkgSample=false, bool debug=false){
+  int erg_tev=8;
+  float mPOLE=125.6;
+  TString TREE_NAME = "SelectedTree";
+
+  TVar::VerbosityLevel verbosity = (debug ? TVar::DEBUG : TVar::ERROR);
+  Mela mela(erg_tev, mPOLE, verbosity);
+  if (verbosity>=TVar::DEBUG) cout << "Mela is initialized" << endl;
+
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TFile* finput;
+  TFile* foutput;
+  if (!useBkgSample){
+    finput = new TFile(Form("%s/%s/HZZ4lTree_powheg15jhuGenV3-0PMH125.6.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e")), "read");
+    foutput = new TFile(Form("HZZ4lTree_powheg15jhuGenV3-0PMH125.6_%s_OriginalMEv2ValidationTestOnly.root", (flavor>=2 ? "2mu2e" : "4e")), "recreate");
+  }
+  else{
+    finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
+    foutput = new TFile(Form("HZZ4lTree_ZZTo%s_OriginalMEv2ValidationTestOnly.root", (flavor>=2 ? "2e2mu" : "4e")), "recreate");
+  }
+
+  float p0plus_m4l, p0plus_m4l_ScaleUp, p0plus_m4l_ScaleDown, p0plus_m4l_ResUp, p0plus_m4l_ResDown;
+  float bkg_m4l, bkg_m4l_ScaleUp, bkg_m4l_ScaleDown, bkg_m4l_ResUp, bkg_m4l_ResDown;
+
+  float p0plus_m4l_NEW, p0plus_m4l_ScaleUp_NEW, p0plus_m4l_ScaleDown_NEW, p0plus_m4l_ResUp_NEW, p0plus_m4l_ResDown_NEW;
+  float bkg_m4l_NEW, bkg_m4l_ScaleUp_NEW, bkg_m4l_ScaleDown_NEW, bkg_m4l_ResUp_NEW, bkg_m4l_ResDown_NEW;
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+
+  TTree* tree = (TTree*)finput->Get(TREE_NAME);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+  tree->SetBranchAddress("p0plus_m4l", &p0plus_m4l);
+  tree->SetBranchAddress("p0plus_m4l_ScaleUp", &p0plus_m4l_ScaleUp);
+  tree->SetBranchAddress("p0plus_m4l_ScaleDown", &p0plus_m4l_ScaleDown);
+  tree->SetBranchAddress("p0plus_m4l_ResUp", &p0plus_m4l_ResUp);
+  tree->SetBranchAddress("p0plus_m4l_ResDown", &p0plus_m4l_ResDown);
+  tree->SetBranchAddress("bkg_m4l", &bkg_m4l);
+  tree->SetBranchAddress("bkg_m4l_ScaleUp", &bkg_m4l_ScaleUp);
+  tree->SetBranchAddress("bkg_m4l_ScaleDown", &bkg_m4l_ScaleDown);
+  tree->SetBranchAddress("bkg_m4l_ResUp", &bkg_m4l_ResUp);
+  tree->SetBranchAddress("bkg_m4l_ResDown", &bkg_m4l_ResDown);
+
+  TTree* newtree = new TTree("TestTree", "");
+  newtree->Branch("ZZMass", &mzz);
+  newtree->Branch("Z1Mass", &m1);
+  newtree->Branch("Z2Mass", &m2);
+  newtree->Branch("helcosthetaZ1", &h1);
+  newtree->Branch("helcosthetaZ2", &h2);
+  newtree->Branch("helphi", &phi);
+  newtree->Branch("costhetastar", &hs);
+  newtree->Branch("phistarZ1", &phi1);
+
+  newtree->Branch("p0plus_m4l", &p0plus_m4l);
+  newtree->Branch("p0plus_m4l_ScaleUp", &p0plus_m4l_ScaleUp);
+  newtree->Branch("p0plus_m4l_ScaleDown", &p0plus_m4l_ScaleDown);
+  newtree->Branch("p0plus_m4l_ResUp", &p0plus_m4l_ResUp);
+  newtree->Branch("p0plus_m4l_ResDown", &p0plus_m4l_ResDown);
+  newtree->Branch("bkg_m4l", &bkg_m4l);
+  newtree->Branch("bkg_m4l_ScaleUp", &bkg_m4l_ScaleUp);
+  newtree->Branch("bkg_m4l_ScaleDown", &bkg_m4l_ScaleDown);
+  newtree->Branch("bkg_m4l_ResUp", &bkg_m4l_ResUp);
+  newtree->Branch("bkg_m4l_ResDown", &bkg_m4l_ResDown);
+
+  newtree->Branch("p0plus_m4l_NEW", &p0plus_m4l_NEW);
+  newtree->Branch("p0plus_m4l_ScaleUp_NEW", &p0plus_m4l_ScaleUp_NEW);
+  newtree->Branch("p0plus_m4l_ScaleDown_NEW", &p0plus_m4l_ScaleDown_NEW);
+  newtree->Branch("p0plus_m4l_ResUp_NEW", &p0plus_m4l_ResUp_NEW);
+  newtree->Branch("p0plus_m4l_ResDown_NEW", &p0plus_m4l_ResDown_NEW);
+  newtree->Branch("bkg_m4l_NEW", &bkg_m4l_NEW);
+  newtree->Branch("bkg_m4l_ScaleUp_NEW", &bkg_m4l_ScaleUp_NEW);
+  newtree->Branch("bkg_m4l_ScaleDown_NEW", &bkg_m4l_ScaleDown_NEW);
+  newtree->Branch("bkg_m4l_ResUp_NEW", &bkg_m4l_ResUp_NEW);
+  newtree->Branch("bkg_m4l_ResDown_NEW", &bkg_m4l_ResDown_NEW);
+
+  float GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
+  if (flavor == 2){
+    GenLep1Id=13;
+    GenLep2Id=-13;
+    GenLep3Id=11;
+    GenLep4Id=-11;
+  }
+  else if (flavor == 1){
+    GenLep1Id=11;
+    GenLep2Id=-11;
+    GenLep3Id=11;
+    GenLep4Id=-11;
+  }
+  else if (flavor == 0){
+    GenLep1Id=13;
+    GenLep2Id=-13;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  else if (flavor == 3){
+    GenLep1Id=14;
+    GenLep2Id=-14;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  else if (flavor == 4){
+    GenLep1Id=0;
+    GenLep2Id=-0;
+    GenLep3Id=1;
+    GenLep4Id=-1;
+  }
+  else if (flavor == 5){
+    GenLep1Id=1;
+    GenLep2Id=-1;
+    GenLep3Id=2;
+    GenLep4Id=-2;
+  }
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  for (int ev = 0; ev < (verbosity>=TVar::DEBUG ? 1 : (!useBkgSample ? min(1000, (int)tree->GetEntries()) : (int)tree->GetEntries())); ev++){
+    tree->GetEntry(ev);
+    if (ev%10000 == 0) cout << "Processing event " << ev << endl;
+
+    int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
+    TLorentzVector pOrdered[4];
+    std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+    for (int ip=0; ip<min(4, (int)daus.size()); ip++) pOrdered[ip]=daus.at(ip);
+    SimpleParticleCollection_t daughters_ZZ;
+    for (unsigned int idau=0; idau<4; idau++) daughters_ZZ.push_back(SimpleParticle_t(idOrdered[idau], pOrdered[idau]));
+    mela.setInputEvent(&daughters_ZZ, (SimpleParticleCollection_t*)0, (SimpleParticleCollection_t*)0, false);
+
+    /***** ZZ *****/
+
+    mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
+    mela.computePM4l(TVar::SMSyst_None, p0plus_m4l_NEW);
+    mela.computePM4l(TVar::SMSyst_ScaleUp, p0plus_m4l_ScaleUp_NEW);
+    mela.computePM4l(TVar::SMSyst_ScaleDown, p0plus_m4l_ScaleDown_NEW);
+    mela.computePM4l(TVar::SMSyst_ResUp, p0plus_m4l_ResUp_NEW);
+    mela.computePM4l(TVar::SMSyst_ResDown, p0plus_m4l_ResDown_NEW);
+
+    mela.setProcess(TVar::bkgZZ, TVar::JHUGen, TVar::ZZGG);
+    mela.computePM4l(TVar::SMSyst_None, bkg_m4l_NEW);
+    mela.computePM4l(TVar::SMSyst_ScaleUp, bkg_m4l_ScaleUp_NEW);
+    mela.computePM4l(TVar::SMSyst_ScaleDown, bkg_m4l_ScaleDown_NEW);
+    mela.computePM4l(TVar::SMSyst_ResUp, bkg_m4l_ResUp_NEW);
+    mela.computePM4l(TVar::SMSyst_ResDown, bkg_m4l_ResDown_NEW);
+
+    mela.resetInputEvent();
+    newtree->Fill();
+  }
+
+  foutput->WriteTObject(newtree);
+  foutput->Close();
+  finput->Close();
+}
