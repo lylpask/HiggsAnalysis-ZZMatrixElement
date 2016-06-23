@@ -39,13 +39,13 @@ GENERAL COMMENTS
 */
 
 /* SPECIFIC COMMENT: NONE */
-void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
+void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8, bool debug=false){
   int erg_tev=sqrts;
   float mPOLE=125.;
   TString TREE_NAME = "SelectedTree";
   bool writeFinalTree=false;
 
-  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  TVar::VerbosityLevel verbosity = (debug ? TVar::DEBUG : TVar::ERROR);
   Mela mela(erg_tev, mPOLE, verbosity);
 
   short NJets30;
@@ -211,8 +211,9 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
   cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
 
   int nbins=0;
-  int divisor=11000;
-  while (nbins<50){
+  int divisor=21000;
+  const int nbins_th=25/*50*/;
+  while (nbins<nbins_th){
     if (divisor>1000) divisor -= 1000;
     else if (divisor>100) divisor -= 100;
     else break;
@@ -238,7 +239,7 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form((debug ? "pAvgLinToLog_JHUGen_JJVBF_HSMHiggs_%iTeV_debug.root" : "pAvgLinToLog_JHUGen_JJVBF_HSMHiggs_%iTeV.root"), sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -255,7 +256,7 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
 
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
 
-  for (int ev = 0; ev < nEntries; ev++){
+  for (int ev = (debug ? nEntries/2 : 0); ev < nEntries; ev++){
     tmptree->GetEntry(ev); // No need for ordering anymore
     if (ev%10000==0) cout << "Doing event " << ev << endl;
 
@@ -280,12 +281,19 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
     TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
 
     mela.computeProdP(mesq_conserveDifermMass, false);
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
+    if (debug){
+      float mesqtmp;
+      mela.computeProdP(mesqtmp, true);
+      cout << mesqtmp << " @ " << mzz << endl;
+      mela.resetInputEvent();
+      break;
+    }
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     if (isnan(mesq_jetPtoEScale) || isinf(mesq_jetPtoEScale)) doFill=false;
 
     if (doFill){
@@ -315,6 +323,8 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_7or8TeV(int sqrts=8){
         xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -552,7 +562,7 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form("pAvgLinToLog_JHUGen_JVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -599,19 +609,19 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
     mela.computeProdP(mesq_conserveDifermMass, false);
     mela.getPAux(mesqaux_conserveDifermMass);
     mesqaux_conserveDifermMass *= mesq_conserveDifermMass;
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
-    mesqaux_conserveDifermMass = log10(mesqaux_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesqaux_conserveDifermMass = log10(mesqaux_conserveDifermMass);
     hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
-    hmesqaux_conserveDifermMass->Fill(mzz, mesqaux_conserveDifermMass);
+    hmesqaux_conserveDifermMass->Fill(mzz, mesqaux_conserveDifermMass/*, pow(10., mesqaux_conserveDifermMass)*/);
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
     mela.getPAux(mesqaux_jetPtoEScale);
     mesqaux_jetPtoEScale *= mesq_jetPtoEScale;
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
-    mesqaux_jetPtoEScale = log10(mesqaux_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesqaux_jetPtoEScale = log10(mesqaux_jetPtoEScale);
     hmesq_jetPtoEScale->Fill(mzz, mesq_jetPtoEScale);
-    hmesqaux_jetPtoEScale->Fill(mzz, mesqaux_jetPtoEScale);
+    hmesqaux_jetPtoEScale->Fill(mzz, mesqaux_jetPtoEScale/*, pow(10., mesqaux_jetPtoEScale)*/);
 
     if (writeFinalTree) newtree->Fill();
     mela.resetInputEvent();
@@ -642,6 +652,8 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
         xexyey[inorm][2][bin] = hmesqaux_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesqaux_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -681,13 +693,13 @@ void get_PAvgProfile_JHUGen_JVBF_HSMHiggs_7or8TeV(int sqrts=8){
 SPECIFIC COMMENT: OUTPUT ME DIVIDED BY 
 - ALPHAS(MZ)**4 TO REMAIN INDEPENDENT OF PDF CHOICE TO FIRST APPROXIMATION
 */
-void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
+void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8, bool debug=false){
   int erg_tev=sqrts;
   float mPOLE=125.;
   TString TREE_NAME = "SelectedTree";
   bool writeFinalTree=false;
 
-  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  TVar::VerbosityLevel verbosity = (debug ? TVar::DEBUG : TVar::ERROR);
   Mela mela(erg_tev, mPOLE, verbosity);
 
   short NJets30;
@@ -847,8 +859,9 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
   cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
 
   int nbins=0;
-  int divisor=11000;
-  while (nbins<50){
+  int divisor=21000;
+  const int nbins_th=25/*50*/;
+  while (nbins<nbins_th){
     if (divisor>1000) divisor -= 1000;
     else if (divisor>100) divisor -= 100;
     else break;
@@ -874,7 +887,7 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form((debug ? "pAvgLinToLog_JHUGen_JJQCD_HSMHiggs_%iTeV_debug.root" : "pAvgLinToLog_JHUGen_JJQCD_HSMHiggs_%iTeV.root"), sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -890,7 +903,7 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
 
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
 
-  for (int ev = 0; ev < nEntries; ev++){
+  for (int ev = (debug ? nEntries/2 : 0); ev < nEntries; ev++){
     tmptree->GetEntry(ev); // No need for ordering anymore
     if (ev%10000==0) cout << "Doing event " << ev << endl;
 
@@ -918,14 +931,21 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
     mela.computeProdP(mesq_conserveDifermMass, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_conserveDifermMass /= pow(alphasVal, 4);
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
+    if (debug){
+      float mesqtmp;
+      mela.computeProdP(mesqtmp, true);
+      cout << mesqtmp << " @ " << mzz << endl;
+      mela.resetInputEvent();
+      break;
+    }
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_jetPtoEScale /= pow(alphasVal, 4);
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     if (isnan(mesq_jetPtoEScale) || isinf(mesq_jetPtoEScale)) doFill=false;
 
     if (doFill){
@@ -955,6 +975,8 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_7or8TeV(int sqrts=8){
         xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -1190,7 +1212,7 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_7or8TeV(int sqrts=8){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form("pAvgLinToLog_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -1234,14 +1256,14 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_7or8TeV(int sqrts=8){
     mela.computeProdP(mesq_conserveDifermMass, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_conserveDifermMass /= pow(alphasVal, 3);
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_jetPtoEScale /= pow(alphasVal, 3);
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     hmesq_jetPtoEScale->Fill(mzz, mesq_jetPtoEScale);
 
     if (writeFinalTree) newtree->Fill();
@@ -1265,6 +1287,8 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_7or8TeV(int sqrts=8){
         xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -1480,8 +1504,9 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
   cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
 
   int nbins=0;
-  int divisor=11000;
-  while (nbins<50){
+  int divisor=21000;
+  const int nbins_th=25/*50*/;
+  while (nbins<nbins_th){
     if (divisor>1000) divisor -= 1000;
     else if (divisor>100) divisor -= 100;
     else break;
@@ -1507,7 +1532,7 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form("pAvgLinToLog_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -1549,12 +1574,12 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
     TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
 
     mela.computeProdP(mesq_conserveDifermMass, false);
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     if (isnan(mesq_jetPtoEScale) || isinf(mesq_jetPtoEScale)) doFill=false;
 
     if (doFill){
@@ -1584,6 +1609,8 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
         xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -1786,8 +1813,9 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
   cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
 
   int nbins=0;
-  int divisor=11000;
-  while (nbins<50){
+  int divisor=21000;
+  const int nbins_th=25/*50*/;
+  while (nbins<nbins_th){
     if (divisor>1000) divisor -= 1000;
     else if (divisor>100) divisor -= 100;
     else break;
@@ -1813,7 +1841,7 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form("pAvgLinToLog_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -1857,14 +1885,14 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
     mela.computeProdP(mesq_conserveDifermMass, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_conserveDifermMass /= pow(alphasVal, 4);
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_jetPtoEScale /= pow(alphasVal, 4);
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     if (isnan(mesq_jetPtoEScale) || isinf(mesq_jetPtoEScale)) doFill=false;
 
     if (doFill){
@@ -1894,6 +1922,8 @@ void get_PAvgProfile_JHUGen_JJQCD_HSMHiggs_13TeV(int sqrts=13){
         xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -2116,7 +2146,7 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
   cout << "Boundary (" << nbins << ") = " << binning[nbins] << endl;
   delete[] index;
 
-  TFile* foutput = new TFile(Form("pAvg_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
+  TFile* foutput = new TFile(Form("pAvgLinToLog_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
 
   TProfile* hvar = new TProfile("candMass", "", nbins, binning); hvar->Sumw2();
   TProfile* hmesq_conserveDifermMass = new TProfile("P_ConserveDifermionMass", "", nbins, binning); hmesq_conserveDifermMass->Sumw2();
@@ -2160,14 +2190,14 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
     mela.computeProdP(mesq_conserveDifermMass, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_conserveDifermMass /= pow(alphasVal, 3);
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
 
     TUtil::setJetMassScheme(TVar::MomentumToEnergy);
     mela.computeProdP(mesq_jetPtoEScale, false);
     alphasVal = mela.getIORecord()->getAlphaSatMZ();
     mesq_jetPtoEScale /= pow(alphasVal, 3);
-    mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
+    //mesq_jetPtoEScale = log10(mesq_jetPtoEScale);
     hmesq_jetPtoEScale->Fill(mzz, mesq_jetPtoEScale);
 
 
@@ -2192,6 +2222,8 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
         xexyey[inorm][2][bin] = hmesq_jetPtoEScale->GetBinContent(bin+1);
         xexyey[inorm][3][bin] = hmesq_jetPtoEScale->GetBinError(bin+1);
       }
+      xexyey[inorm][3][bin] = log10(xexyey[inorm][3][bin])/xexyey[inorm][2][bin];
+      xexyey[inorm][2][bin] = log10(xexyey[inorm][2][bin]);
     }
   }
 
@@ -2293,7 +2325,7 @@ void get_PAvgProfile_JHUGen_ZZGG_HSMHiggs(){
     "HZZ4lTree_minloH1000.root"
   };
 
-  TFile* foutput = new TFile("pAvg_JHUGen_ZZGG_HSMHiggs.root", "recreate");
+  TFile* foutput = new TFile("pAvgLinToLog_JHUGen_ZZGG_HSMHiggs.root", "recreate");
 
   for (int ic=0; ic<3; ic++){
     gROOT->cd();
@@ -2434,7 +2466,7 @@ void get_PAvgProfile_JHUGen_ZZGG_HSMHiggs(){
       mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
       if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
       if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
-      mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+      //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
 
       if (writeFinalTree) newtree->Fill();
@@ -2450,6 +2482,8 @@ void get_PAvgProfile_JHUGen_ZZGG_HSMHiggs(){
       cout << "Bin " << bin << " x-center: " << xexyey[0][bin] << " +- " << xexyey[1][bin] << endl;
       xexyey[2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
       xexyey[3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      xexyey[3][bin] = log10(xexyey[3][bin])/xexyey[2][bin];
+      xexyey[2][bin] = log10(xexyey[2][bin]);
     }
 
 
@@ -2542,7 +2576,7 @@ void get_PAvgProfile_MCFM_ZZGG_HSMHiggs(){
     "HZZ4lTree_minloH1000.root"
   };
 
-  TFile* foutput = new TFile("pAvg_MCFM_ZZGG_HSMHiggs.root", "recreate");
+  TFile* foutput = new TFile("pAvgLinToLog_MCFM_ZZGG_HSMHiggs.root", "recreate");
 
   for (int ic=0; ic<3; ic++){
     gROOT->cd();
@@ -2683,7 +2717,7 @@ void get_PAvgProfile_MCFM_ZZGG_HSMHiggs(){
       mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
       if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
       if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
-      mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+      //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       hmesq_conserveDifermMass->Fill(mzz, mesq_conserveDifermMass);
 
       if (writeFinalTree) newtree->Fill();
@@ -2699,6 +2733,8 @@ void get_PAvgProfile_MCFM_ZZGG_HSMHiggs(){
       cout << "Bin " << bin << " x-center: " << xexyey[0][bin] << " +- " << xexyey[1][bin] << endl;
       xexyey[2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
       xexyey[3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      xexyey[3][bin] = log10(xexyey[3][bin])/xexyey[2][bin];
+      xexyey[2][bin] = log10(xexyey[2][bin]);
     }
 
 
@@ -2760,7 +2796,7 @@ void get_PAvgProfile_MCFM_ZZGG_bkgZZ(){
     "HZZ4lTree_ggZZ2l2l.root"
   };
 
-  TFile* foutput = new TFile("pAvg_MCFM_ZZGG_bkgZZ.root", "recreate");
+  TFile* foutput = new TFile("pAvgLinToLog_MCFM_ZZGG_bkgZZ.root", "recreate");
 
   for (int ic=0; ic<3; ic++){
     gROOT->cd();
@@ -2897,7 +2933,7 @@ void get_PAvgProfile_MCFM_ZZGG_bkgZZ(){
       mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
       if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
       if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
-      mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+      //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 
       if (doFill){
@@ -2918,6 +2954,8 @@ void get_PAvgProfile_MCFM_ZZGG_bkgZZ(){
       cout << "Bin " << bin << " x-center: " << xexyey[0][bin] << " +- " << xexyey[1][bin] << endl;
       xexyey[2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
       xexyey[3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      xexyey[3][bin] = log10(xexyey[3][bin])/xexyey[2][bin];
+      xexyey[2][bin] = log10(xexyey[2][bin]);
     }
 
 
@@ -2977,7 +3015,7 @@ void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
     "HZZ4lTree_ZZTo2e2tau.root"
   };
 
-  TFile* foutput = new TFile("pAvg_MCFM_ZZQQB_bkgZZ.root", "recreate");
+  TFile* foutput = new TFile("pAvgLinToLog_MCFM_ZZQQB_bkgZZ.root", "recreate");
 
   for (int ic=0; ic<3; ic++){
     gROOT->cd();
@@ -3115,7 +3153,7 @@ void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
       mela.getIORecord()->getVDaughterCouplings(aL2, aR2, 1);
       if (fabs(aL1)>0. || fabs(aR1)>0.) mesq_conserveDifermMass /= pow(aL1, 2)+pow(aR1, 2);
       if (fabs(aL2)>0. || fabs(aR2)>0.) mesq_conserveDifermMass /= pow(aL2, 2)+pow(aR2, 2);
-      mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+      //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
       if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 
       if (doFill){
@@ -3136,6 +3174,8 @@ void get_PAvgProfile_MCFM_ZZQQB_bkgZZ(){
       cout << "Bin " << bin << " x-center: " << xexyey[0][bin] << " +- " << xexyey[1][bin] << endl;
       xexyey[2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
       xexyey[3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+      xexyey[3][bin] = log10(xexyey[3][bin])/xexyey[2][bin];
+      xexyey[2][bin] = log10(xexyey[2][bin]);
     }
 
 
@@ -3180,16 +3220,16 @@ void get_PAvgProfile_MCFM_JJQCD_bkgZJets_13TeV_2l2q(){
   float phi;
   float hs;
   float phi1;
-  vector<Float_t>* mzz_array=0;
-  vector<Float_t>* m1_array=0;
-  vector<Float_t>* m2_array=0;
-  vector<Float_t>* h1_array=0;
-  vector<Float_t>* h2_array=0;
-  vector<Float_t>* phi_array=0;
-  vector<Float_t>* hs_array=0;
-  vector<Float_t>* phi1_array=0;
-  vector<Short_t>* ZZsel=0;
-  vector<Short_t>* ZZCandType=0;
+  vector<float>* mzz_array=0;
+  vector<float>* m1_array=0;
+  vector<float>* m2_array=0;
+  vector<float>* h1_array=0;
+  vector<float>* h2_array=0;
+  vector<float>* phi_array=0;
+  vector<float>* hs_array=0;
+  vector<float>* phi1_array=0;
+  vector<short>* ZZsel=0;
+  vector<short>* ZZCandType=0;
   int LepID[4]={ 0, 0, 11, -11 };
 
   TString cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/2l2q/";
@@ -3199,7 +3239,7 @@ void get_PAvgProfile_MCFM_JJQCD_bkgZJets_13TeV_2l2q(){
     "ZZ2l2qAnalysis_DYJetsToLL.root"
   };
 
-  TFile* foutput = new TFile("pAvg_MCFM_JJQCD_bkgZJets_13TeV_2l2q.root", "recreate");
+  TFile* foutput = new TFile("pAvgLinToLog_MCFM_JJQCD_bkgZJets_13TeV_2l2q.root", "recreate");
 
   gROOT->cd();
   TChain* tree = new TChain(TREE_NAME, "");
@@ -3358,7 +3398,7 @@ void get_PAvgProfile_MCFM_JJQCD_bkgZJets_13TeV_2l2q(){
     cout << "aR1: " << aR1 << '\t';
     cout << "aL2: " << aL2 << '\t';
     cout << "aR2: " << aR2 << endl;
-    mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
+    //mesq_conserveDifermMass = log10(mesq_conserveDifermMass);
     if (isnan(mesq_conserveDifermMass) || isinf(mesq_conserveDifermMass)) doFill=false;
 
     if (doFill){
@@ -3379,6 +3419,8 @@ void get_PAvgProfile_MCFM_JJQCD_bkgZJets_13TeV_2l2q(){
     cout << "Bin " << bin << " x-center: " << xexyey[0][bin] << " +- " << xexyey[1][bin] << endl;
     xexyey[2][bin] = hmesq_conserveDifermMass->GetBinContent(bin+1);
     xexyey[3][bin] = hmesq_conserveDifermMass->GetBinError(bin+1);
+    xexyey[3][bin] = log10(xexyey[3][bin])/xexyey[2][bin];
+    xexyey[2][bin] = log10(xexyey[2][bin]);
   }
 
 
@@ -3415,6 +3457,39 @@ TSpline3* convertGraphToSpline3(TGraph* tg, double* dfirst=0, double* dlast=0){
   if (dfirst!=0) *dfirst=derivative_first;
   if (dlast!=0) *dlast=derivative_last;
   return spline;
+}
+
+/* SPECIFIC COMMENT: Convert a TGraph to a TSpline5 */
+TSpline5* convertGraphToSpline5(TGraph* tg, double* dfirst=0, double* dlast=0){
+  unsigned int nbins = tg->GetN();
+  double* xy[2]={
+    tg->GetX(),
+    tg->GetY()
+  };
+  double derivative_first = (xy[1][1]-xy[1][0])/(xy[0][1]-xy[0][0]);
+  double derivative_last = (xy[1][nbins-1]-xy[1][nbins-2])/(xy[0][nbins-1]-xy[0][nbins-2]);
+  TSpline5* spline = new TSpline5("spline", tg, "b1e1", derivative_first, derivative_last);
+  spline->SetName(Form("sp_%s", tg->GetName()));
+  if (dfirst!=0) *dfirst=derivative_first;
+  if (dlast!=0) *dlast=derivative_last;
+  return spline;
+}
+TSpline3* convertTSpline5ToTspline3(TSpline5* sp){
+  double xmin = sp->GetXmin();
+  double xmax = sp->GetXmax();
+  const int nbins=500;
+  double xyval[2][nbins+1];
+  double interval = (xmax-xmin)/nbins;
+  for (int ix=0; ix<=nbins; ix++){
+    xyval[0][ix] = xmin + ix*interval;
+    xyval[1][ix] = sp->Eval(xyval[0][ix]);
+  }
+  double dfirst = sp->Derivative(xmin);
+  double dlast = sp->Derivative(xmax);
+  TSpline3* sp_new = new TSpline3("spline", xyval[0], xyval[1], nbins+1, "b1e1", dfirst, dlast);
+  sp_new->SetName(sp->GetName());
+  sp_new->SetTitle(sp->GetTitle());
+  return sp_new;
 }
 
 /* SPECIFIC COMMENT: Get a1 and a2 as well as a TF1 object for the formula a0+a1*exp(x) */
@@ -3696,7 +3771,7 @@ TGraphErrors* replacePointsBetween(TGraphErrors* tgSlice, double xmin, double xm
         double val;
         if (ix==0) val = xexyey_slice[0][iy];
         else if (ix==2) val = ylow + (yhigh-ylow)/(xhigh-xlow)*(xexyey_slice[0][iy]-xlow);
-        else val = sqrt(pow(ylow, 2) + pow((yhigh-ylow)/(xhigh-xlow)*(xexyey_slice[0][iy]-xlow), 2));
+        else val = xexyey_slice[ix][iy]*(xexyey[ix-1][iy]/xexyey_slice[ix-1][iy]);
         xexyey[ix][iy] = val;
       }
     }
@@ -3711,9 +3786,82 @@ TGraphErrors* replacePointsBetween(TGraphErrors* tgSlice, double xmin, double xm
   return tgSlice_new;
 }
 
+TGraphErrors* addPoint(TGraphErrors* tgSlice, double x){
+  const unsigned int nbins_slice = tgSlice->GetN();
+  double* xexyey_slice[4]={
+    tgSlice->GetX(),
+    tgSlice->GetEX(),
+    tgSlice->GetY(),
+    tgSlice->GetEY()
+  };
+
+  double xexyey[4][nbins_slice+1];
+  unsigned int lowbin=0, highbin=0;
+  for (unsigned int iy=0; iy<nbins_slice; iy++){
+    if (xexyey_slice[0][iy]<x) lowbin=iy;
+    if (xexyey_slice[0][iy]>x){ highbin=iy; break; }
+  }
+  cout << "Low bin " << lowbin << " at " << xexyey_slice[0][lowbin] << endl;
+  cout << "High bin " << highbin << " at " << xexyey_slice[0][highbin] << endl;
+
+  int ctr=0;
+  for (unsigned int iy=0; iy<nbins_slice; iy++){
+    for (unsigned int ix=0; ix<4; ix++) xexyey[ix][ctr] = xexyey_slice[ix][iy];
+    ctr++;
+    if (iy==lowbin){
+      for (unsigned int ix=0; ix<4; ix++){
+        double ylow = xexyey_slice[ix][lowbin];
+        double yhigh = xexyey_slice[ix][highbin];
+        double val = (yhigh+ylow)*0.5;
+        xexyey[ix][ctr] = val;
+      }
+      ctr++;
+    }
+  }
+  TGraphErrors* tgSlice_new = new TGraphErrors(ctr, xexyey[0], xexyey[2], xexyey[1], xexyey[3]);
+  tgSlice_new->SetName(tgSlice->GetName());
+  tgSlice_new->SetTitle(tgSlice->GetTitle());
+  return tgSlice_new;
+}
+
+TGraphErrors* addPointAfterBin(TGraphErrors* tgSlice, int abin){
+  const unsigned int nbins_slice = tgSlice->GetN();
+  double* xexyey_slice[4]={
+    tgSlice->GetX(),
+    tgSlice->GetEX(),
+    tgSlice->GetY(),
+    tgSlice->GetEY()
+  };
+
+  double xexyey[4][nbins_slice+1];
+  unsigned int lowbin=abin, highbin=abin+1;
+  cout << "Low bin " << lowbin << " at " << xexyey_slice[0][lowbin] << endl;
+  cout << "High bin " << highbin << " at " << xexyey_slice[0][highbin] << endl;
+
+  int ctr=0;
+  for (unsigned int iy=0; iy<nbins_slice; iy++){
+    for (unsigned int ix=0; ix<4; ix++) xexyey[ix][ctr] = xexyey_slice[ix][iy];
+    ctr++;
+    if (iy==lowbin){
+      for (unsigned int ix=0; ix<4; ix++){
+        double ylow = xexyey_slice[ix][lowbin];
+        double yhigh = xexyey_slice[ix][highbin];
+        double val = (yhigh+ylow)*0.5;
+        xexyey[ix][ctr] = val;
+      }
+      ctr++;
+      cout << "Adding additional point at " << xexyey[0][ctr-1] << '\t' << xexyey[2][ctr-1] << endl;
+    }
+  }
+  TGraphErrors* tgSlice_new = new TGraphErrors(ctr, xexyey[0], xexyey[2], xexyey[1], xexyey[3]);
+  tgSlice_new->SetName(tgSlice->GetName());
+  tgSlice_new->SetTitle(tgSlice->GetTitle());
+  return tgSlice_new;
+}
+
 /* SPECIFIC COMMENT: NONE */
 void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q(int sqrts=13){
-  TFile* finput = new TFile(Form("pAvg_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "read");
+  TFile* finput = new TFile(Form("pAvgLinToLog_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_MCFM_JJQCD_bkgZJets_%iTeV_2l2q.root", sqrts), "recreate");
   const unsigned int ngraphs=1;
   TString strtg[ngraphs]={
@@ -3723,12 +3871,17 @@ void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q(int sqrts=13){
   for (unsigned int ig=0; ig<ngraphs; ig++){
     finput->cd();
     TGraphErrors* tg = 0;
-    tg = (TGraphErrors*)finput->Get(Form("%s_%s", strtg[ig].Data(), "%s"));
-    tg->SetName(strtg[ig]);
+    tg = (TGraphErrors*)finput->Get(strtg[ig].Data());
     if (tg==0){ cerr << strtg[ig] << " does not exist." << endl; continue; }
+    tg->SetName(strtg[ig]);
     foutput->cd();
     foutput->WriteTObject(tg);
     tg->SetName(Form("%s_Smooth", tg->GetName()));
+
+    TGraphErrors* tg_new = replacePointsBetween(tg, 510, 520); tg=tg_new;
+    tg_new = replacePointsBetween(tg, 329.5, 330.5); delete tg; tg=tg_new;
+    tg_new = replacePointsBetween(tg, 338, 340); delete tg; tg=tg_new;
+
     regularizeSlice(tg);
     foutput->WriteTObject(tg);
 
@@ -3758,6 +3911,7 @@ void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q(int sqrts=13){
     delete highFcn;
     delete lowFcn;
     delete sp;
+    delete tg;
   }
   foutput->Close();
   finput->Close();
@@ -3765,7 +3919,7 @@ void produce_PAvgSmooth_MCFM_JJQCD_bkgZJets_2l2q(int sqrts=13){
 
 /* SPECIFIC COMMENT: NONE */
 void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs(int sqrts=8){
-  TFile* finput = new TFile(Form("pAvg_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "read");
+  TFile* finput = new TFile(Form("pAvgLinToLog_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_JHUGen_JJVBF_HSMHiggs_%iTeV.root", sqrts), "recreate");
   const unsigned int ngraphs=2;
   TString strtg[ngraphs]={
@@ -3781,6 +3935,11 @@ void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs(int sqrts=8){
     foutput->cd();
     foutput->WriteTObject(tg);
     tg->SetName(Form("%s_Smooth", tg->GetName()));
+
+    TGraphErrors* tg_new=0;
+    if (sqrts==13){
+      tg_new = replacePointsBetween(tg, 123, 132); tg=tg_new;
+    }
     regularizeSlice(tg);
     foutput->WriteTObject(tg);
 
@@ -3810,6 +3969,7 @@ void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs(int sqrts=8){
     delete highFcn;
     delete lowFcn;
     delete sp;
+    if (tg_new!=0) delete tg_new;
   }
   foutput->Close();
   finput->Close();
@@ -3817,7 +3977,7 @@ void produce_PAvgSmooth_JHUGen_JJVBF_HSMHiggs(int sqrts=8){
 
 /* SPECIFIC COMMENT: NONE */
 void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs(int sqrts=8){
-  TFile* finput = new TFile(Form("pAvg_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "read");
+  TFile* finput = new TFile(Form("pAvgLinToLog_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_JHUGen_JJQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
   const unsigned int ngraphs=2;
   TString strtg[ngraphs]={
@@ -3833,6 +3993,70 @@ void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs(int sqrts=8){
     foutput->cd();
     foutput->WriteTObject(tg);
     tg->SetName(Form("%s_Smooth", tg->GetName()));
+
+    TGraphErrors* tg_new = 0;
+    if (sqrts==7){
+      if (ig==0){
+        tg_new = replacePointsBetween(tg, 520., 540.); tg=tg_new;
+      }
+      else{
+        tg_new = replacePointsBetween(tg, 520., 540.); tg=tg_new;
+      }
+    }
+    else if (sqrts==8){
+      if (ig==0){
+        tg_new = replacePointsBetween(tg, 190., 210.); tg=tg_new;
+        tg_new = replacePointsBetween(tg, 360., 400.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 440., 460.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 640., 720.); delete tg; tg=tg_new;
+      }
+      else{
+        tg_new = replacePointsBetween(tg, 120., 130.); tg=tg_new;
+        tg_new = replacePointsBetween(tg, 190., 210.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 360., 400.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 440., 460.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 630., 720.); delete tg; tg=tg_new;
+      }
+    }
+    else if (sqrts==13){
+      if (ig==0){
+        tg_new = replacePointsBetween(tg, 123., 126.); tg=tg_new;
+        tg_new = replacePointsBetween(tg, 155., 175.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 185., 230.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 340., 380.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 900., 940.); delete tg; tg=tg_new;
+      }
+      else{
+        tg_new = replacePointsBetween(tg, 123., 126.); tg=tg_new;
+        tg_new = replacePointsBetween(tg, 160., 165.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 174., 230.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 340., 380.); delete tg; tg=tg_new;
+        tg_new = replacePointsBetween(tg, 900., 940.); delete tg; tg=tg_new;
+      }
+    }
+    /*
+    std::vector<double> fixedX;
+
+    if (sqrts==7){
+
+    }
+    else if (sqrts==8){
+      fixedX.push_back(170.);
+      fixedX.push_back(250.);
+      fixedX.push_back(350.);
+      fixedX.push_back(420.);
+      fixedX.push_back(500.);
+      if (ig==0) fixedX.push_back(640.);
+      else fixedX.push_back(600.);
+      fixedX.push_back(750.);
+      fixedX.push_back(800.);
+    }
+    else if (sqrts==13){
+
+    }
+    */
+    //regularizeSlice(tg, &fixedX);
+
     regularizeSlice(tg);
     foutput->WriteTObject(tg);
 
@@ -3862,6 +4086,7 @@ void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs(int sqrts=8){
     delete highFcn;
     delete lowFcn;
     delete sp;
+    if (tg_new!=0) delete tg_new;
   }
   foutput->Close();
   finput->Close();
@@ -3869,7 +4094,7 @@ void produce_PAvgSmooth_JHUGen_JJQCD_HSMHiggs(int sqrts=8){
 
 /* SPECIFIC COMMENT: NONE */
 void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs(int sqrts=8){
-  TFile* finput = new TFile(Form("pAvg_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "read");
+  TFile* finput = new TFile(Form("pAvgLinToLog_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "read");
   TFile* foutput = new TFile(Form("pAvgSmooth_JHUGen_JQCD_HSMHiggs_%iTeV.root", sqrts), "recreate");
   const unsigned int ngraphs=2;
   TString strtg[ngraphs]={
@@ -3921,7 +4146,7 @@ void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs(int sqrts=8){
 
 /* SPECIFIC COMMENT: SOME BINS ARE FIXED TO GET A MORE REPRESENTATIVE SMOOTHING */
 void produce_get_PAvgSmooth_JHUGen_ZZGG_HSMHiggs(){
-  TFile* finput = new TFile("pAvg_JHUGen_ZZGG_HSMHiggs.root", "read");
+  TFile* finput = new TFile("pAvgLinToLog_JHUGen_ZZGG_HSMHiggs.root", "read");
   TFile* foutput = new TFile("pAvgSmooth_JHUGen_ZZGG_HSMHiggs.root", "recreate");
   const unsigned int ngraphs=3;
   TString strtg[ngraphs]={
@@ -3987,7 +4212,7 @@ void produce_get_PAvgSmooth_JHUGen_ZZGG_HSMHiggs(){
 
 /* SPECIFIC COMMENT: SOME BINS ARE FIXED TO GET A MORE REPRESENTATIVE SMOOTHING */
 void produce_get_PAvgSmooth_MCFM_ZZGG_HSMHiggs(){
-  TFile* finput = new TFile("pAvg_MCFM_ZZGG_HSMHiggs.root", "read");
+  TFile* finput = new TFile("pAvgLinToLog_MCFM_ZZGG_HSMHiggs.root", "read");
   TFile* foutput = new TFile("pAvgSmooth_MCFM_ZZGG_HSMHiggs.root", "recreate");
   const unsigned int ngraphs=3;
   TString strtg[ngraphs]={
@@ -4068,7 +4293,7 @@ void produce_get_PAvgSmooth_MCFM_ZZGG_HSMHiggs(){
 
 /* SPECIFIC COMMENT: SOME BINS ARE FIXED TO GET A MORE REPRESENTATIVE SMOOTHING */
 void produce_get_PAvgSmooth_MCFM_ZZGG_bkgZZ(){
-  TFile* finput = new TFile("pAvg_MCFM_ZZGG_bkgZZ.root", "read");
+  TFile* finput = new TFile("pAvgLinToLog_MCFM_ZZGG_bkgZZ.root", "read");
   TFile* foutput = new TFile("pAvgSmooth_MCFM_ZZGG_bkgZZ.root", "recreate");
   const unsigned int ngraphs=3;
   TString strtg[ngraphs]={
@@ -4157,7 +4382,7 @@ void produce_get_PAvgSmooth_MCFM_ZZGG_bkgZZ(){
 
 /* SPECIFIC COMMENT: SOME BINS ARE FIXED TO GET A MORE REPRESENTATIVE SMOOTHING */
 void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
-  TFile* finput = new TFile("pAvg_MCFM_ZZQQB_bkgZZ.root", "read");
+  TFile* finput = new TFile("pAvgLinToLog_MCFM_ZZQQB_bkgZZ.root", "read");
   TFile* foutput = new TFile("pAvgSmooth_MCFM_ZZQQB_bkgZZ.root", "recreate");
   const unsigned int ngraphs=3;
   TString strtg[ngraphs]={
@@ -4188,12 +4413,13 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
       fixedX.push_back(195.);
       fixedX.push_back(204.);
       fixedX.push_back(213.);
+      fixedX.push_back(430.);
     }
     else if (ig==2){
       fixedX.push_back(201.);
       fixedX.push_back(212.);
       fixedX.push_back(230.);
-      fixedX.push_back(480.);
+      fixedX.push_back(420.);
     }
 
     double omitbelow;
@@ -4207,7 +4433,57 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
       omitbelow=192.;
     }
     regularizeSlice(tg, &fixedX, omitbelow);
-    tg = replacePointsBetween(tg, 110., 160.); // How to kill an artificial peak
+    // How to kill an artificial peak
+    TGraphErrors* tg_new = 0;
+    if (ig==0){
+      tg = replacePointsBetween(tg, 102., 160.);
+      (tg->GetY())[11] *= 0.99;
+      (tg->GetEY())[11] *= 0.99;
+      (tg->GetY())[18] *= 0.99;
+      (tg->GetEY())[18] *= 0.99;
+      tg_new = addPointAfterBin(tg, 11); delete tg; tg=tg_new;
+      (tg->GetY())[12] *= 1.004;
+      (tg->GetEY())[12] *= 1.004;
+      tg_new = addPointAfterBin(tg, 17+1); delete tg; tg=tg_new;
+      (tg->GetY())[19] *= 1.004;
+      (tg->GetEY())[19] *= 1.004;
+      tg_new = addPointAfterBin(tg, 19); delete tg; tg=tg_new;
+      (tg->GetY())[21] *= 0.996;
+      (tg->GetEY())[21] *= 0.996;
+    }
+    else if (ig==1){
+      tg = replacePointsBetween(tg, 110., 160.);
+      (tg->GetY())[8] *= 0.993;
+      (tg->GetEY())[8] *= 0.993;
+      (tg->GetY())[15] *= 0.993;
+      (tg->GetEY())[15] *= 0.993;
+      tg_new = addPointAfterBin(tg, 8); delete tg; tg=tg_new;
+      (tg->GetY())[9] *= 1.004;
+      (tg->GetEY())[9] *= 1.004;
+      tg_new = addPointAfterBin(tg, 14+1); delete tg; tg=tg_new;
+      (tg->GetY())[16] *= 1.004;
+      (tg->GetEY())[16] *= 1.004;
+      tg_new = addPointAfterBin(tg, 16); delete tg; tg=tg_new;
+      (tg->GetY())[18] *= 0.996;
+      (tg->GetEY())[18] *= 0.996;
+    }
+    else if (ig==2){
+      tg = replacePointsBetween(tg, 110., 160.);
+      (tg->GetY())[5] *= 1.;
+      (tg->GetEY())[5] *= 1.;
+      (tg->GetY())[11] *= 0.977;
+      (tg->GetEY())[11] *= 0.977;
+      tg_new = addPointAfterBin(tg, 5); delete tg; tg=tg_new;
+      (tg->GetY())[6] *= 1.002;
+      (tg->GetEY())[6] *= 1.002;
+      tg_new = addPointAfterBin(tg, 6); delete tg; tg=tg_new;
+      tg_new = addPointAfterBin(tg, 10+2); delete tg; tg=tg_new;
+      (tg->GetY())[12+1] *= 1.004;
+      (tg->GetEY())[12+1] *= 1.004;
+      tg_new = addPointAfterBin(tg, 11+2); delete tg; tg=tg_new;
+      (tg->GetY())[14+1] *= 0.996;
+      (tg->GetEY())[14+1] *= 0.996;
+    }
     foutput->WriteTObject(tg);
 
     TSpline3* sp = convertGraphToSpline3(tg);
@@ -4243,4 +4519,269 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
 }
 
 
+void check_JJVBF_vs_JJQCD_7or8TeV(int sqrts=8){
+  int erg_tev=sqrts;
+  float mPOLE=125.;
+  TString TREE_NAME = "SelectedTree";
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+  float jetptetaphimass[2][4];
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+  int LepID[4]={ 13, -13, 11, -11 };
+
+  TString strchannel[3]={ "4mu", "4e", "2mu2e" };
+  TString cinput_main;
+  if (sqrts==8) cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  else if (sqrts==7) cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR";
+  else return;
+  const int nSamples_JJVBF = 42;
+  TString strSamples_JJVBF[nSamples_JJVBF]={
+    "HZZ4lTree_VBFH116.root",
+    "HZZ4lTree_VBFH117.root",
+    "HZZ4lTree_VBFH118.root",
+    "HZZ4lTree_VBFH119.root",
+    "HZZ4lTree_VBFH120.root",
+    "HZZ4lTree_VBFH121.root",
+    "HZZ4lTree_VBFH122.root",
+    "HZZ4lTree_VBFH123.root",
+    "HZZ4lTree_VBFH124.root",
+    "HZZ4lTree_VBFH125.root",
+    "HZZ4lTree_VBFH126.root",
+    "HZZ4lTree_VBFH127.root",
+    "HZZ4lTree_VBFH128.root",
+    "HZZ4lTree_VBFH129.root",
+    "HZZ4lTree_VBFH130.root",
+    "HZZ4lTree_VBFH135.root",
+    "HZZ4lTree_VBFH140.root",
+    "HZZ4lTree_VBFH145.root",
+    "HZZ4lTree_VBFH150.root",
+    "HZZ4lTree_VBFH160.root",
+    "HZZ4lTree_VBFH170.root",
+    "HZZ4lTree_VBFH180.root",
+    "HZZ4lTree_VBFH190.root",
+    "HZZ4lTree_powheg15VBFH200.root",
+    "HZZ4lTree_powheg15VBFH225.root",
+    "HZZ4lTree_powheg15VBFH250.root",
+    "HZZ4lTree_powheg15VBFH275.root",
+    "HZZ4lTree_powheg15VBFH300.root",
+    "HZZ4lTree_powheg15VBFH350.root",
+    "HZZ4lTree_powheg15VBFH400.root",
+    "HZZ4lTree_powheg15VBFH450.root",
+    "HZZ4lTree_powheg15VBFH500.root",
+    "HZZ4lTree_powheg15VBFH550.root",
+    "HZZ4lTree_powheg15VBFH600.root",
+    "HZZ4lTree_powheg15VBFH650.root",
+    "HZZ4lTree_powheg15VBFH700.root",
+    "HZZ4lTree_powheg15VBFH750.root",
+    "HZZ4lTree_powheg15VBFH800.root",
+    "HZZ4lTree_powheg15VBFH850.root",
+    "HZZ4lTree_powheg15VBFH900.root",
+    "HZZ4lTree_powheg15VBFH950.root",
+    "HZZ4lTree_powheg15VBFH1000.root"
+  };
+  const int nSamples_JJQCD = 37;
+  TString strSamples_JJQCD[nSamples_JJQCD]={
+    "HZZ4lTree_minloH90.root",
+    "HZZ4lTree_minloH95.root",
+    "HZZ4lTree_minloH100.root",
+    "HZZ4lTree_minloH105.root",
+    "HZZ4lTree_minloH110.root",
+    "HZZ4lTree_minloH115.root",
+    "HZZ4lTree_minloH120.root",
+    "HZZ4lTree_minloH124.root",
+    "HZZ4lTree_minloH125.root",
+    "HZZ4lTree_minloH126.root",
+    "HZZ4lTree_minloH130.root",
+    "HZZ4lTree_minloH135.root",
+    "HZZ4lTree_minloH140.root",
+    "HZZ4lTree_minloH145.root",
+    "HZZ4lTree_minloH150.root",
+    "HZZ4lTree_minloH155.root",
+    "HZZ4lTree_minloH160.root",
+    "HZZ4lTree_minloH170.root",
+    "HZZ4lTree_minloH180.root",
+    "HZZ4lTree_minloH190.root",
+    "HZZ4lTree_minloH200.root",
+    "HZZ4lTree_minloH250.root",
+    "HZZ4lTree_minloH300.root",
+    "HZZ4lTree_minloH350.root",
+    "HZZ4lTree_minloH400.root",
+    "HZZ4lTree_minloH450.root",
+    "HZZ4lTree_minloH500.root",
+    "HZZ4lTree_minloH550.root",
+    "HZZ4lTree_minloH600.root",
+    "HZZ4lTree_minloH650.root",
+    "HZZ4lTree_minloH700.root",
+    "HZZ4lTree_minloH750.root",
+    "HZZ4lTree_minloH800.root",
+    "HZZ4lTree_minloH850.root",
+    "HZZ4lTree_minloH900.root",
+    "HZZ4lTree_minloH950.root",
+    "HZZ4lTree_minloH1000.root"
+  };
+
+  TChain* tree[2] ={
+    new TChain(TREE_NAME, ""),
+    new TChain(TREE_NAME, "")
+  };
+  for (int ic=0; ic<3; ic++){
+    for (int is=0; is<nSamples_JJVBF; is++) tree[0]->Add(Form("%s/%s/%s", cinput_main.Data(), (strchannel[ic]).Data(), (strSamples_JJVBF[is]).Data()));
+    for (int is=0; is<nSamples_JJQCD; is++) tree[1]->Add(Form("%s/%s/%s", cinput_main.Data(), (strchannel[ic]).Data(), (strSamples_JJQCD[is]).Data()));
+  }
+  for (int it=0; it<2; it++){
+    tree[it]->SetBranchAddress("NJets30", &NJets30);
+    tree[it]->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+    tree[it]->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+    tree[it]->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+    tree[it]->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+    tree[it]->SetBranchAddress("ZZMass", &mzz);
+    tree[it]->SetBranchAddress("ZZPt", &ZZPt);
+    tree[it]->SetBranchAddress("ZZEta", &ZZEta);
+    tree[it]->SetBranchAddress("ZZPhi", &ZZPhi);
+    tree[it]->SetBranchAddress("Z1Mass", &m1);
+    tree[it]->SetBranchAddress("Z2Mass", &m2);
+    tree[it]->SetBranchAddress("helcosthetaZ1", &h1);
+    tree[it]->SetBranchAddress("helcosthetaZ2", &h2);
+    tree[it]->SetBranchAddress("helphi", &phi);
+    tree[it]->SetBranchAddress("costhetastar", &hs);
+    tree[it]->SetBranchAddress("phistarZ1", &phi1);
+  }
+
+  TFile* foutput = new TFile(Form("pJHUGen_JJVBF_JJQCD_HSMHiggs_Comparison_%iTeV.root", sqrts), "recreate");
+
+  TH2F* hJJVBF = new TH2F("JJVBF", "", 50, 70, 1070, 10, 0, 1);
+  TH2F* hJJQCD = new TH2F("JJQCD", "", 50, 70, 1070, 10, 0, 1);
+
+  TProfile* prJJVBF = new TProfile("prJJVBF", "", 50, 70, 1070); prJJVBF->Sumw2();
+  TProfile* prJJQCD = new TProfile("prJJQCD", "", 50, 70, 1070); prJJQCD->Sumw2();
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  int nTotalEntries = tree[0]->GetEntries();
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree[0]->GetEntry(ev);
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+    if (NJets30>=2){
+      for (int ij=0; ij<2; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+
+      TLorentzVector jet[2], higgs;
+      for (int ij=0; ij<2; ij++) jet[ij].SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+      higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+      TVector3 boostH = higgs.BoostVector();
+
+      SimpleParticleCollection_t associated;
+      associated.push_back(SimpleParticle_t(0, jet[0]));
+      associated.push_back(SimpleParticle_t(0, jet[1]));
+
+      TLorentzVector pDaughters[4];
+      std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+      for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+      SimpleParticleCollection_t daughters;
+      for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+      mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+      float mesq_jjvbf=0, mesq_jjqcd=0;
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
+      TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+      mela.computeProdP(mesq_jjvbf, true);
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
+      TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+      mela.computeProdP(mesq_jjqcd, true);
+      float kd = mesq_jjvbf/(mesq_jjvbf+0.04*mesq_jjqcd);
+
+      hJJVBF->Fill(mzz, kd);
+      prJJVBF->Fill(mzz, mesq_jjvbf);
+
+      mela.resetInputEvent();
+    }
+  }
+  nTotalEntries = tree[1]->GetEntries();
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree[1]->GetEntry(ev);
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+    if (NJets30>=2){
+      for (int ij=0; ij<2; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+
+      TLorentzVector jet[2], higgs;
+      for (int ij=0; ij<2; ij++) jet[ij].SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+      higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+      TVector3 boostH = higgs.BoostVector();
+
+      SimpleParticleCollection_t associated;
+      associated.push_back(SimpleParticle_t(0, jet[0]));
+      associated.push_back(SimpleParticle_t(0, jet[1]));
+
+      TLorentzVector pDaughters[4];
+      std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+      for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+      SimpleParticleCollection_t daughters;
+      for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+      mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+      float mesq_jjvbf=0, mesq_jjqcd=0;
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
+      TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+      mela.computeProdP(mesq_jjvbf, true);
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
+      TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
+      mela.computeProdP(mesq_jjqcd, true);
+      float kd = mesq_jjvbf/(mesq_jjvbf+0.04*mesq_jjqcd);
+
+      hJJQCD->Fill(mzz, kd);
+      prJJQCD->Fill(mzz, mesq_jjqcd);
+
+      mela.resetInputEvent();
+    }
+  }
+
+  for (int ix=1; ix<=hJJVBF->GetNbinsX(); ix++){
+    double integral = hJJVBF->Integral(ix, ix, 0, hJJVBF->GetNbinsY()+1);
+    for (int iy=0; iy<=hJJVBF->GetNbinsY(); iy++){ if (integral!=0.) hJJVBF->SetBinContent(ix, iy, hJJVBF->GetBinContent(ix, iy)/integral); }
+  }
+  for (int ix=1; ix<=hJJQCD->GetNbinsX(); ix++){
+    double integral = hJJQCD->Integral(ix, ix, 0, hJJQCD->GetNbinsY()+1);
+    for (int iy=0; iy<=hJJQCD->GetNbinsY(); iy++){ if (integral!=0.) hJJQCD->SetBinContent(ix, iy, hJJQCD->GetBinContent(ix, iy)/integral); }
+  }
+
+  foutput->WriteTObject(hJJVBF);
+  foutput->WriteTObject(hJJQCD);
+  foutput->WriteTObject(prJJVBF);
+  foutput->WriteTObject(prJJQCD);
+  foutput->Close();
+  for (int it=0; it<2; it++) delete tree[it];
+}
 
