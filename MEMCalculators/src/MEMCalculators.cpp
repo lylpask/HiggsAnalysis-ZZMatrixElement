@@ -7,10 +7,7 @@
 #define MEMCalc_MEMCalc_cpp
 
 /// MEMs header
-#include "ZZMatrixElement/MELA/interface/Mela.h"
-#include "ZZMatrixElement/MEKD/interface/MEKD.h"
 #include "../interface/MEMCalculators.h"
-#include "ZZMatrixElement/MELA/src/computeAngles.h"
 
 using namespace std;
 using namespace MEMNames;
@@ -295,10 +292,10 @@ MEMs::MEMs(double collisionEnergy, double sKD_mass, string PDFName, bool debug_)
 
     MELAprodMap[kJJ_SMHiggs_VBF]	=TVar::JJVBF;
     MELAprodMap[kJJ_0minus_VBF]		=TVar::JJVBF;
-    MELAprodMap[kJJ_SMHiggs_GG]		=TVar::JJGG;
-    MELAprodMap[kJJ_0minus_GG]		=TVar::JJGG;
-    MELAprodMap[kJJ_SMHiggs_VH]		=TVar::ZH;
-    MELAprodMap[kJJ_0minus_VH]		=TVar::ZH;
+    MELAprodMap[kJJ_SMHiggs_GG]		=TVar::JJQCD;
+    MELAprodMap[kJJ_0minus_GG]		=TVar::JJQCD;
+    MELAprodMap[kJJ_SMHiggs_VH]		=TVar::Had_ZH;
+    MELAprodMap[kJJ_0minus_VH]		=TVar::Had_ZH;
 
 	
     MELAprodIntMap[kg1g4]			=TVar::ZZGG;
@@ -901,7 +898,7 @@ int MEMs::cacheMELAcalculation(Processes process, MEMCalcs calculator, vector<TL
 ///----------------------------------------------------------------------------------------------
 int MEMs::cacheMELAcalculation(int process, MEMCalcs calculator, vector<TLorentzVector> partP, vector<int> partId, vector<complex<double> > *ProdCouplings, vector<complex<double> > *DecayCouplings, double& me2process){
 
-  if( debug ){
+  if (debug){
     std::cout << "MEMs::cacheMELAcalculation started." << std::endl;
     std::cout << "MEMs::cacheMELAcalculation. Process: " << process << std::endl;
     std::cout << "MEMs::cacheMELAcalculation. Calculator: " << calculator << std::endl;
@@ -910,248 +907,201 @@ int MEMs::cacheMELAcalculation(int process, MEMCalcs calculator, vector<TLorentz
   partPCache = partP;
   partIdCache = partId;
 
-  // NEED TO INCLUDE SOME PROTECTION SO THAT USER CANT 
-  // PASS FOUR-VECTORS IN WRONG ORDER.  FOR NOW ASSUMING
-  // THEY ARE PASSED AS e-,e+,mu-,mu+
-  // ------------------ channel ------------------------
-  int flavor;
-  
-  if(abs(partId[0])==abs(partId[1])&&
-     abs(partId[0])==abs(partId[2])&&
-     abs(partId[0])==abs(partId[3])){
-    
-    if(abs(partId[0])==11) flavor=1;
-    else flavor=2;
-    
-  }else flavor=3;
-  
-  if( debug )
-    std::cout << "MEMs::cacheMELAcalculation. Flavor: "  << flavor << std::endl;
-  
-  // ---------------------------------------------------
-  // ---------- COMPUTE ANGLES and MASSES --------------
-  
-  if( debug )
-    std::cout << "MEMs::cacheMELAcalculation. Computing angles" << std::endl;
-  
-  float costheta1, costheta2, costhetastar;
-  float phi, phi1;
-  
-  mela::computeAngles(partP[0], partId[0], partP[1], partId[1], 
-		      partP[2], partId[2], partP[3], partId[3],
-		      costhetastar,costheta1,costheta2,phi,phi1);
-  
-  // protections against NaNs, return ERR_COMPUTE and skip ME calc
-  if(TMath::IsNaN(costhetastar)||
-     TMath::IsNaN(costheta1)||
-     TMath::IsNaN(costheta2)||
-     TMath::IsNaN(phi)||
-     TMath::IsNaN(phi1) ) return ERR_COMPUTE; 
-  
-	float m1=(partP[0] + partP[1]).M();
-	float m2=(partP[2] + partP[3]).M();
-	
-	TLorentzVector ZZ = (partP[0] + partP[1] + partP[2] + partP[3]);
-	
-	//if(MELAprocMap[static_cast<Processes>(process)] == TVar::HJJVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::PSHJJVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::HJJNONVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::PSHJJNONVBF )
-//	if(MELAprodMap[static_cast<Processes>(process)] == TVar::JJVBF|| MELAprodMap[static_cast<Processes>(process)] == TVar::JJGG || MELAprodMap[static_cast<Processes>(process)] == TVar::JJVH)
-//  if(process == kJJ_SMHiggs_VBF || process == kJJ_0minus_VBF || process == kJJ_SMHiggs_GG || process == kJJ_0minus_GG || process == kJJ_0minus_VH || process == kJJ_SMHiggs_VH)
-  if(process == kJJ_SMHiggs_VBF || process == kJJ_0minus_VBF || process == kJJ_SMHiggs_GG || process == kJJ_0minus_GG) // VH needs separate treatment now -> TO BE FIXED
-	{
-		float me2process_float;
-		TLorentzVector nullVector(0,0,0,0); // For CMSSW 7.1.x+
-		m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)],MELAcalcMap[calculator],MELAprodMap[static_cast<Processes>(process)]);
-		m_MELA->computeProdP(partP[4],2,partP[5],2,ZZ,25,nullVector,0,me2process_float);
-		me2process = (double) me2process_float;
-	}
-	else
-	{
-		float mzz = ZZ.M();
-		
-		float pt4l  = ZZ.Pt();
-		float Y4l   = ZZ.Rapidity(); // Fixme: should probably protect against NaN?
-		
-		if( debug )
-		{
-			cout << "MEMs::cacheMELAcalculation. mzz: " << mzz << endl;
-			cout << "MEMs::cacheMELAcalculation. m1: "  << m1 << endl;
-			cout << "MEMs::cacheMELAcalculation. m2: " << m2 << endl;
-			cout << "MEMs::cacheMELAcalculation. costheta1: " << costheta1 << endl;
-			cout << "MEMs::cacheMELAcalculation. costheta2: " << costheta2 << endl;
-			cout << "MEMs::cacheMELAcalculation. costhetastar: " << costhetastar << endl;
-			cout << "MEMs::cacheMELAcalculation. phi: " << phi << endl;
-			cout << "MEMs::cacheMELAcalculation. phi1: " << phi1 << endl;
-			cout << "MEMs::cacheMELAcalculation. pT4l: " << pt4l << endl;
-			cout << "MEMs::cacheMELAcalculation. Y4l: " << Y4l << endl;
-		}
-		
-		// retrieve ME calculations
-		// ---------------------------------------------------
-		
-		float me2process_float;
-		
-		
-		if( process==kSpin0_gg || process==kSpin0_prodIndep ||
-			process==kSpin1_qqbar || process==kSpin1_prodIndep ||
-			process==kSpin2_gg || process==kSpin2_qqbar || process==kSpin2_prodIndep || process==kggZZ_SMHiggs )
-		{
-			if( process==kSpin0_gg || process==kSpin0_prodIndep )
-			{
-				double translation[SIZE_HVV][2];
-				if( (*DecayCouplings).size() == 4 )
-				{
-					for(int i=0;i<4;i++)
-					{
-						translation[i][0] = (*DecayCouplings)[i].real();
-						translation[i][1] = (*DecayCouplings)[i].imag();
-					}
-					for(int i=4;i<SIZE_HVV;i++)
-					{
-						translation[i][0] = 0.;
-						translation[i][1] = 0.; 
-					}
-				}
-				else if( (*DecayCouplings).size() == SIZE_HVV )
-				{
-					for(int i=0;i<SIZE_HVV;i++)
-					{
-						translation[i][0] = (*DecayCouplings)[i].real();
-						translation[i][1] = (*DecayCouplings)[i].imag();
-					}
-				}
-				else
-				{
-					cout<< "expect 4 or SIZE_HVV decay couplings for mela"<<endl;
-				}
-				
-				//                 TVar::Process        TVar::MatrixElement     TVar::Production
-				m_MELA->setProcess( MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)] );
-				m_MELA->computeP( mzz, m1, m2,
-						costhetastar,costheta1,costheta2,phi,phi1,
-						flavor,
-						translation,
-						me2process_float );
-			}
-			else if (process == kSpin1_qqbar || process ==kSpin1_prodIndep)
-			{
-				 double translation[SIZE_ZVV][2];
-				 if((*DecayCouplings).size() == SIZE_ZVV)
-				 {
-					for(int i=0;i<SIZE_ZVV;i++)
-					{
-						 translation[i][0] = (*DecayCouplings)[i].real();
-						 translation[i][1] = (*DecayCouplings)[i].imag();
-					}
-					
-					m_MELA->setProcess( MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)] );
-					m_MELA->computeP_selfDspin1( mzz, m1, m2,
-												costhetastar,costheta1,costheta2,phi,phi1,
-												flavor,
-												translation,
-												me2process_float );
-				}
-			}
-			else if(process==kSpin2_gg || process==kSpin2_qqbar || process==kSpin2_prodIndep )
-			{
-				double translation[SIZE_GVV][2];
-				double translationProd[SIZE_GGG][2];
-				if((*DecayCouplings).size() == SIZE_GVV && (*ProdCouplings).size()==SIZE_GVV )
-				{
-					for(int i=0;i<SIZE_GVV;i++)
-					{
-						translation[i][0] = (*DecayCouplings)[i].real();
-						translation[i][1] = (*DecayCouplings)[i].imag();
-					}
-					for(int i=0;i<SIZE_GGG;i++)
-					{
-						translationProd[i][0] = (*ProdCouplings)[i].real();
-						translationProd[i][1] = (*ProdCouplings)[i].imag();
-					}
-					
-					m_MELA->setProcess( MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)] );
-					m_MELA->computeP_selfDspin2( mzz, m1, m2,
-												costhetastar,costheta1,costheta2,phi,phi1,
-												flavor,
-												translationProd,translation,
-												me2process_float );
-				}
-			} 
-		else if (process==kggZZ_SMHiggs)
-		{
-          m_MELA->setProcess( MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)] );
-			double translation[SIZE_HVV_FREENORM];
-       if(DecayCouplings!= (vector<complex<double> >*) NULL  )
+  SimpleParticleCollection_t daughters;
+  SimpleParticleCollection_t associateds;
+  for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(partId.at(idau), partP.at(idau))); // Needs generalization for final state
+  for (unsigned int iap=4; iap<partP.size(); iap++) associateds.push_back(SimpleParticle_t(partId.at(iap), partP.at(iap)));
+  // Mothers, blah...
+  m_MELA->setInputEvent(
+    &daughters,
+    &associateds,
+    0,
+    false
+    );
+
+  //if(MELAprocMap[static_cast<Processes>(process)] == TVar::HJJVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::PSHJJVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::HJJNONVBF || MELAprocMap[static_cast<Processes>(process)] == TVar::PSHJJNONVBF )
+  //	if(MELAprodMap[static_cast<Processes>(process)] == TVar::JJVBF|| MELAprodMap[static_cast<Processes>(process)] == TVar::JJQCD || MELAprodMap[static_cast<Processes>(process)] == TVar::JJVH)
+  //  if(process == kJJ_SMHiggs_VBF || process == kJJ_0minus_VBF || process == kJJ_SMHiggs_GG || process == kJJ_0minus_GG || process == kJJ_0minus_VH || process == kJJ_SMHiggs_VH)
+  if (process == kJJ_SMHiggs_VBF || process == kJJ_0minus_VBF || process == kJJ_SMHiggs_GG || process == kJJ_0minus_GG)
+  {
+    float me2process_float;
+    m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)]);
+    m_MELA->computeProdP(me2process_float, true);
+    me2process = (double)me2process_float;
+  }
+  else
+  {
+    // retrieve ME calculations
+    // ---------------------------------------------------
+
+    float me2process_float;
+
+
+    if (process==kSpin0_gg || process==kSpin0_prodIndep ||
+      process==kSpin1_qqbar || process==kSpin1_prodIndep ||
+      process==kSpin2_gg || process==kSpin2_qqbar || process==kSpin2_prodIndep || process==kggZZ_SMHiggs)
+    {
+      if (process==kSpin0_gg || process==kSpin0_prodIndep){
+        double translation[nSupportedHiggses][SIZE_HVV][2]={ { { 0 } } };
+        if (DecayCouplings!=0){
+          for (int i=0; i<min((int)(*DecayCouplings).size(), SIZE_HVV); i++){
+            translation[0][i][0] = (*DecayCouplings)[i].real();
+            translation[0][i][1] = (*DecayCouplings)[i].imag();
+          }
+        }
+
+        //                 TVar::Process        TVar::MatrixElement     TVar::Production
+        m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)]);
+        if (
+          MELAprocMap[static_cast<Processes>(process)]==TVar::SelfDefine_spin0 && DecayCouplings!=0
+          ) m_MELA->computeP_selfDspin0(
+          translation,
+          me2process_float,
+          true
+          );
+        else m_MELA->computeP(
+          me2process_float,
+          true
+          );
+      }
+      else if (process == kSpin1_qqbar || process ==kSpin1_prodIndep){
+        double translation[SIZE_ZVV][2];
+        double translationProd[SIZE_ZQQ][2];
+
+        if (DecayCouplings!=0){
+          for (int i=0; i<min((int)(*DecayCouplings).size(), SIZE_ZVV); i++){
+            translation[i][0] = (*DecayCouplings)[i].real();
+            translation[i][1] = (*DecayCouplings)[i].imag();
+          }
+        }
+        if (ProdCouplings!=0){
+          for (int i=0; i<min((int)(*ProdCouplings).size(), SIZE_ZQQ); i++){
+            translationProd[i][0] = (*ProdCouplings)[i].real();
+            translationProd[i][1] = (*ProdCouplings)[i].imag();
+          }
+        }
+        m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)]);
+        if (
+          MELAprocMap[static_cast<Processes>(process)]==TVar::SelfDefine_spin1 && DecayCouplings!=0
+          ){
+          if (ProdCouplings!=0) m_MELA->computeP_selfDspin1(
+            translationProd,
+            translation,
+            me2process_float,
+            true
+            );
+          else m_MELA->computeP_selfDspin1(
+            translation,
+            me2process_float,
+            true
+            );
+        }
+        else m_MELA->computeP(
+          me2process_float,
+          true
+          );
+      }
+      else if (process==kSpin2_gg || process==kSpin2_qqbar || process==kSpin2_prodIndep){
+        double translation[SIZE_GVV][2];
+        double translationProd[SIZE_GGG][2];
+        if (DecayCouplings!=0){
+          for (int i=0; i<min((int)(*DecayCouplings).size(), SIZE_GVV); i++){
+            translation[i][0] = (*DecayCouplings)[i].real();
+            translation[i][1] = (*DecayCouplings)[i].imag();
+          }
+        }
+        if (ProdCouplings!=0){
+          if (process==kSpin2_gg){
+            for (int i=0; i<min((int)(*ProdCouplings).size(), SIZE_GGG); i++){
+              translationProd[i][0] = (*ProdCouplings)[i].real();
+              translationProd[i][1] = (*ProdCouplings)[i].imag();
+            }
+          }
+          else if (process==kSpin2_qqbar){
+            for (int i=0; i<min((int)(*ProdCouplings).size(), SIZE_GQQ); i++){
+              translationProd[i][0] = (*ProdCouplings)[i].real();
+              translationProd[i][1] = (*ProdCouplings)[i].imag();
+            }
+          }
+        }
+
+        m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)]);
+        if (
+          MELAprocMap[static_cast<Processes>(process)]==TVar::SelfDefine_spin2 && DecayCouplings!=0 && ProdCouplings!=0
+          ) m_MELA->computeP_selfDspin2(
+          translationProd, translation,
+          me2process_float,
+          true
+          );
+        else m_MELA->computeP(
+          me2process_float,
+          true
+          );
+      }
+      else if (process==kggZZ_SMHiggs)
+      {
+        m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)]);
+        double translation[SIZE_HVV_FREENORM];
+        if (DecayCouplings!=(vector<complex<double> >*) NULL)
         {
-					translation[0] = (*DecayCouplings)[0].real();
-					translation[1] = (*DecayCouplings)[0].imag();
-				
-          m_MELA->computeP( mzz, m1, m2,
-                        costhetastar,costheta1,costheta2,phi,phi1,
-                        flavor,
-                        translation,
-                        me2process_float );
-			}
-			else
-			{
-				          m_MELA->computeP( mzz, m1, m2,
-                        costhetastar,costheta1,costheta2,phi,phi1,
-                        flavor,
-                        me2process_float );
-			}
-		}
-			
-			else return ERR_PROCESS;	// not yet implemented
-		}
-		else if( process==kg1g4 || process==kg1g2 || process==kg1g4_pi_2 ||
-			process==kg1g2_pi_2 || process==k_g1g1prime2 || process ==kzzzg || process == kzzgg || process == kzzzg_PS || process ==kzzgg_PS)
-		{
-			m_MELA->computeD_CP( mzz, m1, m2,
-								costhetastar,costheta1,costheta2,phi,phi1,
-								flavor,MELAcalcMap[calculator],MELAprocIntMap[static_cast<Processes_int>(process)],
-								me2process_float );
-		}
-		else if (process == kggHZZ_10)
-		{
-		     m_MELA->computeD_gg( mzz, m1, m2,
-                costhetastar,costheta1,costheta2,phi,phi1,
-                flavor,MELAcalcMap[calculator],MELAprocMap[static_cast<Processes>(process)],
-                me2process_float );
-		}
-		else
-		{
-			//                 TVar::Process        TVar::MatrixElement     TVar::Production
-			m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)],MELAcalcMap[calculator],MELAprodMap[static_cast<Processes>(process)]);
-			
-			// check if ZZ_4e is configured and event is 2e2mu event
-	//		if(MELAprocMap[static_cast<Processes>(process)]==TVar::ZZ_4e && MELAcalcMap[calculator]==TVar::MCFM && flavor==3)
-	//			m_MELA->setProcess(TVar::ZZ_2e2m,MELAcalcMap[calculator],MELAprodMap[static_cast<Processes>(process)]);
-			
-			m_MELA->computeP(mzz, m1, m2,
-				costhetastar,costheta1,costheta2,phi,phi1,
-				flavor,
-				me2process_float);
-		}
-		
-		
-		me2process = (double) me2process_float;
-		
-		if( debug ) cout << "MEMs::cacheMELAcalculation. me2process: " << me2process << endl;
-		
-		/// Add weight calculation
-		m_MELA->computeWeight(mzz, m1,  m2,
-				costhetastar,
-				costheta1,
-				costheta2,
-				phi,
-				phi1,
-				// return variables:
-				m_weight);
-	}
-	
-	if( debug )
-		cout << "MEMs::cacheMELAcalculation. Done!" << endl;
-	
-	return NO_ERR;
+          translation[0] = (*DecayCouplings)[0].real();
+          translation[1] = (*DecayCouplings)[0].imag();
+
+          m_MELA->computeP(
+            translation,
+            me2process_float,
+            true
+            );
+        }
+        else
+        {
+          m_MELA->computeP(
+            me2process_float,
+            true
+            );
+        }
+      }
+
+      else return ERR_PROCESS;	// not yet implemented
+    }
+    else if (process==kg1g4 || process==kg1g2 || process==kg1g4_pi_2 ||
+      process==kg1g2_pi_2 || process==k_g1g1prime2 || process ==kzzzg || process == kzzgg || process == kzzzg_PS || process ==kzzgg_PS)
+    {
+      m_MELA->computeD_CP(
+        MELAcalcMap[calculator], MELAprocIntMap[static_cast<Processes_int>(process)],
+        me2process_float);
+    }
+    else if (process == kggHZZ_10)
+    {
+      m_MELA->computeD_gg(
+        MELAcalcMap[calculator], MELAprocMap[static_cast<Processes>(process)],
+        me2process_float);
+    }
+    else
+    {
+      //                 TVar::Process        TVar::MatrixElement     TVar::Production
+      m_MELA->setProcess(MELAprocMap[static_cast<Processes>(process)], MELAcalcMap[calculator], MELAprodMap[static_cast<Processes>(process)]);
+
+      // check if ZZ_4e is configured and event is 2e2mu event
+      //		if(MELAprocMap[static_cast<Processes>(process)]==TVar::ZZ_4e && MELAcalcMap[calculator]==TVar::MCFM && flavor==3)
+      //			m_MELA->setProcess(TVar::ZZ_2e2m,MELAcalcMap[calculator],MELAprodMap[static_cast<Processes>(process)]);
+
+      m_MELA->computeP(
+        me2process_float,
+        true
+        );
+    }
+
+
+    me2process = (double)me2process_float;
+
+    if (debug) cout << "MEMs::cacheMELAcalculation. me2process: " << me2process << endl;
+  }
+
+  if (debug) cout << "MEMs::cacheMELAcalculation. Done!" << endl;
+
+  m_MELA->resetInputEvent(); // Do not forget this!
+  return NO_ERR;
 }
 
 
@@ -1347,34 +1297,33 @@ complex<double> MEMs::XZZ_form_factor( complex<double> form_c1, complex<double> 
 ///   kResolUp/kResolDown: width is varied by appropriate resolution error
 ///----------------------------------------------------------------------------------------------
 //////////////////////////////////////////////////////////////////////////
-void MEMs::computePm4l(vector<TLorentzVector> partP,
-		  vector<int> partId,
-		  SuperKDsyst syst,
-		  double& sigProb,
-		  double& bkgProb){
-  
+void MEMs::computePm4l(
+  vector<TLorentzVector> partP,
+  vector<int> partId,
+  SuperKDsyst syst,
+  double& sigProb,
+  double& bkgProb
+  ){
   float prob_float;
 
-  m_MELA->setProcess(TVar::bkgZZ,TVar::JHUGen,TVar::ZZGG);
+  SimpleParticleCollection_t daughters;
+  for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(partId.at(idau), partP.at(idau))); // Needs generalization for final state
+  m_MELA->setInputEvent(
+    &daughters,
+    0,
+    0,
+    false
+    );
 
-  m_MELA->computePM4l(partP[0],partId[0],
-		      partP[1],partId[1],
-		      partP[2],partId[2],
-		      partP[3],partId[3],
-		      (TVar::SuperMelaSyst)syst,prob_float);
+  m_MELA->setProcess(TVar::bkgZZ, TVar::JHUGen, TVar::ZZGG);
+  m_MELA->computePM4l((TVar::SuperMelaSyst)syst, prob_float);
+  bkgProb = (double)prob_float;
 
-  bkgProb = (double) prob_float;
+  m_MELA->setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::ZZGG);
+  m_MELA->computePM4l((TVar::SuperMelaSyst)syst, prob_float);
+  sigProb = (double)prob_float;
 
-  m_MELA->setProcess(TVar::HSMHiggs,TVar::JHUGen,TVar::ZZGG);
-
-  m_MELA->computePM4l(partP[0],partId[0],
-		      partP[1],partId[1],
-		      partP[2],partId[2],
-		      partP[3],partId[3],
-		      (TVar::SuperMelaSyst)syst,prob_float);
-
-  sigProb = (double) prob_float;
-
+  m_MELA->resetInputEvent(); // Do not forget this!
 }
 
 void MEMs::removeLeptonMasses(bool doRemove){ m_MELA->setRemoveLeptonMasses(doRemove); }

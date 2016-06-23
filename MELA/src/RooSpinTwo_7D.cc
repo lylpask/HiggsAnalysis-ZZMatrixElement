@@ -8,7 +8,7 @@
 
 #include "Riostream.h"
 
-#include "RooSpinTwo_7D.h"
+#include <ZZMatrixElement/MELA/interface/RooSpinTwo_7D.h>
 #include "RooAbsReal.h"
 #include "RooAbsCategory.h"
 #include <math.h>

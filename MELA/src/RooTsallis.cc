@@ -1,5 +1,5 @@
 
-#include "RooTsallis.h"
+#include <ZZMatrixElement/MELA/interface/RooTsallis.h>
 
 #include <iostream>
 #include <math.h>

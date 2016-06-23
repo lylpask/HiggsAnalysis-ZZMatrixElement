@@ -13,19 +13,13 @@
 #include <sstream>
 #include <cmath>
 #include <map>
-#include "../../MELA/interface/TVar.hh"
-// ROOT includes
 #include "TString.h"
 #include "TLorentzVector.h"
-
-// MELA
-//#include "../../MELA/interface/Mela.h"
-class Mela;
-// MEKD
-//#include "../../MEKD/interface/MEKD.h"
-class MEKD;
+#include <ZZMatrixElement/MELA/interface/Mela.h>
+#include <ZZMatrixElement/MEKD/interface/MEKD.h>
 
 using namespace std;
+
 
 //////////////////////////////////////////////////////////////////////////
 ///

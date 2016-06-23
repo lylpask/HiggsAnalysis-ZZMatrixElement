@@ -1,383 +1,430 @@
-#include "ZZMatrixElement/MELA/interface/newZZMatrixElement.h"
+#include <ZZMatrixElement/MELA/interface/newZZMatrixElement.h>
 #include "TLorentzRotation.h"
 
-newZZMatrixElement::newZZMatrixElement(const char* pathtoHiggsCSandWidth,
-				       double ebeam,
-				       TVar::VerbosityLevel verbosity):
 
-  verb(verbosity),
-  Xcal2(pathtoHiggsCSandWidth,ebeam),
-  hzz4l_event(),
-  vh_event(),
-  tth_event(),
-  EBEAM(ebeam)
-				       {
-// Set default parameters explicitly
-  mHiggs = 125.;
-  wHiggs = -1;
-  myLeptonInterference = TVar::DefaultLeptonInterf;
+using namespace std;
+using namespace TUtil;
 
-  //std::cout << "TEST" << std::endl;
+
+newZZMatrixElement::newZZMatrixElement(
+  const char* pathtoPDFSet,
+  int PDFMember,
+  const char* pathtoHiggsCSandWidth,
+  double ebeam,
+  TVar::VerbosityLevel verbosity
+  ) :
+  processVerbosity(verbosity),
+  processLeptonInterference(TVar::DefaultLeptonInterf),
+  EBEAM(ebeam),
+  Xcal2(pathtoHiggsCSandWidth, ebeam, pathtoPDFSet, PDFMember, verbosity),
+  melaCand(0)
+{
+  if (processVerbosity>=TVar::DEBUG) cout << "Begin newZZMatrixElement constructor" << endl;
+
+  // Set default parameters explicitly
+  set_PrimaryHiggsMass(125.);
+  set_mHiggs(125., 0); set_wHiggs(-1., 0);
+  set_mHiggs(-1., 1); set_wHiggs(0., 1);
+
+  selfD_SpinZeroCouplings = Xcal2.GetSelfDSpinZeroCouplings();
+  selfD_SpinOneCouplings = Xcal2.GetSelfDSpinOneCouplings();
+  selfD_SpinTwoCouplings = Xcal2.GetSelfDSpinTwoCouplings();
+
+  if (processVerbosity>=TVar::DEBUG) cout << "End newZZMatrixElement constructor" << endl;
+}
+newZZMatrixElement::~newZZMatrixElement(){
+  if (processVerbosity>=TVar::DEBUG) cout << "Begin newZZMatrixElement destructor" << endl;
+  /*std::cout << "End of newZZME" << std::endl;*/
+  resetPerEvent();
+  reset_InputEvent();
+  if (processVerbosity>=TVar::DEBUG) cout << "End newZZMatrixElement destructor" << endl;
 }
 
-std::vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx,double M1,double M2,double theta,double theta1,double theta2,double Phi1,double Phi){
-    double phi1,phi2;
-    phi1=TMath::Pi()-Phi1;
-    phi2=Phi1+Phi;
 
-    double gamma1,gamma2,beta1,beta2;
+vector<TLorentzVector> newZZMatrixElement::Calculate4Momentum(double Mx, double M1, double M2, double theta, double theta1, double theta2, double Phi1, double Phi){
+  double phi1, phi2;
+  phi1=TMath::Pi()-Phi1;
+  phi2=Phi1+Phi;
 
+  double gamma1=1, gamma2=1, beta1=0, beta2=0;
+
+  if (M1>0. && Mx>0.){
     gamma1=(Mx*Mx+M1*M1-M2*M2)/(2*Mx*M1);
+    beta1=sqrt(1.-1./(gamma1*gamma1));
+  }
+  if (M2>0. && Mx>0.){
     gamma2=(Mx*Mx-M1*M1+M2*M2)/(2*Mx*M2);
-    beta1=sqrt(1-1/(gamma1*gamma1));
-    beta2=sqrt(1-1/(gamma2*gamma2));
+    beta2=sqrt(1.-1./(gamma2*gamma2));
+  }
 
-    //gluon 4 vectors
-    TLorentzVector p1CM(0,0,Mx/2,Mx/2);
-    TLorentzVector p2CM(0,0,-Mx/2,Mx/2);
+  //gluon 4 vectors
+  TLorentzVector p1CM(0, 0, Mx/2, Mx/2);
+  TLorentzVector p2CM(0, 0, -Mx/2, Mx/2);
 
-    //vector boson 4 vectors
-    TLorentzVector kZ1(gamma1*M1*sin(theta)*beta1,0, gamma1*M1*cos(theta)*beta1,gamma1*M1*1);
-    TLorentzVector kZ2(-gamma2*M2*sin(theta)*beta2,0, -gamma2*M2*cos(theta)*beta2,gamma2*M2*1);
+  //vector boson 4 vectors
+  TLorentzVector kZ1(gamma1*M1*sin(theta)*beta1, 0, gamma1*M1*cos(theta)*beta1, gamma1*M1);
+  TLorentzVector kZ2(-gamma2*M2*sin(theta)*beta2, 0, -gamma2*M2*cos(theta)*beta2, gamma2*M2);
 
-    //Rotation and Boost matrices. Note gamma1*beta1*M1=gamma2*beta2*M2.
+  //Rotation and Boost matrices. Note gamma1*beta1*M1=gamma2*beta2*M2.
 
-    TLorentzRotation Z1ToZ,Z2ToZ;
+  TLorentzRotation Z1ToZ, Z2ToZ;
 
-    Z1ToZ.Boost(0,0,beta1);
-    Z2ToZ.Boost(0,0,beta2);
-    Z1ToZ.RotateY(theta);
-    Z2ToZ.RotateY(TMath::Pi()+theta);
+  Z1ToZ.Boost(0, 0, beta1);
+  Z2ToZ.Boost(0, 0, beta2);
+  Z1ToZ.RotateY(theta);
+  Z2ToZ.RotateY(TMath::Pi()+theta);
 
 
-    //fermion 4 vectors in vector boson rest frame
+  //fermion 4 vectors in vector boson rest frame
 
-    TLorentzVector p3Z1((M1/2)*sin(theta1)*cos(phi1),(M1/2)*sin(theta1)*sin(phi1),(M1/2)*cos(theta1),(M1/2)*1);
-    TLorentzVector p4Z1(-(M1/2)*sin(theta1)*cos(phi1),-(M1/2)*sin(theta1)*sin(phi1),-(M1/2)*cos(theta1),(M1/2)*1);
-    TLorentzVector p5Z2((M2/2)*sin(theta2)*cos(phi2),(M2/2)*sin(theta2)*sin(phi2),(M2/2)*cos(theta2),(M2/2)*1);
-    TLorentzVector p6Z2(-(M2/2)*sin(theta2)*cos(phi2),-(M2/2)*sin(theta2)*sin(phi2),-(M2/2)*cos(theta2),(M2/2)*1);
+  TLorentzVector p3Z1((M1/2)*sin(theta1)*cos(phi1), (M1/2)*sin(theta1)*sin(phi1), (M1/2)*cos(theta1), (M1/2)*1);
+  TLorentzVector p4Z1(-(M1/2)*sin(theta1)*cos(phi1), -(M1/2)*sin(theta1)*sin(phi1), -(M1/2)*cos(theta1), (M1/2)*1);
+  TLorentzVector p5Z2((M2/2)*sin(theta2)*cos(phi2), (M2/2)*sin(theta2)*sin(phi2), (M2/2)*cos(theta2), (M2/2)*1);
+  TLorentzVector p6Z2(-(M2/2)*sin(theta2)*cos(phi2), -(M2/2)*sin(theta2)*sin(phi2), -(M2/2)*cos(theta2), (M2/2)*1);
 
-    // fermions 4 vectors in CM frame
+  // fermions 4 vectors in CM frame
 
-    TLorentzVector p3CM,p4CM,p5CM,p6CM;
+  TLorentzVector p3CM, p4CM, p5CM, p6CM;
 
-    p3CM=Z1ToZ*p3Z1;
-    p4CM=Z1ToZ*p4Z1;
-    p5CM=Z2ToZ*p5Z2;
-    p6CM=Z2ToZ*p6Z2;
+  p3CM=Z1ToZ*p3Z1;
+  p4CM=Z1ToZ*p4Z1;
+  p5CM=Z2ToZ*p5Z2;
+  p6CM=Z2ToZ*p6Z2;
 
-    vector<TLorentzVector> p;
+  vector<TLorentzVector> p;
 
-    p.push_back(p3CM);
-    p.push_back(p4CM);
-    p.push_back(p5CM);
-    p.push_back(p6CM);
+  p.push_back(p3CM);
+  p.push_back(p4CM);
+  p.push_back(p5CM);
+  p.push_back(p6CM);
 
-    return p;
+  return p;
 }
 
-void newZZMatrixElement::set_LHAgrid(const char* path){
-  Xcal2.Set_LHAgrid(path);
-}
+// Set-functions that set variables that belong to Xcal2 in addition to setting variables that belong to newZZMatrixElement
 void newZZMatrixElement::set_Process(TVar::Process process_, TVar::MatrixElement me_, TVar::Production production_){
-  myModel=process_; myME=me_; myProduction=production_;
+  processModel = process_; Xcal2.SetProcess(processModel);
+  processProduction = production_; Xcal2.SetProduction(processProduction);
+  processME = me_; Xcal2.SetMatrixElement(processME);
 }
-void newZZMatrixElement::set_mHiggs(float myPoleMass){
-	mHiggs = myPoleMass;
-}
-void newZZMatrixElement::set_wHiggs(float myPoleWidth){
-	wHiggs = myPoleWidth;
-}
-void newZZMatrixElement::set_LeptonInterference(TVar::LeptonInterference myLepInterf){
-	myLeptonInterference = myLepInterf;
-}
-void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
-  Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
-}
-
+void newZZMatrixElement::set_Verbosity(TVar::VerbosityLevel verbosity_){ processVerbosity = verbosity_; Xcal2.SetVerbosity(verbosity_); }
+void newZZMatrixElement::set_LeptonInterference(TVar::LeptonInterference lepInterf_){ processLeptonInterference = lepInterf_; Xcal2.SetLeptonInterf(processLeptonInterference); }
+// Set-functions that set variables that exclusively belong to Xcal2
+void newZZMatrixElement::set_LHAgrid(const char* path, int pdfmember){ Xcal2.Set_LHAgrid(path, pdfmember); }
 void newZZMatrixElement::set_RenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf){
   Xcal2.SetRenFacScaleMode(renormalizationSch, factorizationSch, ren_sf, fac_sf);
 }
-
-void newZZMatrixElement::computeXS(float mZZ, float mZ1, float mZ2,
-				 float costhetastar,
-				 float costheta1,
-				 float costheta2,
-				 float phi,
-				 float phistar1,
-				 int flavor,
-         TVar::Process process_,
-         TVar::MatrixElement me_,
-         TVar::Production production_,
-				 double couplingvals[SIZE_HVV_FREENORM],
-				 double selfDHvvcoupl[SIZE_HVV][2],
-				 double selfDZqqcoupl[SIZE_ZQQ][2],
-				 double selfDZvvcoupl[SIZE_ZVV][2],
-				 double selfDGqqcoupl[SIZE_GQQ][2],
-				 double selfDGggcoupl[SIZE_GGG][2],
-				 double selfDGvvcoupl[SIZE_GVV][2],
-				 float &mevalue
-			){
-// Higgs + 2 jets: SBF or WBF
-
-  set_Process(process_, me_, production_);
-
-  std::vector<TLorentzVector> p;
-  p=Calculate4Momentum(mZZ,mZ1,mZ2,acos(costhetastar),acos(costheta1),acos(costheta2),phistar1,phi);
-  TLorentzVector Z1_lept1 = p[0];
-  TLorentzVector Z1_lept2 = p[1];
-  TLorentzVector Z2_lept1 = p[2];
-  TLorentzVector Z2_lept2 = p[3];
-  
-  int Z1_lept1Id, Z1_lept2Id, Z2_lept1Id, Z2_lept2Id; 
-  assert(flavor==1 || flavor==2 || flavor==3 );
-  if ( flavor == 1 ) {
-    Z1_lept1Id = 11;
-    Z1_lept2Id = -11;
-    Z2_lept1Id = 11;
-    Z2_lept2Id = -11;
-  }
-  if ( flavor == 2 ) {
-    Z1_lept1Id = 13;
-    Z1_lept2Id = -13;
-    Z2_lept1Id = 13;
-    Z2_lept2Id = -13;
-  }
-  if ( flavor == 3 ) {
-    Z1_lept1Id = 11;
-    Z1_lept2Id = -11;
-    Z2_lept1Id = 13;
-    Z2_lept2Id = -13;
-  }
-  
-  hzz4l_event.p[0].SetXYZM(Z1_lept1.Px(), Z1_lept1.Py(), Z1_lept1.Pz(), 0.);
-  hzz4l_event.p[1].SetXYZM(Z1_lept2.Px(), Z1_lept2.Py(), Z1_lept2.Pz(), 0.);
-  hzz4l_event.p[2].SetXYZM(Z2_lept1.Px(), Z2_lept1.Py(), Z2_lept1.Pz(), 0.);
-  hzz4l_event.p[3].SetXYZM(Z2_lept2.Px(), Z2_lept2.Py(), Z2_lept2.Pz(), 0.);
-  
-  hzz4l_event.PdgCode[0] =  Z1_lept1Id;
-  hzz4l_event.PdgCode[1] =  Z1_lept2Id;
-  hzz4l_event.PdgCode[2] =  Z2_lept1Id;
-  hzz4l_event.PdgCode[3] =  Z2_lept2Id;
-  
-  double z1mass = (hzz4l_event.p[0]+hzz4l_event.p[1]).M();
-  double z2mass = (hzz4l_event.p[2]+hzz4l_event.p[3]).M();
-  double zzmass = (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).M();
-  
-  if (verb >= TVar::DEBUG) {
-    std::cout << "four lepton p4 for ME calculations: ===========================" <<endl;
-    std::cout << "PDG code \n";
-    std::cout << "hzz4l_event.PdgCode[0] = " << hzz4l_event.PdgCode[0] << "\n";
-    std::cout << "hzz4l_event.PdgCode[1] = " << hzz4l_event.PdgCode[1] << "\n";
-    std::cout << "hzz4l_event.PdgCode[2] = " << hzz4l_event.PdgCode[2] << "\n";
-    std::cout << "hzz4l_event.PdgCode[3] = " << hzz4l_event.PdgCode[3] << "\n";
-    printf("lep1 p3 = (%4.4f, %4.4f, %4.4f)  lep2 p3 = (%4.4f, %4.4f, %4.4f)\n",
-	   Z1_lept1.Px(), Z1_lept1.Py(), Z1_lept1.Pz(), Z1_lept2.Px(), Z1_lept2.Py(), Z1_lept2.Pz());
-    printf("lep3 p3 = (%4.4f, %4.4f, %4.4f)  lep4 p3 = (%4.4f, %4.4f, %4.4f)\n",
-	   Z2_lept1.Px(), Z2_lept1.Py(), Z2_lept1.Pz(), Z2_lept2.Px(), Z2_lept2.Py(), Z2_lept2.Pz());
-    std::cout << "ZZ system (pX, pY, pZ, E, mass) = ( "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Px() << ", "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Py() << ", "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Pz() << ", "
-	      << (hzz4l_event.p[0]+hzz4l_event.p[1]+hzz4l_event.p[2]+hzz4l_event.p[3]).Energy()  << ", "
-	      << zzmass << ")\n";
-    std::cout << "Z1 mass = " << z1mass << "\tz2mass = " << z2mass << "\n";
-    std::cout << "=========================================================\n";
-  }
-  
-  // ==== Begin the differential cross-section calculation
-  if (me_==TVar::MCFM || process_==TVar::bkgZZ_SMHiggs) Xcal2.SetHiggsMass(mHiggs, wHiggs);
-  else Xcal2.SetHiggsMass(zzmass,wHiggs);
-
-  Xcal2.SetMatrixElement(me_);
-  Xcal2.SetProduction(production_);
-  Xcal2.SetProcess(process_);
-  Xcal2.SetLeptonInterf(myLeptonInterference);
-  mevalue = Xcal2.XsecCalc(process_,production_,hzz4l_event,verb,couplingvals,selfDHvvcoupl,selfDZqqcoupl,selfDZvvcoupl,selfDGqqcoupl,selfDGggcoupl,selfDGvvcoupl);
-  if (wHiggs>=0){
-	  set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-	  Xcal2.SetHiggsMass(mHiggs,-1);
-  }
-  if( myLeptonInterference != TVar::DefaultLeptonInterf ){
-	  set_LeptonInterference(TVar::DefaultLeptonInterf); // Return back to default lepton interference settings after each calculation
-	  Xcal2.SetLeptonInterf(TVar::DefaultLeptonInterf);
-  }
-  return;
-}
-
-
-void newZZMatrixElement::computeProdXS_JJH(TLorentzVector jet1,
-				       TLorentzVector jet2,
-				       TLorentzVector higgs,
-               TVar::Process process_,
-               TVar::MatrixElement me_,
-               TVar::Production production_,
-               double selfDHggcoupl[SIZE_HGG][2],
-               double selfDHvvcoupl[SIZE_HVV_VBF][2],
-               double selfDHwwcoupl[SIZE_HWW_VBF][2],
-				       float &mevalue){
-  set_Process(process_, me_, production_);
-
-  TLorentzVector p4[3];
-  p4[0]=jet1;
-  p4[1]=jet2;
-  p4[2]=higgs;
-  Xcal2.SetMatrixElement(me_);
-  Xcal2.SetProduction(production_);
-  Xcal2.SetProcess(process_);
-  mevalue  = Xcal2.XsecCalcXJJ(
-    process_, production_,
-    p4,
-	  verb,
-	  selfDHggcoupl,
-	  selfDHvvcoupl,
-	  selfDHwwcoupl
-	  );
-  
-  return;
-
-}
-
-void newZZMatrixElement::computeProdXS_JH(TLorentzVector singleJet,
-				       TLorentzVector higgs,
-               TVar::Process process_,
-               TVar::MatrixElement me_,
-               TVar::Production production_,
-				       float &mevalue){
-// Higgs + 1 jet: Only SM is supported for now.
-
-  set_Process(process_, me_, production_);
-
-  TLorentzVector p4[2];
-  p4[0]=higgs;
-  p4[1]=singleJet;
-  Xcal2.SetMatrixElement(me_);
-  Xcal2.SetProduction(production_);
-  Xcal2.SetProcess(process_);
-  mevalue  = Xcal2.XsecCalcXJ(
-    process_, production_,
-    p4,
-	  verb
-	  );
-  
-  return;
-}
-
-void newZZMatrixElement::computeProdXS_VH(
-              TLorentzVector V_daughter[2],
-              TLorentzVector Higgs_daughter[4],
-              int V_daughter_pdgid[2],
-              int Higgs_daughter_pdgid[4],
-              bool includeHiggsDecay,
-
-              TVar::Process process_,
-              TVar::MatrixElement me_,
-              TVar::Production production_,
-
-              double selfDHvvcoupl[SIZE_HVV_VBF][2],
-              float &mevalue){
-
-// Dedicated VH function
-
-  set_Process(process_, me_, production_);
-
-  Xcal2.SetMatrixElement(me_);
-  Xcal2.SetProduction(production_);
-  Xcal2.SetProcess(process_);
-
-  vh_event.p[1] = V_daughter[0];
-  vh_event.p[2] = V_daughter[1];
-  vh_event.PdgCode[1] = V_daughter_pdgid[0];
-  vh_event.PdgCode[2] = V_daughter_pdgid[1];
-
-  TLorentzVector nullVector(0, 0, 0, 0);
-  TLorentzVector higgs(0, 0, 0, 0);
-  for (int hd = 0; hd < 4; hd++){
-    higgs = higgs + Higgs_daughter[hd];
-    if (includeHiggsDecay){
-      vh_event.pHdecay[hd] = Higgs_daughter[hd];
-      vh_event.PdgCode_Hdecay[hd] = Higgs_daughter_pdgid[hd];
-    }
-    else{
-      vh_event.pHdecay[hd] = nullVector;
-      vh_event.PdgCode_Hdecay[hd] = 0;
-    }
-  }
-  vh_event.p[0] = higgs;
-  vh_event.PdgCode[0] = 25;
-
-  double zzmass = higgs.M();
-  if (me_==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
-  else Xcal2.SetHiggsMass(zzmass, wHiggs);
-  mevalue  = Xcal2.XsecCalc_VX(
-    process_, production_,
-    vh_event,
-    verb,
-    selfDHvvcoupl
+void newZZMatrixElement::set_CandidateDecayMode(TVar::CandidateDecayMode mode){ Xcal2.SetCandidateDecayMode(mode); }
+void newZZMatrixElement::set_PrimaryHiggsMass(double mh){ Xcal2.SetPrimaryHiggsMass(mh); }
+void newZZMatrixElement::set_CurrentCandidateFromIndex(unsigned int icand){ Xcal2.SetCurrentCandidateFromIndex(icand); }
+void newZZMatrixElement::set_CurrentCandidate(MELACandidate* cand){ Xcal2.SetCurrentCandidate(cand); }
+void newZZMatrixElement::set_InputEvent(
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen
+  ){ // Adds a new candidate to Xcal2
+  Xcal2.SetInputEvent(
+    pDaughters,
+    pAssociated,
+    pMothers,
+    isGen
     );
-  if (wHiggs>=0){
-    set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-    Xcal2.SetHiggsMass(mHiggs, -1);
+}
+// Sets melaCand in Xcal2 to a temporary candidate, without pushing this candidate to candList of Xcal2
+void newZZMatrixElement::set_TempCandidate(
+  SimpleParticleCollection_t* pDaughters,
+  SimpleParticleCollection_t* pAssociated,
+  SimpleParticleCollection_t* pMothers,
+  bool isGen
+  ){
+  MELACandidate* cand = ConvertVectorFormat(
+    pDaughters,
+    pAssociated,
+    pMothers,
+    isGen,
+    &tmpPartList, &tmpCandList // push_back is done automatically
+    );
+  if (cand!=0){
+    melaCand=cand;
+    set_CurrentCandidate(melaCand);
   }
+}
+// Adds a top candidate
+void newZZMatrixElement::append_TopCandidate(SimpleParticleCollection_t* TopDaughters){ Xcal2.AppendTopCandidate(TopDaughters); }
+// Set-functions that do not set anything that belongs to Xcal2
+void newZZMatrixElement::set_mHiggs(double mh_, int index){
+  if (index<nSupportedHiggses && index>=0) mHiggs[index] = mh_;
+  else cerr << "newZZMatrixElement::set_mHiggs: Only resonances 0 (regular) and 1 (additional, possibly high-mass) are supported" << endl;
+}
+void newZZMatrixElement::set_wHiggs(double gah_, int index){
+  if (index<nSupportedHiggses && index>=0) wHiggs[index] = (double)gah_;
+  else cerr << "newZZMatrixElement::set_wHiggs: Only resonances 0 (regular) and 1 (additional, possibly high-mass) are supported" << endl;
+}
+void newZZMatrixElement::set_mHiggs_wHiggs(double mh_, double gah_, int index){
+  if (index<nSupportedHiggses && index>=0){
+    mHiggs[index] = mh_;
+    wHiggs[index] = gah_;
+  }
+  else cerr << "newZZMatrixElement::set_mHiggs_wHiggs: Only resonances 0 (regular) and 1 (additional, possibly high-mass) are supported" << endl;
+}
+// reset_MCFM_EWKParameters resets the MCFM EW parameters to those specified. This function is a wrapper around the TEvtProb version.
+void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
+  Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
+}
+//
+// resetPerEvent resets the mass, width and lepton interference settings and deletes the temporary input objects newZZMatrixElement owns.
+void newZZMatrixElement::resetPerEvent(){
+  // Protection against forgetfulness; custom width has to be set per-computation
+  set_mHiggs(Xcal2.GetPrimaryHiggsMass(), 0); // Sets mHiggs[0]
+  if (wHiggs[0]>=0.) set_wHiggs(-1., 0);
 
-  return;
+  if (mHiggs[1]>=0.) set_mHiggs(-1., 1);
+  if (wHiggs[1]>0.) set_wHiggs(0., 1);
+
+  Xcal2.SetHiggsMass(mHiggs[0], -1, -1);
+
+  // Return back to default lepton interference settings after each calculation
+  if (processLeptonInterference!=TVar::DefaultLeptonInterf) set_LeptonInterference(TVar::DefaultLeptonInterf);
+
+  // Delete the temporary input objects owned
+  for (unsigned int ic=0; ic<tmpCandList.size(); ic++){ if (tmpCandList.at(ic)!=0) delete tmpCandList.at(ic); }
+  //for (unsigned int itc=0; itc<tmpTopCandList.size(); itc++){ if (tmpTopCandList.at(itc)!=0) delete tmpTopCandList.at(itc); }
+  for (unsigned int ip=0; ip<tmpPartList.size(); ip++){ if (tmpPartList.at(ip)!=0) delete tmpPartList.at(ip); }
+  melaCand=0;
+}
+// Resets all candidates in Xcal2, to be called at the end of each event after all computations are done
+void newZZMatrixElement::reset_InputEvent(){ Xcal2.ResetInputEvent(); }
+
+
+MelaIO* newZZMatrixElement::get_IORecord(){ return Xcal2.GetIORecord(); }
+MELACandidate* newZZMatrixElement::get_CurrentCandidate(){ return Xcal2.GetCurrentCandidate(); }
+int newZZMatrixElement::get_CurrentCandidateIndex(){ return Xcal2.GetCurrentCandidateIndex(); }
+int newZZMatrixElement::get_NCandidates(){ return Xcal2.GetNCandidates(); }
+vector<MELATopCandidate*>* newZZMatrixElement::get_TopCandidateCollection(){ return Xcal2.GetTopCandidates(); }
+
+
+void newZZMatrixElement::set_SpinZeroCouplings(
+  double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM],
+  double selfDHqqcoupl[SIZE_HQQ][2],
+  double selfDHggcoupl[SIZE_HGG][2],
+  double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2],
+  double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2],
+  double selfDHzzLambda_qsq[nSupportedHiggses][4][3],
+  double selfDHwwLambda_qsq[nSupportedHiggses][4][3],
+  int selfDHzzCLambda_qsq[nSupportedHiggses][3],
+  int selfDHwwCLambda_qsq[nSupportedHiggses][3],
+  bool diffHWW
+  ){
+  Xcal2.AllowSeparateWWCouplings(diffHWW);
+  for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) selfD_SpinZeroCouplings->SetHVVFreeNormCouplings(ic, selfDHvvcoupl_freenorm[ic]);
+  for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHqqcoupl[ic][0], selfDHqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHggcoupl[ic][0], selfDHggcoupl[ic][1]);
+
+  for (int jh=1; jh<=(int)nSupportedHiggses; jh++){
+    for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[jh-1][ic][0], selfDHzzcoupl[jh-1][ic][1], false, jh);
+    for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[jh-1][ic][0], selfDHwwcoupl[jh-1][ic][1], true, jh);
+    for (int ik=0; ik<3; ik++){
+      for (int ig=0; ig<4; ig++){
+        selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHzzLambda_qsq[jh-1][ig][ik], false, jh);
+        selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHwwLambda_qsq[jh-1][ig][ik], true, jh);
+      }
+      selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHzzCLambda_qsq[jh-1][ik], false, jh);
+      selfD_SpinZeroCouplings->SetHVVSignCQ2(ik, selfDHwwCLambda_qsq[jh-1][ik], true, jh);
+    }
+  }
+}
+void newZZMatrixElement::set_SpinOneCouplings(
+  double selfDZqqcoupl[SIZE_ZQQ][2],
+  double selfDZvvcoupl[SIZE_ZVV][2]
+  ){
+  for (int ic=0; ic<SIZE_ZQQ; ic++) selfD_SpinOneCouplings->SetZQQCouplings(ic, selfDZqqcoupl[ic][0], selfDZqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_ZVV; ic++) selfD_SpinOneCouplings->SetZVVCouplings(ic, selfDZvvcoupl[ic][0], selfDZvvcoupl[ic][1]);
+}
+void newZZMatrixElement::set_SpinTwoCouplings(
+  double selfDGqqcoupl[SIZE_GQQ][2],
+  double selfDGggcoupl[SIZE_GGG][2],
+  double selfDGvvcoupl[SIZE_GVV][2]
+  ){
+  for (int ic=0; ic<SIZE_GQQ; ic++) selfD_SpinTwoCouplings->SetGQQCouplings(ic, selfDGqqcoupl[ic][0], selfDGqqcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_GGG; ic++) selfD_SpinTwoCouplings->SetGGGCouplings(ic, selfDGggcoupl[ic][0], selfDGggcoupl[ic][1]);
+  for (int ic=0; ic<SIZE_GVV; ic++) selfD_SpinTwoCouplings->SetGVVCouplings(ic, selfDGvvcoupl[ic][0], selfDGvvcoupl[ic][1]);
 }
 
-void newZZMatrixElement::computeProdXS_ttH(
-  TLorentzVector vTTH[6],
-  TLorentzVector Higgs,
-  int ttbar_daughters_pdgid[6],
-  int topDecay,
-  int topProcess,
+
+
+// Higgs + 0 jets dedicated function (with no Higgs decay)
+void newZZMatrixElement::computeXS(
   TVar::Process process_,
   TVar::MatrixElement me_,
   TVar::Production production_,
-  double selfDHvvcoupl[SIZE_TTH][2],
-  float &mevalue){
-  // Dedicated ttH function
-
+  float &mevalue
+  ){
   set_Process(process_, me_, production_);
+  melaCand = get_CurrentCandidate();
 
-  Xcal2.SetMatrixElement(me_);
-  Xcal2.SetProduction(production_);
-  Xcal2.SetProcess(process_);
-
-  if (process_ == TVar::SelfDefine_spin0){
-    bool noCoupl=true;
-    for (int iX=0; iX<SIZE_TTH; iX++){
-      for (int iY=0; iY<2; iY++){
-        if (selfDHvvcoupl[iX][iY]!=0) noCoupl=false;
-      }
+  if (melaCand!=0){
+    double zzmass = melaCand->m();
+    if (
+      processME==TVar::MCFM
+      ||
+      (processModel==TVar::bkgZZ_SMHiggs && processProduction == TVar::ZZGG && processME==TVar::JHUGen)
+      ){
+      for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1);
     }
-    if (noCoupl){
-      mevalue=0;
-    }
-  }
+    else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
 
-  tth_event.p[0] = Higgs;
-  for (int vv=0; vv<6; vv++) tth_event.p[vv+1] = vTTH[vv];
-  for (int vv=0; vv<3; vv++) tth_event.PdgCode_tdecay[0][vv] = ttbar_daughters_pdgid[vv];
-  for (int vv=0; vv<3; vv++) tth_event.PdgCode_tdecay[1][vv] = ttbar_daughters_pdgid[vv+3];
-
-  double zzmass = Higgs.M();
-  if (me_==TVar::MCFM) Xcal2.SetHiggsMass(mHiggs, wHiggs);
-  else Xcal2.SetHiggsMass(zzmass, wHiggs);
-
-  if (production_ == TVar::ttH || production_ ==TVar::bbH){
-    mevalue  = Xcal2.XsecCalc_TTX(
-      process_, production_,
-      tth_event,
-      topDecay, topProcess,
-      verb,
-      selfDHvvcoupl
+    mevalue = Xcal2.XsecCalc_XVV(
+      processModel, processProduction,
+      processVerbosity
       );
   }
-  
-  if (wHiggs>=0){
-      set_wHiggs(-1); // Protection against forgetfulness; custom width has to be set per-event
-      Xcal2.SetHiggsMass(mHiggs, -1);
-  }
 
+  resetPerEvent();
   return;
 }
+
+// VBF+VH dedicated function (production(+)decay)
+void newZZMatrixElement::computeProdXS_VVHVV(
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  float& mevalue
+  ){
+  set_Process(process_, me_, production_);
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0){
+    double zzmass = melaCand->m();
+    if (
+      processME==TVar::MCFM
+      ||
+      (processModel==TVar::bkgZZ_SMHiggs && processProduction == TVar::ZZGG && processME==TVar::JHUGen)
+      ){
+      for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1);
+    }
+    else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
+
+    mevalue = Xcal2.XsecCalc_VVXVV(
+      processModel, processProduction,
+      processVerbosity
+      );
+  }
+
+  resetPerEvent();
+  return;
+}
+
+// Higgs + 2 jet dedicated function (with no Higgs decay)
+void newZZMatrixElement::computeProdXS_JJH(
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  float &mevalue
+  ){
+  set_Process(process_, me_, production_);
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0){
+    mevalue  = Xcal2.XsecCalcXJJ(
+      processModel, processProduction,
+      processVerbosity
+      );
+  }
+
+  resetPerEvent();
+  return;
+}
+
+// Higgs + 1 jet: Only SM is supported for now.
+void newZZMatrixElement::computeProdXS_JH(
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  float &mevalue
+  ){
+  set_Process(process_, me_, production_);
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0){
+    mevalue  = Xcal2.XsecCalcXJ(
+      processModel, processProduction,
+      processVerbosity
+      );
+  }
+
+  resetPerEvent();
+  return;
+}
+
+// Dedicated VH function (with no Higgs decay)
+void newZZMatrixElement::computeProdXS_VH(
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  float &mevalue,
+  bool includeHiggsDecay
+  ){
+  set_Process(process_, me_, production_);
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0){
+    double zzmass = melaCand->m();
+    if (processME==TVar::MCFM){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
+    else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
+
+    mevalue  = Xcal2.XsecCalc_VX(
+      processModel, processProduction,
+      processVerbosity,
+      includeHiggsDecay
+      );
+  }
+
+  resetPerEvent();
+  return;
+}
+
+// Dedicated ttH/bbH function (with no Higgs decay)
+// topProcess=0 for gg, =1 for qqb initial states
+// topDecay=0 (default) for no top decay, =1 to include t/tb->b/bb + W+/W-(->ffb). =1 not relevant for the bbH process.
+void newZZMatrixElement::computeProdXS_ttH(
+  TVar::Process process_,
+  TVar::MatrixElement me_,
+  TVar::Production production_,
+  float &mevalue,
+  int topProcess,
+  int topDecay
+  ){
+  set_Process(process_, me_, production_);
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0){
+    double zzmass = melaCand->m();
+    if (processME==TVar::MCFM){ for (int jh=0; jh<(int)nSupportedHiggses; jh++) Xcal2.SetHiggsMass(mHiggs[jh], wHiggs[jh], jh+1); }
+    else Xcal2.SetHiggsMass(zzmass, wHiggs[0], -1);
+
+    if (production_ == TVar::ttH || production_ ==TVar::bbH){
+      mevalue  = Xcal2.XsecCalc_TTX(
+        processModel, processProduction,
+        processVerbosity,
+        topProcess, topDecay
+        );
+    }
+  }
+
+  resetPerEvent();
+  return;
+}
+
+// Higgs propagator
+void newZZMatrixElement::get_XPropagator(TVar::ResonancePropagatorScheme scheme, float& prop){
+  prop=0.;
+  melaCand = get_CurrentCandidate();
+
+  if (melaCand!=0) prop=Xcal2.GetXPropagator(scheme);
+
+  resetPerEvent();
+  return;
+}
+
 

@@ -3,9 +3,6 @@
 
 cd `dirname $0`/$1
 
-if (! -e libmcfm_7p0.so) then
+if (! -e libmcfm_701.so) then
   cat download.url | xargs wget --no-check-certificate -q
-endif
-if (! -e NNPDFDriver.o) then
-  cat download_nnpdfdriver.url | xargs wget --no-check-certificate -q
 endif

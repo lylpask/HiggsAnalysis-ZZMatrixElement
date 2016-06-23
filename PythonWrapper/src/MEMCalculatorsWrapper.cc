@@ -1,7 +1,5 @@
 #include "ZZMatrixElement/PythonWrapper/interface/MEMCalculatorsWrapper.h"
-
 #include "ZZMatrixElement/MEMCalculators/interface/MEMCalculators.h"
-#include "ZZMatrixElement/MELA/src/computeAngles.h"
 
 
 MEMCalculatorsWrapper::MEMCalculatorsWrapper(double collisionEnergy, double sKD_mass) {
@@ -18,7 +16,7 @@ MEMCalculatorsWrapper::computeAngles(TLorentzVector Z1_lept1, int Z1_lept1Id,
 		   TLorentzVector Z2_lept1, int Z2_lept1Id,
 		   TLorentzVector Z2_lept2, int Z2_lept2Id) {
     Angles ret;
-    mela::computeAngles(Z1_lept1,Z1_lept1Id,
+    TUtil::computeAngles(Z1_lept1,Z1_lept1Id,
                         Z1_lept2,Z1_lept2Id,
                         Z2_lept1,Z2_lept1Id,
                         Z2_lept2,Z2_lept2Id,
@@ -62,7 +60,7 @@ MEMCalculatorsWrapper::computeAll(TLorentzVector Z1_lept1, int Z1_lept1Id,
     //Now the SuperKD part
     pm4l_sig_=0.0;
     pm4l_bkg_=0.0;
-    mem_->computePm4l(ps,id,kNone,pm4l_sig_,pm4l_bkg_);
+    mem_->computePm4l(ps, id, MEMNames::kNone, pm4l_sig_, pm4l_bkg_);
 }
 
 std::vector<std::pair<std::string,float>>  

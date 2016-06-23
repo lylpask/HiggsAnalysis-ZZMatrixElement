@@ -9,16 +9,23 @@
 // Feb 21 2011
 // Sergo Jindariani
 // Yanyan Gao
+// 
+// June 2016
+// Ulascan Sarica
+//
 //-----------------------------------------------------------------------------
+//
+// STD includes
+#include <iostream>
 #include <sstream>
 #include <cstdio>
+#include <vector>
 #include <string>
-
-#include <iostream>
 #include <iomanip>
 #include <ostream>
 #include <fstream>
-
+#include <cassert>
+// ROOT includes
 #include "TObject.h"
 #include "TLorentzVector.h"
 #include "TMath.h"
@@ -26,106 +33,148 @@
 #include "TChain.h"
 #include "TFile.h"
 #include "TString.h"
-#include "assert.h"
 #include "TROOT.h"
-// ME related
+// ME related includes
 #include "TMCFM.hh"
+#include "TCouplings.hh"
 #include "TVar.hh"
 #include "TUtil.hh"
-#include "ZZMatrixElement/MELA/interface/HiggsCSandWidth_MELA.h"
+#include <ZZMatrixElement/MELA/interface/MELAHXSWidth.h>
 
 
 //----------------------------------------
 // Class TEvtProb
 //----------------------------------------
-class TEvtProb : public TObject {
-  
+class TEvtProb : public TObject{
 public:
-  //--------------------
-  // Variables
-  //--------------------
-  TVar::Process _process;
-  TVar::MatrixElement _matrixElement;
-  TVar::Production _production;
-  TVar::LeptonInterference _leptonInterf;
-  HiggsCSandWidth_MELA *myCSW_;
-  double _hmass;
-  double _hwidth;
-  double EBEAM;
-  
   //---------------------------------------------------------------------------
   // Constructors and Destructor
   //---------------------------------------------------------------------------
   TEvtProb() {};
-  TEvtProb(const char* path,double ebeam);
+  TEvtProb(const char* path, double ebeam, const char* pathtoPDFSet, int PDFMember=0, TVar::VerbosityLevel verbosity_=TVar::ERROR);
   ~TEvtProb();
-  
-  //----------------------
-  // Function
-  //----------------------
-  void SetProcess(TVar::Process tmp) { _process = tmp; }
-  void SetMatrixElement(TVar::MatrixElement tmp){ _matrixElement = tmp; }
-  void SetProduction(TVar::Production tmp){ _production = tmp; }
-  void SetLeptonInterf(TVar::LeptonInterference tmp){ _leptonInterf = tmp; }
-  void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
-  void Set_LHAgrid(const char* path);
 
-  double XsecCalc(
-    TVar::Process proc, TVar::Production production,
-    const hzz4l_event_type &hzz4l_event,
-    TVar::VerbosityLevel verbosity,
-    double couplingvals[SIZE_HVV_FREENORM],
-    double selfDHvvcoupl[SIZE_HVV][2],
-    double selfDZqqcoupl[SIZE_ZQQ][2],
-    double selfDZvvcoupl[SIZE_ZVV][2],
-    double selfDGqqcoupl[SIZE_GQQ][2],
-    double selfDGggcoupl[SIZE_GGG][2],
-    double selfDGvvcoupl[SIZE_GVV][2]
+  //----------------------
+  // Functions
+  //----------------------
+  void Set_LHAgrid(const char* path, int pdfmember=0);
+  void SetProcess(TVar::Process tmp);
+  void SetMatrixElement(TVar::MatrixElement tmp);
+  void SetProduction(TVar::Production tmp);
+  void SetVerbosity(TVar::VerbosityLevel tmp);
+  void SetLeptonInterf(TVar::LeptonInterference tmp);
+
+  void SetCandidateDecayMode(TVar::CandidateDecayMode mode);
+  void SetCurrentCandidateFromIndex(unsigned int icand);
+  void SetCurrentCandidate(MELACandidate* cand);
+
+  void AllowSeparateWWCouplings(bool doAllow=false);
+  void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
+  void ResetCouplings();
+
+  void SetPrimaryHiggsMass(double mass);
+  void SetHiggsMass(double mass, double wHiggs=-1., int whichResonance=-1);
+
+  void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
+  void ResetRenFacScaleMode();
+
+  // Convert std::vectors to MELAPArticle* and MELACandidate* objects, stored in particleList and candList, respectively.
+  // Also set melaCand to this candidsate if it is valid.
+  void SetInputEvent(
+    SimpleParticleCollection_t* pDaughters,
+    SimpleParticleCollection_t* pAssociated=0,
+    SimpleParticleCollection_t* pMothers=0,
+    bool isGen=false
+    );
+  void AppendTopCandidate(SimpleParticleCollection_t* TopDaughters);
+  void ResetInputEvent();
+
+  // Reset the IO record, called at te beginning of each comoputation
+  void ResetIORecord();
+
+  double XsecCalc_XVV(
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
+    );
+
+  double XsecCalc_VVXVV(
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalcXJJ(
-    TVar::Process proc, TVar::Production production, 
-    TLorentzVector p4[3],
-    TVar::VerbosityLevel verbosity,
-    double selfDHggcoupl[SIZE_HGG][2],
-    double selfDHvvcoupl[SIZE_HVV_VBF][2],
-    double selfDHwwcoupl[SIZE_HWW_VBF][2]
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalcXJ(
-    TVar::Process proc, TVar::Production production,
-    TLorentzVector p4[2],
-    TVar::VerbosityLevel verbosity
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_
     );
 
   double XsecCalc_VX(
-    TVar::Process proc, TVar::Production production,
-    vh_event_type &vh_event,
-    TVar::VerbosityLevel verbosity,
-    double selfDHvvcoupl[SIZE_HVV_VBF][2]
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_,
+    bool includeHiggsDecay
     );
 
   double XsecCalc_TTX(
-    TVar::Process proc, TVar::Production production,
-    tth_event_type &tth_event,
-    int topDecay, int topProcess,
-    TVar::VerbosityLevel verbosity,
-    double selfDHvvcoupl[SIZE_TTH][2]
+    TVar::Process process_, TVar::Production production_,
+    TVar::VerbosityLevel verbosity_,
+    int topProcess, int topDecay
     );
 
-  // this appears to be some kind of 
-  // way of setting MCFM parameters through
-  // an interface defined in TMCFM.hh
-  void SetHiggsMass(double mass, float wHiggs=-1);
+  double GetXPropagator(TVar::ResonancePropagatorScheme scheme);
 
-  void SetRenFacScaleMode(TVar::EventScaleScheme renormalizationSch, TVar::EventScaleScheme factorizationSch, double ren_sf, double fac_sf);
-  void ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); };
+  // Get-functions
+  SpinZeroCouplings* GetSelfDSpinZeroCouplings();
+  SpinOneCouplings* GetSelfDSpinOneCouplings();
+  SpinTwoCouplings* GetSelfDSpinTwoCouplings();
+  double GetPrimaryHiggsMass();
+  MelaIO* GetIORecord();
+  MELACandidate* GetCurrentCandidate();
+  int GetCurrentCandidateIndex(); // Return the index of current melaCand in the candList array, or -1 if it does not exist
+  int GetNCandidates();
+  std::vector<MELATopCandidate*>* GetTopCandidates();
 
-private:
+protected:
+  //--------------------
+  // Variables
+  //--------------------
+  TVar::Process process;
+  TVar::MatrixElement matrixElement;
+  TVar::Production production;
+  TVar::VerbosityLevel verbosity;
+  TVar::LeptonInterference leptonInterf;
+  double PrimaryHMass;
+  double _hmass;
+  double _hwidth;
+  double _h2mass;
+  double _h2width;
+  double EBEAM;
+  MELAHXSWidth* myCSW_;
   event_scales_type event_scales;
 
+  SpinZeroCouplings selfDSpinZeroCoupl;
+  SpinOneCouplings selfDSpinOneCoupl;
+  SpinTwoCouplings selfDSpinTwoCoupl;
+  MelaIO RcdME;
 
-  ClassDef(TEvtProb,0);
+  MELACandidate* melaCand; // Only a pointer to the top-level (input) candList object
+  std::vector<MELAParticle*> particleList; // Container of intermediate objects, for bookkeeping to delete later
+  std::vector<MELACandidate*> candList; // Container of candidate objects, for bookkeeping to delete later
+  std::vector<MELATopCandidate*> topCandList; // Container of candidate objects, for bookkeeping to delete later
+
+  // Initialization functions
+  void InitializeMCFM();
+  void InitializeJHUGen(const char* pathtoPDFSet, int PDFMember);
+
+  // Check if at least one input candidate is present
+  bool CheckInputPresent();
+  void SetRcdCandPtr();
+
+
+  ClassDef(TEvtProb, 0);
 };
 
 #endif
