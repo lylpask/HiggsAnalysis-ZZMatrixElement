@@ -1558,6 +1558,7 @@ float Mela::getConstant_JHUGenUndecayed(){
 
   MelaPConstant* pchandle=0;
   unsigned int iarray=0;
+  double correction=1;
 
   if (myProduction_ == TVar::JQCD){
     if (TUtil::JetMassScheme == TVar::ConserveDifermionMass) iarray=0; // First element points to the case when the difermion invariant mass is conserved in mass removal scheme
@@ -1583,7 +1584,47 @@ float Mela::getConstant_JHUGenUndecayed(){
   */
 
   constant = pchandle->Eval(getIORecord(), myVerbosity_);
+  if (myProduction_==TVar::JJVBF && LHCsqrts==7.){
+    // Fitting is not good enough for region starting at ~105 GeV due to poor statistics.
+    const double a0=0.67;
+    const double a1=22.;
+    const double a2=73.;
+    double var = melaCand->m();
+    if (var>a2) correction = 1.+a0*exp(-pow((var-a2)/a1, 2));
+    else correction = 1.+a0; // Smooth by virtue of the correction function itself.
+  }
+  else if (myProduction_==TVar::JJVBF && LHCsqrts==8.){
+    // Fitting is not good enough for region starting at ~105 GeV due to poor statistics.
+    const double a0=0.53;
+    const double a1=21.;
+    const double a2=73.;
+    double var = melaCand->m();
+    if (var>a2) correction = 1.+a0*exp(-pow((var-a2)/a1, 2));
+    else correction = 1.+a0; // Smooth by virtue of the correction function itself.
+  }
+  else if (myProduction_==TVar::JJVBF && LHCsqrts==13.){
+    // Fitting is not good enough for region starting at ~105 GeV due to poor statistics.
+    const double a0=0.2;
+    const double a1=22.;
+    const double a2=73.;
+    double var = melaCand->m();
+    if (var>a2) correction = 1.+a0*exp(-pow((var-a2)/a1, 2));
+    else correction = 1.+a0; // Smooth by virtue of the correction function itself.
+  }
+  else if (myProduction_==TVar::JJQCD && LHCsqrts==8.){
+    // Fitting is not good enough for region starting at ~105 GeV due to poor statistics.
+    const double a0=-0.24;
+    const double a1=80.;
+    const double a2=9.;
+    const double a3=0.08;
+    const double a4=100.;
+    const double a5=20.;
+    double var = melaCand->m();
+    if (var>a1) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3*exp(-pow((var-a4)/a5, 2));
+    else correction = 1.+a0+a3*exp(-pow((var-a4)/a5, 2)); // Smooth by virtue of the correction function itself.
+  }
 
+  constant *= correction;
   return constant;
 }
 float Mela::getConstant_4l(){
