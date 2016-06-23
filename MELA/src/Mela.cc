@@ -1569,13 +1569,11 @@ float Mela::getConstant_JHUGenUndecayed(){
     if (TUtil::JetMassScheme == TVar::ConserveDifermionMass) iarray=0; // First element points to the case when the difermion invariant mass is conserved in mass removal scheme
     else if (TUtil::JetMassScheme == TVar::MomentumToEnergy) iarray=1; // Second element points to the case when the 3-momentum vector magnitude is scaled to energy in mass removal scheme
     pchandle = pAvgSmooth_JHUGen_JJQCD_HSMHiggs[iarray];
-    cout << "pAvgSmooth_JHUGen_JJQCD_HSMHiggs[" << iarray << "]" << endl;
   }
   else if (myProduction_ == TVar::JJVBF){
     if (TUtil::JetMassScheme == TVar::ConserveDifermionMass) iarray=0; // First element points to the case when the difermion invariant mass is conserved in mass removal scheme
     else if (TUtil::JetMassScheme == TVar::MomentumToEnergy) iarray=1; // Second element points to the case when the 3-momentum vector magnitude is scaled to energy in mass removal scheme
     pchandle = pAvgSmooth_JHUGen_JJVBF_HSMHiggs[iarray];
-    cout << "pAvgSmooth_JHUGen_JJVBF_HSMHiggs[" << iarray << "]" << endl;
   }
   /*
   else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Had_ZH)
