@@ -21,6 +21,11 @@ private:
   double alphas_mz;
   double alphas_Qren;
 
+  double MH_GaH[nSupportedHiggses][2];
+
+  double VDau1coupl[2]; // L/R
+  double VDau2coupl[2]; // L/R
+
 public:
 
   MELACandidate* melaCand; // Persistent container of the four-vectors, not owned by MelaIO
@@ -33,6 +38,15 @@ public:
         MEsq[ix][iy]=0;
         weightedMEsq[ix][iy]=0;
       }
+    }
+    Qren=0;
+    Qfac=0;
+    alphas_mz=0;
+    alphas_Qren=0;
+    for (unsigned int jh=0; jh<nSupportedHiggses; jh++){ for (unsigned int img=0; img<2; img++) MH_GaH[jh][img]=0; }
+    for (unsigned int ic=0; ic<2; ic++){
+      VDau1coupl[ic]=0;
+      VDau2coupl[ic]=0;
     }
   }
   MelaIO* getRef(){ return this; }
@@ -122,6 +136,20 @@ public:
   double getAlphaS()const{ return alphas_Qren; }
   void setAlphaSatMZ(const double& val){ alphas_mz=val; }
   double getAlphaSatMZ()const{ return alphas_mz; }
+
+  // Mass-related I/O
+  void setHiggsMassWidth(const double& mass_, const double& width_, int jh){ if (jh<nSupportedHiggses){ MH_GaH[jh][0]=mass_; MH_GaH[jh][1]=width_; } }
+  void getHiggsMassWidth(double& mass_, double& width_, int jh)const{ if (jh<nSupportedHiggses){ mass_=MH_GaH[jh][0]; width_=MH_GaH[jh][1]; } }
+
+  // Z, W or gamma couplings to fermions
+  void setVDaughterCouplings(const double& left, const double& right, int iv){
+    if (iv==0){ VDau1coupl[0]=left; VDau1coupl[1]=right; }
+    else if (iv==1){ VDau2coupl[0]=left; VDau2coupl[1]=right; }
+  }
+  void getVDaughterCouplings(double& left, double& right, int iv)const{
+    if (iv==0){ left=VDau1coupl[0]; right=VDau1coupl[1]; }
+    else if (iv==1){ left=VDau2coupl[0]; right=VDau2coupl[1]; }
+  }
 
 
   ClassDef(MelaIO, 0)

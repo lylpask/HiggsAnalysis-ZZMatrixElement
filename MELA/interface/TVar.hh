@@ -62,9 +62,9 @@ public:
     ZZQQB_S = 3,
     ZZQQB_TU = 4,
     ZZINDEPENDENT= 5,
-    JJGG = 6, // SBF
+    JJQCD = 6, // SBF
     JJVBF = 7, // WBF or WBF(+)Had_VH
-    JH = 8, // H + 1 jet
+    JQCD = 8, // ? + 1 jet
     Lep_ZH = 9, // ZH, Z->ll/nunu
     Lep_WH = 10, // W(+/-)H, W->lnu
     Had_ZH = 11, // ZH, Z->uu/dd
@@ -82,17 +82,17 @@ public:
   enum FermionMassRemoval{
     NoRemoval = 0,
     ConserveDifermionMass = 1,
-    MomentumToEnergy=2
+    MomentumToEnergy = 2,
+    nFermionMassRemovalSchemes = 3
   };
   enum ResonancePropagatorScheme{
-    NoPropagator=1,
+    NoPropagator=0,
     RunningWidth=1,
     FixedWidth=2,
     CPS=3
   };
 
   enum Process{
-
     HSMHiggs,    //0+, call this for MCFM |H|**2.
     H0minus,    //0-
     H0hplus,    //0h+
@@ -131,7 +131,7 @@ public:
     H2_g10, // 2h10-
 
     bkgZGamma,    //Z+gamma
-    bkgZJJ,    //Z + 2 jets
+    bkgZJets,    //Z + 0/1/2 jets (ZZGG, JQCD, JJQCD)
     bkgZZ,    //qq/gg->ZZ
     bkgWW,    //qq/gg->WW
     bkgWWZZ,    //gg->ZZ+WW

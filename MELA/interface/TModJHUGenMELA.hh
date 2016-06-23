@@ -21,8 +21,9 @@ extern "C" {
   void __modjhugenmela_MOD_setspinzerovvcouplings_nogamma(double vvcoupl[32][2], int cqsq[3], double Lambda_qsq[4][3], int* usewwcoupl); // YES, THE LAST ARGUMENT IS AN INT!
   void __modjhugenmela_MOD_settopdecays(int* flag);
 
-  void __modjhugenmela_MOD_getalphasalphasmz(double* val_as, double* val_asmz);
   void __modjhugenmela_MOD_getmvgv(double* mv, double* gv);
+  void __modjhugenmela_MOD_getalphasalphasmz(double* val_as, double* val_asmz);
+  void __modjhugenmela_MOD_getdecaycouplings(int* VVMode, int idordered[4], double* aL1, double* aR1, double* aL2, double* aR2);
 
 }
 

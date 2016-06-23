@@ -15,7 +15,7 @@ namespace TUtil{
   bool forbidMassiveLeptons = true;
   bool forbidMassiveJets = true;
   TVar::FermionMassRemoval LeptonMassScheme = TVar::ConserveDifermionMass;
-  TVar::FermionMassRemoval JetMassScheme = TVar::MomentumToEnergy;
+  TVar::FermionMassRemoval JetMassScheme = TVar::ConserveDifermionMass;
 }
 
 /***************************************************/
@@ -89,7 +89,7 @@ pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
     }
   }
   else if (TUtil::forbidMassiveLeptons && (PDGHelpers::isALepton(jet1Id) || PDGHelpers::isANeutrino(jet1Id) || PDGHelpers::isALepton(jet2Id) || PDGHelpers::isANeutrino(jet2Id))){
-    if (forbidMassiveLeptons==TVar::NoRemoval){
+    if (LeptonMassScheme==TVar::NoRemoval){
       jet1massless=jet1;
       jet2massless=jet2;
     }
@@ -1107,11 +1107,12 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
     for (int c=2; c<mxpart; c++) Q += p[c].Pt(); // Scalar sum of all pTs
   }
   else if (scheme == TVar::DefaultScaleScheme){
+    // Defaults are dynamic scales except in ttH and bbH.
     if (matrixElement==TVar::JHUGen){
       if (
-        production==TVar::JJGG
+        production==TVar::JJQCD
         || production==TVar::JJVBF
-        || production==TVar::JH
+        || production==TVar::JQCD
         || production==TVar::ZZGG
         || production==TVar::ZZQQB
         || production==TVar::ZZQQB_STU
@@ -1125,13 +1126,17 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
         Q = fabs(pTotal.M());
       }
-      else if (production==TVar::ttH || production==TVar::bbH) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
+      else if (
+        production==TVar::ttH
+        ||
+        production==TVar::bbH
+        ) Q = (2.*masses_mcfm_.mt+masses_mcfm_.hmass);
     }
     else if (matrixElement==TVar::MCFM){
       if (
-        production==TVar::JJGG
+        production==TVar::JJQCD
         || production==TVar::JJVBF
-        || production==TVar::JH
+        || production==TVar::JQCD
         || production==TVar::ZZGG
         || production==TVar::ZZQQB
         || production==TVar::ZZQQB_STU
@@ -1148,7 +1153,7 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
       else if (
         production==TVar::ttH
         || production==TVar::bbH
-        ){
+        ){ // ttH and bbH are not implemented through MCFM, will need revision if they are implemented.
         TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5]+p[6]+p[7];
         Q = fabs(pTotal.M());
       }
@@ -1317,8 +1322,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1326,7 +1331,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1358,8 +1363,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1367,7 +1372,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1427,9 +1432,9 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   else if (
     ndau>=4
     &&
-    (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB)
+    production == TVar::JJQCD
     &&
-    process == TVar::bkgZJJ
+    process == TVar::bkgZJets
     ){
     // -- 44 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4))+f(p5)+f(p6)'
     // these settings are identical to use the chooser_() function
@@ -1478,8 +1483,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1487,7 +1492,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1549,8 +1554,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1558,7 +1563,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1619,8 +1624,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1628,7 +1633,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1660,8 +1665,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1669,7 +1674,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -1739,8 +1744,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1748,7 +1753,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1780,8 +1785,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1789,7 +1794,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1822,8 +1827,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1831,7 +1836,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1863,8 +1868,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -1872,7 +1877,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -1976,8 +1981,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -1985,7 +1990,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l1 = gV+gA;
         zcouple_.r1 = gV-gA;
-        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -2017,8 +2022,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
         double xx_up = gV_up*gA_up;
         double xx_dn = gV_dn*gA_dn;
-        double yy = (2.*yy_up+3.*yy_dn)/5.;
-        double xx = (2.*xx_up+3.*xx_dn)/5.;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
         double discriminant = pow(yy, 2)-4.*pow(xx, 2);
         double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
         double gAsq = pow(xx, 2)/gVsq;
@@ -2026,7 +2031,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         double gA=-sqrt(gAsq);
         zcouple_.l2 = gV+gA;
         zcouple_.r2 = gV-gA;
-        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
     }
     else return false;
@@ -2109,8 +2114,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2118,7 +2123,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2150,8 +2155,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2159,7 +2164,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2192,8 +2197,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2201,7 +2206,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l1 = gV+gA;
           zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2233,8 +2238,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
           double xx_up = gV_up*gA_up;
           double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn)/5.;
-          double xx = (2.*xx_up+3.*xx_dn)/5.;
+          double yy = (2.*yy_up+3.*yy_dn);
+          double xx = (2.*xx_up+3.*xx_dn);
           double discriminant = pow(yy, 2)-4.*pow(xx, 2);
           double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
           double gAsq = pow(xx, 2)/gVsq;
@@ -2242,7 +2247,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           double gA=-sqrt(gAsq);
           zcouple_.l2 = gV+gA;
           zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)/5.*3.);
+          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
       }
       else return false;
@@ -2996,6 +3001,8 @@ double TUtil::SumMatrixElementPDF(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::SumMatrixElementPDF: Set AlphaS:\n"
@@ -3044,64 +3051,41 @@ double TUtil::SumMatrixElementPDF(
     SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
   else if (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB){
-    if (process == TVar::bkgZJJ){
-      qqb_z2jet_(p4[0], msq[0]);
+    if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
+    else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
+    else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
 
-      for (int iquark=-5; iquark<=5; iquark++){
-        for (int jquark=-5; jquark<=5; jquark++){
+    // Sum over valid MEs without PDF weights
+    // By far the dominant contribution is uub initial state.
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
           if (
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-            )
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
             &&
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-            )
-            ){
-            if (msq[jquark+5][iquark+5]>0.) nInstances++;
-          }
-          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            ) msqjk = msq[jquark+5][-jquark+5];
+          else if (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+            ) msqjk = msq[-iquark+5][iquark+5];
+          else msqjk += msq[jquark+5][iquark+5];
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
         }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
       }
-      msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
-    else{
-      if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
-      else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
-      else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
-
-      // Sum over valid MEs without PDF weights
-      // By far the dominant contribution is uub initial state.
-      for (int iquark=-5; iquark<=5; iquark++){
-        for (int jquark=-5; jquark<=5; jquark++){
-          if (
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-            )
-            &&
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-            )
-            ){
-            if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
-              &&
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-              ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
-            else if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
-              ) msqjk = msq[jquark+5][-jquark+5];
-            else if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-              ) msqjk = msq[-iquark+5][iquark+5];
-            else msqjk += msq[jquark+5][iquark+5];
-            if (msq[jquark+5][iquark+5]>0.) nInstances++;
-          }
-          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
-        }
-      }
-      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-    }
+    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
   else if (production == TVar::ZZGG){
     if (isZZ){
@@ -3181,6 +3165,41 @@ double TUtil::SumMatrixElementPDF(
     }
     msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
   }
+  else if (production == TVar::JJQCD){
+    if (process == TVar::bkgZJets) qqb_z2jet_(p4[0], msq[0]);
+
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+          )
+          &&
+          (
+          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+          )
+          ){
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+        }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+      }
+    }
+    msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
+  }
+
+  // Set aL/R 1,2 into RcdME
+  if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
+  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(1., 0., 0);
+  else RcdME->setVDaughterCouplings(0., 0., 0);
+  if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
+  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(1., 0., 1);
+  else RcdME->setVDaughterCouplings(0., 0., 1);
+  // Reset some of these couplings if the decay is not actually ZZ or WW.
+  if (
+    process==TVar::bkgZJets
+    ||
+    process==TVar::bkgZGamma
+    ) RcdME->setVDaughterCouplings(0., 0., 1);
 
   if (msqjk != msqjk){
     if (verbosity>=TVar::ERROR) cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
@@ -3353,6 +3372,8 @@ double TUtil::JHUGenMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::JHUGenMatEl: Set AlphaS:\n"
@@ -3433,6 +3454,19 @@ double TUtil::JHUGenMatEl(
     }
   }
 
+  // Variables to set L1/2 and R1/2 couplings into RcdME
+  const int ZZmode=0, WWmode=10, ggmode=20, Zgmode=30;
+  int VVmode=-1;
+  if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) VVmode=WWmode;
+  else if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) VVmode=ZZmode;
+  else if (PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1))) VVmode=ggmode;
+  else if (
+    (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)))
+    ||
+    (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0)))
+    ) VVmode=Zgmode;
+  double aL1=0, aL2=0, aR1=0, aR2=0;
+
   int nNonZero=0;
   for (unsigned int v1=0; v1<idarray[0].size(); v1++){
     for (unsigned int v2=0; v2<idarray[1].size(); v2++){
@@ -3452,6 +3486,26 @@ double TUtil::JHUGenMatEl(
         double mv, gv;
         __modjhugenmela_MOD_getmvgv(&mv, &gv);
         cout << "TUtil::JHUGenMatEl: M_V=" << mv/GeV << ", Ga_V=" << gv/GeV << endl;
+      }
+
+      // Sum over possible left/right couplings of the Vs
+      double aLRtmp[4]={ 0 };
+      __modjhugenmela_MOD_getdecaycouplings(&VVmode, MYIDUP, &(aLRtmp[0]), &(aLRtmp[1]), &(aLRtmp[2]), &(aLRtmp[3]));
+      if (idarray[0].size()>1){
+        aL1 = sqrt(pow(aL1, 2)+pow(aLRtmp[0], 2));
+        aR1 = sqrt(pow(aR1, 2)+pow(aLRtmp[1], 2));
+      }
+      else{
+        aL1 = aLRtmp[0];
+        aR1 = aLRtmp[1];
+      }
+      if (idarray[1].size()>1){
+        aL2 = sqrt(pow(aL2, 2)+pow(aLRtmp[2], 2));
+        aR2 = sqrt(pow(aR2, 2)+pow(aLRtmp[3], 2));
+      }
+      else{
+        aL2 = aLRtmp[2];
+        aR2 = aLRtmp[3];
       }
 
       double MatElTmp=0.;
@@ -3482,6 +3536,11 @@ double TUtil::JHUGenMatEl(
     cout << "TUtil::JHUGenMatEl: Number of matrix element instances computed: " << nNonZero << endl;
     cout << "TUtil::JHUGenMatEl: MatElSq after division = " << MatElSq << endl;
   }
+
+  // Set aL/R 1,2 into RcdME
+  RcdME->setVDaughterCouplings(aL1, aR1, 0);
+  RcdME->setVDaughterCouplings(aL2, aR2, 1);
+
   // This constant is needed to account for the different units used in
   // JHUGen compared to the MCFM
   int GeVexponent_MEsq = 4-((int)mela_event.pDaughters.size())*2;
@@ -3547,11 +3606,11 @@ double TUtil::HJJMatEl(
   double msq_tmp=0; // For "*_exact"
 
   if (matrixElement!=TVar::JHUGen){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Non-JHUGen MEs are not supported" << endl; return sum_msqjk; }
-  if (!(production==TVar::JJGG || production==TVar::JJVBF || production==TVar::JH)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
+  if (!(production==TVar::JJQCD || production==TVar::JJVBF || production==TVar::JQCD)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::HJJMatEl: Production is not supported!" << endl; return sum_msqjk; }
 
   // Notice that partIncCode is specific for this subroutine
   int nRequested_AssociatedJets=2;
-  if (production == TVar::JH) nRequested_AssociatedJets=1;
+  if (production == TVar::JQCD) nRequested_AssociatedJets=1;
   int partIncCode=TVar::kUseAssociated_Jets; // Only use associated partons in the pT=0 frame boost
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
@@ -3637,6 +3696,8 @@ double TUtil::HJJMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::HJJMatEl: Set AlphaS:\n"
@@ -3645,25 +3706,29 @@ double TUtil::HJJMatEl(
       << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
 
-  // NOTE ON CHANNEL HASHES:
+  // Since we have a lot of these checks, do them here.
+  bool partonIsUnknown[4];
+  for (unsigned int ip=0; ip<4; ip++) partonIsUnknown[ip] = (MYIDUP_tmp[ip]==0);
+
+  // NOTE ON HJ AND HJJ CHANNEL HASHES:
   // THEY ONLY RETURN ISEL>=JSEL CASES. ISEL<JSEL NEEDS TO BE DONE MANUALLY.
-  if (production == TVar::JH){ // Computation is already for all possible qqb/qg/qbg/gg, and incoming q, qb and g flavor have 1-1 correspondence to the outgoing jet flavor.
+  if (production == TVar::JQCD){ // Computation is already for all possible qqb/qg/qbg/gg, and incoming q, qb and g flavor have 1-1 correspondence to the outgoing jet flavor.
     __modhiggsj_MOD_evalamp_hj(pOneJet, MatElsq_tmp);
     for (int isel=-5; isel<=5; isel++){
-      if (MYIDUP_tmp[0]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel)) continue;
+      if (!partonIsUnknown[0] && !((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel)) continue;
       for (int jsel=-5; jsel<=5; jsel++){
-        if (MYIDUP_tmp[1]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel)) continue;
+        if (!partonIsUnknown[1] && !((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel)) continue;
         int rsel;
         if (isel!=0 && jsel!=0) rsel=0; // Covers qqb->Hg
         else if (isel==0) rsel=jsel; // Covers gg->Hg, gq->Hq, gqb->Hqb
         else rsel=isel; // Covers qg->Hq, qbg->Hqb
-        if (MYIDUP_tmp[2]!=0 && !((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel)) continue;
+        if (!partonIsUnknown[2] && !((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel)) continue;
         MatElsq[jsel+5][isel+5] = MatElsq_tmp[jsel+5][isel+5]; // Assign only those that match gen. info, if present at all.
         if (verbosity >= TVar::DEBUG) cout << "Channel (isel, jsel)=" << isel << ", " << jsel << endl;
       }
     }
   }
-  else if (production==TVar::JJGG){
+  else if (production==TVar::JJQCD){
     int ijsel[3][121];
     int nijchannels=77;
     __modhiggsjj_MOD_get_hjjchannelhash_nosplit(ijsel, &nijchannels);
@@ -3679,10 +3744,11 @@ double TUtil::HJJMatEl(
       if (verbosity >= TVar::DEBUG_VERBOSE) cout << "HJJ mother unswapped case" << endl;
       int rsel=isel;
       int ssel=jsel;
+
       if (
-        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        (partonIsUnknown[0] || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
         &&
-        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        (partonIsUnknown[1] || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
         ){ // Do it this way to be able to swap isel and jsel later
 
         if (isel==0 && jsel==0){ // gg->?
@@ -3690,32 +3756,31 @@ double TUtil::HJJMatEl(
             // Only compute u-ub. The amplitude is multiplied by nf=5
             rsel=1;
             ssel=-1;
-            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
             if (
-              (MYIDUP_tmp[2]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0))
+              (partonIsUnknown[2] || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0))
               &&
-              (MYIDUP_tmp[3]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
+              (partonIsUnknown[3] || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
-              (MYIDUP_tmp[2]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
+              (partonIsUnknown[2] || (PDGHelpers::isAQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
               &&
-              (MYIDUP_tmp[3]==0 || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
+              (partonIsUnknown[3] || (PDGHelpers::isAQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
           else{ // gg->gg
             // rsel=ssel=g already
             if (
-              (MYIDUP_tmp[2]==0 || (PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0))
+              (partonIsUnknown[2] || (PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0))
               &&
-              (MYIDUP_tmp[3]==0 || (PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0))
+              (partonIsUnknown[3] || (PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
               MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
@@ -3724,33 +3789,32 @@ double TUtil::HJJMatEl(
           }
         }
         else if (isel==0 || jsel==0){ // qg/qbg/gq/gqb->qg/qbg/gq/gqb
-          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
           if (
-            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
+            (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
             &&
-            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
+            (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
-            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
+            (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
             &&
-            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
+            (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
         else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
           if (code==1 && isel==-jsel){ // qqb/qbq->gg
             rsel=0; ssel=0;
             if (
-              (MYIDUP_tmp[2]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[2]))
+              (partonIsUnknown[2] || PDGHelpers::isAGluon(MYIDUP_tmp[2]))
               &&
-              (MYIDUP_tmp[3]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
+              (partonIsUnknown[3] || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
               MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
@@ -3761,115 +3825,112 @@ double TUtil::HJJMatEl(
             if (abs(isel)!=1){ rsel=1; ssel=-1; } // Make sure rsel, ssel are not of same flavor as isel, jsel
             else{ rsel=2; ssel=-2; }
             // The amplitude is aready multiplied by nf-1, so no need to calculate everything (nf-1) times.
-            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
           else{ // qQb/qbQ->qQb/qbQ
-            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
         }
         else{
-          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
           if (
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
             &&
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
       } // End unswapped isel>=jsel cases
+
       if (isel==jsel) continue;
       isel = ijsel[1][ic];
       jsel = ijsel[0][ic];
 
       if (verbosity >= TVar::DEBUG_VERBOSE) cout << "HJJ mother swapped case" << endl;
-
       // Reset to default assignments
       rsel=isel;
       ssel=jsel;
+
       if (
-        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        (partonIsUnknown[0] || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
         &&
-        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        (partonIsUnknown[1] || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
         ){
         // isel==jsel==0 is already eliminated by isel!=jsel condition
         if (isel==0 || jsel==0){ // qg/qbg/gq/gqb->qg/qbg/gq/gqb
-          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
           if (
-            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
+            (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && rsel==0) || MYIDUP_tmp[2]==rsel))
             &&
-            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
+            (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && ssel==0) || MYIDUP_tmp[3]==ssel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
-            (MYIDUP_tmp[2]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
+            (partonIsUnknown[2] || ((PDGHelpers::isAGluon(MYIDUP_tmp[2]) && ssel==0) || MYIDUP_tmp[2]==ssel))
             &&
-            (MYIDUP_tmp[3]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
+            (partonIsUnknown[3] || ((PDGHelpers::isAGluon(MYIDUP_tmp[3]) && rsel==0) || MYIDUP_tmp[3]==rsel))
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
         else if ((isel>0 && jsel<0) || (isel<0 && jsel>0)){ // qQb/qbQ->?
           if (code==1 && isel==-jsel){ // qqb/qbq->gg
             rsel=0; ssel=0;
             if (
-              (MYIDUP_tmp[2]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[2]))
+              (partonIsUnknown[2] || PDGHelpers::isAGluon(MYIDUP_tmp[2]))
               &&
-              (MYIDUP_tmp[3]==0 || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
+              (partonIsUnknown[3] || PDGHelpers::isAGluon(MYIDUP_tmp[3]))
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
               MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
@@ -3880,76 +3941,72 @@ double TUtil::HJJMatEl(
             if (abs(isel)!=1){ rsel=1; ssel=-1; } // Make sure rsel, ssel are not of same flavor as isel, jsel
             else{ rsel=2; ssel=-2; }
             // The amplitude is aready multiplied by nf-1, so no need to calculate everything (nf-1) times.
-            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
           else{ // qQb/qbQ->qQb/qbQ
-            double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0) avgfac=0.5;
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
             if (
-              (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+              (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
               &&
-              (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+              (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
               ){
               __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+              MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+              if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
             }
           }
         }
         else{
-          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
           if (
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
             &&
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
             ){
             __modhiggsjj_MOD_evalamp_sbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
         }
       } // End swapped isel<jsel cases
     } // End loop over ic<nijchannels
-  } // End production==TVar::JJGG
+  } // End production==TVar::JJQCD
   else if (production==TVar::JJVBF){
-    // NEW COMPUTATION
     int isel, jsel, rsel, ssel;
     /*
     1234/1243 [0] vs [1] correspond to transposing 12 and 34 at the same time.
@@ -3959,6 +4016,7 @@ double TUtil::HJJMatEl(
     1234[1] : 2=u, 1=dbar, 4=u, 3=dbar
     1243[1] : 2=u, 1=dbar, 3=u, 4=dbar
     */
+    double ckm_takeout=1;
     double msq_uu_zz_ijrs1234[2]={ 0 };
     double msq_uu_zz_ijrs1243[2]={ 0 };
     double msq_dd_zz_ijrs1234[2]={ 0 };
@@ -3995,145 +4053,204 @@ double TUtil::HJJMatEl(
     double msq_ubardbar_wwonly_ijrs1243[2]={ 0 };
     // ud, ubardbar ZZ(+)WW case to be added separately inside a loop.
     
-    // NOTE: isel>=jsel is important for later on, when there is a loop over ijsel. ijsel[0]>=ijsel[1] except ubar-dbar.
-    isel=4; jsel=2; // uu'->(ZZ)->uu'
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uu_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uu_zz_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_uu_zz_ijrs1234[1] = msq_uu_zz_ijrs1234[0];
-    msq_uu_zz_ijrs1243[1] = msq_uu_zz_ijrs1243[0];
+    // NOTE: The order should be u>c>d>s>b; particle>antiparticle
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      ){
+      isel=2; jsel=4; // uu'->(ZZ)->uu'
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uu_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uu_zz_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_uu_zz_ijrs1234[1] = msq_uu_zz_ijrs1234[0];
+      msq_uu_zz_ijrs1243[1] = msq_uu_zz_ijrs1243[0];
 
-    isel=2; jsel=2; // uu->(ZZ)->uu
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uu_zzid_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uu_zzid_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_uu_zzid_ijrs1234[1] = msq_uu_zzid_ijrs1234[0];
-    msq_uu_zzid_ijrs1243[1] = msq_uu_zzid_ijrs1243[0];
-
-    isel=3; jsel=1; // dd'->(ZZ)->dd'
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dd_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dd_zz_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_dd_zz_ijrs1234[1] = msq_dd_zz_ijrs1234[0];
-    msq_dd_zz_ijrs1243[1] = msq_dd_zz_ijrs1243[0];
-
-    isel=1; jsel=1; // dd->(ZZ)->dd
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dd_zzid_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dd_zzid_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_dd_zzid_ijrs1234[1] = msq_dd_zzid_ijrs1234[0];
-    msq_dd_zzid_ijrs1243[1] = msq_dd_zzid_ijrs1243[0];
-
-    isel=-2; jsel=-4; // ubarubar'->(ZZ)->ubarubar'
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubarubar_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubarubar_zz_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_ubarubar_zz_ijrs1234[1] = msq_ubarubar_zz_ijrs1234[0];
-    msq_ubarubar_zz_ijrs1243[1] = msq_ubarubar_zz_ijrs1243[0];
-
-    isel=-2; jsel=-2; // ubarubar->(ZZ)->ubarubar
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubarubar_zzid_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubarubar_zzid_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_ubarubar_zzid_ijrs1234[1] = msq_ubarubar_zzid_ijrs1234[0];
-    msq_ubarubar_zzid_ijrs1243[1] = msq_ubarubar_zzid_ijrs1243[0];
-
-    isel=-1; jsel=-3; // dbardbar'->(ZZ)->dbardbar'
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dbardbar_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dbardbar_zz_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_dbardbar_zz_ijrs1234[1] = msq_dbardbar_zz_ijrs1234[0];
-    msq_dbardbar_zz_ijrs1243[1] = msq_dbardbar_zz_ijrs1243[0];
-
-    isel=-1; jsel=-1; // dbardbar->(ZZ)->dbardbar
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dbardbar_zzid_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dbardbar_zzid_ijrs1243[0]));
-    // Swapping i/j vs r/s makes no physical difference here.
-    msq_dbardbar_zzid_ijrs1234[1] = msq_dbardbar_zzid_ijrs1234[0];
-    msq_dbardbar_zzid_ijrs1243[1] = msq_dbardbar_zzid_ijrs1243[0];
-
-    isel=2; jsel=-1; // udbar->(ZZ)->udbar
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_udbar_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_udbar_zz_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_udbar_zz_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_udbar_zz_ijrs1243[1]));
-
-    isel=1; jsel=-2; // dubar->(ZZ)->dubar
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dubar_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dubar_zz_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_dubar_zz_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_dubar_zz_ijrs1243[1]));
-
-    isel=2; jsel=-2; // uubar->(ZZ)->uubar
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_zz_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_zz_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_zz_ijrs1243[1]));
-
-    isel=1; jsel=-1; // ddbar->(ZZ)->ddbar
-    rsel=isel; ssel=jsel;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1243[1]));
-
-    isel=2; jsel=-2; // uubar->(WW)->ddbar
-    rsel=1; ssel=-1;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_ww_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_ww_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_ww_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_ww_ijrs1243[1]));
-    for (unsigned int iswap=0; iswap<2; iswap++){
-      double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      msq_uubar_ww_ijrs1234[iswap] /= ckm_takeout;
-      msq_uubar_ww_ijrs1243[iswap] /= ckm_takeout;
+      isel=2; jsel=2; // uu->(ZZ)->uu
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uu_zzid_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uu_zzid_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_uu_zzid_ijrs1234[1] = msq_uu_zzid_ijrs1234[0];
+      msq_uu_zzid_ijrs1243[1] = msq_uu_zzid_ijrs1243[0];
     }
 
-    isel=1; jsel=-1; // ddbar->(WW)->uubar
-    rsel=2; ssel=-2;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1243[1]));
-    for (unsigned int iswap=0; iswap<2; iswap++){
-      double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      msq_ddbar_ww_ijrs1234[iswap] /= ckm_takeout;
-      msq_ddbar_ww_ijrs1243[iswap] /= ckm_takeout;
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      ){
+      isel=1; jsel=3; // dd'->(ZZ)->dd'
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dd_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dd_zz_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_dd_zz_ijrs1234[1] = msq_dd_zz_ijrs1234[0];
+      msq_dd_zz_ijrs1243[1] = msq_dd_zz_ijrs1243[0];
+
+      isel=1; jsel=1; // dd->(ZZ)->dd
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dd_zzid_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dd_zzid_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_dd_zzid_ijrs1234[1] = msq_dd_zzid_ijrs1234[0];
+      msq_dd_zzid_ijrs1243[1] = msq_dd_zzid_ijrs1243[0];
     }
 
-    isel=2; jsel=1; // ud->(WW)->d'u'
-    rsel=3; ssel=4;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1243[1]));
-    for (unsigned int iswap=0; iswap<2; iswap++){
-      double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      msq_ud_wwonly_ijrs1234[iswap] /= ckm_takeout;
-      msq_ud_wwonly_ijrs1243[iswap] /= ckm_takeout;
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      ){
+      isel=-2; jsel=-4; // ubarubar'->(ZZ)->ubarubar'
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubarubar_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubarubar_zz_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_ubarubar_zz_ijrs1234[1] = msq_ubarubar_zz_ijrs1234[0];
+      msq_ubarubar_zz_ijrs1243[1] = msq_ubarubar_zz_ijrs1243[0];
+
+      isel=-2; jsel=-2; // ubarubar->(ZZ)->ubarubar
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubarubar_zzid_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubarubar_zzid_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_ubarubar_zzid_ijrs1234[1] = msq_ubarubar_zzid_ijrs1234[0];
+      msq_ubarubar_zzid_ijrs1243[1] = msq_ubarubar_zzid_ijrs1243[0];
     }
 
-    isel=-2; jsel=-1; // ubardbar->(WW)->dbar'ubar'
-    rsel=-3; ssel=-4;
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1234[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1243[0]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1234[1]));
-    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1243[1]));
-    for (unsigned int iswap=0; iswap<2; iswap++){
-      double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      msq_ubardbar_wwonly_ijrs1234[iswap] /= ckm_takeout;
-      msq_ubardbar_wwonly_ijrs1243[iswap] /= ckm_takeout;
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      ){
+      isel=-1; jsel=-3; // dbardbar'->(ZZ)->dbardbar'
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dbardbar_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dbardbar_zz_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_dbardbar_zz_ijrs1234[1] = msq_dbardbar_zz_ijrs1234[0];
+      msq_dbardbar_zz_ijrs1243[1] = msq_dbardbar_zz_ijrs1243[0];
+
+      isel=-1; jsel=-1; // dbardbar->(ZZ)->dbardbar
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dbardbar_zzid_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dbardbar_zzid_ijrs1243[0]));
+      // Swapping i/j vs r/s makes no physical difference here.
+      msq_dbardbar_zzid_ijrs1234[1] = msq_dbardbar_zzid_ijrs1234[0];
+      msq_dbardbar_zzid_ijrs1243[1] = msq_dbardbar_zzid_ijrs1243[0];
+    }
+
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      ){
+      isel=2; jsel=-1; // udbar->(ZZ)->udbar
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_udbar_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_udbar_zz_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_udbar_zz_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_udbar_zz_ijrs1243[1]));
+    }
+
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      ){
+      isel=1; jsel=-2; // dubar->(ZZ)->dubar
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_dubar_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_dubar_zz_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_dubar_zz_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_dubar_zz_ijrs1243[1]));
+    }
+
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      ){
+      isel=2; jsel=-2; // uubar->(ZZ)->uubar
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_zz_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_zz_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_zz_ijrs1243[1]));
+
+      rsel=1; ssel=-1; // uubar->(WW)->ddbar
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_ww_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_ww_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_ww_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_ww_ijrs1243[1]));
+      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+      for (unsigned int iswap=0; iswap<2; iswap++){
+        msq_uubar_ww_ijrs1234[iswap] /= ckm_takeout;
+        msq_uubar_ww_ijrs1243[iswap] /= ckm_takeout;
+      }
+    }
+
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      ){
+      isel=1; jsel=-1; // ddbar->(ZZ)->ddbar
+      rsel=isel; ssel=jsel;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1243[1]));
+
+      isel=1; jsel=-1; // ddbar->(WW)->uubar
+      rsel=2; ssel=-2;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1243[1]));
+      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+      for (unsigned int iswap=0; iswap<2; iswap++){
+        msq_ddbar_ww_ijrs1234[iswap] /= ckm_takeout;
+        msq_ddbar_ww_ijrs1243[iswap] /= ckm_takeout;
+      }
+    }
+
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      ){
+      isel=2; jsel=1; // ud->(WW)->d'u'
+      rsel=3; ssel=4;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1243[1]));
+      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+      for (unsigned int iswap=0; iswap<2; iswap++){
+        msq_ud_wwonly_ijrs1234[iswap] /= ckm_takeout;
+        msq_ud_wwonly_ijrs1243[iswap] /= ckm_takeout;
+      }
+    }
+
+    if (
+      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      &&
+      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      ){
+      isel=-2; jsel=-1; // ubardbar->(WW)->dbar'ubar'
+      rsel=-3; ssel=-4;
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1234[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1243[0]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1234[1]));
+      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1243[1]));
+      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+      for (unsigned int iswap=0; iswap<2; iswap++){
+        msq_ubardbar_wwonly_ijrs1234[iswap] /= ckm_takeout;
+        msq_ubardbar_wwonly_ijrs1243[iswap] /= ckm_takeout;
+      }
     }
 
     int ijsel[3][121];
@@ -4146,161 +4263,153 @@ double TUtil::HJJMatEl(
       isel = ijsel[0][ic];
       jsel = ijsel[1][ic];
       int code = ijsel[2][ic];
+      bool ijselIsUpType[2];
+      bool ijselIsDownType[2];
+      bool ijselIsParticle[2];
+      bool ijselIsAntiparticle[2];
 
       if (verbosity >= TVar::DEBUG_VERBOSE) cout << "VBF channel " << ic << " code " << code << endl;
 
       // Default assignments
       if (verbosity >= TVar::DEBUG_VERBOSE) cout << "VBF mother unswapped case" << endl;
+      // Set r=i, s=j default values
       rsel=isel;
       ssel=jsel;
+      // Set i-j bools
+      ijselIsUpType[0] = (PDGHelpers::isUpTypeQuark(isel));
+      ijselIsUpType[1] = (PDGHelpers::isUpTypeQuark(jsel));
+      ijselIsDownType[0] = (PDGHelpers::isDownTypeQuark(isel));
+      ijselIsDownType[1] = (PDGHelpers::isDownTypeQuark(jsel));
+      ijselIsParticle[0] = (isel>0); ijselIsAntiparticle[0] = (isel<0);
+      ijselIsParticle[1] = (jsel>0); ijselIsAntiparticle[1] = (jsel<0);
+
       if (
-        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        (partonIsUnknown[0] || MYIDUP_tmp[0]==isel)
         &&
-        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        (partonIsUnknown[1] || MYIDUP_tmp[1]==jsel)
         ){ // Do it this way to be able to swap isel and jsel later
         if (code==1){ // Only ZZ->H possible
           // rsel=isel and ssel=jsel already
-          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
           if (
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
             ){
             msq_tmp=0;
-            if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isUpTypeQuark(jsel)){
-              if (isel>0 && jsel>0){
+            if (ijselIsUpType[0] && ijselIsUpType[1]){
+              if (ijselIsParticle[0] && ijselIsParticle[1]){
                 if (isel!=jsel) msq_tmp = msq_uu_zz_ijrs1234[0];
                 else msq_tmp = msq_uu_zzid_ijrs1234[0];
               }
-              else if (isel<0 && jsel<0){
+              else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]){
                 if (isel!=jsel) msq_tmp = msq_ubarubar_zz_ijrs1234[0];
                 else msq_tmp = msq_ubarubar_zzid_ijrs1234[0];
               }
-              else if (isel>0 && jsel<0) msq_tmp = msq_uubar_zz_ijrs1234[0];
+              else if (ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_uubar_zz_ijrs1234[0];
             }
-            else if (PDGHelpers::isDownTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel)){
-              if (isel>0 && jsel>0){
+            else if (ijselIsDownType[0] && ijselIsDownType[1]){
+              if (ijselIsParticle[0] && ijselIsParticle[1]){
                 if (isel!=jsel) msq_tmp = msq_dd_zz_ijrs1234[0];
                 else msq_tmp = msq_dd_zzid_ijrs1234[0];
               }
-              else if (isel<0 && jsel<0){
+              else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]){
                 if (isel!=jsel) msq_tmp = msq_dbardbar_zz_ijrs1234[0];
                 else msq_tmp = msq_dbardbar_zzid_ijrs1234[0];
               }
-              else if (isel>0 && jsel<0) msq_tmp = msq_ddbar_zz_ijrs1234[0];
+              else if (ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ddbar_zz_ijrs1234[0];
             }
-            else if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_udbar_zz_ijrs1234[0];
-            else if (PDGHelpers::isDownTypeQuark(isel) && PDGHelpers::isUpTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_dubar_zz_ijrs1234[0];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            if (verbosity>=TVar::DEBUG_MECHECK){
-              __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              cout << "OLD: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            }
+            else if (ijselIsUpType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_udbar_zz_ijrs1234[0];
+            else if (ijselIsDownType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_dubar_zz_ijrs1234[0];
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
             &&
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
             ){
             msq_tmp=0;
-            if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isUpTypeQuark(jsel)){
-              if (isel>0 && jsel>0){
+            if (ijselIsUpType[0] && ijselIsUpType[1]){
+              if (ijselIsParticle[0] && ijselIsParticle[1]){
                 if (isel!=jsel) msq_tmp = msq_uu_zz_ijrs1243[0];
                 else msq_tmp = msq_uu_zzid_ijrs1243[0];
               }
-              else if (isel<0 && jsel<0){
+              else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]){
                 if (isel!=jsel) msq_tmp = msq_ubarubar_zz_ijrs1243[0];
                 else msq_tmp = msq_ubarubar_zzid_ijrs1243[0];
               }
-              else if (isel>0 && jsel<0) msq_tmp = msq_uubar_zz_ijrs1243[0];
+              else if (ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_uubar_zz_ijrs1243[0];
             }
-            else if (PDGHelpers::isDownTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel)){
-              if (isel>0 && jsel>0){
+            else if (ijselIsDownType[0] && ijselIsDownType[1]){
+              if (ijselIsParticle[0] && ijselIsParticle[1]){
                 if (isel!=jsel) msq_tmp = msq_dd_zz_ijrs1243[0];
                 else msq_tmp = msq_dd_zzid_ijrs1243[0];
               }
-              else if (isel<0 && jsel<0){
+              else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]){
                 if (isel!=jsel) msq_tmp = msq_dbardbar_zz_ijrs1243[0];
                 else msq_tmp = msq_dbardbar_zzid_ijrs1243[0];
               }
-              else if (isel>0 && jsel<0) msq_tmp = msq_ddbar_zz_ijrs1243[0];
+              else if (ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ddbar_zz_ijrs1243[0];
             }
-            else if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_udbar_zz_ijrs1243[0];
-            else if (PDGHelpers::isDownTypeQuark(isel) && PDGHelpers::isUpTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_dubar_zz_ijrs1243[0];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            if (verbosity>=TVar::DEBUG_MECHECK){
-              __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              cout << "OLD: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            }
+            else if (ijselIsUpType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_udbar_zz_ijrs1243[0];
+            else if (ijselIsDownType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_dubar_zz_ijrs1243[0];
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
           }
         }
         else if (code==0){ // code==0 means WW->H is also possible with no interference to ZZ->H, for example u ub -> d db.
           vector<int> possible_rsel;
           vector<int> possible_ssel;
-          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
-          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
-
-          double msqtmp=0;
-          double msqtmp_swap=0;
-          if (verbosity>=TVar::DEBUG_MECHECK){
-            // Compute MEs for a single combination and take the CKM matrix out
-            rsel=possible_rsel.at(0)*TMath::Sign(1, isel); // Always possible
-            ssel=possible_ssel.at(0)*TMath::Sign(1, jsel); // Always possible
-            double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2)*pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-            // 0-2 + 1-3
-            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msqtmp);
-            msqtmp /= ckm_takeout;
-            // 0-3 + 1-2
-            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msqtmp_swap);
-            msqtmp_swap /= ckm_takeout;
+          vector<double> possible_Vsqir;
+          vector<double> possible_Vsqjs;
+          if (ijselIsUpType[0]){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix);
+            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            possible_Vsqir.push_back(ckmval);
+          }
+          if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+            ssel=possible_ssel.at(iy);
+            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            possible_Vsqjs.push_back(ckmval);
           }
 
           // Combine the ME and ME_swap based on actual ids
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
-              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
-              double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
                 ){
                 msq_tmp=0;
-                if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isUpTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_uubar_ww_ijrs1234[0];
-                else if (PDGHelpers::isDownTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_ddbar_ww_ijrs1234[0];
+                if (ijselIsUpType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_uubar_ww_ijrs1234[0];
+                else if (ijselIsDownType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ddbar_ww_ijrs1234[0];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                if (verbosity>=TVar::DEBUG_MECHECK){
-                  msq_tmp = msqtmp * ckmval;
-                  cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                }
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
               }
               if (
                 rsel!=ssel
                 &&
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
                 ){
                 msq_tmp=0;
-                if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isUpTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_uubar_ww_ijrs1243[0];
-                else if (PDGHelpers::isDownTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel) && isel>0 && jsel<0) msq_tmp = msq_ddbar_ww_ijrs1243[0];
+                if (ijselIsUpType[0] && ijselIsUpType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_uubar_ww_ijrs1243[0];
+                else if (ijselIsDownType[0] && ijselIsDownType[1] && ijselIsParticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ddbar_ww_ijrs1243[0];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                if (verbosity>=TVar::DEBUG_MECHECK){
-                  msq_tmp = msqtmp_swap * ckmval;
-                  cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                }
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
               }
             }
           }
@@ -4308,229 +4417,223 @@ double TUtil::HJJMatEl(
         else{ // code==2 means states with WW/ZZ interference allowed, for example u1 d2 -> u3 d4 + d4 u3.
           vector<int> possible_rsel;
           vector<int> possible_ssel;
-          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
-          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          vector<double> possible_Vsqir;
+          vector<double> possible_Vsqjs;
+          if (ijselIsUpType[0]){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix);
+            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            possible_Vsqir.push_back(ckmval);
+          }
+          if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+            ssel=possible_ssel.at(iy);
+            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            possible_Vsqjs.push_back(ckmval);
+          }
+
           // Loop over all possible combinations to get interference correct
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
-              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
                 ){
                 if (rsel!=jsel && ssel!=isel){
                   msq_tmp=0;
-                  if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel)){
-                    if (isel>0 && jsel>0) msq_tmp = msq_ud_wwonly_ijrs1234[0];
-                    else if (isel<0 && jsel<0) msq_tmp = msq_ubardbar_wwonly_ijrs1234[0];
+                  if (ijselIsUpType[0] && ijselIsDownType[1]){
+                    if (ijselIsParticle[0] && ijselIsParticle[1]) msq_tmp = msq_ud_wwonly_ijrs1234[0];
+                    else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ubardbar_wwonly_ijrs1234[0];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  if (verbosity>=TVar::DEBUG_MECHECK){
-                    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                    cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  }
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
               }
               if (
                 rsel!=ssel
                 &&
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
                 ){
                 if (rsel!=jsel && ssel!=isel){
                   msq_tmp=0;
-                  if (PDGHelpers::isUpTypeQuark(isel) && PDGHelpers::isDownTypeQuark(jsel)){
-                    if (isel>0 && jsel>0) msq_tmp = msq_ud_wwonly_ijrs1243[0];
-                    else if (isel<0 && jsel<0) msq_tmp = msq_ubardbar_wwonly_ijrs1243[0];
+                  if (ijselIsUpType[0] && ijselIsDownType[1]){
+                    if (ijselIsParticle[0] && ijselIsParticle[1]) msq_tmp = msq_ud_wwonly_ijrs1243[0];
+                    else if (ijselIsAntiparticle[0] && ijselIsAntiparticle[1]) msq_tmp = msq_ubardbar_wwonly_ijrs1243[0];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  if (verbosity>=TVar::DEBUG_MECHECK){
-                    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                    cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  }
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
               }
             }
           }
         }
       } // End unswapped isel>=jsel cases
+
       if (isel==jsel) continue;
       isel = ijsel[1][ic];
       jsel = ijsel[0][ic];
+
       // Reset to default assignments
       if (verbosity >= TVar::DEBUG_VERBOSE) cout << "VBF mother swapped case" << endl;
+      // Set r=i, s=j default values
       rsel=isel;
       ssel=jsel;
+      // Set i-j bools
+      ijselIsUpType[0] = (PDGHelpers::isUpTypeQuark(isel));
+      ijselIsUpType[1] = (PDGHelpers::isUpTypeQuark(jsel));
+      ijselIsDownType[0] = (PDGHelpers::isDownTypeQuark(isel));
+      ijselIsDownType[1] = (PDGHelpers::isDownTypeQuark(jsel));
+      ijselIsParticle[0] = (isel>0); ijselIsAntiparticle[0] = (isel<0);
+      ijselIsParticle[1] = (jsel>0); ijselIsAntiparticle[1] = (jsel<0);
+
       if (
-        (MYIDUP_tmp[0]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
+        (partonIsUnknown[0] || ((PDGHelpers::isAGluon(MYIDUP_tmp[0]) && isel==0) || MYIDUP_tmp[0]==isel))
         &&
-        (MYIDUP_tmp[1]==0 || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
+        (partonIsUnknown[1] || ((PDGHelpers::isAGluon(MYIDUP_tmp[1]) && jsel==0) || MYIDUP_tmp[1]==jsel))
         ){
         // isel==jsel==0 is already eliminated by isel!=jsel condition
         if (code==1){ // Only ZZ->H possible
           // rsel=isel and ssel=jsel already
-          double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
           if (
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
             ){
             msq_tmp=0;
-            if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isUpTypeQuark(isel)){
-              if (jsel>0 && isel>0){
+            if (ijselIsUpType[1] && ijselIsUpType[0]){
+              if (ijselIsParticle[1] && ijselIsParticle[0]){
                 if (isel!=jsel) msq_tmp = msq_uu_zz_ijrs1234[1];
                 else msq_tmp = msq_uu_zzid_ijrs1234[1];
               }
-              else if (jsel<0 && isel<0){
+              else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]){
                 if (isel!=jsel) msq_tmp = msq_ubarubar_zz_ijrs1234[1];
                 else msq_tmp = msq_ubarubar_zzid_ijrs1234[1];
               }
-              else if (jsel>0 && isel<0) msq_tmp = msq_uubar_zz_ijrs1234[1];
+              else if (ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_uubar_zz_ijrs1234[1];
             }
-            else if (PDGHelpers::isDownTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel)){
-              if (jsel>0 && isel>0){
+            else if (ijselIsDownType[1] && ijselIsDownType[0]){
+              if (ijselIsParticle[1] && ijselIsParticle[0]){
                 if (isel!=jsel) msq_tmp = msq_dd_zz_ijrs1234[1];
                 else msq_tmp = msq_dd_zzid_ijrs1234[1];
               }
-              else if (jsel<0 && isel<0){
+              else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]){
                 if (isel!=jsel) msq_tmp = msq_dbardbar_zz_ijrs1234[1];
                 else msq_tmp = msq_dbardbar_zzid_ijrs1234[1];
               }
-              else if (jsel>0 && isel<0) msq_tmp = msq_ddbar_zz_ijrs1234[1];
+              else if (ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ddbar_zz_ijrs1234[1];
             }
-            else if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_udbar_zz_ijrs1234[1];
-            else if (PDGHelpers::isDownTypeQuark(jsel) && PDGHelpers::isUpTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_dubar_zz_ijrs1234[1];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            if (verbosity>=TVar::DEBUG_MECHECK){
-              __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-              cout << "OLD: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            }
+            else if (ijselIsUpType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_udbar_zz_ijrs1234[1];
+            else if (ijselIsDownType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_dubar_zz_ijrs1234[1];
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
           }
           if (
             rsel!=ssel
             &&
-            (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+            (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
             &&
-            (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+            (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
             ){
             msq_tmp=0;
-            if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isUpTypeQuark(isel)){
-              if (jsel>0 && isel>0){
+            if (ijselIsUpType[1] && ijselIsUpType[0]){
+              if (ijselIsParticle[1] && ijselIsParticle[0]){
                 if (isel!=jsel) msq_tmp = msq_uu_zz_ijrs1243[1];
                 else msq_tmp = msq_uu_zzid_ijrs1243[1];
               }
-              else if (jsel<0 && isel<0){
+              else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]){
                 if (isel!=jsel) msq_tmp = msq_ubarubar_zz_ijrs1243[1];
                 else msq_tmp = msq_ubarubar_zzid_ijrs1243[1];
               }
-              else if (jsel>0 && isel<0) msq_tmp = msq_uubar_zz_ijrs1243[1];
+              else if (ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_uubar_zz_ijrs1243[1];
             }
-            else if (PDGHelpers::isDownTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel)){
-              if (jsel>0 && isel>0){
+            else if (ijselIsDownType[1] && ijselIsDownType[0]){
+              if (ijselIsParticle[1] && ijselIsParticle[0]){
                 if (isel!=jsel) msq_tmp = msq_dd_zz_ijrs1243[1];
                 else msq_tmp = msq_dd_zzid_ijrs1243[1];
               }
-              else if (jsel<0 && isel<0){
+              else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]){
                 if (isel!=jsel) msq_tmp = msq_dbardbar_zz_ijrs1243[1];
                 else msq_tmp = msq_dbardbar_zzid_ijrs1243[1];
               }
-              else if (jsel>0 && isel<0) msq_tmp = msq_ddbar_zz_ijrs1243[1];
+              else if (ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ddbar_zz_ijrs1243[1];
             }
-            else if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_udbar_zz_ijrs1243[1];
-            else if (PDGHelpers::isDownTypeQuark(jsel) && PDGHelpers::isUpTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_dubar_zz_ijrs1243[1];
-            MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            if (verbosity>=TVar::DEBUG_MECHECK){
-              __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-              cout << "OLD: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-            }
+            else if (ijselIsUpType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_udbar_zz_ijrs1243[1];
+            else if (ijselIsDownType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_dubar_zz_ijrs1243[1];
+            MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+            if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
           }
         }
         else if (code==0){ // code==0 means WW->H is also possible with no interference to ZZ->H, for example u ub -> d db.
           vector<int> possible_rsel;
           vector<int> possible_ssel;
-          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
-          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
-
-          double msqtmp=0;
-          double msqtmp_swap=0;
-          if (verbosity>=TVar::DEBUG_MECHECK){
-            // Compute MEs for a single combination and take the CKM matrix out
-            rsel=possible_rsel.at(0)*TMath::Sign(1, isel); // Always possible
-            ssel=possible_ssel.at(0)*TMath::Sign(1, jsel); // Always possible
-            double ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2)*pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-            // 0-2 + 1-3
-            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msqtmp);
-            msqtmp /= ckm_takeout;
-            // 0-3 + 1-2
-            __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msqtmp_swap);
-            msqtmp_swap /= ckm_takeout;
+          vector<double> possible_Vsqir;
+          vector<double> possible_Vsqjs;
+          if (ijselIsUpType[0]){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix);
+            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            possible_Vsqir.push_back(ckmval);
+          }
+          if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+            ssel=possible_ssel.at(iy);
+            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            possible_Vsqjs.push_back(ckmval);
           }
 
           // Combine the ME and ME_swap based on actual ids
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
-              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
-              double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
                 ){
                 msq_tmp=0;
-                if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isUpTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_uubar_ww_ijrs1234[1];
-                else if (PDGHelpers::isDownTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_ddbar_ww_ijrs1234[1];
+                if (ijselIsUpType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_uubar_ww_ijrs1234[1];
+                else if (ijselIsDownType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ddbar_ww_ijrs1234[1];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                if (verbosity>=TVar::DEBUG_MECHECK){
-                  msq_tmp = msqtmp * ckmval;
-                  cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                }
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
               }
               if (
                 rsel!=ssel
                 &&
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
                 ){
                 msq_tmp=0;
-                if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isUpTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_uubar_ww_ijrs1243[1];
-                else if (PDGHelpers::isDownTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel) && jsel>0 && isel<0) msq_tmp = msq_ddbar_ww_ijrs1243[1];
+                if (ijselIsUpType[1] && ijselIsUpType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_uubar_ww_ijrs1243[1];
+                else if (ijselIsDownType[1] && ijselIsDownType[0] && ijselIsParticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ddbar_ww_ijrs1243[1];
                 msq_tmp *= ckmval;
-                MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                if (verbosity>=TVar::DEBUG_MECHECK){
-                  msq_tmp = msqtmp_swap * ckmval;
-                  cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                }
+                MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
               }
             }
           }
@@ -4538,67 +4641,71 @@ double TUtil::HJJMatEl(
         else{ // code==2 means states with WW/ZZ interference allowed, for example u1 d2 -> u3 d4 + d4 u3.
           vector<int> possible_rsel;
           vector<int> possible_ssel;
-          if (PDGHelpers::isUpTypeQuark(isel)){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(isel)){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
-          if (PDGHelpers::isUpTypeQuark(jsel)){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
-          else if (PDGHelpers::isDownTypeQuark(jsel)){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          vector<double> possible_Vsqir;
+          vector<double> possible_Vsqjs;
+          if (ijselIsUpType[0]){ possible_rsel.push_back(1); possible_rsel.push_back(3); possible_rsel.push_back(5); }
+          else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
+          for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix);
+            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            possible_Vsqir.push_back(ckmval);
+          }
+          if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
+          else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
+          for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
+            ssel=possible_ssel.at(iy);
+            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            possible_Vsqjs.push_back(ckmval);
+          }
+
           // Loop over all possible combinations to get interference correct
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
+            rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
             for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
-              rsel=possible_rsel.at(ix)*TMath::Sign(1, isel);
               ssel=possible_ssel.at(iy)*TMath::Sign(1, jsel);
-              double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-              double avgfac=1.; if (MYIDUP_tmp[2]==0 && MYIDUP_tmp[3]==0 && rsel!=ssel) avgfac=0.5;
+              double ckmval = possible_Vsqir.at(ix)*possible_Vsqjs.at(iy);
               if (
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==rsel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==rsel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==ssel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==ssel)
                 ){
                 if (rsel!=jsel && ssel!=isel){
                   msq_tmp=0;
-                  if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel)){
-                    if (jsel>0 && isel>0) msq_tmp = msq_ud_wwonly_ijrs1234[1];
-                    else if (jsel<0 && isel<0) msq_tmp = msq_ubardbar_wwonly_ijrs1234[1];
+                  if (ijselIsUpType[1] && ijselIsDownType[0]){
+                    if (ijselIsParticle[1] && ijselIsParticle[0]) msq_tmp = msq_ud_wwonly_ijrs1234[1];
+                    else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ubardbar_wwonly_ijrs1234[1];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  if (verbosity>=TVar::DEBUG_MECHECK){
-                    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                    cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  }
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << rsel << ", " << ssel << '\t' <<  msq_tmp << endl;
                 }
               }
               if (
                 rsel!=ssel
                 &&
-                (MYIDUP_tmp[2]==0 || MYIDUP_tmp[2]==ssel)
+                (partonIsUnknown[2] || MYIDUP_tmp[2]==ssel)
                 &&
-                (MYIDUP_tmp[3]==0 || MYIDUP_tmp[3]==rsel)
+                (partonIsUnknown[3] || MYIDUP_tmp[3]==rsel)
                 ){
                 if (rsel!=jsel && ssel!=isel){
                   msq_tmp=0;
-                  if (PDGHelpers::isUpTypeQuark(jsel) && PDGHelpers::isDownTypeQuark(isel)){
-                    if (jsel>0 && isel>0) msq_tmp = msq_ud_wwonly_ijrs1243[1];
-                    else if (jsel<0 && isel<0) msq_tmp = msq_ubardbar_wwonly_ijrs1243[1];
+                  if (ijselIsUpType[1] && ijselIsDownType[0]){
+                    if (ijselIsParticle[1] && ijselIsParticle[0]) msq_tmp = msq_ud_wwonly_ijrs1243[1];
+                    else if (ijselIsAntiparticle[1] && ijselIsAntiparticle[0]) msq_tmp = msq_ubardbar_wwonly_ijrs1243[1];
                   }
                   msq_tmp *= ckmval;
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  if (verbosity>=TVar::DEBUG_MECHECK){
-                    __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                    cout << "Old: Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
-                  }
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
                 else{
                   __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &msq_tmp);
-                  MatElsq[jsel+5][isel+5] += msq_tmp*avgfac; // Assign only those that match gen. info, if present at all.
-                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << '\t' << avgfac << endl;
+                  MatElsq[jsel+5][isel+5] += msq_tmp; // Assign only those that match gen. info, if present at all.
+                  if (verbosity >= TVar::DEBUG_VERBOSE) cout << "Channel (isel, jsel, rsel, ssel)=" << isel << ", " << jsel << ", " << ssel << ", " << rsel << '\t' <<  msq_tmp << endl;
                 }
               }
             }
@@ -4620,6 +4727,19 @@ double TUtil::HJJMatEl(
     for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[ii][jj] << '\t'; cout << endl; }
   }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
+  /*
+  if (verbosity >= TVar::ERROR && (std::isnan(sum_msqjk) || std::isinf(sum_msqjk))){
+    cout << "TUtil::HJJMatEl: FAILURE!" << endl;
+    cout << "MatElsq:\n";
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[ii][jj] << '\t'; cout << endl; }
+    double fx[2][nmsq];
+    RcdME->getPartonWeights(fx[0], fx[1]);
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < 2; jj++) cout << fx[jj][ii] << '\t'; cout << endl; }
+    for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl;
+    TUtil::PrintCandidateSummary(RcdME->melaCand);
+    cout << endl;
+  }
+  */
 
   if (verbosity>=TVar::DEBUG){
     cout
@@ -4846,6 +4966,8 @@ double TUtil::VHiggsMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::VHiggsMatEl: Set AlphaS:\n"
@@ -4853,6 +4975,10 @@ double TUtil::VHiggsMatEl(
       << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
       << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
+
+  // Since we have a lot of these checks, do them here.
+  bool partonIsKnown[4];
+  for (unsigned int ip=0; ip<4; ip++) partonIsKnown[ip] = (MYIDUP_prod[ip]!=0);
 
   const double allowed_helicities[2] = { -1, 1 }; // L,R
   for (int h01 = 0; h01 < 2; h01++){
@@ -4863,13 +4989,14 @@ double TUtil::VHiggsMatEl(
       helicities[6] = -helicities[5];
       for (int incoming1 = -nf; incoming1 <= nf; incoming1++){
         if (incoming1==0) continue;
+
         if (production==TVar::Lep_ZH || production==TVar::Had_ZH || production==TVar::GammaH){
           vh_ids[0] = incoming1;
           vh_ids[1] = -incoming1;
           if (
-            (MYIDUP_prod[0]!=0 && MYIDUP_prod[0]!=vh_ids[0])
+            (partonIsKnown[0] && MYIDUP_prod[0]!=vh_ids[0])
             ||
-            (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1])
+            (partonIsKnown[1] && MYIDUP_prod[1]!=vh_ids[1])
             ) continue;
 
           if (production==TVar::Had_ZH){
@@ -4878,9 +5005,9 @@ double TUtil::VHiggsMatEl(
               vh_ids[5] = outgoing1;
               vh_ids[6] = -outgoing1;
               if (
-                (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
+                (partonIsKnown[2] && MYIDUP_prod[2]!=vh_ids[5])
                 ||
-                (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
+                (partonIsKnown[3] && MYIDUP_prod[3]!=vh_ids[6])
                 ) continue;
 
               if (HDKon==0){
@@ -4969,7 +5096,7 @@ double TUtil::VHiggsMatEl(
         } // End ZH case
         else if (production==TVar::Lep_WH || production==TVar::Had_WH){
           vh_ids[0] = incoming1;
-          if (MYIDUP_prod[0]!=0 && MYIDUP_prod[0]!=vh_ids[0]) continue;
+          if (partonIsKnown[0] && MYIDUP_prod[0]!=vh_ids[0]) continue;
 
           for (int incoming2 = -nf; incoming2 <= nf; incoming2++){
             if (abs(incoming2)==abs(incoming1) || TMath::Sign(1, incoming1)==TMath::Sign(1, incoming2) || abs(incoming1)%2==abs(incoming2)%2 || incoming2==0) continue;
@@ -4981,7 +5108,7 @@ double TUtil::VHiggsMatEl(
             else vh_ids[2]=-24;
 
             vh_ids[1] = incoming2;
-            if (MYIDUP_prod[1]!=0 && MYIDUP_prod[1]!=vh_ids[1]) continue;
+            if (partonIsKnown[1] && MYIDUP_prod[1]!=vh_ids[1]) continue;
 
             if (production==TVar::Had_WH){
               for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
@@ -5000,9 +5127,9 @@ double TUtil::VHiggsMatEl(
                   vh_ids[5] = outgoing1;
                   vh_ids[6] = outgoing2;
                   if (
-                    (MYIDUP_prod[2]!=0 && MYIDUP_prod[2]!=vh_ids[5])
+                    (partonIsKnown[2] && MYIDUP_prod[2]!=vh_ids[5])
                     ||
-                    (MYIDUP_prod[3]!=0 && MYIDUP_prod[3]!=vh_ids[6])
+                    (partonIsKnown[3] && MYIDUP_prod[3]!=vh_ids[6])
                     ) continue;
 
                   if (HDKon==0){
@@ -5351,6 +5478,8 @@ double TUtil::TTHiggsMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::TTHiggsMatEl: Set AlphaS:\n"
@@ -5626,6 +5755,8 @@ double TUtil::BBHiggsMatEl(
   RcdME->setFactorizationScale(facQ);
   RcdME->setAlphaS(alphasVal);
   RcdME->setAlphaSatMZ(alphasmzVal);
+  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
   if (verbosity>=TVar::DEBUG){
     cout
       << "TUtil::BBHiggsMatEl: Set AlphaS:\n"
@@ -5738,8 +5869,12 @@ double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double 
 
 // Propagator reweighting
 double TUtil::ResonancePropagator(double shat, TVar::ResonancePropagatorScheme scheme){
+  const double GeV=1./100.; // JHUGen mom. scale factor
   int isch=(int)scheme;
-  return __modkinematics_MOD_getbwpropagator(&shat, &isch);
+  double shat_jhu = shat*GeV;
+  double prop = __modkinematics_MOD_getbwpropagator(&shat_jhu, &isch);
+  prop *= pow(GeV, 4);
+  return prop;
 }
 
 

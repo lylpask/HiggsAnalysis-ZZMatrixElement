@@ -22,6 +22,7 @@ public :: SetSpinTwoCouplings
 
 public :: GetMVGV
 public :: GetAlphaSAlphaSMZ
+public :: GetDecayCouplings
 
 contains
 
@@ -454,6 +455,281 @@ implicit none
 real(8), intent(out) :: val_as, val_asmz
    val_as=alphas
    val_asmz=alphas_mz
+end subroutine
+
+! This subroutine is slightly different form the one in the decay MEs in the sense that onshell photon returns 0,0 instead of 1,1
+subroutine GetDecayCouplings(VVMode,idordered,aL1,aR1,aL2,aR2)
+   implicit none
+   integer, intent(in) :: VVMode,idordered(6:9)
+   real(dp), intent(out) :: aL1,aR1,aL2,aR2
+
+   !        h3/h4 helicities: -1 == left, 1 == right
+   if( VVMode.eq.ZZMode ) then
+   !        ZZ DECAYS
+      if( abs(idordered(6)).eq.abs(ElM_) .or. abs(idordered(6)).eq.abs(MuM_)  ) then
+         aL1=aL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR1=aR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(6)).eq.abs(TaM_) ) then
+         aL1=aL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR1=aR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(6)).eq.abs(NuE_) .or. abs(idordered(6)).eq.abs(NuM_) .or. abs(idordered(6)).eq.abs(NuT_) ) then
+         aL1=aL_neu    * dsqrt(scale_alpha_Z_nn)
+         aR1=aR_neu    * dsqrt(scale_alpha_Z_nn)
+      elseif( abs(idordered(6)).eq.abs(Up_) .or. abs(idordered(6)).eq.abs(Chm_) ) then
+         aL1=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR1=aR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(6)).eq.abs(Dn_) .or. abs(idordered(6)).eq.abs(Str_) .or. abs(idordered(6)).eq.abs(Bot_) ) then
+         aL1=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR1=aR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      if( abs(idordered(8)).eq.abs(ElM_) .or. abs(idordered(8)).eq.abs(MuM_)  ) then
+         aL2=aL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR2=aR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(8)).eq.abs(TaM_) ) then
+         aL2=aL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR2=aR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(8)).eq.abs(NuE_) .or. abs(idordered(8)).eq.abs(NuM_) .or. abs(idordered(8)).eq.abs(NuT_) ) then
+         aL2=aL_neu    * dsqrt(scale_alpha_Z_nn)
+         aR2=aR_neu    * dsqrt(scale_alpha_Z_nn)
+      elseif( abs(idordered(8)).eq.abs(Up_) .or. abs(idordered(8)).eq.abs(Chm_) ) then
+         aL2=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR2=aR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(8)).eq.abs(Dn_) .or. abs(idordered(8)).eq.abs(Str_) .or. abs(idordered(8)).eq.abs(Bot_) ) then
+         aL2=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR2=aR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL2=0d0
+         aR2=0d0
+      endif
+
+   elseif( VVMode.eq.WWMode ) then
+   !        WW DECAYS
+      if( IsAQuark(idordered(6)) ) then
+         aL1 = bL * dsqrt(scale_alpha_W_ud)
+         aR1 = bR * dsqrt(scale_alpha_W_ud)! = 0
+      elseif( &
+               (abs(idordered(6)).eq.abs(ElP_) .and. abs(idordered(7)).eq.abs(NuE_)) .or. (abs(idordered(7)).eq.abs(ElP_) .and. abs(idordered(6)).eq.abs(NuE_)) .or. &
+               (abs(idordered(6)).eq.abs(MuP_) .and. abs(idordered(7)).eq.abs(NuM_)) .or. (abs(idordered(7)).eq.abs(MuP_) .and. abs(idordered(6)).eq.abs(NuM_))      &
+            ) then
+         aL1 = bL * dsqrt(scale_alpha_W_ln)
+         aR1 = bR * dsqrt(scale_alpha_W_ln)! = 0
+      elseif( &
+               (abs(idordered(6)).eq.abs(TaP_) .and. abs(idordered(7)).eq.abs(NuT_)) .or. (abs(idordered(7)).eq.abs(TaP_) .and. abs(idordered(6)).eq.abs(NuT_))      &
+            ) then
+         aL1 = bL * dsqrt(scale_alpha_W_tn)
+         aR1 = bR * dsqrt(scale_alpha_W_tn)! = 0
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      if( IsAQuark(idordered(8)) ) then
+         aL2 = bL * dsqrt(scale_alpha_W_ud)
+         aR2 = bR * dsqrt(scale_alpha_W_ud)! = 0
+      elseif( &
+               (abs(idordered(8)).eq.abs(ElM_) .and. abs(idordered(9)).eq.abs(ANuE_)) .or. (abs(idordered(9)).eq.abs(ElM_) .and. abs(idordered(8)).eq.abs(ANuE_)) .or. &
+               (abs(idordered(8)).eq.abs(MuM_) .and. abs(idordered(9)).eq.abs(ANuM_)) .or. (abs(idordered(9)).eq.abs(MuM_) .and. abs(idordered(8)).eq.abs(ANuM_))      &
+            ) then
+         aL2 = bL * dsqrt(scale_alpha_W_ln)
+         aR2 = bR * dsqrt(scale_alpha_W_ln)! = 0
+      elseif( &
+               (abs(idordered(8)).eq.abs(TaM_) .and. abs(idordered(9)).eq.abs(ANuT_)) .or. (abs(idordered(9)).eq.abs(TaM_) .and. abs(idordered(8)).eq.abs(ANuT_))      &
+            ) then
+         aL2 = bL * dsqrt(scale_alpha_W_tn)
+         aR2 = bR * dsqrt(scale_alpha_W_tn)! = 0
+      else
+         aL2=0d0
+         aR2=0d0
+      endif
+
+   elseif( VVMode.eq.ZgMode ) then
+   !        Zgamma DECAYS
+      if( abs(idordered(6)).eq.abs(ElM_) .or. abs(idordered(6)).eq.abs(MuM_) ) then
+         aL1=aL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR1=aR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(6)).eq.abs(TaM_) ) then
+         aL1=aL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR1=aR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(6)).eq.abs(NuE_) .or. abs(idordered(6)).eq.abs(NuM_) .or. abs(idordered(6)).eq.abs(NuT_) ) then
+         aL1=aL_neu    * dsqrt(scale_alpha_Z_nn)
+         aR1=aR_neu    * dsqrt(scale_alpha_Z_nn)
+      elseif( abs(idordered(6)).eq.abs(Up_) .or. abs(idordered(6)).eq.abs(Chm_) ) then
+         aL1=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR1=aR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(6)).eq.abs(Dn_) .or. abs(idordered(6)).eq.abs(Str_) .or. abs(idordered(6)).eq.abs(Bot_) ) then
+         aL1=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR1=aR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      aL2=0d0
+      aR2=0d0
+
+   elseif( VVMode.eq.ggMode ) then
+   !        gamma gamma DECAYS
+      aL1=0d0
+      aR1=0d0
+      aL2=0d0
+      aR2=0d0
+
+   elseif( VVMode.eq.gsgMode ) then
+   !        gamma* gamma DECAYS
+      if( abs(idordered(6)).eq.abs(ElM_) .or. abs(idordered(6)).eq.abs(MuM_) ) then
+         aL1=cL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR1=cR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(6)).eq.abs(TaM_) ) then
+         aL1=cL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR1=cR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(6)).eq.abs(NuE_) .or. abs(idordered(6)).eq.abs(NuM_) .or. abs(idordered(6)).eq.abs(NuT_) ) then
+         aL1=cL_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+         aR1=cR_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+      elseif( abs(idordered(6)).eq.abs(Up_) .or. abs(idordered(6)).eq.abs(Chm_) ) then
+         aL1=cL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR1=cR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(6)).eq.abs(Dn_) .or. abs(idordered(6)).eq.abs(Str_) .or. abs(idordered(6)).eq.abs(Bot_) ) then
+         aL1=cL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR1=cR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      aL2=0d0
+      aR2=0d0
+
+   elseif( VVMode.eq.gsZMode ) then
+   !        gamma* Z DECAYS
+      if( abs(idordered(6)).eq.abs(ElM_) .or. abs(idordered(6)).eq.abs(MuM_)  ) then
+         aL1=cL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR1=cR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(6)).eq.abs(TaM_) ) then
+         aL1=cL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR1=cR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(6)).eq.abs(NuE_) .or. abs(idordered(6)).eq.abs(NuM_) .or. abs(idordered(6)).eq.abs(NuT_) ) then
+         aL1=cL_neu    * dsqrt(scale_alpha_Z_nn)
+         aR1=cR_neu    * dsqrt(scale_alpha_Z_nn)
+      elseif( abs(idordered(6)).eq.abs(Up_) .or. abs(idordered(6)).eq.abs(Chm_) ) then
+         aL1=cL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR1=cR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(6)).eq.abs(Dn_) .or. abs(idordered(6)).eq.abs(Str_) .or. abs(idordered(6)).eq.abs(Bot_) ) then
+         aL1=cL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR1=cR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      if( abs(idordered(8)).eq.abs(ElM_) .or. abs(idordered(8)).eq.abs(MuM_) ) then
+         aL2=aL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR2=aR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(8)).eq.abs(TaM_) ) then
+         aL2=aL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR2=aR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(8)).eq.abs(NuE_) .or. abs(idordered(8)).eq.abs(NuM_) .or. abs(idordered(8)).eq.abs(NuT_) ) then
+         aL2=aL_neu    * dsqrt(scale_alpha_Z_nn)
+         aR2=aR_neu    * dsqrt(scale_alpha_Z_nn)
+      elseif( abs(idordered(8)).eq.abs(Up_) .or. abs(idordered(8)).eq.abs(Chm_) ) then
+         aL2=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR2=aR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(8)).eq.abs(Dn_) .or. abs(idordered(8)).eq.abs(Str_) .or. abs(idordered(8)).eq.abs(Bot_) ) then
+         aL2=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR2=aR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL2=0d0
+         aR2=0d0
+      endif
+
+   elseif( VVMode.eq.ZgsMode ) then
+   !        Z gamma* DECAYS
+      if( abs(idordered(6)).eq.abs(ElM_) .or. abs(idordered(6)).eq.abs(MuM_) ) then
+         aL1=aL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR1=aR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(6)).eq.abs(TaM_) ) then
+         aL1=aL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR1=aR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(6)).eq.abs(NuE_) .or. abs(idordered(6)).eq.abs(NuM_) .or. abs(idordered(6)).eq.abs(NuT_) ) then
+         aL1=aL_neu    * dsqrt(scale_alpha_Z_nn)
+         aR1=aR_neu    * dsqrt(scale_alpha_Z_nn)
+      elseif( abs(idordered(6)).eq.abs(Up_) .or. abs(idordered(6)).eq.abs(Chm_) ) then
+         aL1=aL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR1=aR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(6)).eq.abs(Dn_) .or. abs(idordered(6)).eq.abs(Str_) .or. abs(idordered(6)).eq.abs(Bot_) ) then
+         aL1=aL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR1=aR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      if( abs(idordered(8)).eq.abs(ElM_) .or. abs(idordered(8)).eq.abs(MuM_) ) then
+         aL2=cL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR2=cR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(8)).eq.abs(TaM_) ) then
+         aL2=cL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR2=cR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(8)).eq.abs(NuE_) .or. abs(idordered(8)).eq.abs(NuM_) .or. abs(idordered(8)).eq.abs(NuT_) ) then
+         aL2=cL_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+         aR2=cR_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+      elseif( abs(idordered(8)).eq.abs(Up_) .or. abs(idordered(8)).eq.abs(Chm_) ) then
+         aL2=cL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR2=cR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(8)).eq.abs(Dn_) .or. abs(idordered(8)).eq.abs(Str_) .or. abs(idordered(8)).eq.abs(Bot_) ) then
+         aL2=cL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR2=cR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL2=0d0
+         aR2=0d0
+      endif
+
+   elseif( VVMode.eq.gsgsMode ) then
+   !        gamma* gamma* DECAYS
+      if( abs(idordered(6)).eq.abs(ElM_) .or. abs(idordered(6)).eq.abs(MuM_) ) then
+         aL1=cL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR1=cR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(6)).eq.abs(TaM_) ) then
+         aL1=cL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR1=cR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(6)).eq.abs(NuE_) .or. abs(idordered(6)).eq.abs(NuM_) .or. abs(idordered(6)).eq.abs(NuT_) ) then
+         aL1=cL_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+         aR1=cR_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+      elseif( abs(idordered(6)).eq.abs(Up_) .or. abs(idordered(6)).eq.abs(Chm_) ) then
+         aL1=cL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR1=cR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(6)).eq.abs(Dn_) .or. abs(idordered(6)).eq.abs(Str_) .or. abs(idordered(6)).eq.abs(Bot_) ) then
+         aL1=cL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR1=cR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL1=0d0
+         aR1=0d0
+      endif
+      if( abs(idordered(8)).eq.abs(ElM_) .or. abs(idordered(8)).eq.abs(MuM_) ) then
+         aL2=cL_lep    * dsqrt(scale_alpha_Z_ll)
+         aR2=cR_lep    * dsqrt(scale_alpha_Z_ll)
+      elseif( abs(idordered(8)).eq.abs(TaM_) ) then
+         aL2=cL_lep    * dsqrt(scale_alpha_Z_tt)
+         aR2=cR_lep    * dsqrt(scale_alpha_Z_tt)
+      elseif( abs(idordered(8)).eq.abs(NuE_) .or. abs(idordered(8)).eq.abs(NuM_) .or. abs(idordered(8)).eq.abs(NuT_) ) then
+         aL2=cL_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+         aR2=cR_neu    * dsqrt(scale_alpha_Z_nn)! = 0
+      elseif( abs(idordered(8)).eq.abs(Up_) .or. abs(idordered(8)).eq.abs(Chm_) ) then
+         aL2=cL_QUp    * dsqrt(scale_alpha_Z_uu)
+         aR2=cR_QUp    * dsqrt(scale_alpha_Z_uu)
+      elseif( abs(idordered(8)).eq.abs(Dn_) .or. abs(idordered(8)).eq.abs(Str_) .or. abs(idordered(8)).eq.abs(Bot_) ) then
+         aL2=cL_QDn    * dsqrt(scale_alpha_Z_dd)
+         aR2=cR_QDn    * dsqrt(scale_alpha_Z_dd)
+      else
+         aL2=0d0
+         aR2=0d0
+      endif
+
+   else
+      aL1=0d0
+      aR1=0d0
+      aL2=0d0
+      aR2=0d0
+   endif
+
+   return
 end subroutine
 
 
