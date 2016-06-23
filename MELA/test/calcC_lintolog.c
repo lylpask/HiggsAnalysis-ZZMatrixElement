@@ -4927,11 +4927,14 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
 
   TFile* foutput = new TFile(Form("pJHUGen_JJVBF_JJQCD_HSMHiggs_Comparison_%iTeV.root", sqrts), "recreate");
 
-  TH2F* hJJVBF = new TH2F("JJVBF", "", 50, 70, 1070, 10, 0, 1);
-  TH2F* hJJQCD = new TH2F("JJQCD", "", 50, 70, 1070, 10, 0, 1);
+  TH2F* hJJVBF = new TH2F("JJVBF", "", 75, 70, 1570, 10, 0, 1);
+  TH2F* hJJQCD = new TH2F("JJQCD", "", 75, 70, 1570, 10, 0, 1);
 
-  TProfile* prJJVBF = new TProfile("prJJVBF", "", 50, 70, 1070); prJJVBF->Sumw2();
-  TProfile* prJJQCD = new TProfile("prJJQCD", "", 50, 70, 1070); prJJQCD->Sumw2();
+  TProfile* prJJVBF = new TProfile("prJJVBF", "", 75, 70, 1570); prJJVBF->Sumw2();
+  TProfile* prJJQCD = new TProfile("prJJQCD", "", 75, 70, 1570); prJJQCD->Sumw2();
+
+  TProfile* prRatioForJJVBF = new TProfile("prRatioForJJVBF", "", 75, 70, 1570); prRatioForJJVBF->Sumw2();
+  TProfile* prRatioForJJQCD = new TProfile("prRatioForJJQCD", "", 75, 70, 1570); prRatioForJJQCD->Sumw2();
 
   mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
 
@@ -4974,6 +4977,7 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
 
       hJJVBF->Fill(mzz, kd);
       prJJVBF->Fill(mzz, mesq_jjvbf);
+      if (mesq_jjvbf>0.) prRatioForJJVBF->Fill(mzz, mesq_jjqcd/mesq_jjvbf);
 
       mela.resetInputEvent();
     }
@@ -5017,6 +5021,7 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
 
       hJJQCD->Fill(mzz, kd);
       prJJQCD->Fill(mzz, mesq_jjqcd);
+      prRatioForJJQCD->Fill(mzz, mesq_jjqcd/mesq_jjvbf);
 
       mela.resetInputEvent();
     }
@@ -5035,6 +5040,8 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
   foutput->WriteTObject(hJJQCD);
   foutput->WriteTObject(prJJVBF);
   foutput->WriteTObject(prJJQCD);
+  foutput->WriteTObject(prRatioForJJVBF);
+  foutput->WriteTObject(prRatioForJJQCD);
   foutput->Close();
   for (int it=0; it<2; it++) delete tree[it];
 }
