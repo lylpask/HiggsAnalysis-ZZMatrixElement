@@ -255,7 +255,7 @@ enddo
       implicit none
       real(dp), intent(out) ::  sum
       real(dp), intent(in) :: p(4,6)
-y      integer, intent(in) :: MY_IDUP(6:9)
+      integer, intent(in) :: MY_IDUP(6:9)
       real(dp) :: pin(4,4)
       complex(dp) :: A(2)
       integer :: i1,i2,i3,i4,ordering(1:4),ordering_swap(1:4),idV(1:2),VVmode

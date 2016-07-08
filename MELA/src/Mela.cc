@@ -573,7 +573,7 @@ void Mela::computeP(
 
             // Get identical 4-vectors
             SimpleParticleCollection_t daughters;
-            vector<TLorentzVector> pDauVec = calculate4Momentum(mZZ, mZ1, mZ1, acos(hs_val), acos(costheta1), acos(costheta2), phi1_val, Phi);
+            vector<TLorentzVector> pDauVec = calculate4Momentum(mZZ, mZ1, mZ2, acos(hs_val), acos(costheta1), acos(costheta2), phi1_val, Phi);
             for (int iv=0; iv<2; iv++){
               for (int idau=0; idau<min(2, melaCand->getSortedV(iv)->getNDaughters()); idau++){
                 SimpleParticle_t tmpPair(melaCand->getSortedV(iv)->getDaughter(idau)->id, pDauVec.at(2*iv+idau));
@@ -603,6 +603,7 @@ void Mela::computeP(
               );
             if (myVerbosity_>=TVar::ERROR && cand_tmp==0) cerr << "Mela::computeP: Failed to construct temporary candidate!" << endl;
             setCurrentCandidate(cand_tmp);
+            if (myVerbosity_>=TVar::DEBUG && cand_tmp!=0){ cout << "Mela::computeP: ZZINDEPENDENT calculation produces candidate:" << endl; TUtil::PrintCandidateSummary(cand_tmp); }
             // calculate the ME
             ZZME->computeXS(
               myModel_, myME_, myProduction_,
@@ -809,7 +810,7 @@ void Mela::computeProdP(
   bool useConstant
   ){
   if (myVerbosity_>=TVar::DEBUG) cout << "Mela: Begin computeProdP" << endl;
-  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH) computeProdP_ttH(prob, 0, 2, useConstant);
+  if (myProduction_ == TVar::ttH || myProduction_ == TVar::bbH) computeProdP_ttH(prob, 2, 0, useConstant);
   else if (myProduction_ == TVar::Lep_ZH || myProduction_ == TVar::Lep_WH || myProduction_ == TVar::Had_ZH || myProduction_ == TVar::Had_WH || myProduction_ == TVar::GammaH) computeProdP_VH(prob, false, useConstant);
   else{
     reset_PAux();

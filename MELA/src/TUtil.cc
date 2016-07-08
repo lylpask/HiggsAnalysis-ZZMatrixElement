@@ -5292,22 +5292,22 @@ double TUtil::TTHiggsMatEl(
   if (topDecay==0 && (mela_event.pStableTops.size()<1 || mela_event.pStableAntitops.size()<1)){
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of stable tops (" << mela_event.pStableTops.size() << ")"
-      << "and number of sstable antitops (" << mela_event.pStableAntitops.size() << ")"
-      <<" in ttH process are not 1!" << endl;
+      << " and number of stable antitops (" << mela_event.pStableAntitops.size() << ")"
+      << " in ttH process are not 1!" << endl;
     return sum_msqjk;
   }
   else if (topDecay>0 && (mela_event.pTopDaughters.size()<1 || mela_event.pAntitopDaughters.size()<1)){
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of set of top daughters (" << mela_event.pTopDaughters.size() << ")"
-      << "and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
-      <<" in ttH process are not 1!" << endl;
+      << " and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
+      << " in ttH process are not 1!" << endl;
     return sum_msqjk;
   }
   else if (topDecay>0 && (mela_event.pTopDaughters.at(0).size()!=3 || mela_event.pAntitopDaughters.at(0).size()!=3)){
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of top daughters (" << mela_event.pTopDaughters.at(0).size() << ")"
-      << "and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
-      <<" in ttH process are not 3!" << endl;
+      << " and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
+      << " in ttH process are not 3!" << endl;
     return sum_msqjk;
   }
 
