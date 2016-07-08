@@ -251,12 +251,11 @@ enddo
 !----- a subroutine for Zprime -> ZZ/WW
 !----- all outgoing convention and the following momentum assignment
 !-----  0 --> Zprime(p1) e-(p3) + e+(p4) +mu-(p5) +mu+(p6)
-     subroutine EvalAmp_Zprime_VV(p,M_Reso,Ga_Reso,vvcoupl,MY_IDUP,sum)
+     subroutine EvalAmp_Zprime_VV(p,MY_IDUP,sum)
       implicit none
       real(dp), intent(out) ::  sum
-      real(dp), intent(in) :: p(4,6),M_Reso,Ga_Reso
-      complex(dp) :: vvcoupl(1:2)
-      integer, intent(in) :: MY_IDUP(6:9)
+      real(dp), intent(in) :: p(4,6)
+y      integer, intent(in) :: MY_IDUP(6:9)
       real(dp) :: pin(4,4)
       complex(dp) :: A(2)
       integer :: i1,i2,i3,i4,ordering(1:4),ordering_swap(1:4),idV(1:2),VVmode

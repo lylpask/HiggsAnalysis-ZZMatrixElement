@@ -1582,6 +1582,7 @@ float Mela::getConstant_JHUGenUndecayed(){
   else if (myProduction_ == TVar::ttH)
   else if (myProduction_ == TVar::bbH)
   */
+  else return constant;
 
   constant = pchandle->Eval(getIORecord(), myVerbosity_);
   if (myProduction_==TVar::JJVBF && LHCsqrts==7.){
@@ -1713,7 +1714,9 @@ float Mela::getConstant_4l(){
     }
   }
 
-  for (unsigned int ihandle=0; ihandle<nPossibleHandles; ihandle++){ if (pchandle[ihandle]!=0) constant_tmp += pchandle[ihandle]->Eval(getIORecord(), myVerbosity_); }
+  bool hasNullHandle=true;
+  for (unsigned int ihandle=0; ihandle<nPossibleHandles; ihandle++){ if (pchandle[ihandle]!=0){ constant_tmp += pchandle[ihandle]->Eval(getIORecord(), myVerbosity_); hasNullHandle=false; } }
+  if (hasNullHandle) return constant;
 
   constant = constant_tmp;
   return constant;
@@ -1759,7 +1762,9 @@ float Mela::getConstant_2l2q(){
     }
   }
 
-  for (unsigned int ihandle=0; ihandle<nPossibleHandles; ihandle++){ if (pchandle[ihandle]!=0) constant_tmp += pchandle[ihandle]->Eval(getIORecord(), myVerbosity_); }
+  bool hasNullHandle=true;
+  for (unsigned int ihandle=0; ihandle<nPossibleHandles; ihandle++){ if (pchandle[ihandle]!=0){ constant_tmp += pchandle[ihandle]->Eval(getIORecord(), myVerbosity_); hasNullHandle=false; } }
+  if (hasNullHandle) return constant;
 
   constant = constant_tmp;
   return constant;
