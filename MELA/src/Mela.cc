@@ -841,11 +841,30 @@ void Mela::computeProdP(
         }
       }
 
-      if (isJet2Fake){ // Do the integration first
+      if (isJet2Fake){ // Do the integration
         MELACandidate* candCopy = melaCand->shallowCopy();
         MELAParticle fakeJet(0, jet2massless); // Unknown jet, obviously
         candCopy->addAssociatedJets(&fakeJet);
         setCurrentCandidate(candCopy);
+
+        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+          selfDHvvcoupl_freenorm,
+          selfDHqqcoupl,
+          selfDHggcoupl,
+          selfDHzzcoupl,
+          selfDHwwcoupl,
+          selfDHzzLambda_qsq,
+          selfDHwwLambda_qsq,
+          selfDHzzCLambda_qsq,
+          selfDHwwCLambda_qsq,
+          differentiate_HWW_HZZ
+          );
+        ZZME->computeProdXS_JJH(
+          myModel_, myME_, myProduction_,
+          prob
+          ); // Higgs + 2 jets: SBF or WBF main probability
+
+        float constant = getConstant();
 
         int nGrid=11;
         std::vector<double> etaArray;
@@ -989,37 +1008,39 @@ void Mela::computeProdP(
         if (myVerbosity_>=TVar::DEBUG){
           if (melaCand!=candOriginal) cerr << "Mela::computeProdP: melaCand!=candOriginal at the end of the fake jet scenario!" << endl;
         }
-      }
 
-
-      if (myProduction_ == TVar::JJQCD || myProduction_ == TVar::JJVBF){
-        if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-          selfDHvvcoupl_freenorm,
-          selfDHqqcoupl,
-          selfDHggcoupl,
-          selfDHzzcoupl,
-          selfDHwwcoupl,
-          selfDHzzLambda_qsq,
-          selfDHwwLambda_qsq,
-          selfDHzzCLambda_qsq,
-          selfDHwwCLambda_qsq,
-          differentiate_HWW_HZZ
-          );
-        ZZME->computeProdXS_JJH(
-          myModel_, myME_, myProduction_,
-          prob
-          ); // Higgs + 2 jets: SBF or WBF
-        if (fabs(prob)>0 && isJet2Fake) auxiliaryProb /= prob;
+        if (fabs(prob)>0) auxiliaryProb /= prob;
+        if (useConstant) prob *= constant;
       }
-      else if (myProduction_ == TVar::JQCD){
-        // No anomalous couplings are implemented in HJ
-        ZZME->computeProdXS_JH(
-          myModel_, myME_, myProduction_,
-          prob
-          ); // Higgs + 1 jet; only SM is supported for now.
-      }
+      else{
+        if (myProduction_ == TVar::JJQCD || myProduction_ == TVar::JJVBF){
+          if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+            selfDHvvcoupl_freenorm,
+            selfDHqqcoupl,
+            selfDHggcoupl,
+            selfDHzzcoupl,
+            selfDHwwcoupl,
+            selfDHzzLambda_qsq,
+            selfDHwwLambda_qsq,
+            selfDHzzCLambda_qsq,
+            selfDHwwCLambda_qsq,
+            differentiate_HWW_HZZ
+            );
+          ZZME->computeProdXS_JJH(
+            myModel_, myME_, myProduction_,
+            prob
+            ); // Higgs + 2 jets: SBF or WBF
+        }
+        else if (myProduction_ == TVar::JQCD){
+          // No anomalous couplings are implemented in HJ
+          ZZME->computeProdXS_JH(
+            myModel_, myME_, myProduction_,
+            prob
+            ); // Higgs + 1 jet; only SM is supported for now.
+        }
 
-      if (useConstant) prob *= getConstant();
+        if (useConstant) prob *= getConstant();
+      }
     }
 
     reset_SelfDCouplings();
