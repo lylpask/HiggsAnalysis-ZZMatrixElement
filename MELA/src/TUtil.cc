@@ -6458,11 +6458,13 @@ MELACandidate* TUtil::ConvertVectorFormat(
     for (int ip=0; ip<4; ip++){ pH = pH + (daughters.at(ip))->p4; charge += (daughters.at(ip))->charge(); }
     cand = new MELACandidate(25, pH);
     for (int ip=0; ip<4; ip++) cand->addDaughter(daughters.at(ip));
-    double defaultHVVmass = PDGHelpers::HVVmass;
-    if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
+    // FIXME/REIMPLEMENT: WZ/ZW tricker than I thought: Summing over charges over all 4f is not enough, affects SSSF pairing in ZZ
+    //double defaultHVVmass = PDGHelpers::HVVmass;
+    //if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
     cand->sortDaughters();
-    PDGHelpers::setHVVmass(defaultHVVmass);
+    //PDGHelpers::setHVVmass(defaultHVVmass);
   }
+
   /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
   if (mothers.size()>0){ // ==2
     for (unsigned int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));
