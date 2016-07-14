@@ -3677,10 +3677,15 @@ double TUtil::HJJMatEl(
   }
   // Momenta for HJ
   for (unsigned int i = 0; i < 4; i++){
-    if (i<3){ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2 J1
-    else{ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i+1][j]; } // H
+    if (i<2){ for (unsigned int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2
+    else if (i==2){ for (unsigned int j = 0; j < 4; j++) pOneJet[i][j] = p4[4][j]; } // H
+    else{ for (unsigned int j = 0; j < 4; j++) pOneJet[i][j] = p4[2][j]; } // J1
   }
-  if (verbosity >= TVar::DEBUG){ for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl; }
+  if (verbosity >= TVar::DEBUG){ 
+    for (unsigned int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl;
+    cout << "One-jet momenta: " << endl;
+    for (unsigned int i=0; i<4; i++) cout << "pOneJet["<<i<<"] (Px, Py, Pz, E, M):\t" << pOneJet[i][1]/GeV << '\t' << pOneJet[i][2]/GeV << '\t' << pOneJet[i][3]/GeV << '\t' << pOneJet[i][0]/GeV << '\t' << sqrt(fabs(pow(pOneJet[i][0], 2)-pow(pOneJet[i][1], 2)-pow(pOneJet[i][2], 2)-pow(pOneJet[i][3], 2)))/GeV << endl;
+  }
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
