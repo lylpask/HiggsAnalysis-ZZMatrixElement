@@ -822,6 +822,7 @@ void Mela::computeProdP(
       bool isJet2Fake = false;
       MELACandidate* candOriginal = melaCand;
 
+      unsigned int firstJetIndex=0;
       TLorentzVector jet1, higgs;
       TLorentzVector jet1massless(0, 0, 0, 0);
       TLorentzVector jet2massless(0, 0, 0, 0);
@@ -831,7 +832,10 @@ void Mela::computeProdP(
         for (int ip=0; ip<melaCand->getNAssociatedJets(); ip++){
           if (melaCand->getAssociatedJet(ip)->passSelection){
             njets++;
-            if (njets==1) jet1 = melaCand->getAssociatedJet(ip)->p4;
+            if (njets==1){
+              firstJetIndex = ip;
+              jet1 = melaCand->getAssociatedJet(ip)->p4;
+            }
           }
         }
         if (njets==1){
@@ -843,7 +847,9 @@ void Mela::computeProdP(
 
       if (isJet2Fake){ // Do the integration
         MELACandidate* candCopy = melaCand->shallowCopy();
-        MELAParticle fakeJet(0, jet2massless); // Unknown jet, obviously
+        MELAParticle* firstJet = candCopy->getAssociatedJet(firstJetIndex);
+        firstJet->p4.SetXYZT(jet1massless.X(), jet1massless.Y(), jet1massless.Z(), jet1massless.T()); // Re-assign momenta of the first jet. Be careful, it changes candOriginal as well!
+        MELAParticle fakeJet(0, jet2massless); // jet2massless is the unknown jet
         candCopy->addAssociatedJets(&fakeJet);
         setCurrentCandidate(candCopy);
 
@@ -1002,6 +1008,7 @@ void Mela::computeProdP(
           auxiliaryProb += (float)addProb;
         }
 
+        firstJet->p4.SetXYZT(jet1.X(), jet1.Y(), jet1.Z(), jet1.T()); // Re-assign momenta of the first jet to original. Be careful, it changes candOriginal as well!
         delete candCopy; // Delete the shallow copy
         setCurrentCandidate(candOriginal);
         melaCand = getCurrentCandidate();

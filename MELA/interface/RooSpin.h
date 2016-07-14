@@ -81,6 +81,7 @@ public:
 
   virtual TObject* clone(const char* newname) const = 0;
 
+  virtual Double_t evaluate() const = 0;
   virtual Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const = 0;
   virtual Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const = 0;
 
@@ -116,7 +117,6 @@ protected:
   RooRealProxy Sin2ThetaW;
   RooRealProxy vev;
 
-  virtual Double_t evaluate() const = 0;
   virtual void calculatePropagator(Double_t& propRe, Double_t& propIm, Double_t mass, Int_t propType=1) const;
   virtual void calculateGVGA(Double_t& gV, Double_t& gA, RooSpin::VdecayType Vdecay, bool isGamma=false) const;
   virtual void calculateR1R2(Double_t& R1Val, Double_t& R2Val, bool isGammaV1=false, bool isGammaV2=false) const;
