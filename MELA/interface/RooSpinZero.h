@@ -52,6 +52,7 @@ public:
   virtual TObject* clone(const char* newname) const = 0;
   inline virtual ~RooSpinZero(){}
 
+  virtual Double_t evaluate() const = 0;
   virtual Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const = 0;
   virtual Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const = 0;
 
@@ -164,8 +165,6 @@ protected:
   RooRealProxy cz_q1sq;
   RooRealProxy cz_q2sq;
   RooRealProxy cz_q12sq;
-
-  virtual Double_t evaluate() const = 0;
 
   virtual void evaluatePolarizationTerms(Double_t& A00term, Double_t& Appterm, Double_t& Ammterm, Double_t& A00ppterm, Double_t& A00mmterm, Double_t& Appmmterm, const Int_t code, bool isGammaV1=false, bool isGammaV2=false) const = 0;
 

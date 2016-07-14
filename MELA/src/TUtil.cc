@@ -3677,10 +3677,15 @@ double TUtil::HJJMatEl(
   }
   // Momenta for HJ
   for (unsigned int i = 0; i < 4; i++){
-    if (i<3){ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2 J1
-    else{ for (int j = 0; j < 4; j++) pOneJet[i][j] = p4[i+1][j]; } // H
+    if (i<2){ for (unsigned int j = 0; j < 4; j++) pOneJet[i][j] = p4[i][j]; } // p1 p2
+    else if (i==2){ for (unsigned int j = 0; j < 4; j++) pOneJet[i][j] = p4[4][j]; } // H
+    else{ for (unsigned int j = 0; j < 4; j++) pOneJet[i][j] = p4[2][j]; } // J1
   }
-  if (verbosity >= TVar::DEBUG){ for (int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl; }
+  if (verbosity >= TVar::DEBUG){ 
+    for (unsigned int i=0; i<5; i++) cout << "p["<<i<<"] (Px, Py, Pz, E, M):\t" << p4[i][1]/GeV << '\t' << p4[i][2]/GeV << '\t' << p4[i][3]/GeV << '\t' << p4[i][0]/GeV << '\t' << sqrt(fabs(pow(p4[i][0], 2)-pow(p4[i][1], 2)-pow(p4[i][2], 2)-pow(p4[i][3], 2)))/GeV << endl;
+    cout << "One-jet momenta: " << endl;
+    for (unsigned int i=0; i<4; i++) cout << "pOneJet["<<i<<"] (Px, Py, Pz, E, M):\t" << pOneJet[i][1]/GeV << '\t' << pOneJet[i][2]/GeV << '\t' << pOneJet[i][3]/GeV << '\t' << pOneJet[i][0]/GeV << '\t' << sqrt(fabs(pow(pOneJet[i][0], 2)-pow(pOneJet[i][1], 2)-pow(pOneJet[i][2], 2)-pow(pOneJet[i][3], 2)))/GeV << endl;
+  }
 
   double defaultRenScale = scale_.scale;
   double defaultFacScale = facscale_.facscale;
@@ -5292,22 +5297,22 @@ double TUtil::TTHiggsMatEl(
   if (topDecay==0 && (mela_event.pStableTops.size()<1 || mela_event.pStableAntitops.size()<1)){
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of stable tops (" << mela_event.pStableTops.size() << ")"
-      << "and number of sstable antitops (" << mela_event.pStableAntitops.size() << ")"
-      <<" in ttH process are not 1!" << endl;
+      << " and number of stable antitops (" << mela_event.pStableAntitops.size() << ")"
+      << " in ttH process are not 1!" << endl;
     return sum_msqjk;
   }
   else if (topDecay>0 && (mela_event.pTopDaughters.size()<1 || mela_event.pAntitopDaughters.size()<1)){
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of set of top daughters (" << mela_event.pTopDaughters.size() << ")"
-      << "and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
-      <<" in ttH process are not 1!" << endl;
+      << " and number of set of antitop daughters (" << mela_event.pAntitopDaughters.size() << ")"
+      << " in ttH process are not 1!" << endl;
     return sum_msqjk;
   }
   else if (topDecay>0 && (mela_event.pTopDaughters.at(0).size()!=3 || mela_event.pAntitopDaughters.at(0).size()!=3)){
     if (verbosity>=TVar::ERROR) cerr
       << "TUtil::TTHiggsMatEl: Number of top daughters (" << mela_event.pTopDaughters.at(0).size() << ")"
-      << "and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
-      <<" in ttH process are not 3!" << endl;
+      << " and number of antitop daughters (" << mela_event.pAntitopDaughters.at(0).size() << ")"
+      << " in ttH process are not 3!" << endl;
     return sum_msqjk;
   }
 
@@ -6458,11 +6463,13 @@ MELACandidate* TUtil::ConvertVectorFormat(
     for (int ip=0; ip<4; ip++){ pH = pH + (daughters.at(ip))->p4; charge += (daughters.at(ip))->charge(); }
     cand = new MELACandidate(25, pH);
     for (int ip=0; ip<4; ip++) cand->addDaughter(daughters.at(ip));
-    double defaultHVVmass = PDGHelpers::HVVmass;
-    if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
+    // FIXME/REIMPLEMENT: WZ/ZW tricker than I thought: Summing over charges over all 4f is not enough, affects SSSF pairing in ZZ
+    //double defaultHVVmass = PDGHelpers::HVVmass;
+    //if (fabs(charge)>0.01) PDGHelpers::setHVVmass(PDGHelpers::Wmass); // WZ,ZW (?), un-tested
     cand->sortDaughters();
-    PDGHelpers::setHVVmass(defaultHVVmass);
+    //PDGHelpers::setHVVmass(defaultHVVmass);
   }
+
   /***** Adaptation of LHEAnalyzer::Event::addVVCandidateMother *****/
   if (mothers.size()>0){ // ==2
     for (unsigned int ip=0; ip<mothers.size(); ip++) cand->addMother(mothers.at(ip));

@@ -109,12 +109,14 @@ MELATopCandidate* MELACandidate::getAssociatedTop(int index)const{
   else return 0;
 }
 void MELACandidate::sortDaughtersInitial(){
+  int nDaughtersBooked=0;
   int tmpDindex[2]={ 0 };
-  MELAParticle* df[2] = { getDaughter(0), 0 };
+  MELAParticle* df[2] ={ getDaughter(0), 0 };
+  if (df[0]!=0) nDaughtersBooked++;
   for (int j=1; j<getNDaughters(); j++){
     MELAParticle* dtmp = getDaughter(j);
     if (
-      (dtmp->charge()+df[0]->charge()==0 && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
+      ((std::abs(dtmp->charge())-std::abs(df[0]->charge())==0 && std::abs(dtmp->id)==std::abs(df[0]->id)) && (PDGHelpers::HVVmass==PDGHelpers::Zmass || PDGHelpers::HVVmass==PDGHelpers::Zeromass))
       ||
       (
       PDGHelpers::HVVmass==PDGHelpers::Wmass
@@ -128,6 +130,7 @@ void MELACandidate::sortDaughtersInitial(){
       ){
       df[1] = dtmp;
       tmpDindex[1] = j;
+      nDaughtersBooked++;
       break;
     }
   }
@@ -137,8 +140,25 @@ void MELACandidate::sortDaughtersInitial(){
     if (j==tmpDindex[1]) continue;
     MELAParticle* dtmp = getDaughter(j);
     ds[sindex] = dtmp;
+    nDaughtersBooked++;
     sindex++;
+    if (sindex==2) break;
   }
+
+  if (nDaughtersBooked!=getNDaughters()){
+    if (getNDaughters()>4) std::cout << "MELACandidate::sortDaughtersInitial: Number of daughters passed " << getNDaughters() << ">4 is currently not supported." << std::endl;
+    std::cout << "MELACandidate::sortDaughtersInitial: Number of daughters passed (" << getNDaughters() << ") is not the same as number of daughters booked (" << nDaughtersBooked << ")! Aborting, no daughters can be recorded." << std::endl;
+    for (int idau=0; idau<getNDaughters(); idau++){
+      MELAParticle* part = getDaughter(idau);
+      if (part!=0) std::cout << "\t- Passed daughter " << idau << " (X, Y, Z, T, M, Id) = "
+        << part->x() << " " << part->y() << " " << part->z() << " " << part->t() << " " << part->m() << " " << part->id << std::endl;
+      else std::cout << "\t- Passed daughter " << idau << " = 0!" << std::endl;
+    }
+    for (unsigned int j=0; j<2; j++){ if (df[j]!=0) std::cout << "\t- df[" << j << "] (X, Y, Z, T, M, Id) = " << df[j]->x() << " " << df[j]->y() << " " << df[j]->z() << " " << df[j]->t() << " " << df[j]->m() << " " << df[j]->id << std::endl; }
+    for (unsigned int j=0; j<2; j++){ if (ds[j]!=0) std::cout << "\t- ds[" << j << "] (X, Y, Z, T, M, Id) = " << ds[j]->x() << " " << ds[j]->y() << " " << ds[j]->z() << " " << ds[j]->t() << " " << ds[j]->m() << " " << ds[j]->id << std::endl; }
+    return;
+  }
+
   if (
     (df[0]!=0 && df[1]!=0)
     &&
