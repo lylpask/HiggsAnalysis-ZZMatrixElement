@@ -817,7 +817,6 @@ void Mela::computeProdP(
 
     melaCand = getCurrentCandidate();
     if (melaCand!=0){
-
       TLorentzVector nullFourVector(0, 0, 0, 0);
       bool isJet2Fake = false;
       MELACandidate* candOriginal = melaCand;
@@ -842,6 +841,24 @@ void Mela::computeProdP(
           TUtil::scaleMomentumToEnergy(jet1, jet1massless);
           TUtil::computeFakeJet(jet1massless, higgs, jet2massless);
           isJet2Fake=true;
+
+          // Scale jet2massless pz if necessary
+          const double threshold = 1000.*LHCsqrts/2.;
+          TLorentzVector pTotal = higgs+jet1massless+jet2massless;
+          double sysZ = pTotal.Z();
+          if (fabs(sysZ)>threshold){
+            double maxpz2 = threshold - higgs.Z() - jet1massless.Z();
+            if (fabs(maxpz2)>0.){
+              double ratio = jet2massless.Z()/maxpz2;
+              double absp=sqrt(pow(jet2massless.Pt(), 2)+pow(jet2massless.Z()*ratio, 2));
+              if (myVerbosity_>=TVar::INFO) cout << "Mela::computeProdP, isJet2Fake=true case: Rescaling pz of fake jet by " << ratio << " and energy = " << absp << "." << endl;
+              jet2massless.SetXYZT(jet2massless.X(), jet2massless.Y(), jet2massless.Z()*ratio, absp);
+            }
+            else{
+              if (myVerbosity_>=TVar::INFO) cout << "Mela::computeProdP, isJet2Fake=true case: Unable to rescaling pz of fake jet since max(|pz|)<0. Setting to 0 with appropriate energy = pT = " << jet2massless.Pt() << "." << endl;
+              jet2massless.SetXYZT(jet2massless.X(), jet2massless.Y(), 0., jet2massless.Pt());
+            }
+          }
         }
       }
 
@@ -880,7 +897,7 @@ void Mela::computeProdP(
         double eta_min = -eta_max;
 
         for (int iter=0; iter<nGrid; iter++){
-          float prob_temp=-1;
+          float prob_temp=0;
 
           double jet2temp_eta = ((double)iter)*(eta_max-eta_min) / (((double)nGrid) - 1.) + eta_min;
           etaArray.push_back(jet2temp_eta);
@@ -889,22 +906,28 @@ void Mela::computeProdP(
           fakeJet.p4.SetZ(jet2temp_pz);
           fakeJet.p4.SetX(jet2massless.X()); fakeJet.p4.SetY(jet2massless.Y()); fakeJet.p4.SetT(fakeJet.p4.P());
 
-          if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-            selfDHvvcoupl_freenorm,
-            selfDHqqcoupl,
-            selfDHggcoupl,
-            selfDHzzcoupl,
-            selfDHwwcoupl,
-            selfDHzzLambda_qsq,
-            selfDHwwLambda_qsq,
-            selfDHzzCLambda_qsq,
-            selfDHwwCLambda_qsq,
-            differentiate_HWW_HZZ
-            );
-          ZZME->computeProdXS_JJH(
-            myModel_, myME_, myProduction_,
-            prob_temp
-            );
+          // Skip case with invalid pz
+          const double threshold = 1000.*LHCsqrts/2.;
+          TLorentzVector pTotal = higgs+jet1massless+fakeJet.p4;
+          double sys = (pTotal.T()+fabs(pTotal.Z()))/2.;
+          if (fabs(sys)<threshold){
+            if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+              selfDHvvcoupl_freenorm,
+              selfDHqqcoupl,
+              selfDHggcoupl,
+              selfDHzzcoupl,
+              selfDHwwcoupl,
+              selfDHzzLambda_qsq,
+              selfDHwwLambda_qsq,
+              selfDHzzCLambda_qsq,
+              selfDHwwCLambda_qsq,
+              differentiate_HWW_HZZ
+              );
+            ZZME->computeProdXS_JJH(
+              myModel_, myME_, myProduction_,
+              prob_temp
+              );
+          }
           pArray.push_back((double)prob_temp);
         }
 
@@ -944,7 +967,7 @@ void Mela::computeProdP(
             iG++; // Pass to next bin
           }
           else{
-            float prob_temp=-1;
+            float prob_temp=0;
 
             double jet2temp_eta = x_middle;
             gridIt = etaArray.begin()+iG+1;
@@ -954,22 +977,28 @@ void Mela::computeProdP(
             fakeJet.p4.SetZ(jet2temp_pz);
             fakeJet.p4.SetX(jet2massless.X()); fakeJet.p4.SetY(jet2massless.Y()); fakeJet.p4.SetT(fakeJet.p4.P());
 
-            if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
-              selfDHvvcoupl_freenorm,
-              selfDHqqcoupl,
-              selfDHggcoupl,
-              selfDHzzcoupl,
-              selfDHwwcoupl,
-              selfDHzzLambda_qsq,
-              selfDHwwLambda_qsq,
-              selfDHzzCLambda_qsq,
-              selfDHwwCLambda_qsq,
-              differentiate_HWW_HZZ
-              );
-            ZZME->computeProdXS_JJH(
-              myModel_, myME_, myProduction_,
-              prob_temp
-              );
+            // Skip case with invalid pz
+            const double threshold = 1000.*LHCsqrts/2.;
+            TLorentzVector pTotal = higgs+jet1massless+fakeJet.p4;
+            double sys = (pTotal.T()+fabs(pTotal.Z()))/2.;
+            if (fabs(sys)<threshold){
+              if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+                selfDHvvcoupl_freenorm,
+                selfDHqqcoupl,
+                selfDHggcoupl,
+                selfDHzzcoupl,
+                selfDHwwcoupl,
+                selfDHzzLambda_qsq,
+                selfDHwwLambda_qsq,
+                selfDHzzCLambda_qsq,
+                selfDHwwCLambda_qsq,
+                differentiate_HWW_HZZ
+                );
+              ZZME->computeProdXS_JJH(
+                myModel_, myME_, myProduction_,
+                prob_temp
+                );
+            }
             gridIt = pArray.begin()+iG+1;
             pArray.insert(gridIt, (double)prob_temp);
             iG--; // Do not pass to next bin, repeat until precision is achieved.
@@ -1527,7 +1556,10 @@ bool Mela::configureAnalyticalPDFs(){
 // Constants to normalize probabilities
 float Mela::getConstant(){
   float constant = 1;
-  if (melaCand==0) return constant;
+  if (melaCand==0){
+    if (myVerbosity_>=TVar::DEBUG) cout << "Mela::getConstant: melaCand==0" << endl;
+    return constant;
+  }
 
   if ( // Undecayed Higgs MEs from JHUGen
     myME_ == TVar::JHUGen
