@@ -4716,7 +4716,7 @@ void check_JJVBF_vs_JJQCD_7or8TeV(int sqrts=8){
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
       TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
       mela.computeProdP(mesq_jjqcd, true);
-      float kd = mesq_jjvbf/(mesq_jjvbf+0.04*mesq_jjqcd);
+      float kd = mesq_jjvbf/(mesq_jjvbf+0.06*mesq_jjqcd);
 
       hJJVBF->Fill(mzz, kd);
       prJJVBF->Fill(mzz, mesq_jjvbf);
@@ -4759,7 +4759,7 @@ void check_JJVBF_vs_JJQCD_7or8TeV(int sqrts=8){
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
       TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
       mela.computeProdP(mesq_jjqcd, true);
-      float kd = mesq_jjvbf/(mesq_jjvbf+0.04*mesq_jjqcd);
+      float kd = mesq_jjvbf/(mesq_jjvbf+0.06*mesq_jjqcd);
 
       hJJQCD->Fill(mzz, kd);
       prJJQCD->Fill(mzz, mesq_jjqcd);
@@ -4973,7 +4973,7 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
       TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
       mela.computeProdP(mesq_jjqcd, true);
-      float kd = mesq_jjvbf/(mesq_jjvbf+0.04*mesq_jjqcd);
+      float kd = mesq_jjvbf/(mesq_jjvbf+0.06*mesq_jjqcd);
 
       hJJVBF->Fill(mzz, kd);
       prJJVBF->Fill(mzz, mesq_jjvbf);
@@ -5017,11 +5017,11 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJQCD);
       TUtil::setJetMassScheme(TVar::ConserveDifermionMass);
       mela.computeProdP(mesq_jjqcd, true);
-      float kd = mesq_jjvbf/(mesq_jjvbf+0.04*mesq_jjqcd);
+      float kd = mesq_jjvbf/(mesq_jjvbf+0.06*mesq_jjqcd);
 
       hJJQCD->Fill(mzz, kd);
       prJJQCD->Fill(mzz, mesq_jjqcd);
-      prRatioForJJQCD->Fill(mzz, mesq_jjqcd/mesq_jjvbf);
+      if (mesq_jjvbf>0.) prRatioForJJQCD->Fill(mzz, mesq_jjqcd/mesq_jjvbf);
 
       mela.resetInputEvent();
     }
