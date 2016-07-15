@@ -2119,8 +2119,8 @@ void get_PAvgProfile_JHUGen_JQCD_HSMHiggs_13TeV(int sqrts=13){
   cout << "Nentries = " << nEntries << " | mzz = " << firstVal << " - " << lastVal << "(" << infimum << ", " << supremum << ")" << endl;
 
   int nbins=0;
-  int divisor=11000;
-  while (nbins<50){
+  int divisor=21000;
+  while (nbins<25){
     if (divisor>1000) divisor -= 1000;
     else if (divisor>100) divisor -= 100;
     else break;
@@ -3607,7 +3607,7 @@ TF1* getFcn_a0plusa1timesX(TSpline3* sp, double xmin, double xmax, bool useLowBo
 }
 
 /* SPECIFIC COMMENT: THIS FUNCTION TAKES A TGRAPHERRORS AND MODIFIES IT DIRECTLY. THE OPTIONAL STD::VECTOR IS FOR FIXING <P> FOR CERTAIN X-VALUES. */
-void regularizeSlice(TGraphErrors* tgSlice, std::vector<double>* fixedX=0, double omitbelow=0.){
+void regularizeSlice(TGraphErrors* tgSlice, std::vector<double>* fixedX=0, double omitbelow=0., int nIter_=-1, double threshold_ = -1){
   unsigned int nbins_slice = tgSlice->GetN();
   double* xexyey_slice[4]={
     tgSlice->GetX(),
@@ -3659,9 +3659,9 @@ void regularizeSlice(TGraphErrors* tgSlice, std::vector<double>* fixedX=0, doubl
   double* xx_second;
   double* yy_second;
 
-  unsigned int nIter = 1000;
-  for (unsigned int it=0; it<nIter; it++){
-    double threshold = 0.01;
+  int nIter = (nIter_<0 ? 1000 : nIter_);
+  for (int it=0; it<nIter; it++){
+    double threshold = (threshold_<0. ? 0.01 : threshold_);
     for (unsigned int binIt = bin_first; binIt<=bin_last; binIt++){
       bool doFix=false;
       for (unsigned int ifx=0; ifx<fixedBins.size(); ifx++){
@@ -4110,7 +4110,46 @@ void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs(int sqrts=8){
     foutput->cd();
     foutput->WriteTObject(tg);
     tg->SetName(Form("%s_Smooth", tg->GetName()));
-    regularizeSlice(tg);
+
+    double precision = 0.001;
+    std::vector<double> fixedX;
+    TGraphErrors* tg_new = 0;
+    if (sqrts==7){
+      tg_new = replacePointsBetween(tg, 191., 205.); tg=tg_new;
+      tg_new = replacePointsBetween(tg, 335., 385.); delete tg; tg=tg_new;
+      tg_new = replacePointsBetween(tg, 780., 800.); delete tg; tg=tg_new;
+
+      fixedX.push_back(150.);
+      fixedX.push_back(248.);
+      fixedX.push_back(260.);
+      fixedX.push_back(445.);
+      fixedX.push_back(480.);
+      fixedX.push_back(525.);
+
+      precision = 0.001;
+    }
+    else if (sqrts==8){
+      tg_new = replacePointsBetween(tg, 117., 165.); tg=tg_new;
+      tg_new = replacePointsBetween(tg, 292, 305.); delete tg; tg=tg_new;
+      tg_new = replacePointsBetween(tg, 560., 610.); delete tg; tg=tg_new;
+
+      fixedX.push_back(460.);
+      fixedX.push_back(490.);
+
+      precision = 0.001;
+    }
+    else if (sqrts==13){
+      tg_new = replacePointsBetween(tg, 120., 138.); tg=tg_new;
+      tg_new = replacePointsBetween(tg, 145., 152.); delete tg; tg=tg_new;
+      tg_new = replacePointsBetween(tg, 180., 190.); delete tg; tg=tg_new;
+      tg_new = replacePointsBetween(tg, 310., 530.); delete tg; tg=tg_new;
+
+      fixedX.push_back(300.);
+      fixedX.push_back(550.);
+
+      precision = 0.0008;
+    }
+    regularizeSlice(tg, &fixedX, 0., 50000, precision);
     foutput->WriteTObject(tg);
 
     TSpline3* sp = convertGraphToSpline3(tg);
@@ -4139,6 +4178,7 @@ void produce_PAvgSmooth_JHUGen_JQCD_HSMHiggs(int sqrts=8){
     delete highFcn;
     delete lowFcn;
     delete sp;
+    if (tg_new!=0) delete tg_new;
   }
   foutput->Close();
   finput->Close();
