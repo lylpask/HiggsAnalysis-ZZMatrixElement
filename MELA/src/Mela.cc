@@ -933,7 +933,7 @@ void Mela::computeProdP(
 
         double* xGrid;
         double* yGrid;
-        const double grid_precision = 0.20;
+        const double grid_precision = 0.15;
         int ctr_iter=0;
         for (int iG=0; iG<nGrid-1; iG++){ // For each spacing, first compare the average of end points to spline value
           if (pArray[iG]==pArray[iG+1]) continue;
