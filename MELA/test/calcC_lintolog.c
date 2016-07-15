@@ -4559,6 +4559,7 @@ void produce_get_PAvgSmooth_MCFM_ZZQQB_bkgZZ(){
 }
 
 
+
 void check_JJVBF_vs_JJQCD_7or8TeV(int sqrts=8){
   int erg_tev=sqrts;
   float mPOLE=125.;
@@ -4825,8 +4826,6 @@ void check_JJVBF_vs_JJQCD_7or8TeV(int sqrts=8){
   for (int it=0; it<2; it++) delete tree[it];
 }
 
-
-
 void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
   int erg_tev=sqrts;
   float mPOLE=125.;
@@ -5086,3 +5085,305 @@ void check_JJVBF_vs_JJQCD_13TeV(int sqrts=13){
   for (int it=0; it<2; it++) delete tree[it];
 }
 
+
+void check_JQCD_7or8TeV(int sqrts=8){
+  int erg_tev=sqrts;
+  float mPOLE=125.;
+  TString TREE_NAME = "SelectedTree";
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+  float jetptetaphimass[2][4];
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+  int LepID[4]={ 13, -13, 11, -11 };
+
+  const int nMEs=1;
+  TChain* tree[nMEs] ={
+    new TChain(TREE_NAME, "")
+  };
+
+  TString strchannel[3]={ "4mu", "4e", "2mu2e" };
+  TString cinput_main;
+  if (sqrts==8) cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  else if (sqrts==7) cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR";
+  else return;
+  const int nSamples_JQCD = 37;
+  TString strSamples_JQCD[nSamples_JQCD]={
+    "HZZ4lTree_minloH90.root",
+    "HZZ4lTree_minloH95.root",
+    "HZZ4lTree_minloH100.root",
+    "HZZ4lTree_minloH105.root",
+    "HZZ4lTree_minloH110.root",
+    "HZZ4lTree_minloH115.root",
+    "HZZ4lTree_minloH120.root",
+    "HZZ4lTree_minloH124.root",
+    "HZZ4lTree_minloH125.root",
+    "HZZ4lTree_minloH126.root",
+    "HZZ4lTree_minloH130.root",
+    "HZZ4lTree_minloH135.root",
+    "HZZ4lTree_minloH140.root",
+    "HZZ4lTree_minloH145.root",
+    "HZZ4lTree_minloH150.root",
+    "HZZ4lTree_minloH155.root",
+    "HZZ4lTree_minloH160.root",
+    "HZZ4lTree_minloH170.root",
+    "HZZ4lTree_minloH180.root",
+    "HZZ4lTree_minloH190.root",
+    "HZZ4lTree_minloH200.root",
+    "HZZ4lTree_minloH250.root",
+    "HZZ4lTree_minloH300.root",
+    "HZZ4lTree_minloH350.root",
+    "HZZ4lTree_minloH400.root",
+    "HZZ4lTree_minloH450.root",
+    "HZZ4lTree_minloH500.root",
+    "HZZ4lTree_minloH550.root",
+    "HZZ4lTree_minloH600.root",
+    "HZZ4lTree_minloH650.root",
+    "HZZ4lTree_minloH700.root",
+    "HZZ4lTree_minloH750.root",
+    "HZZ4lTree_minloH800.root",
+    "HZZ4lTree_minloH850.root",
+    "HZZ4lTree_minloH900.root",
+    "HZZ4lTree_minloH950.root",
+    "HZZ4lTree_minloH1000.root"
+  };
+  for (int ic=0; ic<3; ic++){
+    for (int is=0; is<nSamples_JQCD; is++) tree[0]->Add(Form("%s/%s/%s", cinput_main.Data(), (strchannel[ic]).Data(), (strSamples_JQCD[is]).Data()));
+  }
+  for (int it=0; it<nMEs; it++){
+    tree[it]->SetBranchAddress("NJets30", &NJets30);
+    tree[it]->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+    tree[it]->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+    tree[it]->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+    tree[it]->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+    tree[it]->SetBranchAddress("ZZMass", &mzz);
+    tree[it]->SetBranchAddress("ZZPt", &ZZPt);
+    tree[it]->SetBranchAddress("ZZEta", &ZZEta);
+    tree[it]->SetBranchAddress("ZZPhi", &ZZPhi);
+    tree[it]->SetBranchAddress("Z1Mass", &m1);
+    tree[it]->SetBranchAddress("Z2Mass", &m2);
+    tree[it]->SetBranchAddress("helcosthetaZ1", &h1);
+    tree[it]->SetBranchAddress("helcosthetaZ2", &h2);
+    tree[it]->SetBranchAddress("helphi", &phi);
+    tree[it]->SetBranchAddress("costhetastar", &hs);
+    tree[it]->SetBranchAddress("phistarZ1", &phi1);
+  }
+
+  TFile* foutput = new TFile(Form("pJHUGen_JQCD_HSMHiggs_Comparison_%iTeV.root", sqrts), "recreate");
+
+  TProfile* prJQCD = new TProfile("prJQCD", "", 75, 70, 1570); prJQCD->Sumw2();
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  int nTotalEntries = tree[0]->GetEntries();
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree[0]->GetEntry(ev);
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+    if (NJets30==1){
+      for (int ij=0; ij<1; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+
+      TLorentzVector jet[1], higgs;
+      for (int ij=0; ij<1; ij++) jet[ij].SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+      higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+      TVector3 boostH = higgs.BoostVector();
+
+      SimpleParticleCollection_t associated;
+      associated.push_back(SimpleParticle_t(0, jet[0]));
+
+      TLorentzVector pDaughters[4];
+      std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+      for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+      SimpleParticleCollection_t daughters;
+      for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+      mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+      float mesq_jqcd=0;
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JQCD);
+      mela.computeProdP(mesq_jqcd, true);
+
+      prJQCD->Fill(mzz, mesq_jqcd);
+
+      mela.resetInputEvent();
+    }
+  }
+
+  foutput->WriteTObject(prJQCD);
+  foutput->Close();
+  for (int it=0; it<nMEs; it++) delete tree[it];
+}
+
+void check_JQCD_13TeV(int sqrts=13){
+  int erg_tev=sqrts;
+  float mPOLE=125.;
+  TString TREE_NAME = "ZZTree/candTree";
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  short NJets30;
+  std::vector<float>* JetPt=0;
+  std::vector<float>* JetEta=0;
+  std::vector<float>* JetPhi=0;
+  std::vector<float>* JetMass=0;
+  std::vector<float> myJetPt;
+  std::vector<float> myJetEta;
+  std::vector<float> myJetPhi;
+  std::vector<float> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+  float jetptetaphimass[2][4];
+
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+  int LepID[4]={ 13, -13, 11, -11 };
+
+  const int nMEs=1;
+  TChain* tree[nMEs] ={
+    new TChain(TREE_NAME, "")
+  };
+
+  TString cinput_main;
+  if (sqrts==13) cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/4l/160225";
+  else return;
+  const int nSamples_JQCD = 35;
+  TString strSamples_JQCD[nSamples_JQCD]={
+    "ggH91_GaZ/ZZ4lAnalysis.root",
+    "ggH115/ZZ4lAnalysis.root",
+    "ggH120/ZZ4lAnalysis.root",
+    "ggH124/ZZ4lAnalysis.root",
+    "ggH125/ZZ4lAnalysis.root",
+    "ggH126/ZZ4lAnalysis.root",
+    "ggH130/ZZ4lAnalysis.root",
+    "ggH135/ZZ4lAnalysis.root",
+    "ggH140/ZZ4lAnalysis.root",
+    "ggH145/ZZ4lAnalysis.root",
+    "ggH150/ZZ4lAnalysis.root",
+    "ggH155/ZZ4lAnalysis.root",
+    "ggH160/ZZ4lAnalysis.root",
+    "ggH165/ZZ4lAnalysis.root",
+    "ggH170/ZZ4lAnalysis.root",
+    "ggH175/ZZ4lAnalysis.root",
+    "ggH180/ZZ4lAnalysis.root",
+    "ggH190/ZZ4lAnalysis.root",
+    "ggH200/ZZ4lAnalysis.root",
+    "ggH210/ZZ4lAnalysis.root",
+    "ggH230/ZZ4lAnalysis.root",
+    "ggH250/ZZ4lAnalysis.root",
+    "ggH270/ZZ4lAnalysis.root",
+    "ggH300/ZZ4lAnalysis.root",
+    "ggH350/ZZ4lAnalysis.root",
+    "ggH400/ZZ4lAnalysis.root",
+    "ggH450/ZZ4lAnalysis.root",
+    "ggH500/ZZ4lAnalysis.root",
+    "ggH550/ZZ4lAnalysis.root",
+    "ggH600/ZZ4lAnalysis.root",
+    "ggH700/ZZ4lAnalysis.root",
+    "ggH750/ZZ4lAnalysis.root",
+    "ggH800/ZZ4lAnalysis.root",
+    "ggH900/ZZ4lAnalysis.root",
+    "ggH1000/ZZ4lAnalysis.root"
+  };
+  for (int is=0; is<nSamples_JQCD; is++) tree[0]->Add(Form("%s/%s", cinput_main.Data(), (strSamples_JQCD[is]).Data()));
+  for (int it=0; it<nMEs; it++){
+    tree[it]->SetBranchAddress("nCleanedJetsPt30", &NJets30);
+    tree[it]->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+    tree[it]->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+    tree[it]->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+    tree[it]->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+    tree[it]->SetBranchAddress("ZZMass", &mzz);
+    tree[it]->SetBranchAddress("ZZPt", &ZZPt);
+    tree[it]->SetBranchAddress("ZZEta", &ZZEta);
+    tree[it]->SetBranchAddress("ZZPhi", &ZZPhi);
+    tree[it]->SetBranchAddress("Z1Mass", &m1);
+    tree[it]->SetBranchAddress("Z2Mass", &m2);
+    tree[it]->SetBranchAddress("helcosthetaZ1", &h1);
+    tree[it]->SetBranchAddress("helcosthetaZ2", &h2);
+    tree[it]->SetBranchAddress("helphi", &phi);
+    tree[it]->SetBranchAddress("costhetastar", &hs);
+    tree[it]->SetBranchAddress("phistarZ1", &phi1);
+  }
+
+  TFile* foutput = new TFile(Form("pJHUGen_JQCD_HSMHiggs_Comparison_%iTeV.root", sqrts), "recreate");
+
+  TProfile* prJQCD = new TProfile("prJQCD", "", 35, 70, 1575); prJQCD->Sumw2();
+
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+
+  int nTotalEntries = tree[0]->GetEntries();
+  for (int ev = 0; ev < nTotalEntries; ev++){
+    tree[0]->GetEntry(ev);
+    if (ev%10000==0) cout << "Doing event " << ev << endl;
+    if (NJets30==1){
+      for (int ij=0; ij<1; ij++){
+        jetptetaphimass[ij][0]=JetPt->at(ij);
+        jetptetaphimass[ij][1]=JetEta->at(ij);
+        jetptetaphimass[ij][2]=JetPhi->at(ij);
+        jetptetaphimass[ij][3]=JetMass->at(ij);
+      }
+
+      TLorentzVector jet[1], higgs;
+      for (int ij=0; ij<1; ij++) jet[ij].SetPtEtaPhiM(jetptetaphimass[ij][0], jetptetaphimass[ij][1], jetptetaphimass[ij][2], jetptetaphimass[ij][3]);
+      higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+      TVector3 boostH = higgs.BoostVector();
+
+      SimpleParticleCollection_t associated;
+      associated.push_back(SimpleParticle_t(0, jet[0]));
+
+      TLorentzVector pDaughters[4];
+      std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+      for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+      SimpleParticleCollection_t daughters;
+      for (unsigned int idau=0; idau<4; idau++) daughters.push_back(SimpleParticle_t(LepID[idau], pDaughters[idau]));
+      mela.setInputEvent(&daughters, &associated, (SimpleParticleCollection_t*)0, false);
+
+      float mesq_jqcd=0;
+      mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JQCD);
+      mela.computeProdP(mesq_jqcd, true);
+
+      prJQCD->Fill(mzz, mesq_jqcd);
+
+      mela.resetInputEvent();
+    }
+  }
+
+  foutput->WriteTObject(prJQCD);
+  foutput->Close();
+  for (int it=0; it<nMEs; it++) delete tree[it];
+}

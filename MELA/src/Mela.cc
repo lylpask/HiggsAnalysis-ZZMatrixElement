@@ -1685,6 +1685,55 @@ float Mela::getConstant_JHUGenUndecayed(){
     if (var>a1) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3*exp(-pow((var-a4)/a5, 2));
     else correction = 1.+a0+a3*exp(-pow((var-a4)/a5, 2)); // Smooth by virtue of the correction function itself.
   }
+  else if (myProduction_==TVar::JQCD && LHCsqrts==7.){
+    const double a0=-0.5;
+    const double a1=80.;
+    const double a2=9.;
+    const double a3=-0.35352;
+    const double a4=1500.;
+    const double a5=268.;
+    double var = melaCand->m();
+    if (var>a1 && var<a4) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3*exp(-pow((var-a4)/a5, 2));
+    else if (var>a1) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3;
+    else correction = 1.+a0+a3*exp(-pow((var-a4)/a5, 2));
+  }
+  else if (myProduction_==TVar::JQCD && LHCsqrts==7.){
+    const double a0=-0.5;
+    const double a1=80.;
+    const double a2=9.;
+    const double a3=-0.35352;
+    const double a4=1500.;
+    const double a5=268.;
+    double var = melaCand->m();
+    if (var>a1 && var<a4) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3*exp(-pow((var-a4)/a5, 2));
+    else if (var>a1) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3;
+    else correction = 1.+a0+a3*exp(-pow((var-a4)/a5, 2));
+  }
+  else if (myProduction_==TVar::JQCD && LHCsqrts==8.){
+    const double a0=-0.2;
+    const double a1=80.;
+    const double a2=9.;
+    const double a3=-0.0792;
+    const double a4=1500.;
+    const double a5=615.;
+    double var = melaCand->m();
+    if (var>a1 && var<a4) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3*exp(-pow((var-a4)/a5, 2));
+    else if (var>a1) correction = 1+a0*exp(-pow((var-a1)/a2, 2))+a3;
+    else correction = 1.+a0+a3*exp(-pow((var-a4)/a5, 2));
+  }
+  else if (myProduction_==TVar::JQCD && LHCsqrts==13.){
+    // 1+[0]*exp(-pow((x-[1])/[2],2))+[3]*exp(-pow((x-[4])/[5],2))
+    const double a0=0.15;
+    const double a1=320.;
+    const double a2=300.;
+    const double a3=0.179;
+    const double a4=1530.;
+    const double a5=212.;
+    const double offset=0.8444;
+    double var = melaCand->m();
+    if (var<a4) correction = offset+a0*exp(-pow((var-a1)/a2, 2))+a3*exp(-pow((var-a4)/a5, 2));
+    else correction = offset+a0*exp(-pow((var-a1)/a2, 2))+a3;
+  }
 
   constant *= correction;
   return constant;
