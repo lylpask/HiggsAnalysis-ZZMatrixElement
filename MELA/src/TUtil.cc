@@ -4148,9 +4148,20 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      &&
-      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      //      &&
+      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      (partonIsUnknown[0] && partonIsUnknown[1])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
+      )
+      ||
+      (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
+      ||
+      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
       ){
       isel=2; jsel=-1; // udbar->(ZZ)->udbar
       rsel=isel; ssel=jsel;
@@ -4161,9 +4172,20 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
-      &&
-      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      //      &&
+      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      (partonIsUnknown[0] && partonIsUnknown[1])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
+      )
+      ||
+      (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)))
+      ||
+      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
       ){
       isel=1; jsel=-2; // dubar->(ZZ)->dubar
       rsel=isel; ssel=jsel;
@@ -4174,9 +4196,20 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      &&
-      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      //      &&
+      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      (partonIsUnknown[0] && partonIsUnknown[1])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
+      )
+      ||
+      (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
+      ||
+      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
       ){
       isel=2; jsel=-2; // uubar->(ZZ)->uubar
       rsel=isel; ssel=jsel;
@@ -4198,9 +4231,20 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      &&
-      (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      //      (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      //      &&
+      //      (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      (partonIsUnknown[0] && partonIsUnknown[1])
+      ||
+      (
+      (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)
+      ||
+      (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
+      )
+      ||
+      (partonIsUnknown[0] && ((PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
+      ||
+      (partonIsUnknown[1] && ((PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
       ){
       isel=1; jsel=-1; // ddbar->(ZZ)->ddbar
       rsel=isel; ssel=jsel;
@@ -4223,9 +4267,20 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
-      &&
-      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      //      &&
+      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      (partonIsUnknown[0] && partonIsUnknown[1])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0)
+      )
+      ||
+      (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)))
+      ||
+      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0)))
       ){
       isel=2; jsel=1; // ud->(WW)->d'u'
       rsel=3; ssel=4;
@@ -4241,9 +4296,20 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      &&
-      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+//      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+//      &&
+//      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      (partonIsUnknown[0] && partonIsUnknown[1])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
+      )
+      ||
+      (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
+      ||
+      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
       ){
       isel=-2; jsel=-1; // ubardbar->(WW)->dbar'ubar'
       rsel=-3; ssel=-4;
@@ -4729,14 +4795,14 @@ double TUtil::HJJMatEl(
   //      C++ convention     0      1    2    3    4    5   6   7   8  9  10
   if (verbosity >= TVar::DEBUG){
     cout << "MatElsq:\n";
-    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[ii][jj] << '\t'; cout << endl; }
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[jj][ii] << '\t'; cout << endl; }
   }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
   /*
   if (verbosity >= TVar::ERROR && (std::isnan(sum_msqjk) || std::isinf(sum_msqjk))){
     cout << "TUtil::HJJMatEl: FAILURE!" << endl;
     cout << "MatElsq:\n";
-    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[ii][jj] << '\t'; cout << endl; }
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[jj][ii] << '\t'; cout << endl; }
     double fx[2][nmsq];
     RcdME->getPartonWeights(fx[0], fx[1]);
     for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < 2; jj++) cout << fx[jj][ii] << '\t'; cout << endl; }
@@ -5018,7 +5084,7 @@ double TUtil::VHiggsMatEl(
               if (HDKon==0){
                 double msq=0;
                 __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                 if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
               }
               else{
@@ -5036,7 +5102,7 @@ double TUtil::VHiggsMatEl(
                     }
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                     if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                   else{
@@ -5046,7 +5112,7 @@ double TUtil::VHiggsMatEl(
                       vh_ids[8]=hquark;
                       double msq=0;
                       __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                      MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                       if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                     }
                   }
@@ -5062,7 +5128,7 @@ double TUtil::VHiggsMatEl(
             if (HDKon==0){
               double msq=0;
               __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-              MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+              MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
               if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
             }
             else{
@@ -5080,7 +5146,7 @@ double TUtil::VHiggsMatEl(
                   }
                   double msq=0;
                   __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                  MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                   if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                 }
                 else{
@@ -5090,7 +5156,7 @@ double TUtil::VHiggsMatEl(
                     vh_ids[8]=hquark;
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                     if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                 }
@@ -5140,7 +5206,7 @@ double TUtil::VHiggsMatEl(
                   if (HDKon==0){
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                     if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                   else{
@@ -5158,7 +5224,7 @@ double TUtil::VHiggsMatEl(
                         }
                         double msq=0;
                         __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                        MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                        MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                         if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                       }
                       else{
@@ -5168,7 +5234,7 @@ double TUtil::VHiggsMatEl(
                           vh_ids[8]=hquark;
                           double msq=0;
                           __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                          MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                          MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                           if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                         }
                       }
@@ -5194,7 +5260,7 @@ double TUtil::VHiggsMatEl(
               if (HDKon==0){
                 double msq=0;
                 __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                 if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
               }
               else{
@@ -5212,7 +5278,7 @@ double TUtil::VHiggsMatEl(
                     }
                     double msq=0;
                     __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                     if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                   }
                   else{
@@ -5222,7 +5288,7 @@ double TUtil::VHiggsMatEl(
                       vh_ids[8]=hquark;
                       double msq=0;
                       __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                      MatElsq[vh_ids[0]+5][vh_ids[1]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                       if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                     }
                   }
@@ -5239,6 +5305,10 @@ double TUtil::VHiggsMatEl(
   int GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets+nRequested_AssociatedLeptons+nRequested_AssociatedPhotons)*2;
   double constant = pow(GeV, -GeVexponent_MEsq);
   for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
+  if (verbosity >= TVar::DEBUG){
+    cout << "MatElsq:\n";
+    for (int ii = 0; ii < nmsq; ii++){ for (int jj = 0; jj < nmsq; jj++) cout << MatElsq[jj][ii] << '\t'; cout << endl; }
+  }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
   // Turn H_DK off
@@ -5608,6 +5678,11 @@ double TUtil::TTHiggsMatEl(
   int defaultTopDecay=-1;
   __modjhugenmela_MOD_settopdecays(&defaultTopDecay); // reset top decay
 
+  int GeVexponent_MEsq;
+  if (topDecay>0) GeVexponent_MEsq = 4-(1+3*(nRequested_Tops+nRequested_Antitops))*2;
+  else GeVexponent_MEsq = 4-(1+nRequested_Tops+nRequested_Antitops)*2;
+  double constant = pow(GeV, -GeVexponent_MEsq);
+  for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   if (verbosity>=TVar::DEBUG){
     cout << "TUtil::TTHiggsMatEl: MEsq[ip][jp] = " << endl;
     for (int iquark=-5; iquark<=5; iquark++){
@@ -5615,12 +5690,6 @@ double TUtil::TTHiggsMatEl(
       cout << endl;
     }
   }
-
-  int GeVexponent_MEsq;
-  if (topDecay>0) GeVexponent_MEsq = 4-(1+3*(nRequested_Tops+nRequested_Antitops))*2;
-  else GeVexponent_MEsq = 4-(1+nRequested_Tops+nRequested_Antitops)*2;
-  double constant = pow(GeV, -GeVexponent_MEsq);
-  for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
   if (verbosity>=TVar::DEBUG){
@@ -5780,6 +5849,13 @@ double TUtil::BBHiggsMatEl(
   int GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets)*2;
   double constant = pow(GeV, -GeVexponent_MEsq);
   for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::BBHiggsMatEl: MEsq[ip][jp] = " << endl;
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++) cout << MatElsq[jquark+5][iquark+5] << '\t';
+      cout << endl;
+    }
+  }
   sum_msqjk = SumMEPDF(MomStore[0], MomStore[1], MatElsq, RcdME, EBEAM, verbosity);
 
   if (verbosity>=TVar::DEBUG){

@@ -314,6 +314,7 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     cout << "Removed..." << endl;
   }
 }
+
 void testME_ProdDec_MCFM_Ping(int flavor=2){
   int erg_tev=13;
   float mPOLE=125.;
@@ -515,6 +516,348 @@ void testME_ProdDec_MCFM_Ping(int flavor=2){
   }
 }
 
+void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false, int motherflavor=0){
+  int erg_tev=8;
+  float mPOLE=125.6;
+  float wPOLE=4.15e-3;
+  TString TREE_NAME = "SelectedTree";
+
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  Mela mela(erg_tev, mPOLE, verbosity);
+
+  int idMother[2]={ 0 };
+  // VBF ZZ(+)WW
+  if (motherflavor==1){ idMother[0]=2; idMother[1]=1; }
+  else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; }
+  // VBF ZZ-only(+)WH
+  else if (motherflavor==3){ idMother[0]=2; idMother[1]=-1; }
+  else if (motherflavor==4){ idMother[0]=-2; idMother[1]=1; }
+  // VBF ZZ(+)ZH or WW(+)ZH
+  else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; }
+  else if (motherflavor==6){ idMother[0]=-2; idMother[1]=2; }
+  else if (motherflavor==7){ idMother[0]=1; idMother[1]=-1; }
+  else if (motherflavor==8){ idMother[0]=-1; idMother[1]=1; }
+
+  TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
+  TString coutput;
+  TFile* finput;
+  TFile* foutput;
+  if (useBkgSample){
+    finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
+    coutput = Form("HZZ4lTree_ZZTo%s_vbfMELA_MCFMJHUGenComparison", (flavor>=2 ? "2e2mu" : "4e"));
+  }
+  else{
+    finput = new TFile(Form("%s/%s/HZZ4lTree_VBF0P_H125.6.root", cinput_main.Data(), (flavor==2 ? "2mu2e" : "4e")), "read");
+    coutput = "HZZ4lTree_VBF0P_H125.6_vbfMELA_MCFMJHUGenComparison";
+  }
+  if (idMother[0]!=0 || idMother[1]!=0) coutput.Append(Form("_MotherId_%i_%i", idMother[0], idMother[1]));
+  coutput.Append(".root");
+  foutput = new TFile(coutput, "recreate");
+
+
+  float p_vbf_0plus_dec_0plus_VAJHU;
+  float p_vbf_0plus_dec_0hplus_VAJHU;
+  float p_vbf_0plus_dec_0minus_VAJHU;
+  float p_vbf_0plus_dec_0_g1prime2_VAJHU;
+  float p_vbf_0hplus_dec_0hplus_VAJHU;
+  float p_vbf_0minus_dec_0minus_VAJHU;
+  float p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU;
+  float p_vbf_0hplus_dec_0plus_VAJHU;
+  float p_vbf_0minus_dec_0plus_VAJHU;
+  float p_vbf_0_g1prime2_dec_0plus_VAJHU;
+
+  float p_vbf_0plus_dec_0plus_VAMCFM;
+  float p_vbf_0plus_dec_0hplus_VAMCFM;
+  float p_vbf_0plus_dec_0minus_VAMCFM;
+  float p_vbf_0plus_dec_0_g1prime2_VAMCFM;
+  float p_vbf_0hplus_dec_0hplus_VAMCFM;
+  float p_vbf_0minus_dec_0minus_VAMCFM;
+  float p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM;
+  float p_vbf_0hplus_dec_0plus_VAMCFM;
+  float p_vbf_0minus_dec_0plus_VAMCFM;
+  float p_vbf_0_g1prime2_dec_0plus_VAMCFM;
+
+
+  short NJets30;
+  std::vector<double>* JetPt=0;
+  std::vector<double>* JetEta=0;
+  std::vector<double>* JetPhi=0;
+  std::vector<double>* JetMass=0;
+  std::vector<double> myJetPt;
+  std::vector<double> myJetEta;
+  std::vector<double> myJetPhi;
+  std::vector<double> myJetMass;
+  TBranch* bJetPt=0;
+  TBranch* bJetEta=0;
+  TBranch* bJetPhi=0;
+  TBranch* bJetMass=0;
+
+  float mjj = 0;
+  float mzz = 126.;
+  float m1 = 91.471450;
+  float m2 = 12.139782;
+  float h1 = 0.2682896;
+  float h2 = 0.1679779;
+  float phi = 1.5969792;
+  float hs = -0.727181;
+  float phi1 = 1.8828257;
+  float ZZPt, ZZPhi, ZZEta;
+
+  TTree* tree = (TTree*)finput->Get(TREE_NAME);
+  tree->SetBranchAddress("NJets30", &NJets30);
+  tree->SetBranchAddress("JetPt", &JetPt, &bJetPt);
+  tree->SetBranchAddress("JetEta", &JetEta, &bJetEta);
+  tree->SetBranchAddress("JetPhi", &JetPhi, &bJetPhi);
+  tree->SetBranchAddress("JetMass", &JetMass, &bJetMass);
+  tree->SetBranchAddress("ZZMass", &mzz);
+  tree->SetBranchAddress("ZZPt", &ZZPt);
+  tree->SetBranchAddress("ZZEta", &ZZEta);
+  tree->SetBranchAddress("ZZPhi", &ZZPhi);
+  tree->SetBranchAddress("Z1Mass", &m1);
+  tree->SetBranchAddress("Z2Mass", &m2);
+  tree->SetBranchAddress("helcosthetaZ1", &h1);
+  tree->SetBranchAddress("helcosthetaZ2", &h2);
+  tree->SetBranchAddress("helphi", &phi);
+  tree->SetBranchAddress("costhetastar", &hs);
+  tree->SetBranchAddress("phistarZ1", &phi1);
+
+  TTree* newtree = new TTree("TestTree", "");
+
+  newtree->Branch("p_vbf_0plus_dec_0plus_VAJHU", &p_vbf_0plus_dec_0plus_VAJHU);
+  newtree->Branch("p_vbf_0plus_dec_0hplus_VAJHU", &p_vbf_0plus_dec_0hplus_VAJHU);
+  newtree->Branch("p_vbf_0plus_dec_0minus_VAJHU", &p_vbf_0plus_dec_0minus_VAJHU);
+  newtree->Branch("p_vbf_0plus_dec_0_g1prime2_VAJHU", &p_vbf_0plus_dec_0_g1prime2_VAJHU);
+  newtree->Branch("p_vbf_0hplus_dec_0hplus_VAJHU", &p_vbf_0hplus_dec_0hplus_VAJHU);
+  newtree->Branch("p_vbf_0minus_dec_0minus_VAJHU", &p_vbf_0minus_dec_0minus_VAJHU);
+  newtree->Branch("p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU", &p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU);
+  newtree->Branch("p_vbf_0hplus_dec_0plus_VAJHU", &p_vbf_0hplus_dec_0plus_VAJHU);
+  newtree->Branch("p_vbf_0minus_dec_0plus_VAJHU", &p_vbf_0minus_dec_0plus_VAJHU);
+  newtree->Branch("p_vbf_0_g1prime2_dec_0plus_VAJHU", &p_vbf_0_g1prime2_dec_0plus_VAJHU);
+
+  newtree->Branch("p_vbf_0plus_dec_0plus_VAMCFM", &p_vbf_0plus_dec_0plus_VAMCFM);
+  newtree->Branch("p_vbf_0plus_dec_0hplus_VAMCFM", &p_vbf_0plus_dec_0hplus_VAMCFM);
+  newtree->Branch("p_vbf_0plus_dec_0minus_VAMCFM", &p_vbf_0plus_dec_0minus_VAMCFM);
+  newtree->Branch("p_vbf_0plus_dec_0_g1prime2_VAMCFM", &p_vbf_0plus_dec_0_g1prime2_VAMCFM);
+  newtree->Branch("p_vbf_0hplus_dec_0hplus_VAMCFM", &p_vbf_0hplus_dec_0hplus_VAMCFM);
+  newtree->Branch("p_vbf_0minus_dec_0minus_VAMCFM", &p_vbf_0minus_dec_0minus_VAMCFM);
+  newtree->Branch("p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM", &p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM);
+  newtree->Branch("p_vbf_0hplus_dec_0plus_VAMCFM", &p_vbf_0hplus_dec_0plus_VAMCFM);
+  newtree->Branch("p_vbf_0minus_dec_0plus_VAMCFM", &p_vbf_0minus_dec_0plus_VAMCFM);
+  newtree->Branch("p_vbf_0_g1prime2_dec_0plus_VAMCFM", &p_vbf_0_g1prime2_dec_0plus_VAMCFM);
+
+  newtree->Branch("ZZMass", &mzz);
+  newtree->Branch("DiJetMass", &mjj);
+
+  float GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
+  if (flavor == 2){
+    GenLep1Id=13;
+    GenLep2Id=-13;
+    GenLep3Id=11;
+    GenLep4Id=-11;
+  }
+  else if (flavor == 1){
+    GenLep1Id=11;
+    GenLep2Id=-11;
+    GenLep3Id=11;
+    GenLep4Id=-11;
+  }
+  else if (flavor == 0){
+    GenLep1Id=13;
+    GenLep2Id=-13;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  else if (flavor == 3){
+    GenLep1Id=14;
+    GenLep2Id=-14;
+    GenLep3Id=13;
+    GenLep4Id=-13;
+  }
+  else if (flavor == 4){
+    GenLep1Id=0;
+    GenLep2Id=-0;
+    GenLep3Id=1;
+    GenLep4Id=-1;
+  }
+  else if (flavor == 5){
+    GenLep1Id=1;
+    GenLep2Id=-1;
+    GenLep3Id=2;
+    GenLep4Id=-2;
+  }
+  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+  int idOrdered[4] ={ static_cast<int>(GenLep1Id), static_cast<int>(GenLep2Id), static_cast<int>(GenLep3Id), static_cast<int>(GenLep4Id) };
+
+  int nEntries = tree->GetEntries();
+  int recorded=0;
+  for (int ev = 0; ev < nEntries; ev++){
+    if (recorded>=(verbosity>=TVar::DEBUG ? 1 : (!useBkgSample ? 1000 : nEntries))) break;
+    //if (recorded>=1) break;
+    tree->GetEntry(ev);
+    if (recorded%1000==0) cout << "Nrecorded = " << recorded << "..." << endl;
+
+    if (JetPt->size()>=2 && NJets30>=2){
+      TLorentzVector jet1(0, 0, 1e-3, 1e-3), jet2(0, 0, 1e-3, 1e-3), higgs(0, 0, 0, 0);
+      jet1.SetPtEtaPhiM(JetPt->at(0), JetEta->at(0), JetPhi->at(0), JetMass->at(0));
+      jet2.SetPtEtaPhiM(JetPt->at(1), JetEta->at(1), JetPhi->at(1), JetMass->at(1));
+      higgs.SetPtEtaPhiM(ZZPt, ZZEta, ZZPhi, mzz);
+      TVector3 boostH = higgs.BoostVector();
+
+      SimpleParticleCollection_t associated;
+      associated.push_back(SimpleParticle_t(0, jet1));
+      associated.push_back(SimpleParticle_t(0, jet2));
+      mjj = (jet1+jet2).M();
+
+      TLorentzVector pDaughters[4];
+      std::vector<TLorentzVector> daus = mela.calculate4Momentum(mzz, m1, m2, acos(hs), acos(h1), acos(h2), phi1, phi);
+      for (int ip=0; ip<min(4, (int)daus.size()); ip++){ pDaughters[ip]=daus.at(ip); pDaughters[ip].Boost(boostH); }
+      SimpleParticleCollection_t daughters_ZZ;
+      for (unsigned int idau=0; idau<4; idau++) daughters_ZZ.push_back(SimpleParticle_t(idOrdered[idau], pDaughters[idau]));
+
+      SimpleParticleCollection_t mothers;
+      TLorentzVector pTotal(0, 0, 0, 0);
+      for (unsigned int ip=0; ip<associated.size(); ip++) pTotal = pTotal + associated.at(ip).second;
+      for (unsigned int ip=0; ip<daughters_ZZ.size(); ip++) pTotal = pTotal + daughters_ZZ.at(ip).second;
+      TVector3 boostT(-pTotal.X()/pTotal.T(), -pTotal.Y()/pTotal.T(), 0);
+      pTotal.Boost(boostT);
+      TLorentzVector pMother[2];
+      pMother[0].SetXYZT(0, 0, (pTotal.T()+pTotal.Z())/2., (pTotal.T()+pTotal.Z())/2.);
+      pMother[1].SetXYZT(0, 0, (-pTotal.T()+pTotal.Z())/2., (pTotal.T()-pTotal.Z())/2.);
+      for (unsigned int imot=0; imot<2; imot++){
+        pMother[imot].Boost(-boostT);
+        mothers.push_back(SimpleParticle_t(idMother[imot], pMother[imot]));
+      }
+      mela.setInputEvent(&daughters_ZZ, &associated, &mothers, true);
+
+      /***** JHUGen *****/
+
+      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZINDEPENDENT);
+      float p_dec_0plus_VAJHU;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.computeP(p_dec_0plus_VAJHU, false);
+      float p_dec_0hplus_VAJHU;
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][1][0]=1;
+        mela.computeP(p_dec_0hplus_VAJHU, false);
+      }
+      float p_dec_0minus_VAJHU;
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][3][0]=1;
+        mela.computeP(p_dec_0minus_VAJHU, false);
+      }
+      float p_dec_0_g1prime2_VAJHU;
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.computeP(p_dec_0_g1prime2_VAJHU, false);
+      }
+
+      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
+      float p_vbf_0plus_VAJHU;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.computeProdP(p_vbf_0plus_VAJHU, false);
+      float p_vbf_0hplus_VAJHU;
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][1][0]=1;
+        mela.computeProdP(p_vbf_0hplus_VAJHU, false);
+      }
+      float p_vbf_0minus_VAJHU;
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][3][0]=1;
+        mela.computeProdP(p_vbf_0minus_VAJHU, false);
+      }
+      float p_vbf_0_g1prime2_VAJHU;
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.computeProdP(p_vbf_0_g1prime2_VAJHU, false);
+      }
+
+      p_vbf_0plus_dec_0plus_VAJHU=p_vbf_0plus_VAJHU*p_dec_0plus_VAJHU;
+      p_vbf_0plus_dec_0hplus_VAJHU=p_vbf_0plus_VAJHU*p_dec_0hplus_VAJHU;
+      p_vbf_0plus_dec_0minus_VAJHU=p_vbf_0plus_VAJHU*p_dec_0minus_VAJHU;
+      p_vbf_0plus_dec_0_g1prime2_VAJHU=p_vbf_0plus_VAJHU*p_dec_0_g1prime2_VAJHU;
+      p_vbf_0hplus_dec_0hplus_VAJHU=p_vbf_0hplus_VAJHU*p_dec_0hplus_VAJHU;
+      p_vbf_0minus_dec_0minus_VAJHU=p_vbf_0minus_VAJHU*p_dec_0minus_VAJHU;
+      p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU=p_vbf_0_g1prime2_VAJHU*p_dec_0_g1prime2_VAJHU;
+      p_vbf_0hplus_dec_0plus_VAJHU=p_vbf_0hplus_VAJHU*p_dec_0plus_VAJHU;
+      p_vbf_0minus_dec_0plus_VAJHU=p_vbf_0minus_VAJHU*p_dec_0plus_VAJHU;
+      p_vbf_0_g1prime2_dec_0plus_VAJHU=p_vbf_0_g1prime2_VAJHU*p_dec_0plus_VAJHU;
+
+
+      /***** MCFM *****/
+
+      mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::JJVBF);
+      spinzerohiggs_anomcoupl_.channeltoggle_stu=0;
+      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh=0;
+
+      spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
+      spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
+      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.computeProdDecP(p_vbf_0plus_dec_0plus_VAMCFM, false);
+      if (verbosity<=TVar::ERROR){
+        mela.selfDHzzcoupl[0][1][0]=1;
+        mela.computeProdDecP(p_vbf_0hplus_dec_0hplus_VAMCFM, false);
+        mela.selfDHzzcoupl[0][3][0]=1;
+        mela.computeProdDecP(p_vbf_0minus_dec_0minus_VAMCFM, false);
+        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.computeProdDecP(p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM, false);
+
+        spinzerohiggs_anomcoupl_.AnomalCouplPR=0;
+        spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
+        mela.selfDHzzcoupl[0][1][0]=1;
+        mela.computeProdDecP(p_vbf_0plus_dec_0hplus_VAMCFM, false);
+        mela.selfDHzzcoupl[0][3][0]=1;
+        mela.computeProdDecP(p_vbf_0plus_dec_0minus_VAMCFM, false);
+        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.computeProdDecP(p_vbf_0plus_dec_0_g1prime2_VAMCFM, false);
+
+        spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
+        spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
+        mela.selfDHzzcoupl[0][1][0]=1;
+        mela.computeProdDecP(p_vbf_0hplus_dec_0plus_VAMCFM, false);
+        mela.selfDHzzcoupl[0][3][0]=1;
+        mela.computeProdDecP(p_vbf_0minus_dec_0plus_VAMCFM, false);
+        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.computeProdDecP(p_vbf_0_g1prime2_dec_0plus_VAMCFM, false);
+      }
+
+      if (verbosity>=TVar::DEBUG) TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
+
+      mela.resetInputEvent();
+
+      double propagator = 1./(pow(pow(mzz, 2)-pow(mPOLE, 2), 2)+pow(mPOLE*wPOLE, 2));
+      if (p_vbf_0plus_dec_0plus_VAJHU>0.){
+        p_vbf_0plus_dec_0hplus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0plus_dec_0minus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0plus_dec_0_g1prime2_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0hplus_dec_0hplus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0minus_dec_0minus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0hplus_dec_0plus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0minus_dec_0plus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0_g1prime2_dec_0plus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
+        p_vbf_0plus_dec_0plus_VAJHU *= propagator;
+      }
+      if (p_vbf_0plus_dec_0plus_VAMCFM>0.){
+        p_vbf_0plus_dec_0hplus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0plus_dec_0minus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0plus_dec_0_g1prime2_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0hplus_dec_0hplus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0minus_dec_0minus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0hplus_dec_0plus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0minus_dec_0plus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+        p_vbf_0_g1prime2_dec_0plus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+      }
+
+      newtree->Fill();
+      recorded++;
+    }
+  }
+  foutput->WriteTObject(newtree);
+  delete newtree;
+  foutput->Close();
+  finput->Close();
+}
 
 void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
   int erg_tev=13;

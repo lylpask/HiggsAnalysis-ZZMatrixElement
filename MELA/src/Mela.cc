@@ -759,7 +759,7 @@ void Mela::computeProdDecP(
   if (melaCand==0) hasFailed=true;
   if (hasFailed) prob=0;
   else{
-    if (myModel_ == TVar::SelfDefine_spin0) ZZME->set_SpinZeroCouplings(
+    ZZME->set_SpinZeroCouplings(
       selfDHvvcoupl_freenorm,
       selfDHqqcoupl,
       selfDHggcoupl,

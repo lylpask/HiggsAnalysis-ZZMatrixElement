@@ -89,6 +89,9 @@ void TEvtProb::InitializeMCFM(){
   spinzerohiggs_anomcoupl_.Lambda2_z4=10000;
   spinzerohiggs_anomcoupl_.Lambda2_zgs1=10000;
   spinzerohiggs_anomcoupl_.Lambda2_Q=10000;
+  // Switches for spin-0 Higgs couplings
+  spinzerohiggs_anomcoupl_.channeltoggle_stu=2; spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh=2;
+  spinzerohiggs_anomcoupl_.AnomalCouplPR=1; spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
   // Constant parameters for all processes
   qlfirst_.qlfirst=false;
 

@@ -139,6 +139,10 @@ extern "C" {
 
   extern struct{
 
+    int AnomalCouplPR, AnomalCouplDK;
+    int channeltoggle_stu;
+    int vvhvvtoggle_vbfvh;
+
     int cz_q1sq, cz_q2sq, cz_q12sq;
     int cw_q1sq, cw_q2sq, cw_q12sq;
     int c2z_q1sq, c2z_q2sq, c2z_q12sq;
@@ -158,7 +162,6 @@ extern "C" {
     double ghz1_prime5[2]; double ghz2_prime5[2]; double ghz3_prime5[2]; double ghz4_prime5[2]; // q1**4 + q2**4
     double ghz1_prime6[2]; double ghz2_prime6[2]; double ghz3_prime6[2]; double ghz4_prime6[2]; // q1**4 - q2**4
     double ghz1_prime7[2]; double ghz2_prime7[2]; double ghz3_prime7[2]; double ghz4_prime7[2]; // |q1**2| * |q2**2|
-
 
     double Lambda_zgs1;
     double ghzgs1_prime2[2]; double ghzgs2[2]; double ghzgs3[2]; double ghzgs4[2];
