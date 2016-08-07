@@ -516,14 +516,13 @@ void testME_ProdDec_MCFM_Ping(int flavor=2){
   }
 }
 
-void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false, int motherflavor=0){
+void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false, int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=1 /*1==VBF, 2==VH*/){
   int erg_tev=8;
   float mPOLE=125.6;
   float wPOLE=4.15e-3;
   TString TREE_NAME = "SelectedTree";
 
   TVar::VerbosityLevel verbosity = TVar::ERROR;
-  Mela mela(erg_tev, mPOLE, verbosity);
 
   int idMother[2]={ 0 };
   // VBF ZZ(+)WW
@@ -540,42 +539,63 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
 
   TString cinput_main = "/scratch0/hep/ianderso/CJLST/140519/PRODFSR_8TeV";
   TString coutput;
+  if (useBkgSample){
+    if (vbfvhchannel==1) coutput = Form("HZZ4lTree_ZZTo%s_vbfMELA_MCFMJHUGenComparison", (flavor>=2 ? "2e2mu" : "4e"));
+    else coutput = Form("HZZ4lTree_ZZTo%s_vhMELA_MCFMJHUGenComparison", (flavor>=2 ? "2e2mu" : "4e"));
+  }
+  else{
+    if (vbfvhchannel==1){
+      coutput = "HZZ4lTree_VBF0P_H125.6_vbfMELA_MCFMJHUGenComparison";
+    }
+    else{
+      coutput = "HZZ4lTree_WH125_vhMELA_MCFMJHUGenComparison";
+      mPOLE=125.; wPOLE=4.07e-3;
+    }
+  }
+  if (isZZWW==1) coutput.Append("_ZZCouplOnly");
+  else if (isZZWW==2) coutput.Append("_WWCouplOnly");
+  if (idMother[0]!=0 || idMother[1]!=0) coutput.Append(Form("_MotherId_%i_%i", idMother[0], idMother[1]));
+  coutput.Append(".root");
+
+  Mela mela(erg_tev, mPOLE, verbosity);
+
   TFile* finput;
   TFile* foutput;
   if (useBkgSample){
     finput = new TFile(Form("%s/%s/HZZ4lTree_ZZTo%s.root", cinput_main.Data(), (flavor>=2 ? "2mu2e" : "4e"), (flavor==2 ? "2e2mu" : "4e")), "read");
-    coutput = Form("HZZ4lTree_ZZTo%s_vbfMELA_MCFMJHUGenComparison", (flavor>=2 ? "2e2mu" : "4e"));
   }
   else{
-    finput = new TFile(Form("%s/%s/HZZ4lTree_VBF0P_H125.6.root", cinput_main.Data(), (flavor==2 ? "2mu2e" : "4e")), "read");
-    coutput = "HZZ4lTree_VBF0P_H125.6_vbfMELA_MCFMJHUGenComparison";
+    if (vbfvhchannel==1){
+      finput = new TFile(Form("%s/%s/HZZ4lTree_VBF0P_H125.6.root", cinput_main.Data(), (flavor==2 ? "2mu2e" : "4e")), "read");
+    }
+    else{
+      finput = new TFile(Form("%s/%s/HZZ4lTree_WH125.root", cinput_main.Data(), (flavor==2 ? "2mu2e" : "4e")), "read");
+    }
   }
-  if (idMother[0]!=0 || idMother[1]!=0) coutput.Append(Form("_MotherId_%i_%i", idMother[0], idMother[1]));
-  coutput.Append(".root");
   foutput = new TFile(coutput, "recreate");
 
 
-  float p_vbf_0plus_dec_0plus_VAJHU;
-  float p_vbf_0plus_dec_0hplus_VAJHU;
-  float p_vbf_0plus_dec_0minus_VAJHU;
-  float p_vbf_0plus_dec_0_g1prime2_VAJHU;
-  float p_vbf_0hplus_dec_0hplus_VAJHU;
-  float p_vbf_0minus_dec_0minus_VAJHU;
-  float p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU;
-  float p_vbf_0hplus_dec_0plus_VAJHU;
-  float p_vbf_0minus_dec_0plus_VAJHU;
-  float p_vbf_0_g1prime2_dec_0plus_VAJHU;
+  float p_prod_0plus_dec_0plus_VAJHU;
+  float p_prod_0plus_dec_0hplus_VAJHU;
+  float p_prod_0plus_dec_0minus_VAJHU;
+  float p_prod_0plus_dec_0_g1prime2_VAJHU;
+  float p_prod_0hplus_dec_0hplus_VAJHU;
+  float p_prod_0minus_dec_0minus_VAJHU;
+  float p_prod_0_g1prime2_dec_0_g1prime2_VAJHU;
+  float p_prod_0hplus_dec_0plus_VAJHU;
+  float p_prod_0minus_dec_0plus_VAJHU;
+  float p_prod_0_g1prime2_dec_0plus_VAJHU;
 
-  float p_vbf_0plus_dec_0plus_VAMCFM;
-  float p_vbf_0plus_dec_0hplus_VAMCFM;
-  float p_vbf_0plus_dec_0minus_VAMCFM;
-  float p_vbf_0plus_dec_0_g1prime2_VAMCFM;
-  float p_vbf_0hplus_dec_0hplus_VAMCFM;
-  float p_vbf_0minus_dec_0minus_VAMCFM;
-  float p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM;
-  float p_vbf_0hplus_dec_0plus_VAMCFM;
-  float p_vbf_0minus_dec_0plus_VAMCFM;
-  float p_vbf_0_g1prime2_dec_0plus_VAMCFM;
+  float p_prod_0plus_dec_0plus_VAMCFM;
+  float p_prod_0plus_dec_0hplus_VAMCFM;
+  float p_prod_0plus_dec_0minus_VAMCFM;
+  float p_prod_0plus_dec_0_g1prime2_VAMCFM;
+  float p_prod_0hplus_dec_0hplus_VAMCFM;
+  float p_prod_0minus_dec_0minus_VAMCFM;
+  float p_prod_0_g1prime2_dec_0_g1prime2_VAMCFM;
+  float p_prod_0hplus_dec_0plus_VAMCFM;
+  float p_prod_0minus_dec_0plus_VAMCFM;
+  float p_prod_0_g1prime2_dec_0plus_VAMCFM;
 
 
   short NJets30;
@@ -623,27 +643,27 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
 
   TTree* newtree = new TTree("TestTree", "");
 
-  newtree->Branch("p_vbf_0plus_dec_0plus_VAJHU", &p_vbf_0plus_dec_0plus_VAJHU);
-  newtree->Branch("p_vbf_0plus_dec_0hplus_VAJHU", &p_vbf_0plus_dec_0hplus_VAJHU);
-  newtree->Branch("p_vbf_0plus_dec_0minus_VAJHU", &p_vbf_0plus_dec_0minus_VAJHU);
-  newtree->Branch("p_vbf_0plus_dec_0_g1prime2_VAJHU", &p_vbf_0plus_dec_0_g1prime2_VAJHU);
-  newtree->Branch("p_vbf_0hplus_dec_0hplus_VAJHU", &p_vbf_0hplus_dec_0hplus_VAJHU);
-  newtree->Branch("p_vbf_0minus_dec_0minus_VAJHU", &p_vbf_0minus_dec_0minus_VAJHU);
-  newtree->Branch("p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU", &p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU);
-  newtree->Branch("p_vbf_0hplus_dec_0plus_VAJHU", &p_vbf_0hplus_dec_0plus_VAJHU);
-  newtree->Branch("p_vbf_0minus_dec_0plus_VAJHU", &p_vbf_0minus_dec_0plus_VAJHU);
-  newtree->Branch("p_vbf_0_g1prime2_dec_0plus_VAJHU", &p_vbf_0_g1prime2_dec_0plus_VAJHU);
+  newtree->Branch("p_prod_0plus_dec_0plus_VAJHU", &p_prod_0plus_dec_0plus_VAJHU);
+  newtree->Branch("p_prod_0plus_dec_0hplus_VAJHU", &p_prod_0plus_dec_0hplus_VAJHU);
+  newtree->Branch("p_prod_0plus_dec_0minus_VAJHU", &p_prod_0plus_dec_0minus_VAJHU);
+  newtree->Branch("p_prod_0plus_dec_0_g1prime2_VAJHU", &p_prod_0plus_dec_0_g1prime2_VAJHU);
+  newtree->Branch("p_prod_0hplus_dec_0hplus_VAJHU", &p_prod_0hplus_dec_0hplus_VAJHU);
+  newtree->Branch("p_prod_0minus_dec_0minus_VAJHU", &p_prod_0minus_dec_0minus_VAJHU);
+  newtree->Branch("p_prod_0_g1prime2_dec_0_g1prime2_VAJHU", &p_prod_0_g1prime2_dec_0_g1prime2_VAJHU);
+  newtree->Branch("p_prod_0hplus_dec_0plus_VAJHU", &p_prod_0hplus_dec_0plus_VAJHU);
+  newtree->Branch("p_prod_0minus_dec_0plus_VAJHU", &p_prod_0minus_dec_0plus_VAJHU);
+  newtree->Branch("p_prod_0_g1prime2_dec_0plus_VAJHU", &p_prod_0_g1prime2_dec_0plus_VAJHU);
 
-  newtree->Branch("p_vbf_0plus_dec_0plus_VAMCFM", &p_vbf_0plus_dec_0plus_VAMCFM);
-  newtree->Branch("p_vbf_0plus_dec_0hplus_VAMCFM", &p_vbf_0plus_dec_0hplus_VAMCFM);
-  newtree->Branch("p_vbf_0plus_dec_0minus_VAMCFM", &p_vbf_0plus_dec_0minus_VAMCFM);
-  newtree->Branch("p_vbf_0plus_dec_0_g1prime2_VAMCFM", &p_vbf_0plus_dec_0_g1prime2_VAMCFM);
-  newtree->Branch("p_vbf_0hplus_dec_0hplus_VAMCFM", &p_vbf_0hplus_dec_0hplus_VAMCFM);
-  newtree->Branch("p_vbf_0minus_dec_0minus_VAMCFM", &p_vbf_0minus_dec_0minus_VAMCFM);
-  newtree->Branch("p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM", &p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM);
-  newtree->Branch("p_vbf_0hplus_dec_0plus_VAMCFM", &p_vbf_0hplus_dec_0plus_VAMCFM);
-  newtree->Branch("p_vbf_0minus_dec_0plus_VAMCFM", &p_vbf_0minus_dec_0plus_VAMCFM);
-  newtree->Branch("p_vbf_0_g1prime2_dec_0plus_VAMCFM", &p_vbf_0_g1prime2_dec_0plus_VAMCFM);
+  newtree->Branch("p_prod_0plus_dec_0plus_VAMCFM", &p_prod_0plus_dec_0plus_VAMCFM);
+  newtree->Branch("p_prod_0plus_dec_0hplus_VAMCFM", &p_prod_0plus_dec_0hplus_VAMCFM);
+  newtree->Branch("p_prod_0plus_dec_0minus_VAMCFM", &p_prod_0plus_dec_0minus_VAMCFM);
+  newtree->Branch("p_prod_0plus_dec_0_g1prime2_VAMCFM", &p_prod_0plus_dec_0_g1prime2_VAMCFM);
+  newtree->Branch("p_prod_0hplus_dec_0hplus_VAMCFM", &p_prod_0hplus_dec_0hplus_VAMCFM);
+  newtree->Branch("p_prod_0minus_dec_0minus_VAMCFM", &p_prod_0minus_dec_0minus_VAMCFM);
+  newtree->Branch("p_prod_0_g1prime2_dec_0_g1prime2_VAMCFM", &p_prod_0_g1prime2_dec_0_g1prime2_VAMCFM);
+  newtree->Branch("p_prod_0hplus_dec_0plus_VAMCFM", &p_prod_0hplus_dec_0plus_VAMCFM);
+  newtree->Branch("p_prod_0minus_dec_0plus_VAMCFM", &p_prod_0minus_dec_0plus_VAMCFM);
+  newtree->Branch("p_prod_0_g1prime2_dec_0plus_VAMCFM", &p_prod_0_g1prime2_dec_0plus_VAMCFM);
 
   newtree->Branch("ZZMass", &mzz);
   newtree->Branch("DiJetMass", &mjj);
@@ -735,89 +755,162 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
       float p_dec_0plus_VAJHU;
       mela.selfDHzzcoupl[0][0][0]=1;
       mela.computeP(p_dec_0plus_VAJHU, false);
-      float p_dec_0hplus_VAJHU;
-      if (verbosity<=TVar::ERROR){
+      float p_dec_0hplus_VAJHU=p_dec_0plus_VAJHU;
+      if (verbosity<=TVar::ERROR && isZZWW!=2){
         mela.selfDHzzcoupl[0][1][0]=1;
         mela.computeP(p_dec_0hplus_VAJHU, false);
       }
-      float p_dec_0minus_VAJHU;
-      if (verbosity<=TVar::ERROR){
+      float p_dec_0minus_VAJHU=p_dec_0plus_VAJHU;
+      if (verbosity<=TVar::ERROR && isZZWW!=2){
         mela.selfDHzzcoupl[0][3][0]=1;
         mela.computeP(p_dec_0minus_VAJHU, false);
       }
-      float p_dec_0_g1prime2_VAJHU;
-      if (verbosity<=TVar::ERROR){
+      float p_dec_0_g1prime2_VAJHU=p_dec_0plus_VAJHU;
+      if (verbosity<=TVar::ERROR && isZZWW!=2){
         mela.selfDHzzcoupl[0][11][0]=-10000;
         mela.computeP(p_dec_0_g1prime2_VAJHU, false);
       }
 
-      mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
-      float p_vbf_0plus_VAJHU;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.computeProdP(p_vbf_0plus_VAJHU, false);
-      float p_vbf_0hplus_VAJHU;
-      if (verbosity<=TVar::ERROR){
-        mela.selfDHzzcoupl[0][1][0]=1;
-        mela.computeProdP(p_vbf_0hplus_VAJHU, false);
+      float p_prod_0plus_VAJHU=0;
+      float p_prod_0hplus_VAJHU=0;
+      float p_prod_0minus_VAJHU=0;
+      float p_prod_0_g1prime2_VAJHU=0;
+
+      if (vbfvhchannel==1){
+        mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][0][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][0][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdP(p_prod_0plus_VAJHU, false);
+        if (verbosity<=TVar::ERROR){
+          if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+          else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
+          mela.computeProdP(p_prod_0hplus_VAJHU, false);
+
+          if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+          else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
+          mela.computeProdP(p_prod_0minus_VAJHU, false);
+
+          if (isZZWW!=2){ mela.selfDHzzcoupl[0][11][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+          else{ mela.selfDHwwcoupl[0][11][0]=-10000; mela.differentiate_HWW_HZZ=true; }
+          mela.computeProdP(p_prod_0_g1prime2_VAJHU, false);
+        }
       }
-      float p_vbf_0minus_VAJHU;
-      if (verbosity<=TVar::ERROR){
-        mela.selfDHzzcoupl[0][3][0]=1;
-        mela.computeProdP(p_vbf_0minus_VAJHU, false);
-      }
-      float p_vbf_0_g1prime2_VAJHU;
-      if (verbosity<=TVar::ERROR){
-        mela.selfDHzzcoupl[0][11][0]=-10000;
-        mela.computeProdP(p_vbf_0_g1prime2_VAJHU, false);
+      else{
+        float p_wh_0plus_VAJHU=0;
+        float p_wh_0hplus_VAJHU=0;
+        float p_wh_0minus_VAJHU=0;
+        float p_wh_0_g1prime2_VAJHU=0;
+
+        if (isZZWW!=1){
+          mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
+          mela.selfDHzzcoupl[0][0][0]=1;
+          mela.computeProdP(p_wh_0plus_VAJHU, false);
+          if (verbosity<=TVar::ERROR){
+            mela.selfDHzzcoupl[0][1][0]=1;
+            mela.computeProdP(p_wh_0hplus_VAJHU, false);
+
+            mela.selfDHzzcoupl[0][3][0]=1;
+            mela.computeProdP(p_wh_0minus_VAJHU, false);
+
+            mela.selfDHzzcoupl[0][11][0]=-10000;
+            mela.computeProdP(p_wh_0_g1prime2_VAJHU, false);
+          }
+        }
+
+        float p_zh_0plus_VAJHU=0;
+        float p_zh_0hplus_VAJHU=0;
+        float p_zh_0minus_VAJHU=0;
+        float p_zh_0_g1prime2_VAJHU=0;
+
+        if (isZZWW!=2){
+          mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
+          mela.selfDHzzcoupl[0][0][0]=1;
+          mela.computeProdP(p_zh_0plus_VAJHU, false);
+          if (verbosity<=TVar::ERROR){
+            mela.selfDHzzcoupl[0][1][0]=1;
+            mela.computeProdP(p_zh_0hplus_VAJHU, false);
+
+            mela.selfDHzzcoupl[0][3][0]=1;
+            mela.computeProdP(p_zh_0minus_VAJHU, false);
+
+            mela.selfDHzzcoupl[0][11][0]=-10000;
+            mela.computeProdP(p_zh_0_g1prime2_VAJHU, false);
+          }
+        }
+
+        p_prod_0plus_VAJHU = p_wh_0plus_VAJHU + p_zh_0plus_VAJHU;
+        p_prod_0hplus_VAJHU = p_wh_0hplus_VAJHU + p_zh_0hplus_VAJHU;
+        p_prod_0minus_VAJHU = p_wh_0minus_VAJHU + p_zh_0minus_VAJHU;
+        p_prod_0_g1prime2_VAJHU = p_wh_0_g1prime2_VAJHU + p_zh_0_g1prime2_VAJHU;
       }
 
-      p_vbf_0plus_dec_0plus_VAJHU=p_vbf_0plus_VAJHU*p_dec_0plus_VAJHU;
-      p_vbf_0plus_dec_0hplus_VAJHU=p_vbf_0plus_VAJHU*p_dec_0hplus_VAJHU;
-      p_vbf_0plus_dec_0minus_VAJHU=p_vbf_0plus_VAJHU*p_dec_0minus_VAJHU;
-      p_vbf_0plus_dec_0_g1prime2_VAJHU=p_vbf_0plus_VAJHU*p_dec_0_g1prime2_VAJHU;
-      p_vbf_0hplus_dec_0hplus_VAJHU=p_vbf_0hplus_VAJHU*p_dec_0hplus_VAJHU;
-      p_vbf_0minus_dec_0minus_VAJHU=p_vbf_0minus_VAJHU*p_dec_0minus_VAJHU;
-      p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU=p_vbf_0_g1prime2_VAJHU*p_dec_0_g1prime2_VAJHU;
-      p_vbf_0hplus_dec_0plus_VAJHU=p_vbf_0hplus_VAJHU*p_dec_0plus_VAJHU;
-      p_vbf_0minus_dec_0plus_VAJHU=p_vbf_0minus_VAJHU*p_dec_0plus_VAJHU;
-      p_vbf_0_g1prime2_dec_0plus_VAJHU=p_vbf_0_g1prime2_VAJHU*p_dec_0plus_VAJHU;
+      p_prod_0plus_dec_0plus_VAJHU=p_prod_0plus_VAJHU*p_dec_0plus_VAJHU;
+      p_prod_0plus_dec_0hplus_VAJHU=p_prod_0plus_VAJHU*p_dec_0hplus_VAJHU;
+      p_prod_0plus_dec_0minus_VAJHU=p_prod_0plus_VAJHU*p_dec_0minus_VAJHU;
+      p_prod_0plus_dec_0_g1prime2_VAJHU=p_prod_0plus_VAJHU*p_dec_0_g1prime2_VAJHU;
+      p_prod_0hplus_dec_0hplus_VAJHU=p_prod_0hplus_VAJHU*p_dec_0hplus_VAJHU;
+      p_prod_0minus_dec_0minus_VAJHU=p_prod_0minus_VAJHU*p_dec_0minus_VAJHU;
+      p_prod_0_g1prime2_dec_0_g1prime2_VAJHU=p_prod_0_g1prime2_VAJHU*p_dec_0_g1prime2_VAJHU;
+      p_prod_0hplus_dec_0plus_VAJHU=p_prod_0hplus_VAJHU*p_dec_0plus_VAJHU;
+      p_prod_0minus_dec_0plus_VAJHU=p_prod_0minus_VAJHU*p_dec_0plus_VAJHU;
+      p_prod_0_g1prime2_dec_0plus_VAJHU=p_prod_0_g1prime2_VAJHU*p_dec_0plus_VAJHU;
 
 
       /***** MCFM *****/
 
       mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::JJVBF);
+
       spinzerohiggs_anomcoupl_.channeltoggle_stu=0;
-      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh=0;
+      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh=(vbfvhchannel==1 ? 0 : 1);
 
       spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
       spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.computeProdDecP(p_vbf_0plus_dec_0plus_VAMCFM, false);
+      if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
+      if (isZZWW!=2){ mela.selfDHzzcoupl[0][0][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+      else{ mela.selfDHwwcoupl[0][0][0]=1; mela.differentiate_HWW_HZZ=true; }
+      mela.computeProdDecP(p_prod_0plus_dec_0plus_VAMCFM, false);
       if (verbosity<=TVar::ERROR){
-        mela.selfDHzzcoupl[0][1][0]=1;
-        mela.computeProdDecP(p_vbf_0hplus_dec_0hplus_VAMCFM, false);
-        mela.selfDHzzcoupl[0][3][0]=1;
-        mela.computeProdDecP(p_vbf_0minus_dec_0minus_VAMCFM, false);
+        /*
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0hplus_dec_0hplus_VAMCFM, false);
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0minus_dec_0minus_VAMCFM, false);
         mela.selfDHzzcoupl[0][11][0]=-10000;
-        mela.computeProdDecP(p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM, false);
+        mela.computeProdDecP(p_prod_0_g1prime2_dec_0_g1prime2_VAMCFM, false);
+        */
 
+        /*
         spinzerohiggs_anomcoupl_.AnomalCouplPR=0;
         spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
-        mela.selfDHzzcoupl[0][1][0]=1;
-        mela.computeProdDecP(p_vbf_0plus_dec_0hplus_VAMCFM, false);
-        mela.selfDHzzcoupl[0][3][0]=1;
-        mela.computeProdDecP(p_vbf_0plus_dec_0minus_VAMCFM, false);
-        mela.selfDHzzcoupl[0][11][0]=-10000;
-        mela.computeProdDecP(p_vbf_0plus_dec_0_g1prime2_VAMCFM, false);
+        if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0plus_dec_0hplus_VAMCFM, false);
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0plus_dec_0minus_VAMCFM, false);
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][11][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][11][0]=-10000; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0plus_dec_0_g1prime2_VAMCFM, false);
+        */
 
         spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
         spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
-        mela.selfDHzzcoupl[0][1][0]=1;
-        mela.computeProdDecP(p_vbf_0hplus_dec_0plus_VAMCFM, false);
-        mela.selfDHzzcoupl[0][3][0]=1;
-        mela.computeProdDecP(p_vbf_0minus_dec_0plus_VAMCFM, false);
-        mela.selfDHzzcoupl[0][11][0]=-10000;
-        mela.computeProdDecP(p_vbf_0_g1prime2_dec_0plus_VAMCFM, false);
+        /*
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0hplus_dec_0plus_VAMCFM, false);
+        
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0minus_dec_0plus_VAMCFM, false);
+        */
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][11][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        else{ mela.selfDHwwcoupl[0][11][0]=-10000; mela.differentiate_HWW_HZZ=true; }
+        mela.computeProdDecP(p_prod_0_g1prime2_dec_0plus_VAMCFM, false);
+        
       }
 
       if (verbosity>=TVar::DEBUG) TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
@@ -825,28 +918,33 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
       mela.resetInputEvent();
 
       double propagator = 1./(pow(pow(mzz, 2)-pow(mPOLE, 2), 2)+pow(mPOLE*wPOLE, 2));
-      if (p_vbf_0plus_dec_0plus_VAJHU>0.){
-        p_vbf_0plus_dec_0hplus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0plus_dec_0minus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0plus_dec_0_g1prime2_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0hplus_dec_0hplus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0minus_dec_0minus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0_g1prime2_dec_0_g1prime2_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0hplus_dec_0plus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0minus_dec_0plus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0_g1prime2_dec_0plus_VAJHU /= p_vbf_0plus_dec_0plus_VAJHU;
-        p_vbf_0plus_dec_0plus_VAJHU *= propagator;
+      if (vbfvhchannel!=1){ // JHUGen VH pseudo-propagator
+        double mh, gah;
+        mela.getIORecord()->getHiggsMassWidth(mh, gah, 0);
+        propagator /= 1./(pow(pow(mzz, 2)-pow(mh, 2), 2) + pow(mh*gah, 2));
       }
-      if (p_vbf_0plus_dec_0plus_VAMCFM>0.){
-        p_vbf_0plus_dec_0hplus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0plus_dec_0minus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0plus_dec_0_g1prime2_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0hplus_dec_0hplus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0minus_dec_0minus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0_g1prime2_dec_0_g1prime2_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0hplus_dec_0plus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0minus_dec_0plus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
-        p_vbf_0_g1prime2_dec_0plus_VAMCFM /= p_vbf_0plus_dec_0plus_VAMCFM;
+      if (p_prod_0plus_dec_0plus_VAJHU>0.){
+        p_prod_0plus_dec_0hplus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0plus_dec_0minus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0plus_dec_0_g1prime2_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0hplus_dec_0hplus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0minus_dec_0minus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0_g1prime2_dec_0_g1prime2_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0hplus_dec_0plus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0minus_dec_0plus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0_g1prime2_dec_0plus_VAJHU /= p_prod_0plus_dec_0plus_VAJHU;
+        p_prod_0plus_dec_0plus_VAJHU *= propagator;
+      }
+      if (p_prod_0plus_dec_0plus_VAMCFM>0.){
+        p_prod_0plus_dec_0hplus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0plus_dec_0minus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0plus_dec_0_g1prime2_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0hplus_dec_0hplus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0minus_dec_0minus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0_g1prime2_dec_0_g1prime2_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0hplus_dec_0plus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0minus_dec_0plus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
+        p_prod_0_g1prime2_dec_0plus_VAMCFM /= p_prod_0plus_dec_0plus_VAMCFM;
       }
 
       newtree->Fill();

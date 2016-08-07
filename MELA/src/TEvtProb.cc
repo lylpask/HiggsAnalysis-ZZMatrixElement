@@ -75,20 +75,40 @@ void TEvtProb::InitializeMCFM(){
   qlinit_();
   // First resonance constant parameters
   spinzerohiggs_anomcoupl_.LambdaBSM=1000;
+  spinzerohiggs_anomcoupl_.Lambda_Q=10000;
   spinzerohiggs_anomcoupl_.Lambda_z1=10000;
   spinzerohiggs_anomcoupl_.Lambda_z2=10000;
   spinzerohiggs_anomcoupl_.Lambda_z3=10000;
   spinzerohiggs_anomcoupl_.Lambda_z4=10000;
+  spinzerohiggs_anomcoupl_.Lambda_z11=100; spinzerohiggs_anomcoupl_.Lambda_z21=100; spinzerohiggs_anomcoupl_.Lambda_z31=100; spinzerohiggs_anomcoupl_.Lambda_z41=100;
+  spinzerohiggs_anomcoupl_.Lambda_z12=100; spinzerohiggs_anomcoupl_.Lambda_z22=100; spinzerohiggs_anomcoupl_.Lambda_z32=100; spinzerohiggs_anomcoupl_.Lambda_z42=100;
+  spinzerohiggs_anomcoupl_.Lambda_z10=100; spinzerohiggs_anomcoupl_.Lambda_z20=100; spinzerohiggs_anomcoupl_.Lambda_z30=100; spinzerohiggs_anomcoupl_.Lambda_z40=100;
   spinzerohiggs_anomcoupl_.Lambda_zgs1=10000;
-  spinzerohiggs_anomcoupl_.Lambda_Q=10000;
+  spinzerohiggs_anomcoupl_.Lambda_w1=10000;
+  spinzerohiggs_anomcoupl_.Lambda_w2=10000;
+  spinzerohiggs_anomcoupl_.Lambda_w3=10000;
+  spinzerohiggs_anomcoupl_.Lambda_w4=10000;
+  spinzerohiggs_anomcoupl_.Lambda_w11=100; spinzerohiggs_anomcoupl_.Lambda_w21=100; spinzerohiggs_anomcoupl_.Lambda_w31=100; spinzerohiggs_anomcoupl_.Lambda_w41=100;
+  spinzerohiggs_anomcoupl_.Lambda_w12=100; spinzerohiggs_anomcoupl_.Lambda_w22=100; spinzerohiggs_anomcoupl_.Lambda_w32=100; spinzerohiggs_anomcoupl_.Lambda_w42=100;
+  spinzerohiggs_anomcoupl_.Lambda_w10=100; spinzerohiggs_anomcoupl_.Lambda_w20=100; spinzerohiggs_anomcoupl_.Lambda_w30=100; spinzerohiggs_anomcoupl_.Lambda_w40=100;
   // Second resonance constant parameters
   spinzerohiggs_anomcoupl_.Lambda2BSM=1000;
+  spinzerohiggs_anomcoupl_.Lambda2_Q=10000;
   spinzerohiggs_anomcoupl_.Lambda2_z1=10000;
   spinzerohiggs_anomcoupl_.Lambda2_z2=10000;
   spinzerohiggs_anomcoupl_.Lambda2_z3=10000;
   spinzerohiggs_anomcoupl_.Lambda2_z4=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_z11=100; spinzerohiggs_anomcoupl_.Lambda2_z21=100; spinzerohiggs_anomcoupl_.Lambda2_z31=100; spinzerohiggs_anomcoupl_.Lambda2_z41=100;
+  spinzerohiggs_anomcoupl_.Lambda2_z12=100; spinzerohiggs_anomcoupl_.Lambda2_z22=100; spinzerohiggs_anomcoupl_.Lambda2_z32=100; spinzerohiggs_anomcoupl_.Lambda2_z42=100;
+  spinzerohiggs_anomcoupl_.Lambda2_z10=100; spinzerohiggs_anomcoupl_.Lambda2_z20=100; spinzerohiggs_anomcoupl_.Lambda2_z30=100; spinzerohiggs_anomcoupl_.Lambda2_z40=100;
   spinzerohiggs_anomcoupl_.Lambda2_zgs1=10000;
-  spinzerohiggs_anomcoupl_.Lambda2_Q=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_w1=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_w2=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_w3=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_w4=10000;
+  spinzerohiggs_anomcoupl_.Lambda2_w11=100; spinzerohiggs_anomcoupl_.Lambda2_w21=100; spinzerohiggs_anomcoupl_.Lambda2_w31=100; spinzerohiggs_anomcoupl_.Lambda2_w41=100;
+  spinzerohiggs_anomcoupl_.Lambda2_w12=100; spinzerohiggs_anomcoupl_.Lambda2_w22=100; spinzerohiggs_anomcoupl_.Lambda2_w32=100; spinzerohiggs_anomcoupl_.Lambda2_w42=100;
+  spinzerohiggs_anomcoupl_.Lambda2_w10=100; spinzerohiggs_anomcoupl_.Lambda2_w20=100; spinzerohiggs_anomcoupl_.Lambda2_w30=100; spinzerohiggs_anomcoupl_.Lambda2_w40=100;
   // Switches for spin-0 Higgs couplings
   spinzerohiggs_anomcoupl_.channeltoggle_stu=2; spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh=2;
   spinzerohiggs_anomcoupl_.AnomalCouplPR=1; spinzerohiggs_anomcoupl_.AnomalCouplDK=1;

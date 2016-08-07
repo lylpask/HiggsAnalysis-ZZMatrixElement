@@ -2510,7 +2510,7 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
   }
   else{
     spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = true;
-    spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = (Hcouplings->separateWWZZcouplings && !forceZZ);
+    spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = bool(Hcouplings->separateWWZZcouplings && !forceZZ);
 
     /***** REGULAR RESONANCE *****/
     //
@@ -3202,7 +3202,13 @@ double TUtil::SumMatrixElementPDF(
     ) RcdME->setVDaughterCouplings(0., 0., 1);
 
   if (msqjk != msqjk){
-    if (verbosity>=TVar::ERROR) cout << "SumMatrixPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
+    if (verbosity>=TVar::ERROR) cout << "TUtil::SumMatrixElementPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
+    for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+    cout << "TUtil::SumMatrixElementPDF: The number of ME instances: " << nInstances << ". MEsq[ip][jp] = " << endl;
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++) cout << msq[jquark+5][iquark+5] << '\t';
+      cout << endl;
+    }
     msqjk=0;
   }
   else if (verbosity>=TVar::DEBUG){
