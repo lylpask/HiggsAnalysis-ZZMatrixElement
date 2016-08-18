@@ -2283,8 +2283,8 @@ void TUtil::SetJHUGenDistinguishWWCouplings(bool doAllow){
 }
 void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ){
   if (!useBSM){
-    spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = false;
-    spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = false;
+    spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = 0;
+    spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = 0;
 
     /***** REGULAR RESONANCE *****/
     //
@@ -2509,8 +2509,8 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
     /***** END SECOND RESONANCE *****/
   }
   else{
-    spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = true;
-    spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = bool(Hcouplings->separateWWZZcouplings && !forceZZ);
+    spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = 1;
+    spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = ((Hcouplings->separateWWZZcouplings && !forceZZ) ? 1 : 0);
 
     /***** REGULAR RESONANCE *****/
     //
@@ -2573,7 +2573,7 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
       spinzerohiggs_anomcoupl_.ghgsgs4[im] = (Hcouplings->Hzzcoupl)[9][im];
     }
     //
-    if (spinzerohiggs_anomcoupl_.distinguish_HWWcouplings){
+    if (spinzerohiggs_anomcoupl_.distinguish_HWWcouplings==1){
       //
       spinzerohiggs_anomcoupl_.cw_q1sq = (Hcouplings->HwwCLambda_qsq)[0];
       spinzerohiggs_anomcoupl_.Lambda_w11 = (Hcouplings->HwwLambda_qsq)[0][0];
@@ -2742,7 +2742,7 @@ void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcoupling
       spinzerohiggs_anomcoupl_.gh2gsgs4[im] = (Hcouplings->H2zzcoupl)[9][im];
     }
     //
-    if (spinzerohiggs_anomcoupl_.distinguish_HWWcouplings){
+    if (spinzerohiggs_anomcoupl_.distinguish_HWWcouplings==1){
       //
       spinzerohiggs_anomcoupl_.c2w_q1sq = (Hcouplings->H2wwCLambda_qsq)[0];
       spinzerohiggs_anomcoupl_.Lambda2_w11 = (Hcouplings->H2wwLambda_qsq)[0][0];

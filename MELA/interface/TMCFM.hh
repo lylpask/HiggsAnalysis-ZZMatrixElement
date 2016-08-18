@@ -139,6 +139,8 @@ extern "C" {
 
   extern struct{
 
+    int AllowAnomalousCouplings, distinguish_HWWcouplings;
+
     int AnomalCouplPR, AnomalCouplDK;
     int channeltoggle_stu;
     int vvhvvtoggle_vbfvh;
@@ -215,8 +217,6 @@ extern "C" {
     double gh2w1_prime5[2]; double gh2w2_prime5[2]; double gh2w3_prime5[2]; double gh2w4_prime5[2]; // q1**4 + q2**4
     double gh2w1_prime6[2]; double gh2w2_prime6[2]; double gh2w3_prime6[2]; double gh2w4_prime6[2]; // q1**4 - q2**4
     double gh2w1_prime7[2]; double gh2w2_prime7[2]; double gh2w3_prime7[2]; double gh2w4_prime7[2]; // |q1**2| * |q2**2|
-
-    int AllowAnomalousCouplings; int distinguish_HWWcouplings;
 
   } spinzerohiggs_anomcoupl_;
 
