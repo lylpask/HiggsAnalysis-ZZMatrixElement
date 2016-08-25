@@ -3556,9 +3556,9 @@ double TUtil::JHUGenMatEl(
 
   // Set RcdME information for ME and parton distributions, taking into account the mothers if id!=0 (i.e. if not unknown).
   if (mela_event.pMothers.at(0).first!=0 && mela_event.pMothers.at(1).first!=0){
-    int ix=0, iy=0;
-    if (abs(mela_event.pMothers.at(0).first)<6) ix=mela_event.pMothers.at(0).first;
-    if (abs(mela_event.pMothers.at(1).first)<6) iy=mela_event.pMothers.at(1).first;
+    int ix=5, iy=5;
+    if (abs(mela_event.pMothers.at(0).first)<6) ix=mela_event.pMothers.at(0).first + 5;
+    if (abs(mela_event.pMothers.at(1).first)<6) iy=mela_event.pMothers.at(1).first + 5;
     msq[iy][ix]=MatElSq; // Note that SumMEPdf receives a transposed msq
   }
   else{
