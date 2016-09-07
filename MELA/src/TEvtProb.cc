@@ -309,10 +309,9 @@ std::vector<MELATopCandidate*>* TEvtProb::GetTopCandidates(){ return &topCandLis
 
 // Check/test functions
 bool TEvtProb::CheckInputPresent(){
-  if (melaCand==0 || candList.size()==0){
+  if (melaCand==0){
     cerr
-      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand << " is nullPtr"
-      << " or candList.size()==" << candList.size() << " is problematic!"
+      << "TEvtProb::XsecCalc_XVV: melaCand==" << melaCand << " is nullPtr!"
       << endl;
     if (candList.size()==0) return false;
     else{
