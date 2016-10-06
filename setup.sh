@@ -3,6 +3,6 @@
 
 #echo "$@"
 pushd ${CMSSW_BASE}/src/ZZMatrixElement/MELA/
-source setup.sh "$@"
+./setup.sh "$@" || return 1 >& /dev/null || exit 1 #return only works when sourced, exit will exit your whole session if sourced
 popd
 scramv1 b "$@"
