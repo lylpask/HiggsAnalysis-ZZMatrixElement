@@ -389,8 +389,8 @@ double TEvtProb::XsecCalc_XVV(
     // all the possible couplings
     double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
     double Hvvcoupl[SIZE_HVV][2] ={ { 0 } };
-    double HvvLambda_qsq[4][3] ={ { 0 } };
-    int HvvCLambda_qsq[3] ={ 0 };
+    double HvvLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ] ={ { 0 } };
+    int HvvCLambda_qsq[SIZE_HVV_CQSQ] ={ 0 };
 
     double Zqqcoupl[SIZE_ZQQ][2] ={ { 0 } };
     double Zvvcoupl[SIZE_ZVV][2] ={ { 0 } };
@@ -404,7 +404,7 @@ double TEvtProb::XsecCalc_XVV(
     //
     // By default set the Spin 0 couplings for SM case (0+m)
     Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0;
-    for (int ic=0; ic<4; ic++){ for (int ik=0; ik<3; ik++) HvvLambda_qsq[ic][ik]=100.; }
+    for (int ic=0; ic<SIZE_HVV_LAMBDAQSQ; ic++){ for (int ik=0; ik<SIZE_HVV_CQSQ; ik++) HvvLambda_qsq[ic][ik]=100.; }
     //
     // set spin 2 default numbers
     //
@@ -465,8 +465,8 @@ double TEvtProb::XsecCalc_XVV(
         for (int i=0; i<SIZE_HGG; i++) Hggcoupl[i][j] = (selfDSpinZeroCoupl.Hggcoupl)[i][j];
         for (int i=0; i<SIZE_HVV; i++) Hvvcoupl[i][j] = (selfDSpinZeroCoupl.Hzzcoupl)[i][j];
       }
-      for (int j=0; j<3; j++){
-        for (int i=0; i<4; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
+      for (int j=0; j<SIZE_HVV_CQSQ; j++){
+        for (int i=0; i<SIZE_HVV_LAMBDAQSQ; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
         HvvCLambda_qsq[j] = (selfDSpinZeroCoupl.HzzCLambda_qsq)[j];
       }
       if (verbosity_>=TVar::DEBUG_VERBOSE){
@@ -474,8 +474,8 @@ double TEvtProb::XsecCalc_XVV(
           for (int i=0; i<SIZE_HGG; i++) cout << "Hggcoupl[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.Hggcoupl)[i][j] << endl;
           for (int i=0; i<SIZE_HVV; i++) cout << "Hvvcoupl[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.Hzzcoupl)[i][j] << endl;
         }
-        for (int j=0; j<3; j++){
-          for (int i=0; i<4; i++) cout << "HvvLambda_qsq[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j] << endl;
+        for (int j=0; j<SIZE_HVV_CQSQ; j++){
+          for (int i=0; i<SIZE_HVV_LAMBDAQSQ; i++) cout << "HvvLambda_qsq[" << i << "][" << j << "] = " << (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j] << endl;
           cout << "HvvCLambda_qsq[" << j << "] = " << (selfDSpinZeroCoupl.HzzCLambda_qsq)[j] << endl;
         }
       }
@@ -695,16 +695,16 @@ double TEvtProb::XsecCalcXJJ(
   double Hggcoupl[SIZE_HGG][2] ={ { 0 } };
   double Hzzcoupl[SIZE_HVV][2] ={ { 0 } };
   double Hwwcoupl[SIZE_HVV][2] ={ { 0 } };
-  double HzzLambda_qsq[4][3] ={ { 0 } };
-  double HwwLambda_qsq[4][3] ={ { 0 } };
-  int HzzCLambda_qsq[3] ={ 0 };
-  int HwwCLambda_qsq[3] ={ 0 };
+  double HzzLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ] ={ { 0 } };
+  double HwwLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ] ={ { 0 } };
+  int HzzCLambda_qsq[SIZE_HVV_CQSQ] ={ 0 };
+  int HwwCLambda_qsq[SIZE_HVV_CQSQ] ={ 0 };
 
   Hggcoupl[0][0]=1.0;  Hggcoupl[0][1]=0.0; // g2
   Hzzcoupl[0][0]=1.0;  Hzzcoupl[0][1]=0.0; // g1
   Hwwcoupl[0][0]=1.0;  Hwwcoupl[0][1]=0.0; // g1
-  for (int ic=0; ic<4; ic++){
-    for (int ik=0; ik<3; ik++){
+  for (int ic=0; ic<SIZE_HVV_LAMBDAQSQ; ic++){
+    for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
       HzzLambda_qsq[ic][ik]=100.;
       HwwLambda_qsq[ic][ik]=100.;
     }
@@ -742,8 +742,8 @@ double TEvtProb::XsecCalcXJJ(
         Hwwcoupl[i][j] = (selfDSpinZeroCoupl.Hwwcoupl)[i][j];
       }
     }
-    for (int j=0; j<3; j++){
-      for (int i=0; i<4; i++){
+    for (int j=0; j<SIZE_HVV_CQSQ; j++){
+      for (int i=0; i<SIZE_HVV_LAMBDAQSQ; i++){
         HzzLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
         HwwLambda_qsq[i][j] = (selfDSpinZeroCoupl.HwwLambda_qsq)[i][j];
       }
@@ -812,12 +812,12 @@ double TEvtProb::XsecCalc_VX(
   if (matrixElement == TVar::JHUGen){
     // Set Couplings at the HVV* vertex
     double Hvvcoupl[SIZE_HVV][2] ={ { 0 } };
-    double HvvLambda_qsq[4][3] ={ { 0 } };
-    int HvvCLambda_qsq[3] ={ 0 };
+    double HvvLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ] ={ { 0 } };
+    int HvvCLambda_qsq[SIZE_HVV_CQSQ] ={ 0 };
 
     // By default set the Spin 0 couplings for SM case
     Hvvcoupl[0][0]=1.0;  Hvvcoupl[0][1]=0.0;   // first/second number is the real/imaginary part
-    for (int ic=0; ic<4; ic++){ for (int ik=0; ik<3; ik++) HvvLambda_qsq[ic][ik]=100.; }
+    for (int ic=0; ic<SIZE_HVV_LAMBDAQSQ; ic++){ for (int ik=0; ik<SIZE_HVV_CQSQ; ik++) HvvLambda_qsq[ic][ik]=100.; }
 
     // 0-
     if (process == TVar::H0minus) {
@@ -840,8 +840,8 @@ double TEvtProb::XsecCalc_VX(
     }
     else if (process == TVar::SelfDefine_spin0){
       for (int i=0; i<SIZE_HVV; i++){ for (int j=0; j<2; j++) Hvvcoupl[i][j] = (selfDSpinZeroCoupl.Hzzcoupl)[i][j]; }
-      for (int j=0; j<3; j++){
-        for (int i=0; i<4; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
+      for (int j=0; j<SIZE_HVV_CQSQ; j++){
+        for (int i=0; i<SIZE_HVV_LAMBDAQSQ; i++) HvvLambda_qsq[i][j] = (selfDSpinZeroCoupl.HzzLambda_qsq)[i][j];
         HvvCLambda_qsq[j] = (selfDSpinZeroCoupl.HzzCLambda_qsq)[j];
       }
     }

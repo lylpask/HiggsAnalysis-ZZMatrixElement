@@ -238,10 +238,10 @@ public:
   // The first dimension (of size [nSupportedHiggses=2]) supports a second resonance present in MCFM
   double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2];
   double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2];
-  double selfDHzzLambda_qsq[nSupportedHiggses][4][3];
-  double selfDHwwLambda_qsq[nSupportedHiggses][4][3];
-  int selfDHzzCLambda_qsq[nSupportedHiggses][3];
-  int selfDHwwCLambda_qsq[nSupportedHiggses][3];
+  double selfDHzzLambda_qsq[nSupportedHiggses][SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
+  double selfDHwwLambda_qsq[nSupportedHiggses][SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
+  int selfDHzzCLambda_qsq[nSupportedHiggses][SIZE_HVV_CQSQ];
+  int selfDHwwCLambda_qsq[nSupportedHiggses][SIZE_HVV_CQSQ];
   bool differentiate_HWW_HZZ;
   //****Spin-1****//
   double selfDZqqcoupl[SIZE_ZQQ][2];

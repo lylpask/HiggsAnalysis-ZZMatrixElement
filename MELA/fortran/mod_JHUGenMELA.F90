@@ -36,6 +36,10 @@ subroutine SetHiggsMassWidth(mass,width)
    real(8), intent(in) :: mass, width
    M_Reso = mass
    Ga_Reso = width
+
+   ! Set CPS-related variables to defaults
+   mubarH = -999d0
+   gabarH = -999d0
    return
 end subroutine SetHiggsMassWidth
 

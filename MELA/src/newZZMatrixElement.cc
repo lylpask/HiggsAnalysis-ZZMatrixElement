@@ -210,10 +210,10 @@ void newZZMatrixElement::set_SpinZeroCouplings(
   double selfDHggcoupl[SIZE_HGG][2],
   double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2],
   double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2],
-  double selfDHzzLambda_qsq[nSupportedHiggses][4][3],
-  double selfDHwwLambda_qsq[nSupportedHiggses][4][3],
-  int selfDHzzCLambda_qsq[nSupportedHiggses][3],
-  int selfDHwwCLambda_qsq[nSupportedHiggses][3],
+  double selfDHzzLambda_qsq[nSupportedHiggses][SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ],
+  double selfDHwwLambda_qsq[nSupportedHiggses][SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ],
+  int selfDHzzCLambda_qsq[nSupportedHiggses][SIZE_HVV_CQSQ],
+  int selfDHwwCLambda_qsq[nSupportedHiggses][SIZE_HVV_CQSQ],
   bool diffHWW
   ){
   Xcal2.AllowSeparateWWCouplings(diffHWW);
@@ -224,8 +224,8 @@ void newZZMatrixElement::set_SpinZeroCouplings(
   for (int jh=1; jh<=(int)nSupportedHiggses; jh++){
     for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[jh-1][ic][0], selfDHzzcoupl[jh-1][ic][1], false, jh);
     for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[jh-1][ic][0], selfDHwwcoupl[jh-1][ic][1], true, jh);
-    for (int ik=0; ik<3; ik++){
-      for (int ig=0; ig<4; ig++){
+    for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
+      for (int ig=0; ig<SIZE_HVV_LAMBDAQSQ; ig++){
         selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHzzLambda_qsq[jh-1][ig][ik], false, jh);
         selfD_SpinZeroCouplings->SetHVVLambdaQ2(ig, ik, selfDHwwLambda_qsq[jh-1][ig][ik], true, jh);
       }
@@ -421,7 +421,10 @@ void newZZMatrixElement::get_XPropagator(TVar::ResonancePropagatorScheme scheme,
   prop=0.;
   melaCand = get_CurrentCandidate();
 
-  if (melaCand!=0) prop=Xcal2.GetXPropagator(scheme);
+  if (melaCand!=0){
+    Xcal2.SetHiggsMass(mHiggs[0], wHiggs[0], -1);
+    prop=Xcal2.GetXPropagator(scheme);
+  }
 
   resetPerEvent();
   return;

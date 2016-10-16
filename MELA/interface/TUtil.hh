@@ -8,14 +8,7 @@
 #define ZZ_COMMON
 #include <string>
 #include <vector>
-#include "TLorentzVector.h"
-#include "TTree.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TH1D.h"
-#include "TH2D.h"
-#include "TFile.h"
-#include "TF1.h"
+// TVar class
 #include "TVar.hh"
 // Mod_Parameters
 #include "TModParameters.hh"
@@ -37,6 +30,15 @@
 #include "TModVHiggsMatEl.hh"
 // ttH
 #include "TModTTBHMatEl.hh"
+// ROOT includes
+#include "TLorentzVector.h"
+#include "TTree.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH1D.h"
+#include "TH2D.h"
+#include "TFile.h"
+#include "TF1.h"
 
 
 namespace TUtil{
@@ -55,7 +57,7 @@ namespace TUtil{
   // This version simply scales momentum to match energy for the desired mass.
   void scaleMomentumToEnergy(TLorentzVector massiveJet, TLorentzVector& masslessJet, double mass=0);
   // Function that has generic removal features
-  pair<TLorentzVector, TLorentzVector> removeMassFromPair(
+  std::pair<TLorentzVector, TLorentzVector> removeMassFromPair(
     TLorentzVector jet1, int jet1Id,
     TLorentzVector jet2, int jet2Id,
     double m1=0, double m2=0
@@ -150,7 +152,7 @@ namespace TUtil{
   // Parameter settings
   void SetEwkCouplingParameters();
   double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]);
-  void SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, string mypartons); // Q_ren/fac -> Q_ren/fac * multiplier_ren/fac
+  void SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, std::string mypartons); // Q_ren/fac -> Q_ren/fac * multiplier_ren/fac
   void GetAlphaS(double* alphas_, double* alphasmz_); // Get last alpha_s value set
   bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand);
 
@@ -161,7 +163,7 @@ namespace TUtil{
 
   // Spin-0 couplings
   void SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ);
-  void SetJHUGenSpinZeroVVCouplings(double Hvvcoupl[SIZE_HVV][2], int Hvvcoupl_cqsq[3], double HvvLambda_qsq[4][3], bool useWWcoupl);
+  void SetJHUGenSpinZeroVVCouplings(double Hvvcoupl[SIZE_HVV][2], int Hvvcoupl_cqsq[SIZE_HVV_CQSQ], double HvvLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ], bool useWWcoupl);
   void SetJHUGenSpinZeroGGCouplings(double Hggcoupl[SIZE_HGG][2]);
   void SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]);
   // Spin-1 couplings

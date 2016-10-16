@@ -1,23 +1,138 @@
 #ifndef TCOUPLINGS_HH
 #define TCOUPLINGS_HH
 
+#include <iostream>
+
 //---------------------------------
 // Coupling array sizes
 //---------------------------------
-#define SIZE_HVV 39
-#define SIZE_HGG 3
-#define SIZE_ZQQ 2
-#define SIZE_ZVV 2
-#define SIZE_GQQ 2
-#define SIZE_GGG 5
-#define SIZE_GVV 10
-#define SIZE_HVV_FREENORM 2
-#define SIZE_HQQ 2
+namespace{
+  enum{
+    gHIGGS_KAPPA,
+    gHIGGS_KAPPA_TILDE,
 
-#include <iostream>
-#include <vector>
+    SIZE_HQQ
+  };
+  enum{
+    gHIGGS_GG_2,
+    gHIGGS_GG_3,
+    gHIGGS_GG_4,
 
-using namespace std;
+    SIZE_HGG
+  };
+  enum{
+    gHIGGS_VV_NORM_RE,
+    gHIGGS_VV_NORM_IM,
+
+    SIZE_HVV_FREENORM
+  };
+  enum{
+    gHIGGS_VV_1,
+    gHIGGS_VV_2,
+    gHIGGS_VV_3,
+    gHIGGS_VV_4,
+
+    gHIGGS_ZA_2,
+    gHIGGS_ZA_3,
+    gHIGGS_ZA_4,
+    gHIGGS_AA_2,
+    gHIGGS_AA_3,
+    gHIGGS_AA_4,
+
+    gHIGGS_VV_1_PRIME,
+    gHIGGS_VV_1_PRIME2,
+    gHIGGS_VV_1_PRIME3,
+    gHIGGS_VV_1_PRIME4,
+    gHIGGS_VV_1_PRIME5,
+
+    gHIGGS_VV_2_PRIME,
+    gHIGGS_VV_2_PRIME2,
+    gHIGGS_VV_2_PRIME3,
+    gHIGGS_VV_2_PRIME4,
+    gHIGGS_VV_2_PRIME5,
+
+    gHIGGS_VV_3_PRIME,
+    gHIGGS_VV_3_PRIME2,
+    gHIGGS_VV_3_PRIME3,
+    gHIGGS_VV_3_PRIME4,
+    gHIGGS_VV_3_PRIME5,
+
+    gHIGGS_VV_4_PRIME,
+    gHIGGS_VV_4_PRIME2,
+    gHIGGS_VV_4_PRIME3,
+    gHIGGS_VV_4_PRIME4,
+    gHIGGS_VV_4_PRIME5,
+
+    gHIGGS_ZA_1_PRIME2,
+
+    gHIGGS_VV_1_PRIME6,
+    gHIGGS_VV_1_PRIME7,
+    gHIGGS_VV_2_PRIME6,
+    gHIGGS_VV_2_PRIME7,
+    gHIGGS_VV_3_PRIME6,
+    gHIGGS_VV_3_PRIME7,
+    gHIGGS_VV_4_PRIME6,
+    gHIGGS_VV_4_PRIME7,
+
+    SIZE_HVV
+  };
+  enum{
+    LambdaHIGGS_QSQ_VV_1 = 0,
+    LambdaHIGGS_QSQ_VV_2 = 1,
+    LambdaHIGGS_QSQ_VV_3 = 2,
+    LambdaHIGGS_QSQ_VV_4 = 3,
+
+    SIZE_HVV_LAMBDAQSQ = 4
+  };
+  enum{
+    cLambdaHIGGS_VV_QSQ1 = 0,
+    cLambdaHIGGS_VV_QSQ2 = 1,
+    cLambdaHIGGS_VV_QSQ12 = 2,
+
+    SIZE_HVV_CQSQ = 3
+  };
+  enum{
+    gZPRIME_QQ_LEFT,
+    gZPRIME_QQ_RIGHT,
+
+    SIZE_ZQQ
+  };
+  enum{
+    gZPRIME_VV_1,
+    gZPRIME_VV_2,
+
+    SIZE_ZVV
+  };
+  enum{
+    gGRAVITON_QQ_LEFT,
+    gGRAVITON_QQ_RIGHT,
+
+    SIZE_GQQ
+  };
+  enum{
+    gGRAVITON_GG_1,
+    gGRAVITON_GG_2,
+    gGRAVITON_GG_3,
+    gGRAVITON_GG_4,
+    gGRAVITON_GG_5,
+
+    SIZE_GGG
+  };
+  enum{
+    gGRAVITON_VV_1,
+    gGRAVITON_VV_2,
+    gGRAVITON_VV_3,
+    gGRAVITON_VV_4,
+    gGRAVITON_VV_5,
+    gGRAVITON_VV_6,
+    gGRAVITON_VV_7,
+    gGRAVITON_VV_8,
+    gGRAVITON_VV_9,
+    gGRAVITON_VV_10,
+
+    SIZE_GVV
+  };
+}
 
 class SpinZeroCouplings{
 public:
@@ -44,12 +159,12 @@ public:
     Hwwcoupl[0][0] = 1.0;
     */
     for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) Hvvcoupl_freenorm[ic]=0;
-    for (int ik=0; ik<3; ik++){
+    for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
       HzzCLambda_qsq[ik]=0;
       HwwCLambda_qsq[ik]=0;
       H2zzCLambda_qsq[ik]=0;
       H2wwCLambda_qsq[ik]=0;
-      for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
+      for (int ic=0; ic<SIZE_HVV_LAMBDAQSQ; ic++){ // These default values do not matter as long as the c's are 0.
         HzzLambda_qsq[ic][ik] = 100.;
         HwwLambda_qsq[ic][ik] = 100.;
         H2zzLambda_qsq[ic][ik] = 100.;
@@ -68,10 +183,10 @@ public:
       for (int ic=0; ic<SIZE_HQQ; ic++) Hqqcoupl[ic][im]=(other.Hqqcoupl)[ic][im];
     }
     for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) Hvvcoupl_freenorm[ic]=(other.Hvvcoupl_freenorm)[ic];
-    for (int ik=0; ik<3; ik++){
+    for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
       HzzCLambda_qsq[ik]=(other.HzzCLambda_qsq)[ik];
       HwwCLambda_qsq[ik]=(other.HwwCLambda_qsq)[ik];;
-      for (int ic=0; ic<4; ic++){
+      for (int ic=0; ic<SIZE_HVV_LAMBDAQSQ; ic++){
         HzzLambda_qsq[ic][ik] = (other.HzzLambda_qsq)[ic][ik];
         HwwLambda_qsq[ic][ik] = (other.HwwLambda_qsq)[ic][ik];
       }
@@ -80,13 +195,13 @@ public:
   SpinZeroCouplings* getRef(){ return this; }
 
   void SetHVVFreeNormCouplings(unsigned int index, double cval){
-    if (index>=SIZE_HVV_FREENORM) cerr << "Cannot set index " << index <<  " for the freenorm coupling, out of range." << endl;
+    if (index>=SIZE_HVV_FREENORM) std::cerr << "Cannot set index " << index <<  " for the freenorm coupling, out of range." << std::endl;
     else Hvvcoupl_freenorm[index] = cval;
   };
   void SetHVVCouplings(unsigned int index, double c_real, double c_imag, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
-    if (index>=SIZE_HVV){ cerr << "Cannot set index " << index << ", out of range for the type requested." << endl; }
-    else if (whichResonance<0 || whichResonance>2) cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << endl;
+    if (index>=SIZE_HVV){ std::cerr << "Cannot set index " << index << ", out of range for the type requested." << std::endl; }
+    else if (whichResonance<0 || whichResonance>2) std::cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << std::endl;
     else{
       if (whichResonance==1){ // First resonance
         if (setWW){
@@ -112,8 +227,8 @@ public:
   };
   void SetHVVLambdaQ2(unsigned int gType, unsigned int index, double lambda, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
-    if (index>=3 || gType>=4) cerr << "Cannot set index " << index <<  " for g" << (gType+1) << "_dyn, out of range." << endl;
-    else if (whichResonance<0 || whichResonance>2) cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << endl;
+    if (index>=SIZE_HVV_CQSQ || gType>=SIZE_HVV_LAMBDAQSQ) std::cerr << "Cannot set index " << index <<  " for g" << (gType+1) << "_dyn, out of range." << std::endl;
+    else if (whichResonance<0 || whichResonance>2) std::cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << std::endl;
     else{
       if (whichResonance==1){
         if (setWW) HwwLambda_qsq[gType][index] = lambda;
@@ -127,9 +242,9 @@ public:
   };
   void SetHVVSignCQ2(unsigned int index, int csign, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
-    if (index>=3) cerr << "Cannot set index " << index << " for the c(z/w)qsq sign, out of range." << endl;
-    else if (csign>1 || csign<-1) cerr << "Invalid csign argument. It has to be in the range [-1,1] with default to 0." << endl;
-    else if (whichResonance<0 || whichResonance>2) cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << endl;
+    if (index>=SIZE_HVV_CQSQ) std::cerr << "Cannot set index " << index << " for the c(z/w)qsq sign, out of range." << std::endl;
+    else if (csign>1 || csign<-1) std::cerr << "Invalid csign argument. It has to be in the range [-1,1] with default to 0." << std::endl;
+    else if (whichResonance<0 || whichResonance>2) std::cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << std::endl;
     else{
       if (whichResonance==1){
         if (setWW) HwwCLambda_qsq[index] = csign;
@@ -142,14 +257,14 @@ public:
     }
   };
   void SetHGGCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_HGG) cerr << "Cannot set index " << index << " for Hggcoupl, out of range for the type requested." << endl;
+    if (index>=SIZE_HGG) std::cerr << "Cannot set index " << index << " for Hggcoupl, out of range for the type requested." << std::endl;
     else{
       Hggcoupl[index][0] = c_real;
       Hggcoupl[index][1] = c_imag;
     }
   };
   void SetHQQCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_HQQ) cerr << "Cannot set index " << index << " for Hqqcoupl, out of range for the type requested." << endl;
+    if (index>=SIZE_HQQ) std::cerr << "Cannot set index " << index << " for Hqqcoupl, out of range for the type requested." << std::endl;
     else{
       Hqqcoupl[index][0] = c_real;
       Hqqcoupl[index][1] = c_imag;
@@ -162,22 +277,21 @@ public:
 
   double Hzzcoupl[SIZE_HVV][2];
   double Hwwcoupl[SIZE_HVV][2];
-  double HzzLambda_qsq[4][3];
-  double HwwLambda_qsq[4][3];
-  int HzzCLambda_qsq[3];
-  int HwwCLambda_qsq[3];
+  double HzzLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
+  double HwwLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
+  int HzzCLambda_qsq[SIZE_HVV_CQSQ];
+  int HwwCLambda_qsq[SIZE_HVV_CQSQ];
 
   double H2zzcoupl[SIZE_HVV][2];
   double H2wwcoupl[SIZE_HVV][2];
-  double H2zzLambda_qsq[4][3];
-  double H2wwLambda_qsq[4][3];
-  int H2zzCLambda_qsq[3];
-  int H2wwCLambda_qsq[3];
+  double H2zzLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
+  double H2wwLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
+  int H2zzCLambda_qsq[SIZE_HVV_CQSQ];
+  int H2wwCLambda_qsq[SIZE_HVV_CQSQ];
 
   bool separateWWZZcouplings;
 
   inline virtual ~SpinZeroCouplings(){};
-  ClassDef(SpinZeroCouplings, 0)
 };
 
 class SpinOneCouplings{
@@ -204,14 +318,14 @@ public:
   SpinOneCouplings* getRef(){ return this; }
 
   void SetZVVCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_ZVV) cerr << "Cannot set index " << index << " for the Zvvcoupl, out of range." << endl;
+    if (index>=SIZE_ZVV) std::cerr << "Cannot set index " << index << " for the Zvvcoupl, out of range." << std::endl;
     else{
       Zvvcoupl[index][0] = c_real;
       Zvvcoupl[index][1] = c_imag;
     }
   };
   void SetZQQCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_ZQQ) cerr << "Cannot set index " << index << " for the Zqqcoupl, out of range." << endl;
+    if (index>=SIZE_ZQQ) std::cerr << "Cannot set index " << index << " for the Zqqcoupl, out of range." << std::endl;
     else{
       Zqqcoupl[index][0] = c_real;
       Zqqcoupl[index][1] = c_imag;
@@ -222,7 +336,6 @@ public:
   double Zqqcoupl[SIZE_ZQQ][2];
 
   inline virtual ~SpinOneCouplings(){};
-  ClassDef(SpinOneCouplings, 0)
 };
 
 class SpinTwoCouplings{
@@ -252,21 +365,21 @@ public:
   SpinTwoCouplings* getRef(){ return this; }
 
   void SetGVVCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_GVV) cerr << "Cannot set index " << index << " for the Gvvcoupl, out of range." << endl;
+    if (index>=SIZE_GVV) std::cerr << "Cannot set index " << index << " for the Gvvcoupl, out of range." << std::endl;
     else{
       Gvvcoupl[index][0] = c_real;
       Gvvcoupl[index][1] = c_imag;
     }
   };
   void SetGQQCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_GQQ) cerr << "Cannot set index " << index << " for the Gqqcoupl, out of range." << endl;
+    if (index>=SIZE_GQQ) std::cerr << "Cannot set index " << index << " for the Gqqcoupl, out of range." << std::endl;
     else{
       Gqqcoupl[index][0] = c_real;
       Gqqcoupl[index][1] = c_imag;
     }
   };
   void SetGGGCouplings(unsigned int index, double c_real, double c_imag){
-    if (index>=SIZE_GGG) cerr << "Cannot set index " << index << " for the Gggcoupl, out of range." << endl;
+    if (index>=SIZE_GGG) std::cerr << "Cannot set index " << index << " for the Gggcoupl, out of range." << std::endl;
     else{
       Gggcoupl[index][0] = c_real;
       Gggcoupl[index][1] = c_imag;
@@ -278,12 +391,7 @@ public:
   double Gggcoupl[SIZE_GGG][2];
 
   inline virtual ~SpinTwoCouplings(){};
-  ClassDef(SpinTwoCouplings, 0)
 };
-
-ClassImp(SpinZeroCouplings)
-ClassImp(SpinOneCouplings)
-ClassImp(SpinTwoCouplings)
 
 
 #endif

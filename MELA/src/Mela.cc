@@ -255,10 +255,10 @@ void Mela::reset_SelfDCouplings(){
         selfDHwwcoupl[jh][ic][im] = 0;
       }
     }
-    for (int ik=0; ik<3; ik++){
+    for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
       selfDHzzCLambda_qsq[jh][ik]=0;
       selfDHwwCLambda_qsq[jh][ik]=0;
-      for (int ic=0; ic<4; ic++){ // These default values do not matter as long as the c's are 0.
+      for (int ic=0; ic<SIZE_HVV_LAMBDAQSQ; ic++){ // These default values do not matter as long as the c's are 0.
         selfDHzzLambda_qsq[jh][ic][ik] = 100.;
         selfDHwwLambda_qsq[jh][ic][ik] = 100.;
       }
@@ -1447,7 +1447,7 @@ bool Mela::configureAnalyticalPDFs(){
         ((RooRealVar*)ggSpin0Model->couplings.g4List[6][im])->setVal(selfDHzzcoupl[0][37][im]);
         ((RooRealVar*)ggSpin0Model->couplings.g4List[7][im])->setVal(selfDHzzcoupl[0][38][im]);
       }
-      for (int qoqtqz=0; qoqtqz<3; qoqtqz++){ // 0==q1, 1==q2, 2==q12
+      for (int qoqtqz=0; qoqtqz<SIZE_HVV_CQSQ; qoqtqz++){ // 0==q1, 1==q2, 2==q12
         ((RooRealVar*)ggSpin0Model->couplings.Lambda_z1qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][0][qoqtqz]);
         ((RooRealVar*)ggSpin0Model->couplings.Lambda_z2qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][1][qoqtqz]);
         ((RooRealVar*)ggSpin0Model->couplings.Lambda_z3qsq[qoqtqz])->setVal(selfDHzzLambda_qsq[0][2][qoqtqz]);

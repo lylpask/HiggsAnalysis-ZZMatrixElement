@@ -301,12 +301,17 @@ extern "C" {
 #define qqb_zz_stu_ qqb_zz_stu_ // Custom qqb->ZZ for different s, t, u channels
   void qqb_zz_stu_(double* p, double* msq, int* channeltoggle);
 
-#define qq_zzqq_ qq_zzqq_ // WBFZZ
+#define qq_zzqq_ qq_zzqq_ // WBF-ZZ
   void qq_zzqq_(double* p, double* msq);
-#define qq_wwqq_ qq_wwqq_ // WBFWW
+#define qq_wwqq_ qq_wwqq_ // WBF-WW
   void qq_wwqq_(double* p, double* msq);
-#define qq_vvqq_ qq_vvqq_ // WBFVV
+#define qq_vvqq_ qq_vvqq_ // WBF-VV
   void qq_vvqq_(double* p, double* msq);
+
+#define qq_zzqqstrong_ qq_zzqqstrong_ // JJQCD-ZZ
+  void qq_zzqqstrong_(double* p, double* msq);
+#define qq_wwqqstrong_ qq_wwqqstrong_ // JJQCD-WW
+  void qq_wwqqstrong_(double* p, double* msq);
 
 #define gg_zz_int_freenorm_ gg_zz_int_freenorm_
   void gg_zz_int_freenorm_(double* p, double hcoupl[2], double *msq);
