@@ -6111,6 +6111,8 @@ double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double 
 
 // Propagator reweighting
 double TUtil::ResonancePropagator(double shat, TVar::ResonancePropagatorScheme scheme){
+  __modjhugenmela_MOD_resetmubarhgabarh();
+
   const double GeV=1./100.; // JHUGen mom. scale factor
   int isch=(int)scheme;
   double shat_jhu = shat*GeV;
