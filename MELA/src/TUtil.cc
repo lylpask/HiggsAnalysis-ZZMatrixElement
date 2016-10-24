@@ -53,7 +53,7 @@ void TUtil::constrainedRemovePairMass(TLorentzVector& p1, TLorentzVector& p2, do
   p1=p1hat;
   p2=p2hat;
 }
-void TUtil::scaleMomentumToEnergy(TLorentzVector massiveJet, TLorentzVector& masslessJet, double mass){
+void TUtil::scaleMomentumToEnergy(const TLorentzVector&  massiveJet, TLorentzVector& masslessJet, double mass){
   double energy, p3, newp3, ratio;
   energy = massiveJet.T();
   p3 = massiveJet.P();
@@ -1076,7 +1076,7 @@ void TUtil::SetEwkCouplingParameters(){
   ewinput_.xw_inp=0.22264585341299625;
 */
 }
-double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]){
+double TUtil::InterpretScaleScheme(const TVar::Production& production, const TVar::MatrixElement& matrixElement, const TVar::EventScaleScheme& scheme, TLorentzVector p[mxpart]){
   double Q=0;
   TLorentzVector nullFourVector(0, 0, 0, 0);
   if (scheme == TVar::Fixed_mH) Q = masses_mcfm_.hmass;
@@ -1136,6 +1136,8 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
       if (
         production==TVar::JJQCD
         || production==TVar::JJVBF
+        || production==TVar::JJEW
+        || production==TVar::JJEWQCD
         || production==TVar::JQCD
         || production==TVar::ZZGG
         || production==TVar::ZZQQB
@@ -1161,7 +1163,7 @@ double TUtil::InterpretScaleScheme(TVar::Production production, TVar::MatrixElem
   }
 
   if (Q<=0.){
-    cout << "Scaling fails, defaulting to dynamic scheme m3456 " << endl;
+    cerr << "Scaling fails for production " << production << ", defaulting to dynamic scheme m3456 " << endl;
     TLorentzVector pTotal = p[2]+p[3]+p[4]+p[5];
     Q = fabs(pTotal.M());
   }
@@ -1248,7 +1250,7 @@ void TUtil::GetAlphaS(double* alphas_, double* alphasmz_){
   if (alphas_!=0) *alphas_ = alphasVal;
   if (alphasmz_!=0) *alphasmz_ = alphasmzVal;
 }
-bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand){
+bool TUtil::MCFM_chooser(const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf, MELACandidate* cand){
   if (cand==0){ cerr << "TUtil::MCFM_chooser: Invalid candidate!" << endl; return false; } // Invalid candidate
   MELAParticle* V1 = cand->getSortedV(0);
   MELAParticle* V2 = cand->getSortedV(1);
@@ -1268,6 +1270,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   //bool isZG = PDGHelpers::isAZBoson(V1->id) && PDGHelpers::isAPhoton(V2->id);
   bool isWW = PDGHelpers::isAWBoson(V1->id) && PDGHelpers::isAWBoson(V2->id);
   bool isZZ = PDGHelpers::isAZBoson(V1->id) && PDGHelpers::isAZBoson(V2->id);
+  npart_.npart=4; // Default number of particles is just 4, indicating no associated particles
 
   sprintf(runstring_.runstring, "test");
   if (
@@ -1283,7 +1286,6 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     //86 '  f(p1)+f(p2) --> Z^0(-->e^-(p5)+e^+(p6))+Z^0(-->mu^-(p3)+mu^+(p4)) (NO GAMMA*)'
     //90 '  f(p1)+f(p2) --> Z^0(-->e^-(p3)+e^+(p4)) + Z^0(-->e^-(p5)+e^+(p6))' 'L'
 
-    npart_.npart=4;
     nqcdjets_.nqcdjets=0;
     srdiags_.srdiags=true;
     nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
@@ -1585,7 +1587,6 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     c--- 132 '  f(p1)+f(p2) --> Z^0(e^-(p3)+e^+(p4)) + Z^0(mu^-(p5)+mu^+(p6) [(gg->ZZ) squared]' 'L'
     */
 
-    npart_.npart=4;
     nqcdjets_.nqcdjets=0;
     nwz_.nwz=0; ckmfill_(&(nwz_.nwz));
     bveg1_mcfm_.ndim=10;
@@ -1933,7 +1934,7 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   else if ( // Check for support in qq'H+2J
     ndau>=4
     &&
-    production == TVar::JJVBF
+    (production==TVar::Had_WH || production==TVar::Had_ZH || production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::JJVBF || production==TVar::JJEW)
     &&
     (isZZ && (process==TVar::bkgZZ || process==TVar::HSMHiggs || process == TVar::bkgZZ_SMHiggs))
     ){
@@ -1957,11 +1958,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.q1=-1.0;
       zcouple_.l1=zcouple_.le;
       zcouple_.r1=zcouple_.re;
+      sprintf((plabel_.plabel)[2], "el");
+      sprintf((plabel_.plabel)[3], "ea");
     }
     else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
       zcouple_.q1=0;
       zcouple_.l1=zcouple_.ln;
       zcouple_.r1=zcouple_.rn;
+      sprintf((plabel_.plabel)[2], "nl");
+      sprintf((plabel_.plabel)[3], "na");
     }
     else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
       nqcdjets_.nqcdjets += 2;
@@ -1991,6 +1996,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r1 = gV-gA;
         zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
+      sprintf((plabel_.plabel)[2], "qj");
+      sprintf((plabel_.plabel)[3], "qj");
     }
     else return false;
 
@@ -1998,11 +2005,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
       zcouple_.q2=-1.0;
       zcouple_.l2=zcouple_.le;
       zcouple_.r2=zcouple_.re;
+      sprintf((plabel_.plabel)[4], "el");
+      sprintf((plabel_.plabel)[5], "ea");
     }
     else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
       zcouple_.q2=0;
       zcouple_.l2=zcouple_.ln;
       zcouple_.r2=zcouple_.rn;
+      sprintf((plabel_.plabel)[4], "nl");
+      sprintf((plabel_.plabel)[5], "na");
     }
     else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
       nqcdjets_.nqcdjets += 2;
@@ -2032,15 +2043,21 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.r2 = gV-gA;
         zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
       }
+      sprintf((plabel_.plabel)[4], "qj");
+      sprintf((plabel_.plabel)[5], "qj");
     }
     else return false;
+
+    // To be reassigned in SumMatrixElementPdf for Lep_WH and Lep_ZH cases
+    sprintf((plabel_.plabel)[6], "qj");
+    sprintf((plabel_.plabel)[7], "qj");
 
   }
   // JJ + WW->4f
   else if ( // Check for support in qq'H+2J
     ndau>=4
     &&
-    production == TVar::JJVBF
+    (production==TVar::Had_WH || production==TVar::Had_ZH || production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::JJVBF || production==TVar::JJEW)
     &&
     (isWW && (process==TVar::bkgWW || process==TVar::HSMHiggs || process == TVar::bkgWW_SMHiggs))
     ){
@@ -2060,12 +2077,16 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
     breit_.mass3 =masses_mcfm_.wmass;
     breit_.width3=masses_mcfm_.wwidth;
 
+    // To be reassigned in SumMatrixElementPdf for Lep_WH and Lep_ZH cases
+    sprintf((plabel_.plabel)[6], "qj");
+    sprintf((plabel_.plabel)[7], "qj");
+
   }
   // JJ + VV->4f
   else if ( // Check for support in qq'H+2J
     ndau>=4
     &&
-    production == TVar::JJVBF
+    (production==TVar::Had_WH || production==TVar::Had_ZH || production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::JJVBF || production==TVar::JJEW)
     &&
     ((isZZ || isWW) && (process==TVar::bkgWWZZ || process==TVar::HSMHiggs_WWZZ || process == TVar::bkgWWZZ_SMHiggs))
     ){
@@ -2090,11 +2111,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.q1=-1.0;
         zcouple_.l1=zcouple_.le;
         zcouple_.r1=zcouple_.re;
+        sprintf((plabel_.plabel)[2], "el");
+        sprintf((plabel_.plabel)[3], "ea");
       }
       else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
         zcouple_.q1=0;
         zcouple_.l1=zcouple_.ln;
         zcouple_.r1=zcouple_.rn;
+        sprintf((plabel_.plabel)[2], "nl");
+        sprintf((plabel_.plabel)[3], "na");
       }
       else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
         nqcdjets_.nqcdjets += 2;
@@ -2124,6 +2149,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r1 = gV-gA;
           zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
+        sprintf((plabel_.plabel)[2], "qj");
+        sprintf((plabel_.plabel)[3], "qj");
       }
       else return false;
 
@@ -2131,11 +2158,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.q2=-1.0;
         zcouple_.l2=zcouple_.le;
         zcouple_.r2=zcouple_.re;
+        sprintf((plabel_.plabel)[4], "el");
+        sprintf((plabel_.plabel)[5], "ea");
       }
       else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
         zcouple_.q2=0;
         zcouple_.l2=zcouple_.ln;
         zcouple_.r2=zcouple_.rn;
+        sprintf((plabel_.plabel)[4], "nl");
+        sprintf((plabel_.plabel)[5], "na");
       }
       else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
         nqcdjets_.nqcdjets += 2;
@@ -2165,6 +2196,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r2 = gV-gA;
           zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
+        sprintf((plabel_.plabel)[4], "qj");
+        sprintf((plabel_.plabel)[5], "qj");
       }
       else return false;
     }
@@ -2173,11 +2206,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.q1=-1.0;
         zcouple_.l1=zcouple_.le;
         zcouple_.r1=zcouple_.re;
+        sprintf((plabel_.plabel)[2], "el");
+        sprintf((plabel_.plabel)[3], "ea");
       }
       else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
         zcouple_.q1=0;
         zcouple_.l1=zcouple_.ln;
         zcouple_.r1=zcouple_.rn;
+        sprintf((plabel_.plabel)[2], "nl");
+        sprintf((plabel_.plabel)[3], "na");
       }
       else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
         nqcdjets_.nqcdjets += 2;
@@ -2207,6 +2244,8 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r1 = gV-gA;
           zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
+        sprintf((plabel_.plabel)[2], "qj");
+        sprintf((plabel_.plabel)[3], "qj");
       }
       else return false;
 
@@ -2214,11 +2253,15 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
         zcouple_.q2=-1.0;
         zcouple_.l2=zcouple_.le;
         zcouple_.r2=zcouple_.re;
+        sprintf((plabel_.plabel)[4], "el");
+        sprintf((plabel_.plabel)[5], "ea");
       }
       else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
         zcouple_.q2=0;
         zcouple_.l2=zcouple_.ln;
         zcouple_.r2=zcouple_.rn;
+        sprintf((plabel_.plabel)[4], "nl");
+        sprintf((plabel_.plabel)[5], "na");
       }
       else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
         nqcdjets_.nqcdjets += 2;
@@ -2248,159 +2291,183 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
           zcouple_.r2 = gV-gA;
           zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
         }
+        sprintf((plabel_.plabel)[4], "qj");
+        sprintf((plabel_.plabel)[5], "qj");
       }
       else return false;
     }
+
+    // To be reassigned in SumMatrixElementPdf for Lep_WH and Lep_ZH cases
+    sprintf((plabel_.plabel)[6], "qj");
+    sprintf((plabel_.plabel)[7], "qj");
 
   }
   // JJ + ZZ->4f (QCD)
-    else if (
-      ndau>=4
-      &&
-      production == TVar::JJQCD
-      &&
-      (isZZ && process==TVar::bkgZZ) // ME is bkg-only
-      ){
-      // 2201 '  f(p1)+f(p2) --> Z(e-(p3),e^+(p4))Z(mu-(p5),mu+(p6)))+f(p7)+f(p8) [strong]' 'L'
-      /*
-      NOTE TO DEVELOPER
-      MCFM also sets common/VVstrong/VVstrong (logical) here, but it only controls which ww_ZZqq function is called.
-      It is irrelevant as long as eventgeneration through lowint is not used directly through MELA.
-      */
-      npart_.npart=6;
-      nwz_.nwz=2; ckmfill_(&(nwz_.nwz));
-      bveg1_mcfm_.ndim=16;
-      nqcdjets_.nqcdjets=2;
-      breit_.n2=1;
-      breit_.n3=1;
-      breit_.mass2 =masses_mcfm_.zmass;
-      breit_.width2=masses_mcfm_.zwidth;
-      breit_.mass3 =masses_mcfm_.zmass;
-      breit_.width3=masses_mcfm_.zwidth;
+  else if (
+    ndau>=4
+    &&
+    (production == TVar::JJQCD || production == TVar::JJEWQCD)
+    &&
+    (isZZ && process==TVar::bkgZZ) // ME is bkg-only
+    ){
+    // 2201 '  f(p1)+f(p2) --> Z(e-(p3),e^+(p4))Z(mu-(p5),mu+(p6)))+f(p7)+f(p8) [strong]' 'L'
+    /*
+    NOTE TO DEVELOPER
+    MCFM also sets common/VVstrong/VVstrong (logical) here, but it only controls which ww_ZZqq function is called.
+    It is irrelevant as long as eventgeneration through lowint is not used directly through MELA.
+    */
+    npart_.npart=6;
+    nwz_.nwz=2; ckmfill_(&(nwz_.nwz));
+    bveg1_mcfm_.ndim=16;
+    nqcdjets_.nqcdjets=2;
+    breit_.n2=1;
+    breit_.n3=1;
+    breit_.mass2 =masses_mcfm_.zmass;
+    breit_.width2=masses_mcfm_.zwidth;
+    breit_.mass3 =masses_mcfm_.zmass;
+    breit_.width3=masses_mcfm_.zwidth;
 
-      if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
-        zcouple_.q1=-1.0;
-        zcouple_.l1=zcouple_.le;
-        zcouple_.r1=zcouple_.re;
-      }
-      else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
-        zcouple_.q1=0;
-        zcouple_.l1=zcouple_.ln;
-        zcouple_.r1=zcouple_.rn;
-      }
-      else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
-        nqcdjets_.nqcdjets += 2;
-        int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
-        if (jetid>0 && jetid<6){
-          zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
-          zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
-          zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
-        }
-        else{
-          double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
-          double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
-          double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
-          double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
-          double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
-          double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
-          double xx_up = gV_up*gA_up;
-          double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn);
-          double xx = (2.*xx_up+3.*xx_dn);
-          double discriminant = pow(yy, 2)-4.*pow(xx, 2);
-          double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
-          double gAsq = pow(xx, 2)/gVsq;
-          double gV=-sqrt(gVsq);
-          double gA=-sqrt(gAsq);
-          zcouple_.l1 = gV+gA;
-          zcouple_.r1 = gV-gA;
-          zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
-        }
-      }
-      else return false;
-
-      if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
-        zcouple_.q2=-1.0;
-        zcouple_.l2=zcouple_.le;
-        zcouple_.r2=zcouple_.re;
-      }
-      else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
-        zcouple_.q2=0;
-        zcouple_.l2=zcouple_.ln;
-        zcouple_.r2=zcouple_.rn;
-      }
-      else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
-        nqcdjets_.nqcdjets += 2;
-        int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
-        if (jetid>0 && jetid<6){
-          zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
-          zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
-          zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
-        }
-        else{
-          double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
-          double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
-          double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
-          double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
-          double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
-          double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
-          double xx_up = gV_up*gA_up;
-          double xx_dn = gV_dn*gA_dn;
-          double yy = (2.*yy_up+3.*yy_dn);
-          double xx = (2.*xx_up+3.*xx_dn);
-          double discriminant = pow(yy, 2)-4.*pow(xx, 2);
-          double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
-          double gAsq = pow(xx, 2)/gVsq;
-          double gV=-sqrt(gVsq);
-          double gA=-sqrt(gAsq);
-          zcouple_.l2 = gV+gA;
-          zcouple_.r2 = gV-gA;
-          zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
-        }
-      }
-      else return false;
-
+    if (PDGHelpers::isALepton(V1->getDaughter(0)->id) && PDGHelpers::isALepton(V1->getDaughter(1)->id)){
+      zcouple_.q1=-1.0;
+      zcouple_.l1=zcouple_.le;
+      zcouple_.r1=zcouple_.re;
+      sprintf((plabel_.plabel)[2], "el");
+      sprintf((plabel_.plabel)[3], "ea");
     }
+    else if (PDGHelpers::isANeutrino(V1->getDaughter(0)->id) && PDGHelpers::isANeutrino(V1->getDaughter(1)->id)){
+      zcouple_.q1=0;
+      zcouple_.l1=zcouple_.ln;
+      zcouple_.r1=zcouple_.rn;
+      sprintf((plabel_.plabel)[2], "nl");
+      sprintf((plabel_.plabel)[3], "na");
+    }
+    else if (PDGHelpers::isAJet(V1->getDaughter(0)->id) && PDGHelpers::isAJet(V1->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      int jetid=(PDGHelpers::isAnUnknownJet(V1->getDaughter(0)->id) ? abs(V1->getDaughter(1)->id) : abs(V1->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.q1=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l1=zcouple_.l[-1+jetid]*sqrt(3.);
+        zcouple_.r1=zcouple_.r[jetid]*sqrt(3.);
+      }
+      else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l1 = gV+gA;
+        zcouple_.r1 = gV-gA;
+        zcouple_.q1=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
+      }
+      sprintf((plabel_.plabel)[2], "qj");
+      sprintf((plabel_.plabel)[3], "qj");
+    }
+    else return false;
+
+    if (PDGHelpers::isALepton(V2->getDaughter(0)->id) && PDGHelpers::isALepton(V2->getDaughter(1)->id)){
+      zcouple_.q2=-1.0;
+      zcouple_.l2=zcouple_.le;
+      zcouple_.r2=zcouple_.re;
+      sprintf((plabel_.plabel)[4], "el");
+      sprintf((plabel_.plabel)[5], "ea");
+    }
+    else if (PDGHelpers::isANeutrino(V2->getDaughter(0)->id) && PDGHelpers::isANeutrino(V2->getDaughter(1)->id)){
+      zcouple_.q2=0;
+      zcouple_.l2=zcouple_.ln;
+      zcouple_.r2=zcouple_.rn;
+      sprintf((plabel_.plabel)[4], "nl");
+      sprintf((plabel_.plabel)[5], "na");
+    }
+    else if (PDGHelpers::isAJet(V2->getDaughter(0)->id) && PDGHelpers::isAJet(V2->getDaughter(1)->id)){
+      nqcdjets_.nqcdjets += 2;
+      int jetid=(PDGHelpers::isAnUnknownJet(V2->getDaughter(0)->id) ? abs(V2->getDaughter(1)->id) : abs(V2->getDaughter(0)->id));
+      if (jetid>0 && jetid<6){
+        zcouple_.q2=ewcharge_.Q[5+jetid]*sqrt(3.);
+        zcouple_.l2=zcouple_.l[-1+jetid]*sqrt(3.);
+        zcouple_.r2=zcouple_.r[jetid]*sqrt(3.);
+      }
+      else{
+        double gV_up = (zcouple_.l[-1+2]+zcouple_.r[-1+2])/2.;
+        double gV_dn = (zcouple_.l[-1+1]+zcouple_.r[-1+1])/2.;
+        double gA_up = (zcouple_.l[-1+2]-zcouple_.r[-1+2])/2.;
+        double gA_dn = (zcouple_.l[-1+1]-zcouple_.r[-1+1])/2.;
+        double yy_up = pow(gV_up, 2) + pow(gA_up, 2);
+        double yy_dn = pow(gV_dn, 2) + pow(gA_dn, 2);
+        double xx_up = gV_up*gA_up;
+        double xx_dn = gV_dn*gA_dn;
+        double yy = (2.*yy_up+3.*yy_dn);
+        double xx = (2.*xx_up+3.*xx_dn);
+        double discriminant = pow(yy, 2)-4.*pow(xx, 2);
+        double gVsq = (yy+sqrt(fabs(discriminant)))/2.;
+        double gAsq = pow(xx, 2)/gVsq;
+        double gV=-sqrt(gVsq);
+        double gA=-sqrt(gAsq);
+        zcouple_.l2 = gV+gA;
+        zcouple_.r2 = gV-gA;
+        zcouple_.q2=sqrt((pow(ewcharge_.Q[5+1], 2)*3.+pow(ewcharge_.Q[5+2], 2)*2.)*3.);
+      }
+      sprintf((plabel_.plabel)[4], "qj");
+      sprintf((plabel_.plabel)[5], "qj");
+    }
+    else return false;
+
+    sprintf((plabel_.plabel)[6], "qj");
+    sprintf((plabel_.plabel)[7], "qj");
+
+  }
     // JJ + WW->4f (QCD)
-    else if (
-      ndau>=4
-      &&
-      production == TVar::JJQCD
-      &&
-      (isWW && process==TVar::bkgWW) // ME is bkg-only
-      ){
-      // Process 2241
-      /*
-      NOTE TO DEVELOPER
-      MCFM also sets common/VVstrong/VVstrong (logical) here, but it only controls which ww_ZZqq function is called.
-      It is irrelevant as long as eventgeneration through lowint is not used directly through MELA.
-      */
-      npart_.npart=6;
-      nwz_.nwz=2; ckmfill_(&(nwz_.nwz));
-      bveg1_mcfm_.ndim=16;
-      nqcdjets_.nqcdjets=2;
-      breit_.n2=1;
-      breit_.n3=1;
-      breit_.mass2 =masses_mcfm_.wmass;
-      breit_.width2=masses_mcfm_.wwidth;
-      breit_.mass3 =masses_mcfm_.wmass;
-      breit_.width3=masses_mcfm_.wwidth;
+  else if (
+    ndau>=4
+    &&
+    (production == TVar::JJQCD || production == TVar::JJEWQCD)
+    &&
+    (isWW && process==TVar::bkgWW) // ME is bkg-only
+    ){
+    // Process 2241
+    /*
+    NOTE TO DEVELOPER
+    MCFM also sets common/VVstrong/VVstrong (logical) here, but it only controls which ww_ZZqq function is called.
+    It is irrelevant as long as eventgeneration through lowint is not used directly through MELA.
+    */
+    npart_.npart=6;
+    nwz_.nwz=2; ckmfill_(&(nwz_.nwz));
+    bveg1_mcfm_.ndim=16;
+    nqcdjets_.nqcdjets=2;
+    breit_.n2=1;
+    breit_.n3=1;
+    breit_.mass2 =masses_mcfm_.wmass;
+    breit_.width2=masses_mcfm_.wwidth;
+    breit_.mass3 =masses_mcfm_.wmass;
+    breit_.width3=masses_mcfm_.wwidth;
 
-    }
+    sprintf((plabel_.plabel)[6], "qj");
+    sprintf((plabel_.plabel)[7], "qj");
+
+  }
     // JJ + VV->4f (QCD)
-    else if (
-      ndau>=4
-      &&
-      production == TVar::JJQCD
-      &&
-      ((isZZ || isWW) && process==TVar::bkgWWZZ)
-      ){
-      // Procsss 2261 (not supported yet)
-      cerr << "TUtil::MCFM_chooser: MCFM does not support QCD JJ+VV->4f interaction yet. Please contact the MELA authors if you need more information." << endl;
-      return false;
+  else if (
+    ndau>=4
+    &&
+    (production == TVar::JJQCD || production == TVar::JJEWQCD)
+    &&
+    ((isZZ || isWW) && process==TVar::bkgWWZZ)
+    ){
+    // Procsss 2261 (not supported yet)
+    cerr << "TUtil::MCFM_chooser: MCFM does not support QCD JJ+VV->4f interaction yet. Please contact the MELA authors if you need more information." << endl;
+    return false;
 
-    }
-    else{
+  }
+  else{
     cerr << "TUtil::MCFM_chooser: Can't identify (process, production) = (" << process << ", " << production << ")" << endl;
     cerr << "TUtil::MCFM_chooser: ndau: " << ndau << '\t';
     cerr << "TUtil::MCFM_chooser: isZZ: " << isZZ << '\t';
@@ -2410,6 +2477,59 @@ bool TUtil::MCFM_chooser(TVar::Process process, TVar::Production production, TVa
   }
   return true;
 }
+bool setupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event){
+  if (mela_event.pAssociated.size()>=2){
+    if (production==TVar::Lep_WH || production==TVar::Lep_ZH){
+      spinzerohiggs_anomcoupl_.channeltoggle_stu = 2;
+      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 1;
+
+      if (PDGHelpers::isALepton(mela_event.pAssociated.at(0).first) && PDGHelpers::isALepton(mela_event.pAssociated.at(1).first)){
+        if (production==TVar::Lep_WH) return false;
+        sprintf((plabel_.plabel)[6], "el");
+        sprintf((plabel_.plabel)[7], "ea");
+      }
+      else if (PDGHelpers::isANeutrino(mela_event.pAssociated.at(0).first) && PDGHelpers::isANeutrino(mela_event.pAssociated.at(1).first)){
+        if (production==TVar::Lep_WH) return false;
+        sprintf((plabel_.plabel)[6], "nl");
+        sprintf((plabel_.plabel)[7], "na");
+      }
+      else if (PDGHelpers::isANeutrino(mela_event.pAssociated.at(0).first) && PDGHelpers::isALepton(mela_event.pAssociated.at(1).first)){ // W+
+        if (production==TVar::Lep_ZH) return false;
+        sprintf((plabel_.plabel)[6], "nl");
+        sprintf((plabel_.plabel)[7], "ea");
+      }
+      else if (PDGHelpers::isANeutrino(mela_event.pAssociated.at(1).first) && PDGHelpers::isALepton(mela_event.pAssociated.at(0).first)){ // W-
+        if (production==TVar::Lep_ZH) return false;
+        sprintf((plabel_.plabel)[6], "el");
+        sprintf((plabel_.plabel)[7], "na");
+      }
+    }
+    else if (production==TVar::Had_WH || production==TVar::Had_ZH){
+      spinzerohiggs_anomcoupl_.channeltoggle_stu = 2;
+      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 1;
+
+      sprintf((plabel_.plabel)[6], "qj");
+      sprintf((plabel_.plabel)[7], "qj");
+    }
+    else if (production==TVar::JJVBF){
+      spinzerohiggs_anomcoupl_.channeltoggle_stu = 2;
+      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 0;
+
+      sprintf((plabel_.plabel)[6], "qj");
+      sprintf((plabel_.plabel)[7], "qj");
+    }
+    else if (production==TVar::JJEW || production==TVar::JJEWQCD){
+      spinzerohiggs_anomcoupl_.channeltoggle_stu = 2;
+      spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 2;
+
+      sprintf((plabel_.plabel)[6], "qj");
+      sprintf((plabel_.plabel)[7], "qj");
+    }
+  }
+
+  return true;
+}
+
 
 void TUtil::InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember){
   char path_pdf_c[200];
@@ -3008,7 +3128,7 @@ void TUtil::SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]){ __modjhu
 void TUtil::SetJHUGenSpinOneCouplings(double Zqqcoupl[SIZE_ZQQ][2], double Zvvcoupl[SIZE_ZVV][2]){ __modjhugenmela_MOD_setspinonecouplings(Zqqcoupl, Zvvcoupl); }
 void TUtil::SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]){ __modjhugenmela_MOD_setspintwocouplings(Gacoupl, Gbcoupl, qLeftRightcoupl); }
 
-bool TUtil::MCFM_masscuts(double s[][mxpart], TVar::Process process){
+bool TUtil::MCFM_masscuts(double s[][mxpart], const TVar::Process& process){
   double minZmassSqr=10*10;
   if (
     process==TVar::bkgZZ
@@ -3061,23 +3181,43 @@ bool TUtil::MCFM_smalls(double s[][mxpart], int npart){
 // 3. number of final state particle is defined
 //
 double TUtil::SumMatrixElementPDF(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM,
-  double coupling[SIZE_HVV_FREENORM], // This last argument is unfortunately the simplest way to pass these couplings
+  const double& EBEAM,
   TVar::VerbosityLevel verbosity
   ){
   if (verbosity>=TVar::DEBUG) cout << "Begin SumMatrixElementPDF" << endl;
+  
+  int nRequested_AssociatedJets=0;
+  int nRequested_AssociatedLeptons=0;
+  int AssociationVCompatibility=0;
   int partIncCode=TVar::kNoAssociated; // Do not use associated particles in the pT=0 frame boost
-  int nRequested_AssociatedJets = 0;
-  if (production==TVar::JJVBF || production==TVar::JJQCD){ // Use asociated jets in the pT=0 frame boost
+  if (production==TVar::JQCD){ // Use asociated jets in the pT=0 frame boost
+    partIncCode=TVar::kUseAssociated_Jets;
+    nRequested_AssociatedJets = 1;
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMatrixElementPDF: Requesting " << nRequested_AssociatedJets << " jets" << endl;
+  }
+  else if (
+    production==TVar::Had_WH || production==TVar::Had_ZH
+    || production==TVar::JJVBF || production==TVar::JJEW
+    || production==TVar::JJEWQCD
+    || (production==TVar::JJQCD && process!=TVar::bkgZJets)
+    ){ // Use asociated jets in the pT=0 frame boost
     partIncCode=TVar::kUseAssociated_Jets;
     nRequested_AssociatedJets = 2;
     if (verbosity>=TVar::DEBUG) cout << "TUtil::SumMatrixElementPDF: Requesting " << nRequested_AssociatedJets << " jets" << endl;
   }
+  else if (production == TVar::Lep_ZH || production == TVar::Lep_WH){ // Only use associated leptons(+)neutrinos
+    partIncCode=TVar::kUseAssociated_Leptons;
+    nRequested_AssociatedLeptons=2;
+  }
+  if (production==TVar::Lep_WH || production==TVar::Had_WH) AssociationVCompatibility=24;
+  else if (production==TVar::Lep_ZH || production==TVar::Had_ZH) AssociationVCompatibility=23;
   simple_event_record mela_event;
   mela_event.AssociationCode=partIncCode;
+  mela_event.AssociationVCompatibility=AssociationVCompatibility;
   mela_event.nRequested_AssociatedJets=nRequested_AssociatedJets;
+  mela_event.nRequested_AssociatedLeptons=nRequested_AssociatedLeptons;
   GetBoostedParticleVectors(
     RcdME->melaCand,
     mela_event,
@@ -3087,313 +3227,322 @@ double TUtil::SumMatrixElementPDF(
   double xx[2]={ 0 };
   if (!CheckPartonMomFraction(mela_event.pMothers.at(0).second, mela_event.pMothers.at(1).second, xx, EBEAM, verbosity)) return 0;
 
-  TLorentzVector MomStore[mxpart];
-  for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
-
-  int NPart=npart_.npart+2;
+  int NPart=npart_.npart+2; // +2 for mothers
   double p4[4][mxpart]={ { 0 } };
   double msq[nmsq][nmsq]={ { 0 } };
   double msqjk=0;
   int channeltoggle=0;
 
-  //Convert TLorentzVector into 4xNPart Matrix
-  //reverse sign of incident partons
-  for (int ipar=0; ipar<2; ipar++){
-    if (mela_event.pMothers.at(ipar).second.T()>0.){
-      p4[0][ipar] = -mela_event.pMothers.at(ipar).second.X();
-      p4[1][ipar] = -mela_event.pMothers.at(ipar).second.Y();
-      p4[2][ipar] = -mela_event.pMothers.at(ipar).second.Z();
-      p4[3][ipar] = -mela_event.pMothers.at(ipar).second.T();
-      MomStore[ipar] = mela_event.pMothers.at(ipar).second;
+  bool doProceed = (mela_event.pAssociated.size()<(unsigned int)(nRequested_AssociatedJets+nRequested_AssociatedLeptons))
+    &&
+    TUtil::setupMCFMParticleCouplings(production, mela_event); // Set some of the specifics of the couplings through this function
+
+  if (doProceed){
+    TLorentzVector MomStore[mxpart];
+    for (int i = 0; i < mxpart; i++) MomStore[i].SetXYZT(0, 0, 0, 0);
+
+    //Convert TLorentzVector into 4xNPart Matrix
+    //reverse sign of incident partons
+    for (int ipar=0; ipar<2; ipar++){
+      if (mela_event.pMothers.at(ipar).second.T()>0.){
+        p4[0][ipar] = -mela_event.pMothers.at(ipar).second.X();
+        p4[1][ipar] = -mela_event.pMothers.at(ipar).second.Y();
+        p4[2][ipar] = -mela_event.pMothers.at(ipar).second.Z();
+        p4[3][ipar] = -mela_event.pMothers.at(ipar).second.T();
+        MomStore[ipar] = mela_event.pMothers.at(ipar).second;
+      }
+      else{
+        p4[0][ipar] = mela_event.pMothers.at(ipar).second.X();
+        p4[1][ipar] = mela_event.pMothers.at(ipar).second.Y();
+        p4[2][ipar] = mela_event.pMothers.at(ipar).second.Z();
+        p4[3][ipar] = mela_event.pMothers.at(ipar).second.T();
+        MomStore[ipar] = -mela_event.pMothers.at(ipar).second;
+      }
     }
-    else{
-      p4[0][ipar] = mela_event.pMothers.at(ipar).second.X();
-      p4[1][ipar] = mela_event.pMothers.at(ipar).second.Y();
-      p4[2][ipar] = mela_event.pMothers.at(ipar).second.Z();
-      p4[3][ipar] = mela_event.pMothers.at(ipar).second.T();
-      MomStore[ipar] = -mela_event.pMothers.at(ipar).second;
+
+    // Determine if the decay mode involves WW or ZZ, to be used for ZZ or WW-specific signal MEs
+    //bool isZG = (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)));
+    bool isWW = (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1)));
+    bool isZZ = (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)));
+    //initialize decayed particles
+    for (int ipar=2; ipar<min((int)mxpart, min(NPart, (int)(mela_event.pDaughters.size()+mela_event.pAssociated.size())+2)); ipar++){
+      TLorentzVector* momTmp;
+      if (ipar<(int)(mela_event.pDaughters.size())+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
+      else momTmp=&(mela_event.pAssociated.at(ipar-mela_event.pDaughters.size()-2).second);
+      p4[0][ipar] = momTmp->X();
+      p4[1][ipar] = momTmp->Y();
+      p4[2][ipar] = momTmp->Z();
+      p4[3][ipar] = momTmp->T();
+      MomStore[ipar]=*momTmp;
     }
-  }
 
-  // Determine if the decay mode involves WW or ZZ, to be used for ZZ or WW-specific signal MEs
-  //bool isZG = (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)));
-  bool isWW = (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1)));
-  bool isZZ = (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)));
-  //initialize decayed particles
-  for (int ipar=2; ipar<min(NPart, (int)(mela_event.pDaughters.size()+mela_event.pAssociated.size())+2); ipar++){
-    TLorentzVector* momTmp;
-    if (ipar<(int)(mela_event.pDaughters.size())+2) momTmp=&(mela_event.pDaughters.at(ipar-2).second);
-    else momTmp=&(mela_event.pAssociated.at(ipar-mela_event.pDaughters.size()-2).second);
-    p4[0][ipar] = momTmp->X();
-    p4[1][ipar] = momTmp->Y();
-    p4[2][ipar] = momTmp->Z();
-    p4[3][ipar] = momTmp->T();
-    MomStore[ipar]=*momTmp;
-  }
+    if (verbosity >= TVar::DEBUG){ for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl; }
 
-  if (verbosity >= TVar::DEBUG){ for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl; }
+    double defaultRenScale = scale_.scale;
+    double defaultFacScale = facscale_.facscale;
+    int defaultNloop = nlooprun_.nlooprun;
+    int defaultNflav = nflav_.nflav;
+    string defaultPdflabel = pdlabel_.pdlabel;
+    double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
+    double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
+    SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
+    double alphasVal, alphasmzVal;
+    GetAlphaS(&alphasVal, &alphasmzVal);
+    RcdME->setRenormalizationScale(renQ);
+    RcdME->setFactorizationScale(facQ);
+    RcdME->setAlphaS(alphasVal);
+    RcdME->setAlphaSatMZ(alphasmzVal);
+    RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
+    RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
+    if (verbosity>=TVar::DEBUG){
+      cout
+        << "TUtil::SumMatrixElementPDF: Set AlphaS:\n"
+        << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
+        << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
+        << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
+    }
 
-  double defaultRenScale = scale_.scale;
-  double defaultFacScale = facscale_.facscale;
-  int defaultNloop = nlooprun_.nlooprun;
-  int defaultNflav = nflav_.nflav;
-  string defaultPdflabel = pdlabel_.pdlabel;
-  double renQ = InterpretScaleScheme(production, matrixElement, event_scales->renomalizationScheme, MomStore);
-  double facQ = InterpretScaleScheme(production, matrixElement, event_scales->factorizationScheme, MomStore);
-  SetAlphaS(renQ, facQ, event_scales->ren_scale_factor, event_scales->fac_scale_factor, 1, 5, "cteq6_l");
-  double alphasVal, alphasmzVal;
-  GetAlphaS(&alphasVal, &alphasmzVal);
-  RcdME->setRenormalizationScale(renQ);
-  RcdME->setFactorizationScale(facQ);
-  RcdME->setAlphaS(alphasVal);
-  RcdME->setAlphaSatMZ(alphasmzVal);
-  RcdME->setHiggsMassWidth(masses_mcfm_.hmass, masses_mcfm_.hwidth, 0);
-  RcdME->setHiggsMassWidth(spinzerohiggs_anomcoupl_.h2mass, spinzerohiggs_anomcoupl_.h2width, 1);
-  if (verbosity>=TVar::DEBUG){
-    cout
-      << "TUtil::SumMatrixElementPDF: Set AlphaS:\n"
-      << "\tBefore set, alphas scale: " << defaultRenScale << ", PDF scale: " << defaultFacScale << '\n'
-      << "\trenQ: " << renQ << " ( x " << event_scales->ren_scale_factor << "), facQ: " << facQ << " ( x " << event_scales->fac_scale_factor << ")\n"
-      << "\tAfter set, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
-  }
+    int nInstances=0;
+    if ((production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU) && process == TVar::bkgZZ){
+      if (production == TVar::ZZQQB_STU) channeltoggle=0;
+      else if (production == TVar::ZZQQB_S) channeltoggle=1;
+      else/* if (production == TVar::ZZQQB_TU)*/ channeltoggle=2;
+      qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
 
-  int nInstances=0;
-  if ((production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU) && process == TVar::bkgZZ){
-    if (production == TVar::ZZQQB_STU) channeltoggle=0;
-    else if (production == TVar::ZZQQB_S) channeltoggle=1;
-    else/* if (production == TVar::ZZQQB_TU)*/ channeltoggle=2;
-    qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
-
-    // Sum over valid MEs without PDF weights
-    // By far the dominant contribution is uub initial state.
-    for (int iquark=-5; iquark<=5; iquark++){
-      for (int jquark=-5; jquark<=5; jquark++){
-        if (
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-          )
-          &&
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-          )
-          ){
+      // Sum over valid MEs without PDF weights
+      // By far the dominant contribution is uub initial state.
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++){
           if (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+            )
             &&
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-            ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
-          else if (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
-            ) msqjk = msq[jquark+5][-jquark+5];
-          else if (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-            ) msqjk = msq[-iquark+5][iquark+5];
-          else msqjk += msq[jquark+5][iquark+5];
-          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+            (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+            )
+            ){
+            if (
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+              &&
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+              ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
+            else if (
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+              ) msqjk = msq[jquark+5][-jquark+5];
+            else if (
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+              ) msqjk = msq[-iquark+5][iquark+5];
+            else msqjk += msq[jquark+5][iquark+5];
+            if (msq[jquark+5][iquark+5]>0.) nInstances++;
+          }
+          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
         }
-        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
       }
+      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
-    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-  }
-  else if (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB){
-    if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
-    else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
-    else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
+    else if (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB){
+      if (process == TVar::bkgZGamma) qqb_zgam_(p4[0], msq[0]);
+      else if (process == TVar::bkgZZ) qqb_zz_(p4[0], msq[0]);
+      else if (process == TVar::bkgWW) qqb_ww_(p4[0], msq[0]);
 
-    // Sum over valid MEs without PDF weights
-    // By far the dominant contribution is uub initial state.
-    for (int iquark=-5; iquark<=5; iquark++){
-      for (int jquark=-5; jquark<=5; jquark++){
-        if (
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-          )
-          &&
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-          )
-          ){
+      // Sum over valid MEs without PDF weights
+      // By far the dominant contribution is uub initial state.
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++){
           if (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+            (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+            )
             &&
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-            ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
-          else if (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
-            ) msqjk = msq[jquark+5][-jquark+5];
-          else if (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
-            ) msqjk = msq[-iquark+5][iquark+5];
-          else msqjk += msq[jquark+5][iquark+5];
-          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+            (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+            )
+            ){
+            if (
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+              &&
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+              ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
+            else if (
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+              ) msqjk = msq[jquark+5][-jquark+5];
+            else if (
+              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+              ) msqjk = msq[-iquark+5][iquark+5];
+            else msqjk += msq[jquark+5][iquark+5];
+            if (msq[jquark+5][iquark+5]>0.) nInstances++;
+          }
+          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
         }
-        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
       }
+      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
-    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-  }
-  else if (production == TVar::ZZGG){
-    if (isZZ){
-      if (process==TVar::bkgZZ_SMHiggs && matrixElement==TVar::JHUGen) gg_zz_int_freenorm_(p4[0], coupling, msq[0]); // |ggZZ + ggHZZ|**2 old method
-      else if (process==TVar::HSMHiggs) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
-      else if (process==TVar::bkgZZ_SMHiggs) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
-      else if (process==TVar::bkgZZ) gg_zz_(p4[0], &(msq[5][5])); // |ggZZ|**2
-      // The following WWZZ processes need no swapping because ZZ->4f (same type) is ordered such that 3/5 (C++: 2/4) swap gives W+W-.
-      else if (process==TVar::HSMHiggs_WWZZ) gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
-      else if (process==TVar::bkgWWZZ_SMHiggs) gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
-      else if (process==TVar::bkgWWZZ) gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
+    else if (production == TVar::ZZGG){
+      if (isZZ){
+        if (process==TVar::HSMHiggs) gg_hzz_tb_(p4[0], msq[0]); // |ggHZZ|**2
+        else if (process==TVar::bkgZZ_SMHiggs) gg_zz_all_(p4[0], msq[0]); // |ggZZ + ggHZZ|**2
+        else if (process==TVar::bkgZZ) gg_zz_(p4[0], &(msq[5][5])); // |ggZZ|**2
+        // The following WWZZ processes need no swapping because ZZ->4f (same type) is ordered such that 3/5 (C++: 2/4) swap gives W+W-.
+        else if (process==TVar::HSMHiggs_WWZZ) gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
+        else if (process==TVar::bkgWWZZ_SMHiggs) gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
+        else if (process==TVar::bkgWWZZ) gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
 
-      if (verbosity>=TVar::DEBUG){
-        cout << "\tTUtil::SumMatrixElementPDF: ZZGG && ZZ/WW/ZZ+WW MEs using ZZ (runstring: " << runstring_.runstring << ")" << endl;
-        for (int i=0; i<NPart; i++) cout << "\tp["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+        if (verbosity>=TVar::DEBUG){
+          cout << "\tTUtil::SumMatrixElementPDF: ZZGG && ZZ/WW/ZZ+WW MEs using ZZ (runstring: " << runstring_.runstring << ")" << endl;
+          for (int i=0; i<NPart; i++) cout << "\tp["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+        }
       }
-    }
-    else if (isWW){
-      if (process==TVar::HSMHiggs || process==TVar::HSMHiggs_WWZZ){
-        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
-        gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
+      else if (isWW){
+        if (process==TVar::HSMHiggs || process==TVar::HSMHiggs_WWZZ){
+          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+          gg_hvv_tb_(p4[0], msq[0]); // |ggHZZ+WW|**2
+        }
+        else if (process==TVar::bkgWW_SMHiggs || process==TVar::bkgWWZZ_SMHiggs){
+          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+          gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
+        }
+        else if (process==TVar::bkgWW || process==TVar::bkgWWZZ){
+          for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
+          gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
+        }
+        if (verbosity>=TVar::DEBUG){
+          cout << "\tTUtil::SumMatrixElementPDF: ZZGG && ZZ/WW/ZZ+WW MEs using WW (runstring: " << runstring_.runstring << ")" << endl;
+          for (int i=0; i<NPart; i++) cout << "\tp["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+        }
       }
-      else if (process==TVar::bkgWW_SMHiggs || process==TVar::bkgWWZZ_SMHiggs){
-        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
-        gg_vv_all_(p4[0], msq[0]); // |ggZZ + ggHZZ (+WW)|**2
-      }
-      else if (process==TVar::bkgWW || process==TVar::bkgWWZZ){
-        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); // Vectors are passed with ZZ as basis (3/5 swap in ME==2/4 swap in C++)
-        gg_vv_(p4[0], &(msq[5][5])); // |ggZZ+WW|**2
-      }
-      if (verbosity>=TVar::DEBUG){
-        cout << "\tTUtil::SumMatrixElementPDF: ZZGG && ZZ/WW/ZZ+WW MEs using WW (runstring: " << runstring_.runstring << ")" << endl;
-        for (int i=0; i<NPart; i++) cout << "\tp["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
-      }
-    }
 
-    if (
-      (
-      PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(0).first)
-      )
-      &&
-      (
-      PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(1).first)
-      )
+      if (
+        (
+        PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(0).first)
+        )
+        &&
+        (
+        PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(1).first)
+        )
+        ){
+        msqjk = msq[5][5];
+        if (msq[5][5]>=0.) nInstances=1;
+      }
+      else msq[5][5]=0; // Kill the ME instance if mothers are known and their ids do not match to gluons.
+      SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
+    }
+    else if (
+      production==TVar::Had_WH || production==TVar::Had_ZH
+      || production==TVar::Lep_WH || production==TVar::Lep_ZH
+      || production==TVar::JJVBF || production==TVar::JJEW
+      || production==TVar::JJEWQCD
+      || production==TVar::JJQCD
       ){
-      msqjk = msq[5][5];
-      if (msq[5][5]>=0.) nInstances=1;
-    }
-    else msq[5][5]=0; // Kill the ME instance if mothers are known and their ids do not match to gluons.
-    SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-  }
-  else if (production == TVar::JJVBF || production == TVar::JJQCD){
-    // VBF or QCD MCFM SBI, S or B
-    if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)){
-      if (production == TVar::JJVBF) qq_zzqq_(p4[0], msq[0]);
-      else /*if (production == TVar::JJQCD)*/ qq_zzqqstrong_(p4[0], msq[0]);
-    }
-    else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)){
-      // MCFM generates W-W+ in ZZ basis (4/6 swap for W-W+ is 3/5 swap in W+W-==2/4 swap in C++)
-      for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]);
-      if (production == TVar::JJVBF) qq_wwqq_(p4[0], msq[0]);
-      else /*if (production == TVar::JJQCD)*/ qq_wwqqstrong_(p4[0], msq[0]);
-    }
-    else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){
-      // MCFM generates W-W+ in ZZ basis (4/6 swap for W-W+ is 3/5 swap in W+W-==2/4 swap in C++)
-      if (isWW){ for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); }
-      if (production == TVar::JJVBF) qq_vvqq_(p4[0], msq[0]);
-      //else if (production == TVar::JJQCD); // No JJQCD-VV ME in MCFM
+      // Z+2 jets
+      if (process == TVar::bkgZJets) qqb_z2jet_(p4[0], msq[0]);
+      // VBF or QCD MCFM SBI, S or B
+      else if (isZZ && (process==TVar::bkgZZ_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgZZ)){
+        if (production==TVar::Had_WH || production==TVar::Had_ZH || production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::JJVBF || production==TVar::JJEW) qq_zzqq_(p4[0], msq[0]);
+        else if (production == TVar::JJQCD) qq_zzqqstrong_(p4[0], msq[0]);
+      }
+      else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)){
+        // MCFM generates W-W+ in ZZ basis (4/6 swap for W-W+ is 3/5 swap in W+W-==2/4 swap in C++)
+        for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]);
+        if (production==TVar::Had_WH || production==TVar::Had_ZH || production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::JJVBF || production==TVar::JJEW) qq_wwqq_(p4[0], msq[0]);
+        else if (production == TVar::JJQCD) qq_wwqqstrong_(p4[0], msq[0]);
+      }
+      else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){
+        // MCFM generates W-W+ in ZZ basis (4/6 swap for W-W+ is 3/5 swap in W+W-==2/4 swap in C++)
+        if (isWW){ for (unsigned int ix=0; ix<4; ix++) swap(p4[ix][2], p4[ix][4]); }
+        if (production==TVar::Had_WH || production==TVar::Had_ZH || production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::JJVBF || production==TVar::JJEW) qq_vvqq_(p4[0], msq[0]);
+        //else if (production == TVar::JJQCD); // No JJQCD-VV ME in MCFM
+      }
+
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++){
+          if (
+            (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
+            )
+            &&
+            (
+            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
+            )
+            ){
+            if (
+              (
+              (production==TVar::Had_WH || production==TVar::Lep_WH)
+              &&
+              (
+              (TMath::Sign(1, iquark)==TMath::Sign(1, jquark))
+              ||
+              (PDGHelpers::isUpTypeQuark(iquark) && PDGHelpers::isUpTypeQuark(jquark))
+              ||
+              (PDGHelpers::isDownTypeQuark(iquark) && PDGHelpers::isDownTypeQuark(jquark))
+              )
+              )
+              ||
+              (
+              (production==TVar::Had_ZH || production==TVar::Lep_ZH) && (iquark!=-jquark)
+              )
+              ) msq[jquark+5][iquark+5]=0;
+            else if (msq[jquark+5][iquark+5]>0.) nInstances++;
+          }
+          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+        }
+      }
+      msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
 
-    for (int iquark=-5; iquark<=5; iquark++){
-      for (int jquark=-5; jquark<=5; jquark++){
-        if (
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-          )
-          &&
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-          )
-          ){
-          if (msq[jquark+5][iquark+5]>0.) nInstances++;
-        }
-        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+    // Set aL/R 1,2 into RcdME
+    if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
+    else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(1., 0., 0);
+    else RcdME->setVDaughterCouplings(0., 0., 0);
+    if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
+    else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(1., 0., 1);
+    else RcdME->setVDaughterCouplings(0., 0., 1);
+    // Reset some of these couplings if the decay is not actually ZZ or WW.
+    if (
+      process==TVar::bkgZJets
+      ||
+      process==TVar::bkgZGamma
+      ) RcdME->setVDaughterCouplings(0., 0., 1);
+
+    if (msqjk != msqjk){
+      if (verbosity>=TVar::ERROR) cout << "TUtil::SumMatrixElementPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
+      for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
+      cout << "TUtil::SumMatrixElementPDF: The number of ME instances: " << nInstances << ". MEsq[ip][jp] = " << endl;
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++) cout << msq[jquark+5][iquark+5] << '\t';
+        cout << endl;
+      }
+      msqjk=0;
+    }
+    else if (verbosity>=TVar::DEBUG){
+      cout << "TUtil::SumMatrixElementPDF: The number of ME instances: " << nInstances << ". MEsq[ip][jp] = " << endl;
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++) cout << msq[jquark+5][iquark+5] << '\t';
+        cout << endl;
       }
     }
-    msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-  }
-  else if (production == TVar::JJQCD){
-    if (process == TVar::bkgZJets) qqb_z2jet_(p4[0], msq[0]);
 
-    for (int iquark=-5; iquark<=5; iquark++){
-      for (int jquark=-5; jquark<=5; jquark++){
-        if (
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-          )
-          &&
-          (
-          PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-          )
-          ){
-          if (msq[jquark+5][iquark+5]>0.) nInstances++;
-        }
-        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
-      }
-    }
-    msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
-  }
-
-  // Set aL/R 1,2 into RcdME
-  if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(zcouple_.l1, zcouple_.r1, 0);
-  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) RcdME->setVDaughterCouplings(1., 0., 0);
-  else RcdME->setVDaughterCouplings(0., 0., 0);
-  if (PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(zcouple_.l2, zcouple_.r2, 1);
-  else if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) RcdME->setVDaughterCouplings(1., 0., 1);
-  else RcdME->setVDaughterCouplings(0., 0., 1);
-  // Reset some of these couplings if the decay is not actually ZZ or WW.
-  if (
-    process==TVar::bkgZJets
-    ||
-    process==TVar::bkgZGamma
-    ) RcdME->setVDaughterCouplings(0., 0., 1);
-
-  if (msqjk != msqjk){
-    if (verbosity>=TVar::ERROR) cout << "TUtil::SumMatrixElementPDF: "<< TVar::ProcessName(process) << " msqjk="  << msqjk << endl;
-    for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl;
-    cout << "TUtil::SumMatrixElementPDF: The number of ME instances: " << nInstances << ". MEsq[ip][jp] = " << endl;
-    for (int iquark=-5; iquark<=5; iquark++){
-      for (int jquark=-5; jquark<=5; jquark++) cout << msq[jquark+5][iquark+5] << '\t';
-      cout << endl;
-    }
-    msqjk=0;
-  }
-  else if (verbosity>=TVar::DEBUG){
-    cout << "TUtil::SumMatrixElementPDF: The number of ME instances: " << nInstances << ". MEsq[ip][jp] = " << endl;
-    for (int iquark=-5; iquark<=5; iquark++){
-      for (int jquark=-5; jquark<=5; jquark++) cout << msq[jquark+5][iquark+5] << '\t';
-      cout << endl;
-    }
-  }
-
-  if (verbosity>=TVar::DEBUG){
-    cout
-      << "TUtil::SumMatrixElementPDF: Reset AlphaS:\n"
-      << "\tBefore reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
-  }
-  SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
-  if (verbosity>=TVar::DEBUG){
-    cout
-      << "TUtil::SumMatrixElementPDF: Reset AlphaS result:\n"
-      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
-  }
+    if (verbosity>=TVar::DEBUG) cout
+        << "TUtil::SumMatrixElementPDF: Reset AlphaS:\n"
+        << "\tBefore reset, alphas scale: " << scale_.scale
+        << ", PDF scale: " << facscale_.facscale
+        << endl;
+    SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
+    if (verbosity>=TVar::DEBUG) cout
+        << "TUtil::SumMatrixElementPDF: Reset AlphaS result:\n"
+        << "\tAfter reset, alphas scale: " << scale_.scale
+        << ", PDF scale: " << facscale_.facscale
+        << endl;
+  } // End if doProceed
   if (verbosity>=TVar::DEBUG) cout << "End TUtil::SumMatrixElementPDF(" << msqjk << ")" << endl;
   return msqjk;
 }
 
 
 double TUtil::JHUGenMatEl(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM,
+  const double& EBEAM,
   TVar::VerbosityLevel verbosity
   ){
   const double GeV=1./100.; // JHUGen mom. scale factor
@@ -3748,9 +3897,9 @@ double TUtil::JHUGenMatEl(
 }
 
 double TUtil::HJJMatEl(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM,
+  const double& EBEAM,
   TVar::VerbosityLevel verbosity
   ){
   const double GeV=1./100.; // JHUGen mom. scale factor
@@ -4988,9 +5137,9 @@ double TUtil::HJJMatEl(
 }
 
 double TUtil::VHiggsMatEl(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM,
+  const double& EBEAM,
   bool includeHiggsDecay,
   TVar::VerbosityLevel verbosity
   ){
@@ -5039,7 +5188,7 @@ double TUtil::VHiggsMatEl(
     mela_event,
     verbosity
     );
-  if ((mela_event.pAssociated.size()<2 && production!=TVar::GammaH) || (mela_event.pAssociated.size()<1 && production==TVar::GammaH)){
+  if ((mela_event.pAssociated.size()<(unsigned int)(nRequested_AssociatedJets+nRequested_AssociatedLeptons) && production!=TVar::GammaH) || (mela_event.pAssociated.size()<(unsigned int)nRequested_AssociatedPhotons && production==TVar::GammaH)){
     if (verbosity>=TVar::ERROR) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
     return sum_msqjk;
   }
@@ -5097,11 +5246,13 @@ double TUtil::VHiggsMatEl(
   if (PDGHelpers::isAGluon(MYIDUP_prod[2]) || PDGHelpers::isAGluon(MYIDUP_prod[3])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Final state gluons are not permitted!" << endl; return sum_msqjk; }
 
   // Decay V/f ids
+  /*
   for (int iv=0; iv<2; iv++){
     int idtmp = mela_event.intermediateVid.at(iv);
     if (!PDGHelpers::isAnUnknownJet(idtmp)) MYIDUP_dec[iv] = idtmp;
     else MYIDUP_dec[iv] = 0;
   }
+  */
   // Decay daughters
   for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
@@ -5495,9 +5646,9 @@ double TUtil::VHiggsMatEl(
 
 // ttH
 double TUtil::TTHiggsMatEl(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM,
+  const double& EBEAM,
   int topDecay, int topProcess,
   TVar::VerbosityLevel verbosity
   ){
@@ -5869,9 +6020,9 @@ double TUtil::TTHiggsMatEl(
 
 // bbH
 double TUtil::BBHiggsMatEl(
-  TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+  const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
   event_scales_type* event_scales, MelaIO* RcdME,
-  double EBEAM,
+  const double& EBEAM,
   int botProcess,
   TVar::VerbosityLevel verbosity
   ){
@@ -6034,7 +6185,7 @@ double TUtil::BBHiggsMatEl(
 }
 
 // CheckPartonMomFraction computes xx[0:1] based on p0, p1
-bool TUtil::CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity){
+bool TUtil::CheckPartonMomFraction(const TLorentzVector& p0, const TLorentzVector& p1, double xx[2], const double& EBEAM, const TVar::VerbosityLevel& verbosity){
   //Make sure parton Level Energy fraction is [0,1]
   //phase space function already makes sure the parton energy fraction between [min,1]
   //  x0 EBeam =>   <= -x1 EBeam
@@ -6056,7 +6207,7 @@ bool TUtil::CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector
   else return true;
 }
 // ComputePDF does the PDF computation
-void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity){
+void TUtil::ComputePDF(const TLorentzVector& p0, const TLorentzVector& p1, double fx1[nmsq], double fx2[nmsq], const double& EBEAM, const TVar::VerbosityLevel& verbosity){
   if (verbosity>=TVar::DEBUG) cout << "Begin TUtil::ComputePDF"<< endl;
   double xx[2]={ 0 };
   bool passPartonErgFrac=CheckPartonMomFraction(p0, p1, xx, EBEAM, verbosity);
@@ -6092,7 +6243,7 @@ void TUtil::ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double 
   }
 }
 // SumMEPDF sums over all production parton flavors according to PDF and calls ComputePDF
-double TUtil::SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity){
+double TUtil::SumMEPDF(const TLorentzVector& p0, const TLorentzVector& p1, double msq[nmsq][nmsq], MelaIO* RcdME, const double& EBEAM, const TVar::VerbosityLevel& verbosity){
   if (verbosity>=TVar::DEBUG) cout << "Begin TUtil::SumMEPDF"<< endl;
   double fx1[nmsq]={ 0 };
   double fx2[nmsq]={ 0 };

@@ -55,7 +55,7 @@ namespace TUtil{
   // This version makes the masses of p1 and p2 to be m1 and m2, leaving p1+p2 unchanged.
   void constrainedRemovePairMass(TLorentzVector& p1, TLorentzVector& p2, double m1=0, double m2=0);
   // This version simply scales momentum to match energy for the desired mass.
-  void scaleMomentumToEnergy(TLorentzVector massiveJet, TLorentzVector& masslessJet, double mass=0);
+  void scaleMomentumToEnergy(const TLorentzVector& massiveJet, TLorentzVector& masslessJet, double mass=0);
   // Function that has generic removal features
   std::pair<TLorentzVector, TLorentzVector> removeMassFromPair(
     TLorentzVector jet1, int jet1Id,
@@ -151,10 +151,11 @@ namespace TUtil{
 
   // Parameter settings
   void SetEwkCouplingParameters();
-  double InterpretScaleScheme(TVar::Production production, TVar::MatrixElement matrixElement, TVar::EventScaleScheme scheme, TLorentzVector p[mxpart]);
+  double InterpretScaleScheme(const TVar::Production& production, const TVar::MatrixElement& matrixElement, const TVar::EventScaleScheme& scheme, TLorentzVector p[mxpart]);
   void SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, std::string mypartons); // Q_ren/fac -> Q_ren/fac * multiplier_ren/fac
   void GetAlphaS(double* alphas_, double* alphasmz_); // Get last alpha_s value set
-  bool MCFM_chooser(TVar::Process process, TVar::Production production, TVar::LeptonInterference leptonInterf, MELACandidate* cand);
+  bool MCFM_chooser(const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf, MELACandidate* cand);
+  bool setupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event);
 
   // JHUGen-specific wrappers
   void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember);
@@ -172,54 +173,53 @@ namespace TUtil{
   void SetJHUGenSpinTwoCouplings(double Gacoupl[SIZE_GGG][2], double Gbcoupl[SIZE_GVV][2], double qLeftRightcoupl[SIZE_GQQ][2]);
 
   // PS cuts, unused
-  bool MCFM_masscuts(double s[][mxpart], TVar::Process process);
+  bool MCFM_masscuts(double s[][mxpart], const TVar::Process& process);
   bool MCFM_smalls(double s[][mxpart], int npart);
 
   // ME computations
   double SumMatrixElementPDF(
-    TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+    const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
-    double EBEAM,
-    double coupling[SIZE_HVV_FREENORM],
+    const double& EBEAM,
     TVar::VerbosityLevel verbosity
     );
   double JHUGenMatEl(
-    TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+    const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
-    double EBEAM,
+    const double& EBEAM,
     TVar::VerbosityLevel verbosity
     );
   double HJJMatEl(
-    TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+    const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
-    double EBEAM,
+    const double& EBEAM,
     TVar::VerbosityLevel verbosity
     );
   double VHiggsMatEl(
-    TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+    const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
-    double EBEAM,
+    const double& EBEAM,
     bool includeHiggsDecay,
     TVar::VerbosityLevel verbosity
     );
   double TTHiggsMatEl(
-    TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+    const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
-    double EBEAM,
+    const double& EBEAM,
     int topDecay, int topProcess,
     TVar::VerbosityLevel verbosity
     );
   double BBHiggsMatEl(
-    TVar::Process process, TVar::Production production, TVar::MatrixElement matrixElement,
+    const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,
     event_scales_type* event_scales, MelaIO* RcdME,
-    double EBEAM,
+    const double& EBEAM,
     int botProcess,
     TVar::VerbosityLevel verbosity
     );
 
-  bool CheckPartonMomFraction(const TLorentzVector p0, const TLorentzVector p1, double xx[2], double EBEAM, TVar::VerbosityLevel verbosity);
-  void ComputePDF(const TLorentzVector p0, const TLorentzVector p1, double fx1[nmsq], double fx2[nmsq], double EBEAM, TVar::VerbosityLevel verbosity);
-  double SumMEPDF(const TLorentzVector p0, const TLorentzVector p1, double msq[nmsq][nmsq], MelaIO* RcdME, double EBEAM, TVar::VerbosityLevel verbosity);
+  bool CheckPartonMomFraction(const TLorentzVector& p0, const TLorentzVector& p1, double xx[2], const double& EBEAM, const TVar::VerbosityLevel& verbosity);
+  void ComputePDF(const TLorentzVector& p0, const TLorentzVector& p1, double fx1[nmsq], double fx2[nmsq], const double& EBEAM, const TVar::VerbosityLevel& verbosity);
+  double SumMEPDF(const TLorentzVector& p0, const TLorentzVector& p1, double msq[nmsq][nmsq], MelaIO* RcdME, const double& EBEAM, const TVar::VerbosityLevel& verbosity);
 
   // Propagator reweighting
   double ResonancePropagator(double shat, TVar::ResonancePropagatorScheme scheme);

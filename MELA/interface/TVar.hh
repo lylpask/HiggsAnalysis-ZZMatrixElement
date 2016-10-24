@@ -63,16 +63,20 @@ public:
     ZZQQB_S,
     ZZQQB_TU,
     ZZINDEPENDENT,
-    JJQCD, // SBF
-    JJVBF, // WBF or WBF(+)Had_VH
+
     JQCD, // ? + 1 jet
-    Lep_ZH, // ZH, Z->ll/nunu
-    Lep_WH, // W(+/-)H, W->lnu
-    Had_ZH, // ZH, Z->uu/dd
-    Had_WH, // W(+/-)H, W->ud
-    GammaH, // gammaH, stable A
+    JJQCD, // SBF
+    JJVBF, // VBF
+    JJEW, // VBF+VH (had.)
+    JJEWQCD, // VBF+VH+QCD, all hadronic
     ttH, // ttH
     bbH, // bbH
+
+    Had_ZH, // ZH, Z->uu/dd
+    Had_WH, // W(+/-)H, W->ud
+    Lep_ZH, // ZH, Z->ll/nunu
+    Lep_WH, // W(+/-)H, W->lnu
+    GammaH, // gammaH, stable A
     //
     nProductions
   };

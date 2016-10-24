@@ -343,7 +343,7 @@ double TEvtProb::XsecCalc_XVV(
   SetProduction(production_);
   SetVerbosity(verbosity_);
 
-  bool forceUseMCFM = (matrixElement == TVar::MCFM || process == TVar::bkgZZ_SMHiggs);
+  bool forceUseMCFM = matrixElement == TVar::MCFM;
   bool calculateME=true;
 
   bool needBSMHiggs=false;
@@ -382,7 +382,7 @@ double TEvtProb::XsecCalc_XVV(
     return dXsec;
   }
   // ME calculations
-  if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm), verbosity);
+  if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, verbosity);
   else if (matrixElement == TVar::JHUGen){
     if (verbosity_>=TVar::DEBUG) cout << "XsecCalc_XVV::Try JHUGen"<< endl;
     AllowSeparateWWCouplings(false); // HZZ couplings are used for both in spin-0
@@ -620,7 +620,7 @@ double TEvtProb::XsecCalc_VVXVV(
   SetProduction(production_);
   SetVerbosity(verbosity_);
 
-  bool forceUseMCFM = (matrixElement == TVar::MCFM || process == TVar::bkgZZ_SMHiggs);
+  bool forceUseMCFM = matrixElement == TVar::MCFM;
   bool needBSMHiggs=false;
   bool calculateME=true;
   // process == TVar::bkgZZ_SMHiggs && matrixElement == TVar::JHUGen is still MCFM
@@ -657,12 +657,12 @@ double TEvtProb::XsecCalc_VVXVV(
   if (!calculateME) return dXsec;
 
   // ME calculation
-  if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, (selfDSpinZeroCoupl.Hvvcoupl_freenorm), verbosity);
-  else cerr << "Non-MCFM Mes are not supported." << endl;
+  if (forceUseMCFM) dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, verbosity);
+  else cerr << "TEvtProb::XsecCalc_VVXVV: Non-MCFM Mes are not supported." << endl;
 
   if (verbosity >= TVar::DEBUG) cout
     << "Process " << TVar::ProcessName(process)
-    << " TEvtProb::XsecCalc_VVXVV(): dXsec=" << dXsec
+    << " TEvtProb::XsecCalc_VVXVV: dXsec=" << dXsec
     << endl;
 
   ResetCouplings(); // Should come first
