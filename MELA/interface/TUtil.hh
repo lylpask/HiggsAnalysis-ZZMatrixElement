@@ -155,7 +155,7 @@ namespace TUtil{
   void SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, std::string mypartons); // Q_ren/fac -> Q_ren/fac * multiplier_ren/fac
   void GetAlphaS(double* alphas_, double* alphasmz_); // Get last alpha_s value set
   bool MCFM_chooser(const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf, MELACandidate* cand);
-  bool setupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event);
+  bool SetupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event);
 
   // JHUGen-specific wrappers
   void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember);

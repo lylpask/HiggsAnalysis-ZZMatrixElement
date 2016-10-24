@@ -2477,32 +2477,69 @@ bool TUtil::MCFM_chooser(const TVar::Process& process, const TVar::Production& p
   }
   return true;
 }
-bool setupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event){
+bool TUtil::SetupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event){
   if (mela_event.pAssociated.size()>=2){
     if (production==TVar::Lep_WH || production==TVar::Lep_ZH){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = 2;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 1;
 
-      if (PDGHelpers::isALepton(mela_event.pAssociated.at(0).first) && PDGHelpers::isALepton(mela_event.pAssociated.at(1).first)){
+      bool hasWplus=false;
+      bool hasWminus=false;
+      bool hasZll=false;
+      bool hasZnn=false;
+      for (unsigned int ix=0; ix<mela_event.pAssociated.size(); ix++){
+        if (PDGHelpers::isAJet(mela_event.pAssociated.at(ix).first)) continue;
+
+        bool found=false;
+        for (unsigned int iy=ix; iy<mela_event.pAssociated.size(); iy++){
+          if (PDGHelpers::isAJet(mela_event.pAssociated.at(iy).first)) continue;
+
+          int Vid = PDGHelpers::getCoupledVertex(mela_event.pAssociated.at(ix).first, mela_event.pAssociated.at(iy).first);
+          if (PDGHelpers::isAZBoson(Vid) && PDGHelpers::isALepton(mela_event.pAssociated.at(ix).first)){ hasZll=true; found=true; break; }
+          else if (PDGHelpers::isAZBoson(Vid) && PDGHelpers::isANeutrino(mela_event.pAssociated.at(ix).first)){ hasZnn=true; found=true; break; }
+          else if (
+            PDGHelpers::isAWBoson(Vid)
+            &&
+            (
+            (PDGHelpers::isALepton(mela_event.pAssociated.at(ix).first) && mela_event.pAssociated.at(ix).first<0)
+            ||
+            (PDGHelpers::isALepton(mela_event.pAssociated.at(iy).first) && mela_event.pAssociated.at(iy).first<0)
+            )
+            ){ hasWplus=true; found=true; break; }
+          else if (
+            PDGHelpers::isAWBoson(Vid)
+            &&
+            (
+            (PDGHelpers::isALepton(mela_event.pAssociated.at(ix).first) && mela_event.pAssociated.at(ix).first>0)
+            ||
+            (PDGHelpers::isALepton(mela_event.pAssociated.at(iy).first) && mela_event.pAssociated.at(iy).first>0)
+            )
+            ){ hasWminus=true; found=true; break; }
+        }
+        if (found) break;
+      }
+
+      if (hasZll){
         if (production==TVar::Lep_WH) return false;
         sprintf((plabel_.plabel)[6], "el");
         sprintf((plabel_.plabel)[7], "ea");
       }
-      else if (PDGHelpers::isANeutrino(mela_event.pAssociated.at(0).first) && PDGHelpers::isANeutrino(mela_event.pAssociated.at(1).first)){
+      else if (hasZnn){
         if (production==TVar::Lep_WH) return false;
         sprintf((plabel_.plabel)[6], "nl");
         sprintf((plabel_.plabel)[7], "na");
       }
-      else if (PDGHelpers::isANeutrino(mela_event.pAssociated.at(0).first) && PDGHelpers::isALepton(mela_event.pAssociated.at(1).first)){ // W+
+      else if (hasWplus){ // W+
         if (production==TVar::Lep_ZH) return false;
         sprintf((plabel_.plabel)[6], "nl");
         sprintf((plabel_.plabel)[7], "ea");
       }
-      else if (PDGHelpers::isANeutrino(mela_event.pAssociated.at(1).first) && PDGHelpers::isALepton(mela_event.pAssociated.at(0).first)){ // W-
+      else if (hasWminus){ // W-
         if (production==TVar::Lep_ZH) return false;
         sprintf((plabel_.plabel)[6], "el");
         sprintf((plabel_.plabel)[7], "na");
       }
+      else return false;
     }
     else if (production==TVar::Had_WH || production==TVar::Had_ZH){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = 2;
@@ -3235,7 +3272,7 @@ double TUtil::SumMatrixElementPDF(
 
   bool doProceed = (mela_event.pAssociated.size()<(unsigned int)(nRequested_AssociatedJets+nRequested_AssociatedLeptons))
     &&
-    TUtil::setupMCFMParticleCouplings(production, mela_event); // Set some of the specifics of the couplings through this function
+    TUtil::SetupMCFMParticleCouplings(production, mela_event); // Set some of the specifics of the couplings through this function
 
   if (doProceed){
     TLorentzVector MomStore[mxpart];
@@ -3537,7 +3574,6 @@ double TUtil::SumMatrixElementPDF(
   if (verbosity>=TVar::DEBUG) cout << "End TUtil::SumMatrixElementPDF(" << msqjk << ")" << endl;
   return msqjk;
 }
-
 
 double TUtil::JHUGenMatEl(
   const TVar::Process& process, const TVar::Production& production, const TVar::MatrixElement& matrixElement,

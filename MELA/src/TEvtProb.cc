@@ -623,7 +623,6 @@ double TEvtProb::XsecCalc_VVXVV(
   bool forceUseMCFM = matrixElement == TVar::MCFM;
   bool needBSMHiggs=false;
   bool calculateME=true;
-  // process == TVar::bkgZZ_SMHiggs && matrixElement == TVar::JHUGen is still MCFM
   if (forceUseMCFM){ // Always uses MCFM
     // Check self-defined couplings are specified.
     if (verbosity_>=TVar::DEBUG) cout << "TEvtProb::XsecCalc_VVXVV: Try MCFM"<< endl;
