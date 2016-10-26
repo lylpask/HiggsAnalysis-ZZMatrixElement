@@ -71,6 +71,7 @@ public:
   void appendTopCandidate(SimpleParticleCollection_t* TopDaughters); // Adds a top
 
   // Function to set EW parameters in MCFM/JHUGen
+  void resetQuarkMass(double inmass, int iquark);
   void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
 
 
@@ -121,11 +122,6 @@ public:
   void computeP_selfDspin2(
     double selfDGggcoupl_input[SIZE_GGG][2],
     double selfDGvvcoupl_input[SIZE_GVV][2],
-    float& prob,
-    bool useConstant=true
-    );
-  void computeP(
-    double selfDHvvcoupl_freenorm_input[SIZE_HVV_FREENORM],
     float& prob,
     bool useConstant=true
     );
@@ -232,7 +228,6 @@ public:
   // Self-define arrays are now members of MELA.
   // There are a lot of them!
   //****Spin-0****//
-  double selfDHvvcoupl_freenorm[SIZE_HVV_FREENORM];
   double selfDHqqcoupl[SIZE_HQQ][2];
   double selfDHggcoupl[SIZE_HGG][2];
   // The first dimension (of size [nSupportedHiggses=2]) supports a second resonance present in MCFM

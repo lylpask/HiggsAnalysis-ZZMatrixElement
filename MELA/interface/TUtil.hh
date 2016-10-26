@@ -150,12 +150,13 @@ namespace TUtil{
     );
 
   // Parameter settings
-  void SetEwkCouplingParameters();
+  void SetEwkCouplingParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme);
+  void SetQuarkMass(double inmass, int iquark);
   double InterpretScaleScheme(const TVar::Production& production, const TVar::MatrixElement& matrixElement, const TVar::EventScaleScheme& scheme, TLorentzVector p[mxpart]);
   void SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, double multiplier_fac, int mynloop, int mynflav, std::string mypartons); // Q_ren/fac -> Q_ren/fac * multiplier_ren/fac
   void GetAlphaS(double* alphas_, double* alphasmz_); // Get last alpha_s value set
   bool MCFM_chooser(const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf, MELACandidate* cand);
-  bool SetupMCFMParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event);
+  bool SetupMCFMAssociatedParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event, std::vector<int>* apartOrder=0);
 
   // JHUGen-specific wrappers
   void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember);

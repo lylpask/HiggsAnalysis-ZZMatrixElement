@@ -177,12 +177,12 @@ extern "C" {
     double Lambda2_w12, Lambda2_w22, Lambda2_w32, Lambda2_w42;
     double Lambda2_w10, Lambda2_w20, Lambda2_w30, Lambda2_w40;
 
-    double kappa_top[2], kappa_tilde_top[2];
-    double kappa_bot[2], kappa_tilde_bot[2];
-    double ghg2[2], ghg3[2], ghg4[2];
-    double kappa_4gen_top[2], kappa_tilde_4gen_top[2];
-    double kappa_4gen_bot[2], kappa_tilde_4gen_bot[2];
-    double ghg2_4gen[2], ghg3_4gen[2], ghg4_4gen[2];
+    double kappa_top[2]; double kappa_tilde_top[2];
+    double kappa_bot[2]; double kappa_tilde_bot[2];
+    double ghg2[2]; double ghg3[2]; double ghg4[2];
+    double kappa_4gen_top[2]; double kappa_tilde_4gen_top[2];
+    double kappa_4gen_bot[2]; double kappa_tilde_4gen_bot[2];
+    double ghg2_4gen[2]; double ghg3_4gen[2]; double ghg4_4gen[2];
 
     double ghz1[2]; double ghz2[2]; double ghz3[2]; double ghz4[2]; // No additional q2 dependence
     double ghz1_prime[2]; double ghz2_prime[2]; double ghz3_prime[2]; double ghz4_prime[2]; // Dipole ansatz
@@ -206,12 +206,12 @@ extern "C" {
     double ghw1_prime7[2]; double ghw2_prime7[2]; double ghw3_prime7[2]; double ghw4_prime7[2]; // |q1**2| * |q2**2|
 
 
-    double kappa2_top[2], kappa2_tilde_top[2];
-    double kappa2_bot[2], kappa2_tilde_bot[2];
-    double gh2g2[2], gh2g3[2], gh2g4[2];
-    double kappa2_4gen_top[2], kappa2_tilde_4gen_top[2];
-    double kappa2_4gen_bot[2], kappa2_tilde_4gen_bot[2];
-    double gh2g2_4gen[2], gh2g3_4gen[2], gh2g4_4gen[2];
+    double kappa2_top[2]; double kappa2_tilde_top[2];
+    double kappa2_bot[2]; double kappa2_tilde_bot[2];
+    double gh2g2[2]; double gh2g3[2]; double gh2g4[2];
+    double kappa2_4gen_top[2]; double kappa2_tilde_4gen_top[2];
+    double kappa2_4gen_bot[2]; double kappa2_tilde_4gen_bot[2];
+    double gh2g2_4gen[2]; double gh2g3_4gen[2]; double gh2g4_4gen[2];
 
     double gh2z1[2]; double gh2z2[2]; double gh2z3[2]; double gh2z4[2]; // No additional q2 dependence
     double gh2z1_prime[2]; double gh2z2_prime[2]; double gh2z3_prime[2]; double gh2z4_prime[2]; // Dipole ansatz

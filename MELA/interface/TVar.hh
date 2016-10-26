@@ -59,24 +59,46 @@ public:
   enum Production{
     ZZGG,
     ZZQQB,
-    ZZQQB_STU,
-    ZZQQB_S,
-    ZZQQB_TU,
+    ZZQQB_STU, // Should be the same as ZZQQB, just for crosscheck
     ZZINDEPENDENT,
 
+    ttH, // ttH
+    bbH, // bbH
+
     JQCD, // ? + 1 jet
+
     JJQCD, // SBF
     JJVBF, // VBF
     JJEW, // VBF+VH (had.)
     JJEWQCD, // VBF+VH+QCD, all hadronic
-    ttH, // ttH
-    bbH, // bbH
-
     Had_ZH, // ZH, Z->uu/dd
     Had_WH, // W(+/-)H, W->ud
     Lep_ZH, // ZH, Z->ll/nunu
     Lep_WH, // W(+/-)H, W->lnu
-    GammaH, // gammaH, stable A
+
+    // s-channel contributions
+    ZZQQB_S,
+    JJQCD_S,
+    JJVBF_S,
+    JJEW_S,
+    JJEWQCD_S,
+    Had_ZH_S,
+    Had_WH_S,
+    Lep_ZH_S,
+    Lep_WH_S,
+
+    // t+u-channel contributions
+    ZZQQB_TU,
+    JJQCD_TU,
+    JJVBF_TU,
+    JJEW_TU,
+    JJEWQCD_TU,
+    Had_ZH_TU,
+    Had_WH_TU,
+    Lep_ZH_TU,
+    Lep_WH_TU,
+
+    GammaH, // gammaH, stable A (could implement S and TU in the future
     //
     nProductions
   };

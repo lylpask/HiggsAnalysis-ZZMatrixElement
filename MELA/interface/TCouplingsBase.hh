@@ -20,12 +20,6 @@ namespace{
     SIZE_HGG
   };
   enum{
-    gHIGGS_VV_NORM_RE,
-    gHIGGS_VV_NORM_IM,
-
-    SIZE_HVV_FREENORM
-  };
-  enum{
     gHIGGS_VV_1,
     gHIGGS_VV_2,
     gHIGGS_VV_3,
@@ -34,6 +28,7 @@ namespace{
     gHIGGS_ZA_2,
     gHIGGS_ZA_3,
     gHIGGS_ZA_4,
+
     gHIGGS_AA_2,
     gHIGGS_AA_3,
     gHIGGS_AA_4,

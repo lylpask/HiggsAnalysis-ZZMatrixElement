@@ -20,8 +20,24 @@ public:
         H2zzcoupl[ic][im] = 0;
         H2wwcoupl[ic][im] = 0;
       }
-      for (int ic=0; ic<SIZE_HGG; ic++) Hggcoupl[ic][im]=0;
-      for (int ic=0; ic<SIZE_HQQ; ic++) Hqqcoupl[ic][im]=0;
+      for (int ic=0; ic<SIZE_HGG; ic++){
+        Hggcoupl[ic][im]=0;
+        Hg4g4coupl[ic][im]=0;
+        H2ggcoupl[ic][im]=0;
+        H2g4g4coupl[ic][im]=0;
+      }
+      for (int ic=0; ic<SIZE_HQQ; ic++){
+        Hqqcoupl[ic][im]=0;
+        Httcoupl[ic][im]=0;
+        Hbbcoupl[ic][im]=0;
+        Ht4t4coupl[ic][im]=0;
+        Hb4b4coupl[ic][im]=0;
+        H2qqcoupl[ic][im]=0;
+        H2ttcoupl[ic][im]=0;
+        H2bbcoupl[ic][im]=0;
+        H2t4t4coupl[ic][im]=0;
+        H2b4b4coupl[ic][im]=0;
+      }
     }
     /*
     Hqqcoupl[0][0] = 1.0;
@@ -29,7 +45,6 @@ public:
     Hzzcoupl[0][0] = 1.0;
     Hwwcoupl[0][0] = 1.0;
     */
-    for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) Hvvcoupl_freenorm[ic]=0;
     for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
       HzzCLambda_qsq[ik]=0;
       HwwCLambda_qsq[ik]=0;
@@ -50,10 +65,25 @@ public:
         Hzzcoupl[ic][im] = (other.Hzzcoupl)[ic][im];
         Hwwcoupl[ic][im] = (other.Hwwcoupl)[ic][im];
       }
-      for (int ic=0; ic<SIZE_HGG; ic++) Hggcoupl[ic][im]=(other.Hggcoupl)[ic][im];
-      for (int ic=0; ic<SIZE_HQQ; ic++) Hqqcoupl[ic][im]=(other.Hqqcoupl)[ic][im];
+      for (int ic=0; ic<SIZE_HGG; ic++){
+        Hggcoupl[ic][im]=(other.Hggcoupl)[ic][im];
+        Hg4g4coupl[ic][im]=(other.Hg4g4coupl)[ic][im];
+        H2ggcoupl[ic][im]=(other.H2ggcoupl)[ic][im];
+        H2g4g4coupl[ic][im]=(other.H2g4g4coupl)[ic][im];
+      }
+      for (int ic=0; ic<SIZE_HQQ; ic++){
+        Hqqcoupl[ic][im]=(other.Hqqcoupl)[ic][im];
+        Httcoupl[ic][im]=(other.Httcoupl)[ic][im];
+        Hbbcoupl[ic][im]=(other.Hbbcoupl)[ic][im];
+        Ht4t4coupl[ic][im]=(other.Ht4t4coupl)[ic][im];
+        Hb4b4coupl[ic][im]=(other.Hb4b4coupl)[ic][im];
+        H2qqcoupl[ic][im]=(other.H2qqcoupl)[ic][im];
+        H2ttcoupl[ic][im]=(other.H2ttcoupl)[ic][im];
+        H2bbcoupl[ic][im]=(other.H2bbcoupl)[ic][im];
+        H2t4t4coupl[ic][im]=(other.H2t4t4coupl)[ic][im];
+        H2b4b4coupl[ic][im]=(other.H2b4b4coupl)[ic][im];
+      }
     }
-    for (int ic=0; ic<SIZE_HVV_FREENORM; ic++) Hvvcoupl_freenorm[ic]=(other.Hvvcoupl_freenorm)[ic];
     for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){
       HzzCLambda_qsq[ik]=(other.HzzCLambda_qsq)[ik];
       HwwCLambda_qsq[ik]=(other.HwwCLambda_qsq)[ik];;
@@ -65,10 +95,6 @@ public:
   };
   SpinZeroCouplings* getRef(){ return this; }
 
-  void SetHVVFreeNormCouplings(unsigned int index, double cval){
-    if (index>=SIZE_HVV_FREENORM) std::cerr << "Cannot set index " << index <<  " for the freenorm coupling, out of range." << std::endl;
-    else Hvvcoupl_freenorm[index] = cval;
-  };
   void SetHVVCouplings(unsigned int index, double c_real, double c_imag, bool setWW = false, int whichResonance=1){
     if (!separateWWZZcouplings && setWW) return;
     if (index>=SIZE_HVV){ std::cerr << "Cannot set index " << index << ", out of range for the type requested." << std::endl; }
@@ -127,24 +153,92 @@ public:
       }
     }
   };
-  void SetHGGCouplings(unsigned int index, double c_real, double c_imag){
+  void SetHGGCouplings(unsigned int index, double c_real, double c_imag, int whichLoop=1, int whichResonance=1){
     if (index>=SIZE_HGG) std::cerr << "Cannot set index " << index << " for Hggcoupl, out of range for the type requested." << std::endl;
+    else if (whichResonance<0 || whichResonance>2) std::cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << std::endl;
+    else if (whichLoop<0 || whichLoop>2) std::cerr << "gg loop " << whichLoop << " is not supported. Set it to 1 for the loop that corresponds to the top/bottom couplings, or 2 for the loop that corresponds to the tprime/bprime couplings." << std::endl;
     else{
-      Hggcoupl[index][0] = c_real;
-      Hggcoupl[index][1] = c_imag;
+      if (whichResonance==1){
+        if (whichLoop==1){
+          Hggcoupl[index][0] = c_real;
+          Hggcoupl[index][1] = c_imag;
+        }
+        else{
+          Hg4g4coupl[index][0] = c_real;
+          Hg4g4coupl[index][1] = c_imag;
+        }
+      }
+      else{
+        if (whichLoop==1){
+          H2ggcoupl[index][0] = c_real;
+          H2ggcoupl[index][1] = c_imag;
+        }
+        else{
+          H2g4g4coupl[index][0] = c_real;
+          H2g4g4coupl[index][1] = c_imag;
+        }
+      }
     }
   };
-  void SetHQQCouplings(unsigned int index, double c_real, double c_imag){
+  void SetHQQCouplings(unsigned int index, double c_real, double c_imag, int qid=0, int whichResonance=1){
     if (index>=SIZE_HQQ) std::cerr << "Cannot set index " << index << " for Hqqcoupl, out of range for the type requested." << std::endl;
+    else if (whichResonance<0 || whichResonance>2) std::cerr << "Resonance " << whichResonance << " is not supported. Set it to 1 for the regular Higgs and 2 for the high-mass resonance." << std::endl;
+    else if (abs(qid)>8) std::cerr << "Quark id=" << qid << ">8 is not supported. Please change the id to 0-4 (qq), or one of 5 bottom), 6 (top), 7 (bprime), 8 (tprime)." << std::endl;
     else{
-      Hqqcoupl[index][0] = c_real;
-      Hqqcoupl[index][1] = c_imag;
+      if (whichResonance==1){
+        if (abs(qid)<5){
+          Hqqcoupl[index][0] = c_real;
+          Hqqcoupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==5){
+          Hbbcoupl[index][0] = c_real;
+          Hbbcoupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==6){
+          Httcoupl[index][0] = c_real;
+          Httcoupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==7){
+          Hb4b4coupl[index][0] = c_real;
+          Hb4b4coupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==8){
+          Ht4t4coupl[index][0] = c_real;
+          Ht4t4coupl[index][1] = c_imag;
+        }
+      }
+      else{
+        if (abs(qid)<5){
+          H2qqcoupl[index][0] = c_real;
+          H2qqcoupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==5){
+          H2bbcoupl[index][0] = c_real;
+          H2bbcoupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==6){
+          H2ttcoupl[index][0] = c_real;
+          H2ttcoupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==7){
+          H2b4b4coupl[index][0] = c_real;
+          H2b4b4coupl[index][1] = c_imag;
+        }
+        else if (abs(qid)==8){
+          H2t4t4coupl[index][0] = c_real;
+          H2t4t4coupl[index][1] = c_imag;
+        }
+      }
     }
   };
 
-  double Hqqcoupl[SIZE_HQQ][2];
   double Hggcoupl[SIZE_HGG][2];
-  double Hvvcoupl_freenorm[SIZE_HVV_FREENORM];
+  double Hqqcoupl[SIZE_HQQ][2];
+  double Httcoupl[SIZE_HQQ][2];
+  double Hbbcoupl[SIZE_HQQ][2];
+  double Hg4g4coupl[SIZE_HGG][2];
+  double Ht4t4coupl[SIZE_HQQ][2];
+  double Hb4b4coupl[SIZE_HQQ][2];
 
   double Hzzcoupl[SIZE_HVV][2];
   double Hwwcoupl[SIZE_HVV][2];
@@ -152,6 +246,14 @@ public:
   double HwwLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ];
   int HzzCLambda_qsq[SIZE_HVV_CQSQ];
   int HwwCLambda_qsq[SIZE_HVV_CQSQ];
+
+  double H2ggcoupl[SIZE_HGG][2];
+  double H2qqcoupl[SIZE_HQQ][2];
+  double H2ttcoupl[SIZE_HQQ][2];
+  double H2bbcoupl[SIZE_HQQ][2];
+  double H2g4g4coupl[SIZE_HGG][2];
+  double H2t4t4coupl[SIZE_HQQ][2];
+  double H2b4b4coupl[SIZE_HQQ][2];
 
   double H2zzcoupl[SIZE_HVV][2];
   double H2wwcoupl[SIZE_HVV][2];

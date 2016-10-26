@@ -69,9 +69,16 @@ void TEvtProb::InitializeMCFM(){
 
   mcfm_init_((char *)"input.DAT", (char *)"./");
   if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: mcfm_init successful" << endl;
-  SetEwkCouplingParameters();
   energy_.sqrts = 2.*EBEAM;
-  coupling_();
+  ReetQuarkMasses();
+  ResetMCFM_EWKParameters(
+    1.16639E-05, // Gf
+    1./128., // alpha_EW
+    80.399, // mW
+    91.1876, // mZ
+    0.23119, // xw=sin**2(thetaW)
+    3 // MCFM EW scheme
+    );
   qlinit_();
   // First resonance constant parameters
   spinzerohiggs_anomcoupl_.LambdaBSM=1000;
@@ -248,16 +255,17 @@ void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
 // Reset functions
 void TEvtProb::ResetIORecord(){ RcdME.reset(); }
 void TEvtProb::ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); }
-void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
-  if (ext_ewscheme<-1 || ext_ewscheme>3) ext_ewscheme=3;
-  ewinput_.Gf_inp = ext_Gf;
-  ewinput_.aemmz_inp = ext_aemmz;
-  ewinput_.wmass_inp = ext_mW;
-  ewinput_.zmass_inp = ext_mZ;
-  ewinput_.xw_inp = ext_xW;
-  ewscheme_.ewscheme = ext_ewscheme;
-  coupling_();
+void TEvtProb::ResetQuarkMasses(){
+  SetQuarkMass(1e-3, 1); // d
+  SetQuarkMass(5e-3, 2); // u
+  SetQuarkMass(1e-1, 3); // s
+  SetQuarkMass(1.275, 4); // c
+  SetQuarkMass(4.75, 5); // b
+  SetQuarkMass(173.2, 6); // t
+  SetQuarkMass(1e5, 7); // bprime
+  SetQuarkMass(1e5, 8); // tprime
 }
+void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){ SetEwkCouplingParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, int ext_ewscheme); }
 void TEvtProb::ResetCouplings(){
   selfDSpinZeroCoupl.reset();
   selfDSpinOneCoupl.reset();
