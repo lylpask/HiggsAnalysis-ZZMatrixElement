@@ -164,7 +164,7 @@ namespace TUtil{
   void SetJHUGenDistinguishWWCouplings(bool doAllow);
 
   // Spin-0 couplings
-  void SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ);
+  void SetMCFMSpinZeroCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ);
   void SetJHUGenSpinZeroVVCouplings(double Hvvcoupl[SIZE_HVV][2], int Hvvcoupl_cqsq[SIZE_HVV_CQSQ], double HvvLambda_qsq[SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ], bool useWWcoupl);
   void SetJHUGenSpinZeroGGCouplings(double Hggcoupl[SIZE_HGG][2]);
   void SetJHUGenSpinZeroQQCouplings(double Hqqcoupl[SIZE_HQQ][2]);

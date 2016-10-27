@@ -170,11 +170,11 @@ void newZZMatrixElement::set_mHiggs_wHiggs(double mh_, double gah_, int index){
 }
 
 // reset_MCFM_EWKParameters resets the MCFM EW parameters to those specified. This function is a wrapper around the TEvtProb version.
-void newZZMatrixElement::reset_QuarkMass(double inmass, int iquark){ TUtil::SetQuarkMass(inmass, iquark); }
+void newZZMatrixElement::reset_QuarkMass(double inmass, int iquark){ Xcal2.ResetQuarkMass(inmass, iquark); }
+void newZZMatrixElement::reset_QuarkMasses(){ Xcal2.ResetQuarkMasses(); }
 void newZZMatrixElement::reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   Xcal2.ResetMCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }
-void newZZMatrixElement::reset_QuarkMasses(){ Xcal2.ResetQuarkMasses(); }
 //
 // resetPerEvent resets the mass, width and lepton interference settings and deletes the temporary input objects newZZMatrixElement owns.
 void newZZMatrixElement::resetPerEvent(){

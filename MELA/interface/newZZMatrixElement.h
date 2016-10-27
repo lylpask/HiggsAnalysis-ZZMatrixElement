@@ -99,6 +99,7 @@ public:
 
   // Reset-functions
   void reset_QuarkMass(double inmass, int iquark);
+  void reset_QuarkMasses();
   void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void resetPerEvent(); // Resets variables and owned objects that are per-event
   void reset_InputEvent(); // Resets all candidates in Xcal2, to be called at the end of each event after all computations are done

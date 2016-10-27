@@ -278,6 +278,7 @@ void Mela::reset_SelfDCouplings(){
   // Did I tell you that we have a lot of them?
 }
 void Mela::resetQuarkMass(double inmass, int iquark){ ZZME->reset_QuarkMass(inmass, iquark); }
+void Mela::resetQuarkMasses(){ ZZME->reset_QuarkMasses(); }
 void Mela::resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   ZZME->reset_MCFM_EWKParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme);
 }

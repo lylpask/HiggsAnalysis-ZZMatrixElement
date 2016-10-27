@@ -2550,7 +2550,7 @@ bool TUtil::SetupMCFMAssociatedParticleCouplings(const TVar::Production& product
   bool result=true;
   int pOrder[2]={ -1, -1 };
 
-  if (mela_event.pAssociated.size()<(mela_event.nRequested_AssociatedJets+mela_event.nRequested_AssociatedLeptons)) result = false;
+  if ((int)mela_event.pAssociated.size()<(mela_event.nRequested_AssociatedJets+mela_event.nRequested_AssociatedLeptons)) result = false;
   else if (mela_event.nRequested_AssociatedJets>=2 || mela_event.nRequested_AssociatedLeptons>=2){
 
     if (production==TVar::Lep_ZH || production==TVar::Lep_ZH_S || production==TVar::Lep_ZH_TU){
@@ -2823,7 +2823,7 @@ void TUtil::SetJHUGenDistinguishWWCouplings(bool doAllow){
   int iAllow = (doAllow ? 1 : 0);
   __modjhugenmela_MOD_setdistinguishwwcouplingsflag(&iAllow);
 }
-void TUtil::SetMCFMSpinZeroVVCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ){
+void TUtil::SetMCFMSpinZeroCouplings(bool useBSM, SpinZeroCouplings* Hcouplings, bool forceZZ){
   if (!useBSM){
     spinzerohiggs_anomcoupl_.AllowAnomalousCouplings = 0;
     spinzerohiggs_anomcoupl_.distinguish_HWWcouplings = 0;
@@ -3582,7 +3582,7 @@ double TUtil::SumMatrixElementPDF(
   bool doProceed = 
     CheckPartonMomFraction(mela_event.pMothers.at(0).second, mela_event.pMothers.at(1).second, xx, EBEAM, verbosity) // Check momentum transfers
     &&
-    TUtil::SetupMCFMParticleCouplings(production, mela_event, &apartOrder); // Set some of the specifics of the associated particle couplings through this function
+    TUtil::SetupMCFMAssociatedParticleCouplings(production, mela_event, &apartOrder); // Set some of the specifics of the associated particle couplings through this function
   if (doProceed){
     int NPart=npart_.npart+2; // +2 for mothers
     double p4[4][mxpart]={ { 0 } };
