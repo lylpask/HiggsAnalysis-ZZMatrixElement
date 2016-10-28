@@ -63,7 +63,6 @@ TEvtProb::~TEvtProb(){
   if (verbosity>=TVar::DEBUG) cout << "End TEvtProb destructor" << endl;
 }
 
-
 void TEvtProb::InitializeMCFM(){
   if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb::InitializeMCFM" << endl;
 
@@ -131,8 +130,6 @@ void TEvtProb::InitializeJHUGen(const char* pathtoPDFSet, int PDFMember){
 
   if (verbosity>=TVar::DEBUG) cout << "End TEvtProb::InitializeJHUGen" << endl;
 }
-
-
 
 // Set NNPDF driver path
 void TEvtProb::Set_LHAgrid(const char* path, int pdfmember){
@@ -357,10 +354,10 @@ double TEvtProb::XsecCalc_XVV(
     needBSMHiggs = CheckSelfDCouplings_Hgg() || CheckSelfDCouplings_Htt() || CheckSelfDCouplings_Hbb() || CheckSelfDCouplings_HVV();
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
 
-    calculateME = MCFM_chooser(process, production, leptonInterf, melaCand);
+    calculateME = true; // FIX ME
     if (calculateME){
       SetMCFMSpinZeroCouplings(needBSMHiggs, &selfDSpinZeroCoupl, false);
-      dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, verbosity);
+      dXsec = SumMatrixElementPDF(process, production, matrixElement, leptonInterf, &event_scales, &RcdME, EBEAM, verbosity);
     }
     else if (verbosity_>=TVar::INFO) cout << "TEvtProb::XsecCalc_XVV: MCFM_chooser failed to determine the process configuration." << endl;
   }
@@ -607,10 +604,10 @@ double TEvtProb::XsecCalc_VVXVV(
     needBSMHiggs = CheckSelfDCouplings_HVV();
     if (needBSMHiggs) SetLeptonInterf(TVar::InterfOn); // All anomalous coupling computations have to use lepton interference
 
-    calculateME = MCFM_chooser(process, production, leptonInterf, melaCand);
+    calculateME = true; // FIX ME
     if (calculateME){
       SetMCFMSpinZeroCouplings(needBSMHiggs, &selfDSpinZeroCoupl, false);
-      dXsec = SumMatrixElementPDF(process, production, matrixElement, &event_scales, &RcdME, EBEAM, verbosity);
+      dXsec = SumMatrixElementPDF(process, production, matrixElement, leptonInterf, &event_scales, &RcdME, EBEAM, verbosity);
     }
     else if (verbosity_>=TVar::INFO) cout << "TEvtProb::XsecCalc_VVXVV: MCFM_chooser failed to determine the process configuration." << endl;
   }
