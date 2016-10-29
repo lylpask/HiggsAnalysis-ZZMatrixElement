@@ -158,8 +158,7 @@ namespace TUtil{
  
   // chooser.f split into 3 different functions
   bool MCFM_chooser(const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf, const simple_event_record& mela_event);
-  bool MCFM_SetupDecayParticleCouplings(const TVar::Process& process, const TVar::Production& production, const simple_event_record& mela_event, std::vector<int>* partOrder=0);
-  bool MCFM_SetupAssociatedParticleCouplings(const TVar::Production& production, const simple_event_record& mela_event, std::vector<int>* apartOrder=0);
+  bool MCFM_SetupParticleCouplings(const TVar::Process& process, const TVar::Production& production, const simple_event_record& mela_event, std::vector<int>* partOrder, std::vector<int>* apartOrder);
 
   // JHUGen-specific wrappers
   void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember);
