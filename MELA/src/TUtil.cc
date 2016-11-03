@@ -1037,6 +1037,10 @@ void TUtil::computeVHangles(
 /****************************************************/
 
 void TUtil::SetEwkCouplingParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
+  // Set JHUGen couplings
+  __modjhugenmela_MOD_setewparameters(&ext_mZ, &ext_mW, &ext_Gf, &ext_aemmz, &ext_xW);
+
+  // Set MCFM couplings
   if (ext_ewscheme<-1 || ext_ewscheme>3) ext_ewscheme=3;
   ewinput_.Gf_inp = ext_Gf;
   ewinput_.aemmz_inp = ext_aemmz;
@@ -1087,18 +1091,104 @@ void TUtil::SetEwkCouplingParameters(double ext_Gf, double ext_aemmz, double ext
   ewinput_.xw_inp=0.22264585341299625;
   */
 }
-void TUtil::SetQuarkMass(double inmass, int iquark){
+void TUtil::SetMass(double inmass, int ipart, bool runcoupling){
+  // MCFM masses
   // Tprime and bprime masses are not defined in masses.f
-  if (abs(iquark)==8) spinzerohiggs_anomcoupl_.mt_4gen = inmass;
-  else if (abs(iquark)==7) spinzerohiggs_anomcoupl_.mb_4gen = inmass;
-  else if (abs(iquark)==6) masses_mcfm_.mt=inmass;
-  else if (abs(iquark)==5){ masses_mcfm_.mb=inmass; masses_mcfm_.mbsq = pow(masses_mcfm_.mb, 2); }
-  else if (abs(iquark)==4){ masses_mcfm_.mc=inmass; masses_mcfm_.mcsq = pow(masses_mcfm_.mc, 2); }
-  else if (abs(iquark)==3) masses_mcfm_.ms=inmass;
-  else if (abs(iquark)==2) masses_mcfm_.mu=inmass;
-  else if (abs(iquark)==1) masses_mcfm_.md=inmass;
-  else cerr << "Quark " << iquark << " is unknown. Allowed indices are 1-6." << endl;
-  coupling_();
+  if (abs(ipart)==8) spinzerohiggs_anomcoupl_.mt_4gen = inmass;
+  else if (abs(ipart)==7) spinzerohiggs_anomcoupl_.mb_4gen = inmass;
+  else if (abs(ipart)==6) masses_mcfm_.mt=inmass;
+  else if (abs(ipart)==5){ masses_mcfm_.mb=inmass; masses_mcfm_.mbsq = pow(masses_mcfm_.mb, 2); }
+  else if (abs(ipart)==4){ masses_mcfm_.mc=inmass; masses_mcfm_.mcsq = pow(masses_mcfm_.mc, 2); }
+  else if (abs(ipart)==3) masses_mcfm_.ms=inmass;
+  else if (abs(ipart)==2) masses_mcfm_.mu=inmass;
+  else if (abs(ipart)==1) masses_mcfm_.md=inmass;
+  else if (abs(ipart)==11) masses_mcfm_.mel=inmass;
+  else if (abs(ipart)==13) masses_mcfm_.mmu=inmass;
+  else if (abs(ipart)==15){ masses_mcfm_.mtau=inmass; masses_mcfm_.mtausq = pow(masses_mcfm_.mtau, 2); }
+  else if (abs(ipart)==23){ masses_mcfm_.zmass=inmass; ewinput_.zmass_inp = inmass; }
+  else if (abs(ipart)==24){ masses_mcfm_.wmass=inmass; ewinput_.wmass_inp = inmass; }
+  else if (abs(ipart)==25) masses_mcfm_.hmass=inmass;
+  else cerr << "TUtil::SetMass: Particle " << ipart << " is unknown in MCFM." << endl;
+  if (runcoupling) coupling_();
+
+  // JHUGen masses
+  __modparameters_MOD_setmass(&inmass, &ipart);
+  if (runcoupling) __modparameters_MOD_computeewvariables();
+}
+void TUtil::SetDecayWidth(double inwidth, int ipart){
+  // MCFM masses
+  if (abs(ipart)==6) masses_mcfm_.twidth=inwidth;
+  else if (abs(ipart)==15) masses_mcfm_.tauwidth=inwidth;
+  else if (abs(ipart)==23) masses_mcfm_.zwidth=inwidth;
+  else if (abs(ipart)==24) masses_mcfm_.wwidth=inwidth;
+  else if (abs(ipart)==25) masses_mcfm_.hwidth=inwidth;
+  else cerr << "TUtil::SetDecayWidth: Particle " << ipart << " is unknown in MCFM" << endl;
+  // Avoid coupling_
+
+  // JHUGen masses
+  __modparameters_MOD_setdecaywidth(&inwidth, &ipart);
+}
+void TUtil::SetCKMElements(double* invckm_ud, double* invckm_us, double* invckm_cd, double* invckm_cs, double* invckm_ts, double* invckm_tb, double* invckm_ub, double* invckm_cb, double* invckm_td){
+  __modparameters_MOD_computeckmelements(invckm_ud, invckm_us, invckm_cd, invckm_cs, invckm_ts, invckm_tb, invckm_ub, invckm_cb, invckm_td);
+
+
+  // LEFT HERE
+  /* mdata.f:
+     block data block_ckm
+      implicit none
+      double precision Vud,Vus,Vub,Vcd,Vcs,Vcb
+      common/cabib/Vud,Vus,Vub,Vcd,Vcs,Vcb
+      data  Vud  ,  Vus  ,  Vub  ,
+     .      Vcd  ,  Vcs  ,  Vcb
+     .   /0.974285d0,0.22529d0,0.00362693741331522731d0,
+     .    0.225182d0,0.9734244d0,0.0416893794705567033/
+c      data  Vud  ,  Vus  ,  Vub  ,
+c     .      Vcd  ,  Vcs  ,  Vcb
+c     .   /0.97425d0,0.2253d0,0.0413d0,
+c     .    0.225d0,0.986d0,0.0411d0/
+c      data  Vud  ,  Vus  ,  Vub  ,
+c     .      Vcd  ,  Vcs  ,  Vcb
+c     .   /1d0,0d0,0.000d0,
+c     .    0d0,1d0,0.000d0/
+
+      end
+
+  */
+
+  double sum;
+
+  if (invckm_ud!=0) cabib_.Vud = *invckm_ud;
+  else cabib_.Vud = 0;
+  if (invckm_us!=0) cabib_.Vus = *invckm_us;
+  else cabib_.Vus = 0;
+  // Treatment of this one is different!
+  if (invckm_ub!=0) cabib_.Vub = *invckm_ub;
+  else{
+    double diff = 1.-pow(cabib_.Vud, 2)-pow(cabib_.Vus, 2);
+    if (diff>=0.) cabib_.Vub = sqrt(diff);
+    else cabib_.Vub = 0;
+  }
+  sum = sqrt(pow(cabib_.Vud, 2) + pow(cabib_.Vus, 2) + pow(cabib_.Vub, 2));
+  cabib_.Vud/=sum;
+  cabib_.Vus/=sum;
+  cabib_.Vub/=sum;
+
+  if (invckm_ud!=0) cabib_.Vcd = *invckm_ud;
+  else cabib_.Vcd = 0;
+  if (invckm_us!=0) cabib_.Vcs = *invckm_us;
+  else cabib_.Vcs = 0;
+  // Treatment of this one is different!
+  if (invckm_ub!=0) cabib_.Vcb = *invckm_ub;
+  else{
+    double diff = 1.-pow(cabib_.Vcd, 2)-pow(cabib_.Vcs, 2);
+    if (diff>=0.) cabib_.Vcb = sqrt(diff);
+    else cabib_.Vcb = 0;
+  }
+  sum = sqrt(pow(cabib_.Vcd, 2) + pow(cabib_.Vcs, 2) + pow(cabib_.Vcb, 2));
+  cabib_.Vcd/=sum;
+  cabib_.Vcs/=sum;
+  cabib_.Vcb/=sum;
+  // Do not call ckmfill_(), it is called by MCFM_chooser!
 }
 
 double TUtil::InterpretScaleScheme(const TVar::Production& production, const TVar::MatrixElement& matrixElement, const TVar::EventScaleScheme& scheme, TLorentzVector p[mxpart]){
@@ -5342,15 +5432,15 @@ double TUtil::VHiggsMatEl(
 
   if (PDGHelpers::isAGluon(MYIDUP_prod[0]) || PDGHelpers::isAGluon(MYIDUP_prod[1])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Initial state gluons are not permitted!" << endl; return sum_msqjk; }
   if (PDGHelpers::isAGluon(MYIDUP_prod[2]) || PDGHelpers::isAGluon(MYIDUP_prod[3])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Final state gluons are not permitted!" << endl; return sum_msqjk; }
+  if (production==TVar::GammaH && !PDGHelpers::isAPhoton(MYIDUP_prod[2])){ if (verbosity>=TVar::ERROR) cerr << "TUtil::VHiggsMatEl: GammaH associated photon (id=" << MYIDUP_prod[2] << ") is not a photon! Please fix its id." << endl; return sum_msqjk; }
 
   // Decay V/f ids
-  /*
+  // MYIDUP_dec as size=2 because JHUGen supports b-bbar decay
   for (int iv=0; iv<2; iv++){
     int idtmp = mela_event.intermediateVid.at(iv);
     if (!PDGHelpers::isAnUnknownJet(idtmp)) MYIDUP_dec[iv] = idtmp;
     else MYIDUP_dec[iv] = 0;
   }
-  */
   // Decay daughters
   for (unsigned int ipar=0; ipar<mela_event.pDaughters.size(); ipar++){
     TLorentzVector* momTmp = &(mela_event.pDaughters.at(ipar).second);
@@ -5423,9 +5513,10 @@ double TUtil::VHiggsMatEl(
   vh_ids[7] = 5; helicities[7] = 1;
   vh_ids[8] = -5; helicities[8] = 1;
   int HDKon = 0;
-  if (includeHiggsDecay && MYIDUP_dec[0]!=-9000 && MYIDUP_dec[1]!=-9000 && MYIDUP_dec[0]==-MYIDUP_dec[1]){
+  if (includeHiggsDecay && MYIDUP_dec[0]!=-9000 && MYIDUP_dec[1]!=-9000 && MYIDUP_dec[0]==-MYIDUP_dec[1]){ // H->ffb
     HDKon=1;
     __modjhugenmela_MOD_sethdk(&HDKon);
+    if (verbosity>=TVar::DEBUG) cout << "TUtil::VHiggsMatEl: HDKon" << endl;
   }
   else if (verbosity>=TVar::INFO && includeHiggsDecay) cerr << "TUtil::VHiggsMatEl: includeHiggsDecay=true is not supported for the present decay mode." << endl;
 
@@ -5460,210 +5551,351 @@ double TUtil::VHiggsMatEl(
   // Since we have a lot of these checks, do them here.
   bool partonIsKnown[4];
   for (unsigned int ip=0; ip<4; ip++) partonIsKnown[ip] = (MYIDUP_prod[ip]!=0);
+  if ((production==TVar::Lep_WH || production==TVar::Lep_ZH || production==TVar::GammaH) && !(partonIsKnown[2] && partonIsKnown[3])){ if (verbosity>=TVar::INFO) cerr << "TUtil::VHiggsMatEl: Final state particles in leptonic/photonic VH have to have a definite id!" << endl; return sum_msqjk; }
 
   const double allowed_helicities[2] = { -1, 1 }; // L,R
-  for (int h01 = 0; h01 < 2; h01++){
-    helicities[0] = allowed_helicities[h01];
-    helicities[1] = -helicities[0];
-    for (int h56 = 0; h56 < 2; h56++){
-      helicities[5] = allowed_helicities[h56];
-      helicities[6] = -helicities[5];
-      for (int incoming1 = -nf; incoming1 <= nf; incoming1++){
-        if (incoming1==0) continue;
+  bool useNewCalc=true;
+  if (useNewCalc){
+    // Setup outgoing H decay products (H->f fbar), templated with H->b bar if both fermions are unknown.
+    vector<pair<int, int>> Hffparticles;
+    double Hffscale=1;
+    if (HDKon!=0){
+      if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){ // If one particle is known, pick that line
+        if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])) Hffparticles.push_back(pair<int, int>(MYIDUP_dec[0], -MYIDUP_dec[0]));
+        else Hffparticles.push_back(pair<int, int>(-MYIDUP_dec[1], MYIDUP_dec[1]));
+      }
+      else{ // Else loop over possible quark lines
+        double Hffscalesum=0;
+        for (int hquark=1; hquark<=5; hquark++){
+          double Hffmass = __modparameters_MOD_getmass(&hquark);
+          Hffscalesum += Hffmass;
+          if (hquark==5){
+            Hffparticles.push_back(pair<int, int>(hquark, -hquark));
+            Hffparticles.push_back(pair<int, int>(-hquark, hquark));
+            Hffscale /= Hffmass;
+          }
+        }
+        Hffscale *= Hffscalesum;
+      }
+    }
+    if (verbosity>=TVar::DEBUG){
+      cout << "TUtil::VHiggsMatEl: Outgoing H-> f fbar particles to compute for the ME template:" << endl;
+      for (unsigned int ihf=0; ihf<Hffparticles.size(); ihf++) cout << "\t - (id8, id9) = (" << Hffparticles.at(ihf).first << ", " << Hffparticles.at(ihf).second << ")" << endl;
+    }
 
-        if (production==TVar::Lep_ZH || production==TVar::Had_ZH || production==TVar::GammaH){
-          vh_ids[0] = incoming1;
-          vh_ids[1] = -incoming1;
-          if (
-            (partonIsKnown[0] && MYIDUP_prod[0]!=vh_ids[0])
-            ||
-            (partonIsKnown[1] && MYIDUP_prod[1]!=vh_ids[1])
-            ) continue;
+    if (production==TVar::Lep_WH || production==TVar::Had_WH){
+      // Setup incoming partons
+      vector<pair<int, int>> incomingPartons;
+      if (partonIsKnown[0] && partonIsKnown[1]) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], MYIDUP_prod[1])); // Parton 0 and 1 are both known
+      else if (!partonIsKnown[0] && !partonIsKnown[1]){ // Parton 0 and 1 are unknown
+        // Consider all 4 incoming cases: d au, au d, u ad, ad u
+        incomingPartons.push_back(pair<int, int>(1, -2)); // du~ -> W-
+        incomingPartons.push_back(pair<int, int>(-2, 1)); // u~d -> W-
+        incomingPartons.push_back(pair<int, int>(2, -1)); // ud~ -> W+
+        incomingPartons.push_back(pair<int, int>(-1, 2)); // d~u -> W+
+      }
+      else if (!partonIsKnown[1] && partonIsKnown[0]){ // Parton 0 is known
+        // Consider the only possible general cases
+        if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[0])) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], -TMath::Sign(1, MYIDUP_prod[0]))); // ud~ or u~d
+        else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[0])) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], -TMath::Sign(2, MYIDUP_prod[0]))); // du~ or d~u
+      }
+      else/* if (!partonIsKnown[0] && partonIsKnown[1])*/{ // Parton 1 is known
+        // Consider the only possible general cases
+        if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[1])) incomingPartons.push_back(pair<int, int>(-TMath::Sign(1, MYIDUP_prod[1]), MYIDUP_prod[1])); // ud~ or u~d
+        else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[1])) incomingPartons.push_back(pair<int, int>(-TMath::Sign(2, MYIDUP_prod[1]), MYIDUP_prod[1])); // du~ or d~u
+      }
+      if (verbosity>=TVar::DEBUG){
+        cout << "TUtil::VHiggsMatEl: Incoming partons to compute for the ME template:" << endl;
+        for (unsigned int ip=0; ip<incomingPartons.size(); ip++) cout << "\t - (id1, id2) = (" << incomingPartons.at(ip).first << ", " << incomingPartons.at(ip).second << ")" << endl;
+      }
 
-          if (production==TVar::Had_ZH){
-            for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
-              if (outgoing1==0) continue;
-              vh_ids[5] = outgoing1;
-              vh_ids[6] = -outgoing1;
-              if (
-                (partonIsKnown[2] && MYIDUP_prod[2]!=vh_ids[5])
-                ||
-                (partonIsKnown[3] && MYIDUP_prod[3]!=vh_ids[6])
-                ) continue;
+      // Setup outgoing partons
+      vector<pair<int, int>> outgoingPartons;
+      if (partonIsKnown[2] && partonIsKnown[3]) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], MYIDUP_prod[3])); // Parton 0 and 1 are both known or Lep_WH
+      else if (!partonIsKnown[2] && !partonIsKnown[3]){ // Parton 0 and 1 are unknown
+        // Consider all 4 outgoing cases: d au, au d, u ad, ad u
+        outgoingPartons.push_back(pair<int, int>(1, -2)); // W- -> du~
+        outgoingPartons.push_back(pair<int, int>(-2, 1)); // W- -> u~d
+        outgoingPartons.push_back(pair<int, int>(2, -1)); // W+ -> ud~
+        outgoingPartons.push_back(pair<int, int>(-1, 2)); // W+ -> d~u
+      }
+      else if (!partonIsKnown[3] && partonIsKnown[2]){ // Parton 0 is known
+        // Consider the only possible general cases
+        if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[2])) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], -TMath::Sign(1, MYIDUP_prod[2]))); // ud~ or u~d
+        else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[2])) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], -TMath::Sign(2, MYIDUP_prod[2]))); // du~ or d~u
+      }
+      else/* if (!partonIsKnown[2] && partonIsKnown[3])*/{ // Parton 1 is known
+        // Consider the only possible general cases
+        if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[3])) outgoingPartons.push_back(pair<int, int>(-TMath::Sign(1, MYIDUP_prod[3]), MYIDUP_prod[3])); // ud~ or u~d
+        else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[3])) outgoingPartons.push_back(pair<int, int>(-TMath::Sign(2, MYIDUP_prod[3]), MYIDUP_prod[3])); // du~ or d~u
+      }
+      if (verbosity>=TVar::DEBUG){
+        cout << "TUtil::VHiggsMatEl: Outgoing particles to compute for the ME template:" << endl;
+        for (unsigned int op=0; op<outgoingPartons.size(); op++) cout << "\t - (id6, id7) = (" << outgoingPartons.at(op).first << ", " << outgoingPartons.at(op).second << ")" << endl;
+      }
 
-              if (HDKon==0){
-                double msq=0;
-                __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-                if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
-              }
+      for (unsigned int ip=0; ip<incomingPartons.size(); ip++){
+        vh_ids[0] = incomingPartons.at(ip).first;
+        vh_ids[1] = incomingPartons.at(ip).second;
+        vh_ids[2] = PDGHelpers::getCoupledVertex(vh_ids[0], vh_ids[1]);
+        if (!PDGHelpers::isAWBoson(vh_ids[2])) continue;
+        for (unsigned int op=0; op<outgoingPartons.size(); op++){
+          vh_ids[5] = outgoingPartons.at(ip).first;
+          vh_ids[6] = outgoingPartons.at(ip).second;
+          vh_ids[3] = PDGHelpers::getCoupledVertex(vh_ids[5], vh_ids[6]);
+          if (vh_ids[2]!=vh_ids[3]) continue;
+
+          // Compute a raw ME
+          double msq=0;
+          for (int h01 = 0; h01 < 2; h01++){
+            helicities[0] = allowed_helicities[h01];
+            helicities[1] = -helicities[0];
+            for (int h56 = 0; h56 < 2; h56++){
+              helicities[5] = allowed_helicities[h56];
+              helicities[6] = -helicities[5];
+
+              double msq_inst=0;
+              if (HDKon==0) __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq_inst);
               else{
                 for (int h78=0; h78<2; h78++){
                   helicities[7]=allowed_helicities[h78];
                   helicities[8]=allowed_helicities[h78];
-                  if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
-                    if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
-                      vh_ids[7]=MYIDUP_dec[0];
-                      vh_ids[8]=-MYIDUP_dec[0];
-                    }
-                    else{
-                      vh_ids[7]=-MYIDUP_dec[1];
-                      vh_ids[8]=MYIDUP_dec[1];
-                    }
-                    double msq=0;
-                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
-                  }
-                  else{
-                    for (int hquark=-5; hquark<=5; hquark++){
-                      if (hquark==0) continue;
-                      vh_ids[7]=-hquark;
-                      vh_ids[8]=hquark;
-                      double msq=0;
-                      __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                      MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-                      if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
-                    }
-                  }
-                }
+                  for (unsigned int ihf=0; ihf<Hffparticles.size(); ihf++){
+                    vh_ids[7]=Hffparticles.at(ihf).first;
+                    vh_ids[8]=Hffparticles.at(ihf).second;
+                    double msq_inst_LR=0;
+                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq_inst_LR);
+                    msq_inst += msq_inst_LR;
+                  } // End loop over template H->f fbar products
+                } // End loop over the spin of H->f fbar line
+                msq_inst *= Hffscale;
+              } // End HDKon!=0
+              msq += msq_inst;
+            } // End loop over h56
+          } // End loop over h01
+
+          // Determine the outgoing scale
+          double scalesum_out=0;
+          if (!(partonIsKnown[2] && partonIsKnown[3])){
+            msq /= pow(__modparameters_MOD_ckm(&(vh_ids[5]), &(vh_ids[6])), 2);
+            for (int outgoing1=1; outgoing1<=nf; outgoing1++){
+              if (partonIsKnown[2] && outgoing1!=abs(vh_ids[5])) continue;
+              if (outgoing1%2!=abs(vh_ids[5])%2 || outgoing1==6) continue;
+              int iout = outgoing1 * TMath::Sign(1, vh_ids[5]);
+              for (int outgoing2=1; outgoing2<=nf; outgoing2++){
+                if (partonIsKnown[3] && outgoing2!=abs(vh_ids[6])) continue;
+                if (outgoing2%2!=abs(vh_ids[6])%2 || outgoing2==6) continue;
+                int jout = outgoing2 * TMath::Sign(1, vh_ids[6]);
+                scalesum_out += pow(__modparameters_MOD_ckm(&(iout), &(jout)), 2);
               }
-
-            } // End loop over outgoing1=-outgoing2
-          }
-          else{
-            vh_ids[5] = MYIDUP_prod[2];
-            vh_ids[6] = MYIDUP_prod[3];
-
-            if (HDKon==0){
-              double msq=0;
-              __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-              MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-              if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
             }
-            else{
-              for (int h78=0; h78<2; h78++){
-                helicities[7]=allowed_helicities[h78];
-                helicities[8]=allowed_helicities[h78];
-                if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
-                  if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
-                    vh_ids[7]=MYIDUP_dec[0];
-                    vh_ids[8]=-MYIDUP_dec[0];
-                  }
-                  else{
-                    vh_ids[7]=-MYIDUP_dec[1];
-                    vh_ids[8]=MYIDUP_dec[1];
-                  }
+          }
+          else scalesum_out = 1;
+
+          // Divide ME by the incoming scale factor (will be multiplied again inside the loop)
+          msq /= pow(__modparameters_MOD_ckm(&(vh_ids[0]), &(vh_ids[1]))/__modparameters_MOD_scalefactor(&(vh_ids[0]), &(vh_ids[1])), 2);
+
+          // Sum all possible combinations
+          for (int incoming1=1; incoming1<=nf; incoming1++){
+            if (partonIsKnown[0] && incoming1!=abs(vh_ids[0])) continue;
+            if (incoming1%2!=abs(vh_ids[0])%2 || incoming1==6) continue;
+            int iin = incoming1 * TMath::Sign(1, vh_ids[0]);
+            for (int incoming2=1; incoming2<=nf; incoming2++){
+              if (partonIsKnown[1] && incoming2!=abs(vh_ids[1])) continue;
+              if (incoming2%2!=abs(vh_ids[1])%2 || incoming2==6) continue;
+              int jin = incoming2 * TMath::Sign(1, vh_ids[1]);
+              double scale_in = pow(__modparameters_MOD_ckm(&(iin), &(jin))/__modparameters_MOD_scalefactor(&(iin), &(jin)), 2);
+              MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scalesum_out;
+            }
+          }
+          // msq is now added to MatElSq.
+        } // End loop over outgoing particle templates
+      } // End loop over incoming parton templates
+    } // End WH
+    else{ // ZH, GammaH
+      // Setup incoming partons
+      vector<pair<int, int>> incomingPartons;
+      if (partonIsKnown[0] && partonIsKnown[1]) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], MYIDUP_prod[1])); // Parton 0 and 1 are both known
+      else if (!partonIsKnown[0] && !partonIsKnown[1]){ // Parton 0 and 1 are unknown
+        // Consider all 4 incoming cases: d ad, ad d, u au, au u
+        incomingPartons.push_back(pair<int, int>(1, -1)); // dd~ -> Z
+        incomingPartons.push_back(pair<int, int>(-1, 1)); // d~d -> Z
+        incomingPartons.push_back(pair<int, int>(2, -2)); // uu~ -> Z
+        incomingPartons.push_back(pair<int, int>(-2, 2)); // u~u -> Z
+      }
+      else if (!partonIsKnown[1] && partonIsKnown[0]) // Parton 0 is known
+        incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], -MYIDUP_prod[0])); // id1, -id1
+      else/* if (!partonIsKnown[0] && partonIsKnown[1])*/ // Parton 1 is known
+        incomingPartons.push_back(pair<int, int>(-MYIDUP_prod[1], MYIDUP_prod[1])); // -id2, id2
+      if (verbosity>=TVar::DEBUG){
+        cout << "TUtil::VHiggsMatEl: Incoming partons to compute for the ME template:" << endl;
+        for (unsigned int ip=0; ip<incomingPartons.size(); ip++) cout << "\t - (id1, id2) = (" << incomingPartons.at(ip).first << ", " << incomingPartons.at(ip).second << ")" << endl;
+      }
+
+      // Setup outgoing partons
+      vector<pair<int, int>> outgoingPartons;
+      if ((partonIsKnown[2] && partonIsKnown[3]) || production==TVar::GammaH) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], MYIDUP_prod[3])); // Parton 0 and 1 are both known or Lep_WH
+      else if (!partonIsKnown[2] && !partonIsKnown[3]){ // Parton 0 and 1 are unknown
+        // Consider all 4 outgoing cases: d au, au d, u ad, ad u
+        outgoingPartons.push_back(pair<int, int>(1, -1)); // Z -> dd~
+        outgoingPartons.push_back(pair<int, int>(-1, 1)); // Z -> d~d
+        outgoingPartons.push_back(pair<int, int>(2, -2)); // Z -> uu~
+        outgoingPartons.push_back(pair<int, int>(-2, 2)); // Z -> u~u
+      }
+      else if (!partonIsKnown[3] && partonIsKnown[2]) // Parton 0 is known
+        outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], -MYIDUP_prod[2])); // id1, -id1
+      else/* if (!partonIsKnown[2] && partonIsKnown[3])*/ // Parton 1 is known
+        outgoingPartons.push_back(pair<int, int>(-MYIDUP_prod[3], MYIDUP_prod[3])); // -id2, id2
+      if (verbosity>=TVar::DEBUG){
+        cout << "TUtil::VHiggsMatEl: Outgoing particles to compute for the ME template:" << endl;
+        for (unsigned int op=0; op<outgoingPartons.size(); op++) cout << "\t - (id6, id7) = (" << outgoingPartons.at(op).first << ", " << outgoingPartons.at(op).second << ")" << endl;
+      }
+
+      for (unsigned int ip=0; ip<incomingPartons.size(); ip++){
+        vh_ids[0] = incomingPartons.at(ip).first;
+        vh_ids[1] = incomingPartons.at(ip).second;
+        vh_ids[2] = PDGHelpers::getCoupledVertex(vh_ids[0], vh_ids[1]);
+        if (!PDGHelpers::isAZBoson(vh_ids[2])) continue; // Notice, Z-> Gamma + H should also have the id of the Z!
+        for (unsigned int op=0; op<outgoingPartons.size(); op++){
+          vh_ids[5] = outgoingPartons.at(ip).first;
+          vh_ids[6] = outgoingPartons.at(ip).second;
+          if (production==TVar::GammaH) vh_ids[3] = 22;
+          else{
+            vh_ids[3] = PDGHelpers::getCoupledVertex(vh_ids[5], vh_ids[6]);
+            if (vh_ids[2]!=vh_ids[3]) continue;
+          }
+
+          // Compute a raw ME
+          double msq=0;
+          for (int h01 = 0; h01 < 2; h01++){
+            helicities[0] = allowed_helicities[h01];
+            helicities[1] = -helicities[0];
+            for (int h56 = 0; h56 < 2; h56++){
+              helicities[5] = allowed_helicities[h56];
+              helicities[6] = -helicities[5];
+
+              double msq_inst=0;
+              if (HDKon==0) __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq_inst);
+              else{
+                for (int h78=0; h78<2; h78++){
+                  helicities[7]=allowed_helicities[h78];
+                  helicities[8]=allowed_helicities[h78];
+                  for (unsigned int ihf=0; ihf<Hffparticles.size(); ihf++){
+                    vh_ids[7]=Hffparticles.at(ihf).first;
+                    vh_ids[8]=Hffparticles.at(ihf).second;
+                    double msq_inst_LR=0;
+                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq_inst_LR);
+                    msq_inst += msq_inst_LR;
+                  } // End loop over template H->f fbar products
+                } // End loop over the spin of H->f fbar line
+                msq_inst *= Hffscale;
+              } // End HDKon!=0
+              msq += msq_inst;
+            } // End loop over h56
+          } // End loop over h01
+
+          // Determine the outgoing scale
+          double scale_out=1;
+          if (!partonIsKnown[2] && !partonIsKnown[3]){
+            if (PDGHelpers::isDownTypeQuark(vh_ids[5])) scale_out=3;
+            else scale_out=2;
+          }
+
+          // Determine the incoming scale
+          double scale_in=1;
+          if (!partonIsKnown[0] && !partonIsKnown[1]){
+            if (PDGHelpers::isDownTypeQuark(vh_ids[0])) scale_in=3;
+            else scale_in=2;
+          }
+
+          // Sum all possible combinations
+          for (int incoming1=1; incoming1<=nf; incoming1++){
+            if (partonIsKnown[0] && incoming1!=abs(vh_ids[0])) continue;
+            if (incoming1%2!=abs(vh_ids[0])%2 || incoming1==6) continue;
+            int iin = incoming1 * TMath::Sign(1, vh_ids[0]);
+            for (int incoming2=1; incoming2<=nf; incoming2++){
+              if (partonIsKnown[1] && incoming2!=abs(vh_ids[1])) continue;
+              if (incoming2%2!=abs(vh_ids[1])%2 || incoming2==6) continue;
+              int jin = incoming2 * TMath::Sign(1, vh_ids[1]);
+              MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scale_out;
+            }
+          }
+          // msq is now added to MatElSq.
+        } // End loop over outgoing particle templates
+      } // End loop over incoming parton templates
+    } // End ZH, GammaH
+  }
+  else{
+    for (int h01 = 0; h01 < 2; h01++){
+      helicities[0] = allowed_helicities[h01];
+      helicities[1] = -helicities[0];
+      for (int h56 = 0; h56 < 2; h56++){
+        helicities[5] = allowed_helicities[h56];
+        helicities[6] = -helicities[5];
+        for (int incoming1 = -nf; incoming1 <= nf; incoming1++){
+          if (incoming1==0) continue;
+
+          if (production==TVar::Lep_ZH || production==TVar::Had_ZH || production==TVar::GammaH){
+            vh_ids[0] = incoming1;
+            vh_ids[1] = -incoming1;
+            if (
+              (partonIsKnown[0] && MYIDUP_prod[0]!=vh_ids[0])
+              ||
+              (partonIsKnown[1] && MYIDUP_prod[1]!=vh_ids[1])
+              ) continue;
+
+            if (production==TVar::Had_ZH){
+              for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+                if (outgoing1==0) continue;
+                vh_ids[5] = outgoing1;
+                vh_ids[6] = -outgoing1;
+                if (
+                  (partonIsKnown[2] && MYIDUP_prod[2]!=vh_ids[5])
+                  ||
+                  (partonIsKnown[3] && MYIDUP_prod[3]!=vh_ids[6])
+                  ) continue;
+
+                if (HDKon==0){
                   double msq=0;
                   __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                   MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                   if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                 }
                 else{
-                  for (int hquark=-5; hquark<=5; hquark++){
-                    if (hquark==0) continue;
-                    vh_ids[7]=-hquark;
-                    vh_ids[8]=hquark;
-                    double msq=0;
-                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
-                  }
-                }
-              }
-            }
-
-          } // End check on Had vs Lep
-        } // End ZH case
-        else if (production==TVar::Lep_WH || production==TVar::Had_WH){
-          vh_ids[0] = incoming1;
-          if (partonIsKnown[0] && MYIDUP_prod[0]!=vh_ids[0]) continue;
-
-          for (int incoming2 = -nf; incoming2 <= nf; incoming2++){
-            if (abs(incoming2)==abs(incoming1) || TMath::Sign(1, incoming1)==TMath::Sign(1, incoming2) || abs(incoming1)%2==abs(incoming2)%2 || incoming2==0) continue;
-            if (
-              (PDGHelpers::isUpTypeQuark(incoming1) && incoming1>0)
-              ||
-              (PDGHelpers::isUpTypeQuark(incoming2) && incoming2>0)
-              ) vh_ids[2]=24;
-            else vh_ids[2]=-24;
-
-            vh_ids[1] = incoming2;
-            if (partonIsKnown[1] && MYIDUP_prod[1]!=vh_ids[1]) continue;
-
-            if (production==TVar::Had_WH){
-              for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
-                for (int outgoing2=-nf; outgoing2<=nf; outgoing2++){
-                  if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2) || abs(outgoing1)%2==abs(outgoing2)%2 || outgoing1==0 || outgoing2==0) continue;
-
-                  // Determine whether the decay is from a W+ or a W-
-                  if (
-                    (PDGHelpers::isUpTypeQuark(outgoing1) && outgoing1>0)
-                    ||
-                    (PDGHelpers::isUpTypeQuark(outgoing2) && outgoing2>0)
-                    ) vh_ids[3]=24;
-                  else vh_ids[3]=-24;
-                  if (vh_ids[3]!=vh_ids[2]) continue;
-
-                  vh_ids[5] = outgoing1;
-                  vh_ids[6] = outgoing2;
-                  if (
-                    (partonIsKnown[2] && MYIDUP_prod[2]!=vh_ids[5])
-                    ||
-                    (partonIsKnown[3] && MYIDUP_prod[3]!=vh_ids[6])
-                    ) continue;
-
-                  if (HDKon==0){
-                    double msq=0;
-                    __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                    MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-                    if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
-                  }
-                  else{
-                    for (int h78=0; h78<2; h78++){
-                      helicities[7]=allowed_helicities[h78];
-                      helicities[8]=allowed_helicities[h78];
-                      if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
-                        if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
-                          vh_ids[7]=MYIDUP_dec[0];
-                          vh_ids[8]=-MYIDUP_dec[0];
-                        }
-                        else{
-                          vh_ids[7]=-MYIDUP_dec[1];
-                          vh_ids[8]=MYIDUP_dec[1];
-                        }
+                  for (int h78=0; h78<2; h78++){
+                    helicities[7]=allowed_helicities[h78];
+                    helicities[8]=allowed_helicities[h78];
+                    if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                      if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                        vh_ids[7]=MYIDUP_dec[0];
+                        vh_ids[8]=-MYIDUP_dec[0];
+                      }
+                      else{
+                        vh_ids[7]=-MYIDUP_dec[1];
+                        vh_ids[8]=MYIDUP_dec[1];
+                      }
+                      double msq=0;
+                      __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                      MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                    }
+                    else{
+                      for (int hquark=-5; hquark<=5; hquark++){
+                        if (hquark==0) continue;
+                        vh_ids[7]=-hquark;
+                        vh_ids[8]=hquark;
                         double msq=0;
                         __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
                         MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
                         if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
                       }
-                      else{
-                        for (int hquark=-5; hquark<=5; hquark++){
-                          if (hquark==0) continue;
-                          vh_ids[7]=-hquark;
-                          vh_ids[8]=hquark;
-                          double msq=0;
-                          __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
-                          MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
-                          if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
-                        }
-                      }
                     }
                   }
+                }
 
-                } // End loop over outgoing2
-              } // End loop over outgoing1
-            }
+              } // End loop over outgoing1=-outgoing2
+            } // End Had_ZH
             else{
-              // Determine whether the decay is from a W+ or a W-
-              if (
-                (PDGHelpers::isANeutrino(MYIDUP_prod[2]) && MYIDUP_prod[2]>0)
-                ||
-                (PDGHelpers::isANeutrino(MYIDUP_prod[3]) && MYIDUP_prod[3]>0)
-                ) vh_ids[3]=24;
-              else vh_ids[3]=-24;
-              if (vh_ids[3]!=vh_ids[2]) continue;
-
               vh_ids[5] = MYIDUP_prod[2];
               vh_ids[6] = MYIDUP_prod[3];
 
@@ -5705,14 +5937,152 @@ double TUtil::VHiggsMatEl(
                 }
               }
 
-            } // End check on Had vs Lep
-          } // End loop over incoming2
-        } // End WH case
-      } // End loop over incoming1
-    } // End loop over h56
-  } // End loop over h01
+            } // End Lep_ZH or GammaH
 
-  int GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets+nRequested_AssociatedLeptons+nRequested_AssociatedPhotons)*2;
+          } // End ZH case
+          else if (production==TVar::Lep_WH || production==TVar::Had_WH){
+            vh_ids[0] = incoming1;
+            if (partonIsKnown[0] && MYIDUP_prod[0]!=vh_ids[0]) continue;
+
+            for (int incoming2 = -nf; incoming2 <= nf; incoming2++){
+              if (abs(incoming2)==abs(incoming1) || TMath::Sign(1, incoming1)==TMath::Sign(1, incoming2) || abs(incoming1)%2==abs(incoming2)%2 || incoming2==0) continue;
+              if (
+                (PDGHelpers::isUpTypeQuark(incoming1) && incoming1>0)
+                ||
+                (PDGHelpers::isUpTypeQuark(incoming2) && incoming2>0)
+                ) vh_ids[2]=24;
+              else vh_ids[2]=-24;
+
+              vh_ids[1] = incoming2;
+              if (partonIsKnown[1] && MYIDUP_prod[1]!=vh_ids[1]) continue;
+
+              if (production==TVar::Had_WH){
+                for (int outgoing1=-nf; outgoing1<=nf; outgoing1++){
+                  for (int outgoing2=-nf; outgoing2<=nf; outgoing2++){
+                    if (abs(outgoing2)==abs(outgoing1) || TMath::Sign(1, outgoing1)==TMath::Sign(1, outgoing2) || abs(outgoing1)%2==abs(outgoing2)%2 || outgoing1==0 || outgoing2==0) continue;
+
+                    // Determine whether the decay is from a W+ or a W-
+                    if (
+                      (PDGHelpers::isUpTypeQuark(outgoing1) && outgoing1>0)
+                      ||
+                      (PDGHelpers::isUpTypeQuark(outgoing2) && outgoing2>0)
+                      ) vh_ids[3]=24;
+                    else vh_ids[3]=-24;
+                    if (vh_ids[3]!=vh_ids[2]) continue;
+
+                    vh_ids[5] = outgoing1;
+                    vh_ids[6] = outgoing2;
+                    if (
+                      (partonIsKnown[2] && MYIDUP_prod[2]!=vh_ids[5])
+                      ||
+                      (partonIsKnown[3] && MYIDUP_prod[3]!=vh_ids[6])
+                      ) continue;
+
+                    if (HDKon==0){
+                      double msq=0;
+                      __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                      MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                    }
+                    else{
+                      for (int h78=0; h78<2; h78++){
+                        helicities[7]=allowed_helicities[h78];
+                        helicities[8]=allowed_helicities[h78];
+                        if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                          if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                            vh_ids[7]=MYIDUP_dec[0];
+                            vh_ids[8]=-MYIDUP_dec[0];
+                          }
+                          else{
+                            vh_ids[7]=-MYIDUP_dec[1];
+                            vh_ids[8]=MYIDUP_dec[1];
+                          }
+                          double msq=0;
+                          __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                          MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                          if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                        }
+                        else{
+                          for (int hquark=-5; hquark<=5; hquark++){
+                            if (hquark==0) continue;
+                            vh_ids[7]=-hquark;
+                            vh_ids[8]=hquark;
+                            double msq=0;
+                            __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                            MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                            if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                          }
+                        }
+                      }
+                    }
+
+                  } // End loop over outgoing2
+                } // End loop over outgoing1
+              }
+              else{
+                // Determine whether the decay is from a W+ or a W-
+                if (
+                  (PDGHelpers::isANeutrino(MYIDUP_prod[2]) && MYIDUP_prod[2]>0)
+                  ||
+                  (PDGHelpers::isANeutrino(MYIDUP_prod[3]) && MYIDUP_prod[3]>0)
+                  ) vh_ids[3]=24;
+                else vh_ids[3]=-24;
+                if (vh_ids[3]!=vh_ids[2]) continue;
+
+                vh_ids[5] = MYIDUP_prod[2];
+                vh_ids[6] = MYIDUP_prod[3];
+
+                if (HDKon==0){
+                  double msq=0;
+                  __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                  MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                  if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                }
+                else{
+                  for (int h78=0; h78<2; h78++){
+                    helicities[7]=allowed_helicities[h78];
+                    helicities[8]=allowed_helicities[h78];
+                    if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0]) || !PDGHelpers::isAnUnknownJet(MYIDUP_dec[1])){
+                      if (!PDGHelpers::isAnUnknownJet(MYIDUP_dec[0])){
+                        vh_ids[7]=MYIDUP_dec[0];
+                        vh_ids[8]=-MYIDUP_dec[0];
+                      }
+                      else{
+                        vh_ids[7]=-MYIDUP_dec[1];
+                        vh_ids[8]=MYIDUP_dec[1];
+                      }
+                      double msq=0;
+                      __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                      MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                      if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                    }
+                    else{
+                      for (int hquark=-5; hquark<=5; hquark++){
+                        if (hquark==0) continue;
+                        vh_ids[7]=-hquark;
+                        vh_ids[8]=hquark;
+                        double msq=0;
+                        __modvhiggs_MOD_evalamp_vhiggs(vh_ids, helicities, p4, &msq);
+                        MatElsq[vh_ids[1]+5][vh_ids[0]+5] += msq * 0.25; // Average over initial states with helicities +-1 only
+                        if (verbosity>=TVar::DEBUG){ for (int ip=0; ip<9; ip++){ cout << "Particle " << ip << " vh_ids = " << vh_ids[ip] << ", hel=" << helicities[ip] << endl; } }
+                      }
+                    }
+                  }
+
+                } // End check on Had vs Lep
+              } // End loop over incoming2
+            } // End WH case
+          } // End loop over incoming1
+
+        } // End !useNewCalc
+
+      } // End loop over h56
+    } // End loop over h01
+  }
+
+  int GeVexponent_MEsq;
+  if (HDKon==0) GeVexponent_MEsq = 4-(1+nRequested_AssociatedJets+nRequested_AssociatedLeptons+nRequested_AssociatedPhotons)*2-4; // Amplitude has additional 1/m**2 from propagator == MEsq has additional 1/m**4
+  else GeVexponent_MEsq = 4-(2+nRequested_AssociatedJets+nRequested_AssociatedLeptons+nRequested_AssociatedPhotons)*2;
   double constant = pow(GeV, -GeVexponent_MEsq);
   for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) MatElsq[jj][ii] *= constant; }
   if (verbosity >= TVar::DEBUG){
@@ -6796,7 +7166,7 @@ void TUtil::GetBoostedParticleVectors(
     // Swap pZs to get the correct momentum matching default M1, M2.
     if ((melaCand->getMother(0)->p4).Z()<0.) swap(pz0, pz1);
     // Swap the ids of mothers and their pT=0-assumed momenta to achieve ordering as "incoming" q-qbar
-    if (motherId[0]<0 || motherId[1]>0){
+    if ((motherId[0]<0 && motherId[1]>=0) || (motherId[1]>0 && motherId[0]<=0)){
       swap(pz0, pz1);
       swap(motherId[0], motherId[1]);
     }

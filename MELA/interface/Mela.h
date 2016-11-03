@@ -71,7 +71,7 @@ public:
   void appendTopCandidate(SimpleParticleCollection_t* TopDaughters); // Adds a top
 
   // Function to set EW parameters in MCFM/JHUGen
-  void resetQuarkMass(double inmass, int iquark);
+  void resetQuarkMass(double inmass, int iquark, bool runcoupling);
   void resetQuarkMasses();
   void resetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
 

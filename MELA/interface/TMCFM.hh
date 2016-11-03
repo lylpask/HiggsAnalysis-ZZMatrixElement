@@ -250,6 +250,10 @@ extern "C" {
   } nwz_;
 
   extern struct {
+    double Vud, Vus, Vub, Vcd, Vcs, Vcb;
+  } cabib_;
+  
+  extern struct {
     double taumin;
   } taumin_;
 

@@ -98,7 +98,7 @@ public:
   //
 
   // Reset-functions
-  void reset_QuarkMass(double inmass, int iquark);
+  void reset_QuarkMass(double inmass, int iquark, bool runcoupling);
   void reset_QuarkMasses();
   void reset_MCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void resetPerEvent(); // Resets variables and owned objects that are per-event

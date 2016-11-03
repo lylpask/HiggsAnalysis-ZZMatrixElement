@@ -69,7 +69,7 @@ public:
   void SetCurrentCandidate(MELACandidate* cand);
 
   void AllowSeparateWWCouplings(bool doAllow=false);
-  void ResetQuarkMass(double inmass, int iquark);
+  void ResetQuarkMass(double inmass, int iquark, bool runcoupling); // The parameter runcoupling re-runs the couplings
   void ResetQuarkMasses();
   void ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme=3);
   void ResetCouplings();

@@ -7,6 +7,7 @@
 
 extern "C" {
 
+  void __modjhugenmela_MOD_setewparameters(double* inMZ, double* inMW, double* inGf, double* inalpha_QED, double* inxw);
   void __modjhugenmela_MOD_setdecaymodes(int idfirst[2], int idsecond[2]);
   void __modjhugenmela_MOD_setdistinguishwwcouplingsflag(int* doallow); // YES, THE ARGUMENT IS AN INT!
   void __modjhugenmela_MOD_sethdk(int* flag);
