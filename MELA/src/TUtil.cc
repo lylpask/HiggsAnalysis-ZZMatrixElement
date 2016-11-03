@@ -1112,7 +1112,8 @@ void TUtil::SetMass(double inmass, int ipart, bool runcoupling){
   if (runcoupling) coupling_();
 
   // JHUGen masses
-  __modparameters_MOD_setmass(&inmass, &ipart);
+  int jpart = convertLHEreverse(&ipart);
+  __modparameters_MOD_setmass(&inmass, &jpart);
   if (runcoupling) __modparameters_MOD_computeewvariables();
 }
 void TUtil::SetDecayWidth(double inwidth, int ipart){
@@ -1126,34 +1127,11 @@ void TUtil::SetDecayWidth(double inwidth, int ipart){
   // Avoid coupling_
 
   // JHUGen masses
-  __modparameters_MOD_setdecaywidth(&inwidth, &ipart);
+  int jpart = convertLHEreverse(&ipart);
+  __modparameters_MOD_setdecaywidth(&inwidth, &jpart);
 }
 void TUtil::SetCKMElements(double* invckm_ud, double* invckm_us, double* invckm_cd, double* invckm_cs, double* invckm_ts, double* invckm_tb, double* invckm_ub, double* invckm_cb, double* invckm_td){
   __modparameters_MOD_computeckmelements(invckm_ud, invckm_us, invckm_cd, invckm_cs, invckm_ts, invckm_tb, invckm_ub, invckm_cb, invckm_td);
-
-
-  // LEFT HERE
-  /* mdata.f:
-     block data block_ckm
-      implicit none
-      double precision Vud,Vus,Vub,Vcd,Vcs,Vcb
-      common/cabib/Vud,Vus,Vub,Vcd,Vcs,Vcb
-      data  Vud  ,  Vus  ,  Vub  ,
-     .      Vcd  ,  Vcs  ,  Vcb
-     .   /0.974285d0,0.22529d0,0.00362693741331522731d0,
-     .    0.225182d0,0.9734244d0,0.0416893794705567033/
-c      data  Vud  ,  Vus  ,  Vub  ,
-c     .      Vcd  ,  Vcs  ,  Vcb
-c     .   /0.97425d0,0.2253d0,0.0413d0,
-c     .    0.225d0,0.986d0,0.0411d0/
-c      data  Vud  ,  Vus  ,  Vub  ,
-c     .      Vcd  ,  Vcs  ,  Vcb
-c     .   /1d0,0d0,0.000d0,
-c     .    0d0,1d0,0.000d0/
-
-      end
-
-  */
 
   double sum;
 
