@@ -1091,40 +1091,56 @@ void TUtil::SetEwkCouplingParameters(double ext_Gf, double ext_aemmz, double ext
   ewinput_.xw_inp=0.22264585341299625;
   */
 }
-void TUtil::SetMass(double inmass, int ipart, bool runcoupling){
+void TUtil::SetMass(double inmass, int ipart){
+  bool runcoupling_mcfm=false;
+  bool runcoupling_jhugen=false;
+
   // MCFM masses
   // Tprime and bprime masses are not defined in masses.f
   if (abs(ipart)==8) spinzerohiggs_anomcoupl_.mt_4gen = inmass;
   else if (abs(ipart)==7) spinzerohiggs_anomcoupl_.mb_4gen = inmass;
-  else if (abs(ipart)==6) masses_mcfm_.mt=inmass;
-  else if (abs(ipart)==5){ masses_mcfm_.mb=inmass; masses_mcfm_.mbsq = pow(masses_mcfm_.mb, 2); }
-  else if (abs(ipart)==4){ masses_mcfm_.mc=inmass; masses_mcfm_.mcsq = pow(masses_mcfm_.mc, 2); }
+  else if (abs(ipart)==6){ masses_mcfm_.mt=inmass; runcoupling_mcfm=true; }
+  else if (abs(ipart)==5){ masses_mcfm_.mb=inmass; masses_mcfm_.mbsq = pow(masses_mcfm_.mb, 2); runcoupling_mcfm=true; }
+  else if (abs(ipart)==4){ masses_mcfm_.mc=inmass; masses_mcfm_.mcsq = pow(masses_mcfm_.mc, 2); runcoupling_mcfm=true; }
   else if (abs(ipart)==3) masses_mcfm_.ms=inmass;
   else if (abs(ipart)==2) masses_mcfm_.mu=inmass;
   else if (abs(ipart)==1) masses_mcfm_.md=inmass;
   else if (abs(ipart)==11) masses_mcfm_.mel=inmass;
   else if (abs(ipart)==13) masses_mcfm_.mmu=inmass;
   else if (abs(ipart)==15){ masses_mcfm_.mtau=inmass; masses_mcfm_.mtausq = pow(masses_mcfm_.mtau, 2); }
-  else if (abs(ipart)==23){ masses_mcfm_.zmass=inmass; ewinput_.zmass_inp = inmass; }
-  else if (abs(ipart)==24){ masses_mcfm_.wmass=inmass; ewinput_.wmass_inp = inmass; }
+  else if (abs(ipart)==23){ masses_mcfm_.zmass=inmass; ewinput_.zmass_inp = inmass; runcoupling_mcfm=true; }
+  else if (abs(ipart)==24){ masses_mcfm_.wmass=inmass; ewinput_.wmass_inp = inmass; runcoupling_mcfm=true; }
   else if (abs(ipart)==25) masses_mcfm_.hmass=inmass;
-  else cerr << "TUtil::SetMass: Particle " << ipart << " is unknown in MCFM." << endl;
-  if (runcoupling) coupling_();
 
   // JHUGen masses
-  int jpart = convertLHEreverse(&ipart);
-  __modparameters_MOD_setmass(&inmass, &jpart);
-  if (runcoupling) __modparameters_MOD_computeewvariables();
+  if (
+    abs(ipart)<=6
+    ||
+    (abs(ipart)>=11 && abs(ipart)<=16)
+    ||
+    abs(ipart)==23 || abs(ipart)==24 || abs(ipart)==25
+    ){
+    runcoupling_jhugen=(
+      abs(ipart)==23
+      ||
+      abs(ipart)==24
+      );
+    int jpart = convertLHEreverse(&ipart);
+    __modparameters_MOD_setmass(&inmass, &jpart);
+  }
+
+  // Recalculate couplings
+  if (runcoupling_mcfm || runcoupling_jhugen) SetEwkCouplingParameters(ewcouple_.Gf, em_.aemmz, masses_mcfm_.wmass, masses_mcfm_.zmass, ewcouple_.xw, ewscheme_.ewscheme);
 }
 void TUtil::SetDecayWidth(double inwidth, int ipart){
+  // No need to recalculate couplings
+
   // MCFM masses
   if (abs(ipart)==6) masses_mcfm_.twidth=inwidth;
   else if (abs(ipart)==15) masses_mcfm_.tauwidth=inwidth;
   else if (abs(ipart)==23) masses_mcfm_.zwidth=inwidth;
   else if (abs(ipart)==24) masses_mcfm_.wwidth=inwidth;
   else if (abs(ipart)==25) masses_mcfm_.hwidth=inwidth;
-  else cerr << "TUtil::SetDecayWidth: Particle " << ipart << " is unknown in MCFM" << endl;
-  // Avoid coupling_
 
   // JHUGen masses
   int jpart = convertLHEreverse(&ipart);

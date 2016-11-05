@@ -252,17 +252,18 @@ void TEvtProb::SetCurrentCandidate(MELACandidate* cand){
 // Reset functions
 void TEvtProb::ResetIORecord(){ RcdME.reset(); }
 void TEvtProb::ResetRenFacScaleMode(){ SetRenFacScaleMode(TVar::DefaultScaleScheme, TVar::DefaultScaleScheme, 0.5, 0.5); }
-void TEvtProb::ResetQuarkMass(double inmass, int iquark, bool runcoupling){ TUtil::SetMass(inmass, iquark, runcoupling); }
+void TEvtProb::ResetMass(double inmass, int ipart){ TUtil::SetMass(inmass, ipart); }
+void TEvtProb::ResetWidth(double inwidth, int ipart){ TUtil::SetDecayWidth(inwidth, ipart); }
 void TEvtProb::ResetQuarkMasses(){
-  ResetQuarkMass(1e-3, 1, false); // d
-  ResetQuarkMass(5e-3, 2, false); // u
-  ResetQuarkMass(1e-1, 3, false); // s
-  ResetQuarkMass(1.275, 4, false); // c
-  ResetQuarkMass(4.75, 5, false); // b
-  ResetQuarkMass(173.2, 6, false); // t
-  ResetQuarkMass(1e5, 7, false); // bprime
-  ResetQuarkMass(1e5, 8, false); // tprime
-  coupling_();
+  ResetMass(1e-3, 1); // d
+  ResetMass(5e-3, 2); // u
+  ResetMass(1e-1, 3); // s
+  ResetMass(1.275, 4); // c
+  ResetMass(4.75, 5); // b
+  ResetMass(173.2, 6); // t
+  ResetMass(1e5, 7); // bprime
+  ResetMass(1e5, 8); // tprime
+  //coupling_(); // Already called at b and t twice!
 }
 void TEvtProb::ResetMCFM_EWKParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){ SetEwkCouplingParameters(ext_Gf, ext_aemmz, ext_mW, ext_mZ, ext_xW, ext_ewscheme); }
 void TEvtProb::ResetCouplings(){
