@@ -24,6 +24,10 @@ using namespace std;
 
 
 void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=false){
+  ofstream tout("testME_Dec_MCFM_Ping.out");
+  streambuf* coutbuf = cout.rdbuf();
+  cout.rdbuf(tout.rdbuf());
+
   int erg_tev=13;
   float mPOLE=125.;
   float wPOLE=4.07e-3;
@@ -313,9 +317,16 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.resetInputEvent();
     cout << "Removed..." << endl;
   }
+
+  cout.rdbuf(coutbuf);
+  tout.close();
 }
 
 void testME_ProdDec_MCFM_Ping(int flavor=2){
+  ofstream tout("testME_ProdDec_MCFM_Ping.out");
+  streambuf* coutbuf = cout.rdbuf();
+  cout.rdbuf(tout.rdbuf());
+
   int erg_tev=13;
   float mPOLE=125.;
   float wPOLE=4.07e-3;
@@ -514,6 +525,9 @@ void testME_ProdDec_MCFM_Ping(int flavor=2){
     mela.resetInputEvent();
     cout << "Removed..." << endl;
   }
+
+  cout.rdbuf(coutbuf);
+  tout.close();
 }
 
 void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false, int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=1 /*1==VBF, 2==VH*/){
