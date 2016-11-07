@@ -1038,7 +1038,11 @@ void TUtil::computeVHangles(
 
 void TUtil::SetEwkCouplingParameters(double ext_Gf, double ext_aemmz, double ext_mW, double ext_mZ, double ext_xW, int ext_ewscheme){
   // Set JHUGen couplings
-  __modjhugenmela_MOD_setewparameters(&ext_mZ, &ext_mW, &ext_Gf, &ext_aemmz, &ext_xW);
+  const double GeV=1./100.;
+  double ext_mZ_jhu = ext_mZ*GeV;
+  double ext_mW_jhu = ext_mW*GeV;
+  double ext_Gf_jhu = ext_Gf/pow(GeV, 2);
+  __modjhugenmela_MOD_setewparameters(&ext_mZ_jhu, &ext_mW_jhu, &ext_Gf_jhu, &ext_aemmz, &ext_xW);
 
   // Set MCFM couplings
   if (ext_ewscheme<-1 || ext_ewscheme>3) ext_ewscheme=3;
@@ -1125,8 +1129,10 @@ void TUtil::SetMass(double inmass, int ipart){
       ||
       abs(ipart)==24
       );
+    const double GeV=1./100.;
+    double jinmass = inmass*GeV;
     int jpart = convertLHEreverse(&ipart);
-    __modparameters_MOD_setmass(&inmass, &jpart);
+    __modparameters_MOD_setmass(&jinmass, &jpart);
   }
 
   // Recalculate couplings
@@ -1143,8 +1149,10 @@ void TUtil::SetDecayWidth(double inwidth, int ipart){
   else if (abs(ipart)==25) masses_mcfm_.hwidth=inwidth;
 
   // JHUGen masses
+  const double GeV=1./100.;
+  double jinwidth = inwidth*GeV;
   int jpart = convertLHEreverse(&ipart);
-  __modparameters_MOD_setdecaywidth(&inwidth, &jpart);
+  __modparameters_MOD_setdecaywidth(&jinwidth, &jpart);
 }
 void TUtil::SetCKMElements(double* invckm_ud, double* invckm_us, double* invckm_cd, double* invckm_cs, double* invckm_ts, double* invckm_tb, double* invckm_ub, double* invckm_cb, double* invckm_td){
   __modparameters_MOD_computeckmelements(invckm_ud, invckm_us, invckm_cd, invckm_cs, invckm_ts, invckm_tb, invckm_ub, invckm_cb, invckm_td);

@@ -210,8 +210,13 @@ vector<MELATopCandidate*>* newZZMatrixElement::get_TopCandidateCollection(){ ret
 
 // LEFT HERE
 void newZZMatrixElement::set_SpinZeroCouplings(
-  double selfDHqqcoupl[SIZE_HQQ][2],
-  double selfDHggcoupl[SIZE_HGG][2],
+  double selfDHggcoupl[nSupportedHiggses][SIZE_HGG][2],
+  double selfDHg4g4coupl[nSupportedHiggses][SIZE_HGG][2],
+  double selfDHqqcoupl[nSupportedHiggses][SIZE_HQQ][2],
+  double selfDHbbcoupl[nSupportedHiggses][SIZE_HQQ][2],
+  double selfDHttcoupl[nSupportedHiggses][SIZE_HQQ][2],
+  double selfDHb4b4coupl[nSupportedHiggses][SIZE_HQQ][2],
+  double selfDHt4t4coupl[nSupportedHiggses][SIZE_HQQ][2],
   double selfDHzzcoupl[nSupportedHiggses][SIZE_HVV][2],
   double selfDHwwcoupl[nSupportedHiggses][SIZE_HVV][2],
   double selfDHzzLambda_qsq[nSupportedHiggses][SIZE_HVV_LAMBDAQSQ][SIZE_HVV_CQSQ],
@@ -220,11 +225,17 @@ void newZZMatrixElement::set_SpinZeroCouplings(
   int selfDHwwCLambda_qsq[nSupportedHiggses][SIZE_HVV_CQSQ],
   bool diffHWW
   ){
-  for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHqqcoupl[ic][0], selfDHqqcoupl[ic][1]);
-  for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHggcoupl[ic][0], selfDHggcoupl[ic][1]);
-
   Xcal2.AllowSeparateWWCouplings(diffHWW);
   for (int jh=1; jh<=(int)nSupportedHiggses; jh++){
+    for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHggcoupl[jh-1][ic][0], selfDHggcoupl[jh-1][ic][1], 1, jh);
+    for (int ic=0; ic<SIZE_HGG; ic++) selfD_SpinZeroCouplings->SetHGGCouplings(ic, selfDHg4g4coupl[jh-1][ic][0], selfDHg4g4coupl[jh-1][ic][1], 2, jh);
+
+    for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHqqcoupl[jh-1][ic][0], selfDHqqcoupl[jh-1][ic][1], 0, jh);
+    for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHbbcoupl[jh-1][ic][0], selfDHbbcoupl[jh-1][ic][1], 5, jh);
+    for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHttcoupl[jh-1][ic][0], selfDHttcoupl[jh-1][ic][1], 6, jh);
+    for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHb4b4coupl[jh-1][ic][0], selfDHb4b4coupl[jh-1][ic][1], 7, jh);
+    for (int ic=0; ic<SIZE_HQQ; ic++) selfD_SpinZeroCouplings->SetHQQCouplings(ic, selfDHt4t4coupl[jh-1][ic][0], selfDHt4t4coupl[jh-1][ic][1], 8, jh);
+
     for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHzzcoupl[jh-1][ic][0], selfDHzzcoupl[jh-1][ic][1], false, jh);
     for (int ic=0; ic<SIZE_HVV; ic++) selfD_SpinZeroCouplings->SetHVVCouplings(ic, selfDHwwcoupl[jh-1][ic][0], selfDHwwcoupl[jh-1][ic][1], true, jh);
     for (int ik=0; ik<SIZE_HVV_CQSQ; ik++){

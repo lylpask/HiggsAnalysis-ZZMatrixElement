@@ -228,6 +228,156 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.computeP(pVAMCFM_ggWW_sig, useConstants);
     cout << "pVAMCFM_ggWW_sig: " << pVAMCFM_ggWW_sig << '\n' << endl;
 
+    float pVAMCFM_ggWW_sig_selfDg1;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg1, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg1: " << pVAMCFM_ggWW_sig_selfDg1 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_selfDg2;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg2, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg2: " << pVAMCFM_ggWW_sig_selfDg2 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_selfDg4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg4: " << pVAMCFM_ggWW_sig_selfDg4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_selfDg1g2;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg1g2, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg1g2: " << pVAMCFM_ggWW_sig_selfDg1g2 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_selfDg1g4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg1g4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg1g4: " << pVAMCFM_ggWW_sig_selfDg1g4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_selfDg1g2im;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg1g2im, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg1g2im: " << pVAMCFM_ggWW_sig_selfDg1g2im << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_selfDg1g4im;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_selfDg1g4im, useConstants);
+    cout << "pVAMCFM_ggWW_sig_selfDg1g4im: " << pVAMCFM_ggWW_sig_selfDg1g4im << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg1;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg1, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg1: " << pVAJHU_ggWW_sig_selfDg1 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg2;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg2, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg2: " << pVAJHU_ggWW_sig_selfDg2 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg4, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg4: " << pVAJHU_ggWW_sig_selfDg4 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg1g2;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg1g2, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg1g2: " << pVAJHU_ggWW_sig_selfDg1g2 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg1g4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg1g4, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg1g4: " << pVAJHU_ggWW_sig_selfDg1g4 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg1g2im;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg1g2im, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg1g2im: " << pVAJHU_ggWW_sig_selfDg1g2im << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_selfDg1g4im;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_selfDg1g4im, useConstants);
+    cout << "pVAJHU_ggWW_sig_selfDg1g4im: " << pVAJHU_ggWW_sig_selfDg1g4im << '\n' << endl;
+
+    cout << "MCFM vs JHUGen Ratio comparison:" << endl;
+    cout << "ggWW_sig_selfDg2: " << pVAMCFM_ggWW_sig_selfDg2/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg2/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_selfDg1g2: " << pVAMCFM_ggWW_sig_selfDg1g2/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g2/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_selfDg1g2im: " << pVAMCFM_ggWW_sig_selfDg1g2im/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g2im/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_selfDg4: " << pVAMCFM_ggWW_sig_selfDg4/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg4/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_selfDg1g4: " << pVAMCFM_ggWW_sig_selfDg1g4/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g4/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_selfDg1g4im: " << pVAMCFM_ggWW_sig_selfDg1g4im/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g4im/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << endl;
+
     /***** WW (as ZZ) *****/
     cindex=1;
     mela.setCurrentCandidateFromIndex(cindex);
@@ -258,6 +408,156 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.computeP(pVAMCFM_ggWWasZZ_sig, useConstants);
     cout << "pVAMCFM_ggWWasZZ_sig: " << pVAMCFM_ggWWasZZ_sig << '\n' << endl;
 
+    float pVAMCFM_ggWWasZZ_sig_selfDg1;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg1, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg1: " << pVAMCFM_ggWWasZZ_sig_selfDg1 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_selfDg2;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg2, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg2: " << pVAMCFM_ggWWasZZ_sig_selfDg2 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_selfDg4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg4: " << pVAMCFM_ggWWasZZ_sig_selfDg4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_selfDg1g2;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg1g2, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg1g2: " << pVAMCFM_ggWWasZZ_sig_selfDg1g2 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_selfDg1g4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg1g4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg1g4: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_selfDg1g2im;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg1g2im, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg1g2im: " << pVAMCFM_ggWWasZZ_sig_selfDg1g2im << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_selfDg1g4im;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg1g4im, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_selfDg1g4im: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4im << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg1;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg1, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg1: " << pVAJHU_ggWWasZZ_sig_selfDg1 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg2;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg2, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg2: " << pVAJHU_ggWWasZZ_sig_selfDg2 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg4, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg4: " << pVAJHU_ggWWasZZ_sig_selfDg4 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg1g2;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg1g2, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg1g2: " << pVAJHU_ggWWasZZ_sig_selfDg1g2 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg1g4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg1g4, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg1g4: " << pVAJHU_ggWWasZZ_sig_selfDg1g4 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg1g2im;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg1g2im, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg1g2im: " << pVAJHU_ggWWasZZ_sig_selfDg1g2im << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_selfDg1g4im;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg1g4im, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_selfDg1g4im: " << pVAJHU_ggWWasZZ_sig_selfDg1g4im << '\n' << endl;
+
+    cout << "MCFM vs JHUGen Ratio comparison:" << endl;
+    cout << "ggWWasZZ_sig_selfDg2: " << pVAMCFM_ggWWasZZ_sig_selfDg2/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg2/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_selfDg1g2: " << pVAMCFM_ggWWasZZ_sig_selfDg1g2/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g2/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_selfDg1g2im: " << pVAMCFM_ggWWasZZ_sig_selfDg1g2im/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g2im/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_selfDg4: " << pVAMCFM_ggWWasZZ_sig_selfDg4/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg4/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_selfDg1g4: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g4/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_selfDg1g4im: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4im/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g4im/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << endl;
+
     /***** ZZ *****/
     cindex=2;
     mela.setCurrentCandidateFromIndex(cindex);
@@ -282,7 +582,6 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
 
     float pVAMCFM_ggZZ_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
     mela.computeP(pVAMCFM_ggZZ_sig, useConstants);
@@ -290,8 +589,9 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
 
     float pVAMCFM_ZZ_sig_selfDg1;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    for (int ii = 0; ii < SIZE_HVV; ii++){ for (int jj = 0; jj < 2; jj++)   mela.selfDHzzcoupl[0][ii][jj] = 0; }
-    mela.selfDHzzcoupl[0][0][0]=1.0;
+    mela.selfDHbbcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHttcoupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
     mela.setMelaHiggsWidth(wPOLE);
     mela.setMelaLeptonInterference(TVar::InterfOn);
     mela.computeP(pVAMCFM_ZZ_sig_selfDg1, useConstants);
@@ -865,21 +1165,21 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZINDEPENDENT);
       float p_dec_0plus_VAJHU;
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeP(p_dec_0plus_VAJHU, false);
       float p_dec_0hplus_VAJHU=p_dec_0plus_VAJHU;
       if (verbosity<=TVar::ERROR && isZZWW!=2){
-        mela.selfDHzzcoupl[0][1][0]=1;
+        mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1;
         mela.computeP(p_dec_0hplus_VAJHU, false);
       }
       float p_dec_0minus_VAJHU=p_dec_0plus_VAJHU;
       if (verbosity<=TVar::ERROR && isZZWW!=2){
-        mela.selfDHzzcoupl[0][3][0]=1;
+        mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
         mela.computeP(p_dec_0minus_VAJHU, false);
       }
       float p_dec_0_g1prime2_VAJHU=p_dec_0plus_VAJHU;
       if (verbosity<=TVar::ERROR && isZZWW!=2){
-        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000;
         mela.computeP(p_dec_0_g1prime2_VAJHU, false);
       }
 
@@ -890,19 +1190,19 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
 
       if (vbfvhchannel==1){
         mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][0][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][0][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdP(p_prod_0plus_VAJHU, false);
         if (verbosity<=TVar::ERROR){
-          if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+          if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
           else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
           mela.computeProdP(p_prod_0hplus_VAJHU, false);
 
-          if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+          if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
           else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
           mela.computeProdP(p_prod_0minus_VAJHU, false);
 
-          if (isZZWW!=2){ mela.selfDHzzcoupl[0][11][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+          if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
           else{ mela.selfDHwwcoupl[0][11][0]=-10000; mela.differentiate_HWW_HZZ=true; }
           mela.computeProdP(p_prod_0_g1prime2_VAJHU, false);
         }
@@ -915,16 +1215,16 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
 
         if (isZZWW!=1){
           mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-          mela.selfDHzzcoupl[0][0][0]=1;
+          mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
           mela.computeProdP(p_wh_0plus_VAJHU, false);
           if (verbosity<=TVar::ERROR){
-            mela.selfDHzzcoupl[0][1][0]=1;
+            mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1;
             mela.computeProdP(p_wh_0hplus_VAJHU, false);
 
-            mela.selfDHzzcoupl[0][3][0]=1;
+            mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
             mela.computeProdP(p_wh_0minus_VAJHU, false);
 
-            mela.selfDHzzcoupl[0][11][0]=-10000;
+            mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000;
             mela.computeProdP(p_wh_0_g1prime2_VAJHU, false);
           }
         }
@@ -936,16 +1236,16 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
 
         if (isZZWW!=2){
           mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
-          mela.selfDHzzcoupl[0][0][0]=1;
+          mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
           mela.computeProdP(p_zh_0plus_VAJHU, false);
           if (verbosity<=TVar::ERROR){
-            mela.selfDHzzcoupl[0][1][0]=1;
+            mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1;
             mela.computeProdP(p_zh_0hplus_VAJHU, false);
 
-            mela.selfDHzzcoupl[0][3][0]=1;
+            mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
             mela.computeProdP(p_zh_0minus_VAJHU, false);
 
-            mela.selfDHzzcoupl[0][11][0]=-10000;
+            mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000;
             mela.computeProdP(p_zh_0_g1prime2_VAJHU, false);
           }
         }
@@ -984,42 +1284,42 @@ void testME_ProdDec_MCFM_JHUGen_Comparison(int flavor=2, bool useBkgSample=false
       spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
       spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
       if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
-      if (isZZWW!=2){ mela.selfDHzzcoupl[0][0][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+      if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
       else{ mela.selfDHwwcoupl[0][0][0]=1; mela.differentiate_HWW_HZZ=true; }
       mela.computeProdDecP(p_prod_0plus_dec_0plus_VAMCFM, false);
       /*
       if (verbosity<=TVar::ERROR){
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0hplus_dec_0hplus_VAMCFM, false);
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0minus_dec_0minus_VAMCFM, false);
-        mela.selfDHzzcoupl[0][11][0]=-10000;
+        mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000;
         mela.computeProdDecP(p_prod_0_g1prime2_dec_0_g1prime2_VAMCFM, false);
 
         spinzerohiggs_anomcoupl_.AnomalCouplPR=0;
         spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
         if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0plus_dec_0hplus_VAMCFM, false);
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0plus_dec_0minus_VAMCFM, false);
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][11][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][11][0]=-10000; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0plus_dec_0_g1prime2_VAMCFM, false);
 
         spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
         spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][1][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0hplus_dec_0plus_VAMCFM, false);
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][3][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][3][0]=1; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0minus_dec_0plus_VAMCFM, false);
-        if (isZZWW!=2){ mela.selfDHzzcoupl[0][11][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-10000; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
         else{ mela.selfDHwwcoupl[0][11][0]=-10000; mela.differentiate_HWW_HZZ=true; }
         mela.computeProdDecP(p_prod_0_g1prime2_dec_0plus_VAMCFM, false);
       }
@@ -1236,13 +1536,13 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
 
   mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZINDEPENDENT);
   float p_dec_0plus_VAJHU;
-  mela.selfDHzzcoupl[0][0][0]=1;
+  mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
   mela.computeP(p_dec_0plus_VAJHU, false);
 
   float p_prod_0plus_VAJHU=0;
   if (vbfvhchannel==1){
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
-    if (isZZWW!=2){ mela.selfDHzzcoupl[0][0][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+    if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
     else{ mela.selfDHwwcoupl[0][0][0]=1; mela.differentiate_HWW_HZZ=true; }
     mela.computeProdP(p_prod_0plus_VAJHU, false);
   }
@@ -1250,14 +1550,14 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     float p_wh_0plus_VAJHU=0;
     if (isZZWW!=1){
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP(p_wh_0plus_VAJHU, false);
     }
 
     float p_zh_0plus_VAJHU=0;
     if (isZZWW!=2){
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP(p_zh_0plus_VAJHU, false);
     }
 
@@ -1284,7 +1584,7 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
   spinzerohiggs_anomcoupl_.AnomalCouplPR=1;
   spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
   if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
-  if (isZZWW!=2){ mela.selfDHzzcoupl[0][0][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+  if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
   else{ mela.selfDHwwcoupl[0][0][0]=1; mela.differentiate_HWW_HZZ=true; }
   mela.computeProdDecP(p_prod_0plus_dec_0plus_VAMCFM, false);
 
@@ -1458,8 +1758,8 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggWW_0pm_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.;
     mela.computeP(pVAJHUGen_ggWW_0pm_sig, true);
     cout << "pVAJHUGen_ggWW_0pm_sig: " << pVAJHUGen_ggWW_0pm_sig << '\n' << endl;
 
@@ -1470,8 +1770,8 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggWW_0m_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][3][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.;
     mela.computeP(pVAJHUGen_ggWW_0m_sig, true);
     cout << "pVAJHUGen_ggWW_0m_sig: " << pVAJHUGen_ggWW_0m_sig << '\n' << endl;
 
@@ -1483,8 +1783,8 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAMCFM_ggWW_0pm_total;
     mela.setProcess(TVar::bkgWW_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.;
     mela.computeP(pVAMCFM_ggWW_0pm_total, true);
     cout << "pVAMCFM_ggWW_0pm_total: " << pVAMCFM_ggWW_0pm_total << '\n' << endl;
 
@@ -1495,15 +1795,15 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAMCFM_ggWW_0pm_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.;
     mela.computeP(pVAMCFM_ggWW_0pm_sig, true);
     cout << "pVAMCFM_ggWW_0pm_sig: " << pVAMCFM_ggWW_0pm_sig << '\n' << endl;
 
     float pVAMCFM_ggWW_0m_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][3][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.;
     mela.computeP(pVAMCFM_ggWW_0m_sig, true);
     cout << "pVAMCFM_ggWW_0m_sig: " << pVAMCFM_ggWW_0m_sig << '\n' << endl;
 
@@ -1517,7 +1817,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
     float pVAMCFM_HM_ggWW_0pm_total;
     mela.setProcess(TVar::bkgWW_SMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.setMelaHiggsMassWidth(-1, 0, 0); mela.setMelaHiggsMassWidth(mPOLE, -1, 1);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[1][0][0]=1.;
     mela.computeP(pVAMCFM_HM_ggWW_0pm_total, true);
     cout << "pVAMCFM_HM_ggWW_0pm_total: " << pVAMCFM_HM_ggWW_0pm_total << '\n' << endl;
@@ -1531,7 +1831,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
     float pVAMCFM_HM_ggWW_0pm_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.setMelaHiggsMassWidth(-1, 0, 0); mela.setMelaHiggsMassWidth(mPOLE, -1, 1);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[1][0][0]=1.;
     mela.computeP(pVAMCFM_HM_ggWW_0pm_sig, true);
     cout << "pVAMCFM_HM_ggWW_0pm_sig: " << pVAMCFM_HM_ggWW_0pm_sig << '\n' << endl;
@@ -1539,7 +1839,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
     float pVAMCFM_HM_ggWW_0m_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.setMelaHiggsMassWidth(-1, 0, 0); mela.setMelaHiggsMassWidth(mPOLE, -1, 1);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[1][3][0]=1.;
     mela.computeP(pVAMCFM_HM_ggWW_0m_sig, true);
     cout << "pVAMCFM_HM_ggWW_0m_sig: " << pVAMCFM_HM_ggWW_0m_sig << '\n' << endl;
@@ -1556,8 +1856,8 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggZZ_0pm_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.;
     mela.computeP(pVAJHUGen_ggZZ_0pm_sig, true);
     cout << "pVAJHUGen_ggZZ_0pm_sig: " << pVAJHUGen_ggZZ_0pm_sig << '\n' << endl;
 
@@ -1568,8 +1868,8 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggZZ_0m_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][3][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.;
     mela.computeP(pVAJHUGen_ggZZ_0m_sig, true);
     cout << "pVAJHUGen_ggZZ_0m_sig: " << pVAJHUGen_ggZZ_0m_sig << '\n' << endl;
 
@@ -1581,8 +1881,8 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAMCFM_ggZZ_0pm_total;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.;
     mela.computeP(pVAMCFM_ggZZ_0pm_total, true);
     cout << "pVAMCFM_ggZZ_0pm_total: " << pVAMCFM_ggZZ_0pm_total << '\n' << endl;
 
@@ -1593,15 +1893,15 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAMCFM_ggZZ_0pm_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.;
     mela.computeP(pVAMCFM_ggZZ_0pm_sig, true);
     cout << "pVAMCFM_ggZZ_0pm_sig: " << pVAMCFM_ggZZ_0pm_sig << '\n' << endl;
 
     float pVAMCFM_ggZZ_0m_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
-    mela.selfDHzzcoupl[0][3][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1.;
     mela.computeP(pVAMCFM_ggZZ_0m_sig, true);
     cout << "pVAMCFM_ggZZ_0m_sig: " << pVAMCFM_ggZZ_0m_sig << '\n' << endl;
 
@@ -1615,7 +1915,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
     float pVAMCFM_HM_ggZZ_0pm_total;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.setMelaHiggsMassWidth(-1, 0, 0); mela.setMelaHiggsMassWidth(mPOLE, -1, 1);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[1][0][0]=1.;
     mela.computeP(pVAMCFM_HM_ggZZ_0pm_total, true);
     cout << "pVAMCFM_HM_ggZZ_0pm_total: " << pVAMCFM_HM_ggZZ_0pm_total << '\n' << endl;
@@ -1629,7 +1929,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
     float pVAMCFM_HM_ggZZ_0pm_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.setMelaHiggsMassWidth(-1, 0, 0); mela.setMelaHiggsMassWidth(mPOLE, -1, 1);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[1][0][0]=1.;
     mela.computeP(pVAMCFM_HM_ggZZ_0pm_sig, true);
     cout << "pVAMCFM_HM_ggZZ_0pm_sig: " << pVAMCFM_HM_ggZZ_0pm_sig << '\n' << endl;
@@ -1637,7 +1937,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
     float pVAMCFM_HM_ggZZ_0m_sig;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
     mela.setMelaHiggsMassWidth(-1, 0, 0); mela.setMelaHiggsMassWidth(mPOLE, -1, 1);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[1][3][0]=1.;
     mela.computeP(pVAMCFM_HM_ggZZ_0m_sig, true);
     cout << "pVAMCFM_HM_ggZZ_0m_sig: " << pVAMCFM_HM_ggZZ_0m_sig << '\n' << endl;
@@ -1652,7 +1952,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggZG_0pm_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[0][4][0]=1.;
     mela.computeP(pVAJHUGen_ggZG_0pm_sig, true);
     cout << "pVAJHUGen_ggZG_0pm_sig: " << pVAJHUGen_ggZG_0pm_sig << '\n' << endl;
@@ -1664,7 +1964,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggZG_0m_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[0][6][0]=1.;
     mela.computeP(pVAJHUGen_ggZG_0m_sig, true);
     cout << "pVAJHUGen_ggZG_0m_sig: " << pVAJHUGen_ggZG_0m_sig << '\n' << endl;
@@ -1679,7 +1979,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggGG_0pm_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[0][7][0]=1.;
     mela.computeP(pVAJHUGen_ggGG_0pm_sig, true);
     cout << "pVAJHUGen_ggGG_0pm_sig: " << pVAJHUGen_ggGG_0pm_sig << '\n' << endl;
@@ -1691,7 +1991,7 @@ void testME_Dec_JHUGenMCFM_Ping(int flavor=2){
 
     float pVAJHUGen_ggGG_0m_sig;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
-    mela.selfDHggcoupl[0][0]=1.;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.;
     mela.selfDHzzcoupl[0][9][0]=1.;
     mela.computeP(pVAJHUGen_ggGG_0m_sig, true);
     cout << "pVAJHUGen_ggGG_0m_sig: " << pVAJHUGen_ggGG_0m_sig << '\n' << endl;
@@ -1970,106 +2270,106 @@ void testME_Dec_FullSim(int flavor=2, bool useConstants=false, bool useBkgSample
 
     if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_VAMCFM_NEW_BSMOn, useConstants);
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_VAJHU_NEW, useConstants);
 
     if (!useBkgSample){
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
       mela.computeP(p0hplus_VAJHU_NEW, useConstants);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
       mela.computeP(p0minus_VAJHU_NEW, useConstants);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][11][0]=-12046.01;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-12046.01;
       mela.computeP(p0_g1prime2_VAJHU_NEW, useConstants);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
       mela.computeP(pg1g2_VAJHU_NEW, useConstants);
       pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][1][1]=1.638;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.638;
       mela.computeP(pg1g2_pi2_VAJHU_NEW, useConstants);
       pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
       mela.computeP(pg1g4_VAJHU_NEW, useConstants);
       pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][3][1]=2.521;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=2.521;
       mela.computeP(pg1g4_pi2_VAJHU_NEW, useConstants);
       pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][11][0]=12046.01;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=12046.01;
       mela.computeP(pg1g1prime2_VAJHU_NEW, useConstants);
       pg1g1prime2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
 
-      mela.selfDHggcoupl[0][0]=1;
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][11][1]=12046.01;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][1]=12046.01;
       mela.computeP(pg1g1prime2_pi2_VAJHU_NEW, useConstants);
       pg1g1prime2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
 
 
       mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeP(p0plus_VAMCFM_NEW, useConstants);
 
-      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
       mela.computeP(p0hplus_VAMCFM_NEW, useConstants);
 
-      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
       mela.computeP(p0minus_VAMCFM_NEW, useConstants);
 
-      mela.selfDHzzcoupl[0][11][0]=-12046.01;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-12046.01;
       mela.computeP(p0_g1prime2_VAMCFM_NEW, useConstants);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][1][0]=1.638;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
       mela.computeP(pg1g2_VAMCFM_NEW, useConstants);
       pg1g2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][1][1]=1.638;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.638;
       mela.computeP(pg1g2_pi2_VAMCFM_NEW, useConstants);
       pg1g2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][3][0]=2.521;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
       mela.computeP(pg1g4_VAMCFM_NEW, useConstants);
       pg1g4_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][3][1]=2.521;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=2.521;
       mela.computeP(pg1g4_pi2_VAMCFM_NEW, useConstants);
       pg1g4_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][11][0]=12046.01;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=12046.01;
       mela.computeP(pg1g1prime2_VAMCFM_NEW, useConstants);
       pg1g1prime2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
 
-      mela.selfDHzzcoupl[0][0][0]=1;
-      mela.selfDHzzcoupl[0][11][1]=12046.01;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][1]=12046.01;
       mela.computeP(pg1g1prime2_pi2_VAMCFM_NEW, useConstants);
       pg1g1prime2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
     }
@@ -2277,16 +2577,16 @@ void testME_ProdP_VBFHJJ_FullSim(int flavor=2, bool useConstants=false, bool use
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP(pvbf_VAJHU_old_NEW_selfD, useConstants);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJQCD);
-      mela.selfDHggcoupl[0][0]=1;
+      mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
       mela.computeProdP(phjj_VAJHU_old_NEW_selfD, useConstants);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
-      mela.selfDHzzcoupl[0][3][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
       mela.computeProdP(pvbf0minus_VAJHU_old_NEW_selfD, useConstants);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJQCD);
@@ -2459,20 +2759,20 @@ void testME_ProdP_VH_FullSim(){
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_ZH);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP_VH(pzh_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP_VH(pwh_leptonic_VAJHU_old_NEW_selfD, false, false);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_ZH);
-      mela.selfDHzzcoupl[0][3][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
       mela.computeProdP_VH(pzh0minus_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
-      mela.selfDHzzcoupl[0][2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
       mela.computeProdP_VH(pwh0minus_leptonic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::Had_ZH);
@@ -2489,20 +2789,20 @@ void testME_ProdP_VH_FullSim(){
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP_VH(pzh_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHzzcoupl[0][0][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
       mela.computeProdP_VH(pwh_hadronic_VAJHU_old_NEW_selfD, false, false);
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
-      mela.selfDHzzcoupl[0][3][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
       mela.computeProdP_VH(pzh0minus_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-      mela.selfDHzzcoupl[0][2][0]=1;
+      mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
       mela.computeProdP_VH(pwh0minus_hadronic_VAJHU_old_NEW_selfD, false, false);
 
       newtree->Fill();
@@ -2659,19 +2959,19 @@ void testME_ProdP_TTHBBH_FullSim(){
 
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ttH);
-      mela.selfDHqqcoupl[0][0]=1;
+      mela.selfDHqqcoupl[0][gHIGGS_KAPPA][0]=1;
       mela.computeProdP_ttH(ptth_VAJHU_old_NEW_selfD, 2, 0, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::bbH);
-      mela.selfDHqqcoupl[0][0]=1;
+      mela.selfDHqqcoupl[0][gHIGGS_KAPPA][0]=1;
       mela.computeProdP_ttH(pbbh_VAJHU_old_NEW_selfD, 2, 0, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ttH);
-      mela.selfDHqqcoupl[1][0]=1;
+      mela.selfDHqqcoupl[0][gHIGGS_KAPPA_TILDE][0]=1;
       mela.computeProdP_ttH(ptth0minus_VAJHU_old_NEW_selfD, 2, 0, false);
 
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::bbH);
-      mela.selfDHqqcoupl[1][0]=1;
+      mela.selfDHqqcoupl[0][gHIGGS_KAPPA_TILDE][0]=1;
       mela.computeProdP_ttH(pbbh0minus_VAJHU_old_NEW_selfD, 2, 0, false);
 
       newtree->Fill();
@@ -2966,110 +3266,110 @@ void testME_Dec_ZZWWComparison_FullSim(){
 
     if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_VAMCFM_NEW_BSMOn, false);
 
     if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_p0plus_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::bkgZZ_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(ggzz_p0plus_VAMCFM_NEW_BSMOn, false);
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(p0hplus_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(p0minus_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=-12046.01;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-12046.01;
     mela.computeP(p0_g1prime2_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(pg1g2_VAJHU_NEW, false);
     pg1g2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][1]=1.638;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.638;
     mela.computeP(pg1g2_pi2_VAJHU_NEW, false);
     pg1g2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0hplus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(pg1g4_VAJHU_NEW, false);
     pg1g4_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][1]=2.521;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=2.521;
     mela.computeP(pg1g4_pi2_VAJHU_NEW, false);
     pg1g4_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0minus_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=12046.01;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=12046.01;
     mela.computeP(pg1g1prime2_VAJHU_NEW, false);
     pg1g1prime2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][1]=12046.01;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][1]=12046.01;
     mela.computeP(pg1g1prime2_pi2_VAJHU_NEW, false);
     pg1g1prime2_pi2_VAJHU_NEW -= (p0plus_VAJHU_NEW + p0_g1prime2_VAJHU_NEW);
 
 
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(p0hplus_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(p0minus_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][11][0]=-12046.01;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-12046.01;
     mela.computeP(p0_g1prime2_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(pg1g2_VAMCFM_NEW, false);
     pg1g2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][1]=1.638;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.638;
     mela.computeP(pg1g2_pi2_VAMCFM_NEW, false);
     pg1g2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0hplus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(pg1g4_VAMCFM_NEW, false);
     pg1g4_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][1]=2.521;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=2.521;
     mela.computeP(pg1g4_pi2_VAMCFM_NEW, false);
     pg1g4_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0minus_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=12046.01;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=12046.01;
     mela.computeP(pg1g1prime2_VAMCFM_NEW, false);
     pg1g1prime2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][1]=12046.01;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][1]=12046.01;
     mela.computeP(pg1g1prime2_pi2_VAMCFM_NEW, false);
     pg1g1prime2_pi2_VAMCFM_NEW -= (p0plus_VAMCFM_NEW + p0_g1prime2_VAMCFM_NEW);
 
@@ -3117,110 +3417,110 @@ void testME_Dec_ZZWWComparison_FullSim(){
 
     if (verbosity>=TVar::DEBUG) cout << "Computing p0plus_WW_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_WW_VAMCFM_NEW_BSMOn, false);
 
     if (verbosity>=TVar::DEBUG) cout << "Computing ggzz_p0plus_WW_VAMCFM_NEW_BSMOn" << endl;
     mela.setProcess(TVar::bkgWW_SMHiggs, TVar::MCFM, TVar::ZZGG);
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(ggzz_p0plus_WW_VAMCFM_NEW_BSMOn, false);
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_WW_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(p0hplus_WW_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(p0minus_WW_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=-12046.01;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-12046.01;
     mela.computeP(p0_g1prime2_WW_VAJHU_NEW, false);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(pg1g2_WW_VAJHU_NEW, false);
     pg1g2_WW_VAJHU_NEW -= (p0plus_WW_VAJHU_NEW + p0hplus_WW_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][1]=1.638;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.638;
     mela.computeP(pg1g2_pi2_WW_VAJHU_NEW, false);
     pg1g2_pi2_WW_VAJHU_NEW -= (p0plus_WW_VAJHU_NEW + p0hplus_WW_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(pg1g4_WW_VAJHU_NEW, false);
     pg1g4_WW_VAJHU_NEW -= (p0plus_WW_VAJHU_NEW + p0minus_WW_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][1]=2.521;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=2.521;
     mela.computeP(pg1g4_pi2_WW_VAJHU_NEW, false);
     pg1g4_pi2_WW_VAJHU_NEW -= (p0plus_WW_VAJHU_NEW + p0minus_WW_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=12046.01;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=12046.01;
     mela.computeP(pg1g1prime2_WW_VAJHU_NEW, false);
     pg1g1prime2_WW_VAJHU_NEW -= (p0plus_WW_VAJHU_NEW + p0_g1prime2_WW_VAJHU_NEW);
 
-    mela.selfDHggcoupl[0][0]=1;
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][1]=12046.01;
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][1]=12046.01;
     mela.computeP(pg1g1prime2_pi2_WW_VAJHU_NEW, false);
     pg1g1prime2_pi2_WW_VAJHU_NEW -= (p0plus_WW_VAJHU_NEW + p0_g1prime2_WW_VAJHU_NEW);
 
 
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
     mela.computeP(p0plus_WW_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(p0hplus_WW_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(p0minus_WW_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][11][0]=-12046.01;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=-12046.01;
     mela.computeP(p0_g1prime2_WW_VAMCFM_NEW, false);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][0]=1.638;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1.638;
     mela.computeP(pg1g2_WW_VAMCFM_NEW, false);
     pg1g2_WW_VAMCFM_NEW -= (p0plus_WW_VAMCFM_NEW + p0hplus_WW_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][1][1]=1.638;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_2][1]=1.638;
     mela.computeP(pg1g2_pi2_WW_VAMCFM_NEW, false);
     pg1g2_pi2_WW_VAMCFM_NEW -= (p0plus_WW_VAMCFM_NEW + p0hplus_WW_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][0]=2.521;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=2.521;
     mela.computeP(pg1g4_WW_VAMCFM_NEW, false);
     pg1g4_WW_VAMCFM_NEW -= (p0plus_WW_VAMCFM_NEW + p0minus_WW_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][3][1]=2.521;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_4][1]=2.521;
     mela.computeP(pg1g4_pi2_WW_VAMCFM_NEW, false);
     pg1g4_pi2_WW_VAMCFM_NEW -= (p0plus_WW_VAMCFM_NEW + p0minus_WW_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][0]=12046.01;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][0]=12046.01;
     mela.computeP(pg1g1prime2_WW_VAMCFM_NEW, false);
     pg1g1prime2_WW_VAMCFM_NEW -= (p0plus_WW_VAMCFM_NEW + p0_g1prime2_WW_VAMCFM_NEW);
 
-    mela.selfDHzzcoupl[0][0][0]=1;
-    mela.selfDHzzcoupl[0][11][1]=12046.01;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1_PRIME2][1]=12046.01;
     mela.computeP(pg1g1prime2_pi2_WW_VAMCFM_NEW, false);
     pg1g1prime2_pi2_WW_VAMCFM_NEW -= (p0plus_WW_VAMCFM_NEW + p0_g1prime2_WW_VAMCFM_NEW);
 
