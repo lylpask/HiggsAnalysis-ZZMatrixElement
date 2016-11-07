@@ -265,6 +265,51 @@ public:
     else return TString("Unknown");
   };
 
+  static TString ProductionName(TVar::Production temp){
+    if (temp==TVar::ZZGG) return TString("ZZGG");
+    else if (temp==TVar::ZZQQB) return TString("ZZQQB");
+    else if (temp==TVar::ZZQQB_STU) return TString("ZZQQB_STU");
+    else if (temp==TVar::ZZINDEPENDENT) return TString("ZZINDEPENDENT");
+
+    else if (temp==TVar::ttH) return TString("ttH");
+    else if (temp==TVar::bbH) return TString("bbH");
+
+    else if (temp==TVar::JQCD) return TString("JQCD");
+
+    else if (temp==TVar::JJQCD) return TString("JJQCD");
+    else if (temp==TVar::JJVBF) return TString("JJVBF");
+    else if (temp==TVar::JJEW) return TString("JJEW");
+    else if (temp==TVar::JJEWQCD) return TString("JJEWQCD");
+    else if (temp==TVar::Had_ZH) return TString("Had_ZH");
+    else if (temp==TVar::Had_WH) return TString("Had_WH");
+    else if (temp==TVar::Lep_ZH) return TString("Lep_ZH");
+    else if (temp==TVar::Lep_WH) return TString("Lep_WH");
+
+    else if (temp==TVar::ZZQQB_S) return TString("ZZQQB_S");
+    else if (temp==TVar::JJQCD_S) return TString("JJQCD_S");
+    else if (temp==TVar::JJVBF_S) return TString("JJVBF_S");
+    else if (temp==TVar::JJEW_S) return TString("JJEW_S");
+    else if (temp==TVar::JJEWQCD_S) return TString("JJEWQCD_S");
+    else if (temp==TVar::Had_ZH_S) return TString("Had_ZH_S");
+    else if (temp==TVar::Had_WH_S) return TString("Had_WH_S");
+    else if (temp==TVar::Lep_ZH_S) return TString("Lep_ZH_S");
+    else if (temp==TVar::Lep_WH_S) return TString("Lep_WH_S");
+
+    else if (temp==TVar::ZZQQB_TU) return TString("ZZQQB_TU");
+    else if (temp==TVar::JJQCD_TU) return TString("JJQCD_TU");
+    else if (temp==TVar::JJVBF_TU) return TString("JJVBF_TU");
+    else if (temp==TVar::JJEW_TU) return TString("JJEW_TU");
+    else if (temp==TVar::JJEWQCD_TU) return TString("JJEWQCD_TU");
+    else if (temp==TVar::Had_ZH_TU) return TString("Had_ZH_TU");
+    else if (temp==TVar::Had_WH_TU) return TString("Had_WH_TU");
+    else if (temp==TVar::Lep_ZH_TU) return TString("Lep_ZH_TU");
+    else if (temp==TVar::Lep_WH_TU) return TString("Lep_WH_TU");
+
+    else if (temp==TVar::GammaH) return TString("GammaH");
+
+    else return TString("Unknown");
+  };
+
   inline virtual ~TVar(){};
   ClassDef(TVar, 0)
 };

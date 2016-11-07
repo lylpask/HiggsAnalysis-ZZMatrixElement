@@ -159,8 +159,17 @@ namespace TUtil{
   void GetAlphaS(double* alphas_, double* alphasmz_); // Get last alpha_s value set
  
   // chooser.f split into 3 different functions
-  bool MCFM_chooser(const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf, const simple_event_record& mela_event);
-  bool MCFM_SetupParticleCouplings(const TVar::Process& process, const TVar::Production& production, const simple_event_record& mela_event, std::vector<int>* partOrder, std::vector<int>* apartOrder);
+  bool MCFM_chooser(
+    const TVar::Process& process, const TVar::Production& production, const TVar::LeptonInterference& leptonInterf,
+    const TVar::VerbosityLevel& verbosity,
+    const simple_event_record& mela_event
+    );
+  bool MCFM_SetupParticleCouplings(
+    const TVar::Process& process, const TVar::Production& production,
+    const TVar::VerbosityLevel& verbosity,
+    const simple_event_record& mela_event,
+    std::vector<int>* partOrder, std::vector<int>* apartOrder
+    );
 
   // JHUGen-specific wrappers
   void InitJHUGenMELA(const char* pathtoPDFSet, int PDFMember);
