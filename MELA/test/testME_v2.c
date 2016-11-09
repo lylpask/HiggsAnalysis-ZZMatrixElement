@@ -302,6 +302,65 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.computeP(pVAMCFM_ggWW_sig_selfDg1g4im, useConstants);
     cout << "pVAMCFM_ggWW_sig_selfDg1g4im: " << pVAMCFM_ggWW_sig_selfDg1g4im << '\n' << endl;
 
+    float pVAMCFM_ggWW_sig_largemt4_kappat4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.resetMass(1e7, 8); // Already 1e5, but just to make sure
+    mela.selfDHt4t4coupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_largemt4_kappat4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_largemt4_kappat4: " << pVAMCFM_ggWW_sig_largemt4_kappat4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_largemt4_kappatildet4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.resetMass(1e7, 8); // Already 1e5, but just to make sure
+    mela.selfDHt4t4coupl[0][gHIGGS_KAPPA_TILDE][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_largemt4_kappatildet4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_largemt4_kappatildet4: " << pVAMCFM_ggWW_sig_largemt4_kappatildet4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_ghg2_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_ghg2_gen4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_ghg2_gen4: " << pVAMCFM_ggWW_sig_ghg2_gen4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_ghg4_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_ghg4_gen4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_ghg4_gen4: " << pVAMCFM_ggWW_sig_ghg4_gen4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_ghg2ghg4_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_ghg2ghg4_gen4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_ghg2ghg4_gen4: " << pVAMCFM_ggWW_sig_ghg2ghg4_gen4 << '\n' << endl;
+
+    float pVAMCFM_ggWW_sig_ghg2ghg4im_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_4][1]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWW_sig_ghg2ghg4im_gen4, useConstants);
+    cout << "pVAMCFM_ggWW_sig_ghg2ghg4im_gen4: " << pVAMCFM_ggWW_sig_ghg2ghg4im_gen4 << '\n' << endl;
+
+
     float pVAJHU_ggWW_sig_selfDg1;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
     mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
@@ -369,6 +428,35 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.computeP(pVAJHU_ggWW_sig_selfDg1g4im, useConstants);
     cout << "pVAJHU_ggWW_sig_selfDg1g4im: " << pVAJHU_ggWW_sig_selfDg1g4im << '\n' << endl;
 
+    float pVAJHU_ggWW_sig_ghg4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_ghg4, useConstants);
+    cout << "pVAJHU_ggWW_sig_ghg4: " << pVAJHU_ggWW_sig_ghg4 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_ghg2ghg4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHggcoupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_ghg2ghg4, useConstants);
+    cout << "pVAJHU_ggWW_sig_ghg2ghg4: " << pVAJHU_ggWW_sig_ghg2ghg4 << '\n' << endl;
+
+    float pVAJHU_ggWW_sig_ghg2ghg4im;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHggcoupl[0][gHIGGS_GG_4][1]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWW_sig_ghg2ghg4im, useConstants);
+    cout << "pVAJHU_ggWW_sig_ghg2ghg4im: " << pVAJHU_ggWW_sig_ghg2ghg4im << '\n' << endl;
+
     cout << "MCFM vs JHUGen Ratio comparison:" << endl;
     cout << "ggWW_sig_selfDg2: " << pVAMCFM_ggWW_sig_selfDg2/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg2/pVAJHU_ggWW_sig_selfDg1 << endl;
     cout << "ggWW_sig_selfDg1g2: " << pVAMCFM_ggWW_sig_selfDg1g2/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g2/pVAJHU_ggWW_sig_selfDg1 << endl;
@@ -376,6 +464,12 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     cout << "ggWW_sig_selfDg4: " << pVAMCFM_ggWW_sig_selfDg4/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg4/pVAJHU_ggWW_sig_selfDg1 << endl;
     cout << "ggWW_sig_selfDg1g4: " << pVAMCFM_ggWW_sig_selfDg1g4/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g4/pVAJHU_ggWW_sig_selfDg1 << endl;
     cout << "ggWW_sig_selfDg1g4im: " << pVAMCFM_ggWW_sig_selfDg1g4im/pVAMCFM_ggWW_sig_selfDg1 << '\t' << pVAJHU_ggWW_sig_selfDg1g4im/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "***" << endl;
+    cout << "MCFM_ggWW_sig_largemt4_kappatildet4: " << pVAMCFM_ggWW_sig_largemt4_kappatildet4/pVAMCFM_ggWW_sig_largemt4_kappat4 << endl;
+    cout << "MCFM_ggWW_sig_ghg2_gen4: " << pVAMCFM_ggWW_sig_ghg2_gen4/pVAMCFM_ggWW_sig_largemt4_kappat4 << endl;
+    cout << "ggWW_sig_ghg4_gen4: " << pVAMCFM_ggWW_sig_ghg4_gen4/pVAMCFM_ggWW_sig_ghg2_gen4 << '\t' << pVAJHU_ggWW_sig_ghg4/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_ghg2ghg4_gen4: " << pVAMCFM_ggWW_sig_ghg2ghg4_gen4/pVAMCFM_ggWW_sig_ghg2_gen4 << '\t' << pVAJHU_ggWW_sig_ghg2ghg4/pVAJHU_ggWW_sig_selfDg1 << endl;
+    cout << "ggWW_sig_ghg2ghg4im_gen4: " << pVAMCFM_ggWW_sig_ghg2ghg4im_gen4/pVAMCFM_ggWW_sig_ghg2_gen4 << '\t' << pVAJHU_ggWW_sig_ghg2ghg4im/pVAJHU_ggWW_sig_selfDg1 << endl;
     cout << endl;
 
     /***** WW (as ZZ) *****/
@@ -482,6 +576,65 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.computeP(pVAMCFM_ggWWasZZ_sig_selfDg1g4im, useConstants);
     cout << "pVAMCFM_ggWWasZZ_sig_selfDg1g4im: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4im << '\n' << endl;
 
+    float pVAMCFM_ggWWasZZ_sig_largemt4_kappat4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.resetMass(1e7, 8); // Already 1e5, but just to make sure
+    mela.selfDHt4t4coupl[0][gHIGGS_KAPPA][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_largemt4_kappat4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_largemt4_kappat4: " << pVAMCFM_ggWWasZZ_sig_largemt4_kappat4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_largemt4_kappatildet4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.resetMass(1e7, 8); // Already 1e5, but just to make sure
+    mela.selfDHt4t4coupl[0][gHIGGS_KAPPA_TILDE][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_largemt4_kappatildet4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_largemt4_kappatildet4: " << pVAMCFM_ggWWasZZ_sig_largemt4_kappatildet4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_ghg2_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_ghg2_gen4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_ghg2_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg2_gen4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_ghg4_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_ghg4_gen4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_ghg4_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg4_gen4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_ghg2ghg4_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_ghg2ghg4_gen4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_ghg2ghg4_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg2ghg4_gen4 << '\n' << endl;
+
+    float pVAMCFM_ggWWasZZ_sig_ghg2ghg4im_gen4;
+    mela.setProcess(TVar::HSMHiggs, TVar::MCFM, TVar::ZZGG);
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHg4g4coupl[0][gHIGGS_GG_4][1]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAMCFM_ggWWasZZ_sig_ghg2ghg4im_gen4, useConstants);
+    cout << "pVAMCFM_ggWWasZZ_sig_ghg2ghg4im_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg2ghg4im_gen4 << '\n' << endl;
+
+
     float pVAJHU_ggWWasZZ_sig_selfDg1;
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
     mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
@@ -549,6 +702,36 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     mela.computeP(pVAJHU_ggWWasZZ_sig_selfDg1g4im, useConstants);
     cout << "pVAJHU_ggWWasZZ_sig_selfDg1g4im: " << pVAJHU_ggWWasZZ_sig_selfDg1g4im << '\n' << endl;
 
+    float pVAJHU_ggWWasZZ_sig_ghg4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_ghg4, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_ghg4: " << pVAJHU_ggWWasZZ_sig_ghg4 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_ghg2ghg4;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHggcoupl[0][gHIGGS_GG_4][0]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_ghg2ghg4, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_ghg2ghg4: " << pVAJHU_ggWWasZZ_sig_ghg2ghg4 << '\n' << endl;
+
+    float pVAJHU_ggWWasZZ_sig_ghg2ghg4im;
+    mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZGG);
+    mela.selfDHggcoupl[0][gHIGGS_GG_2][0]=1.0;
+    mela.selfDHggcoupl[0][gHIGGS_GG_4][1]=1.0;
+    mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1.0;
+    mela.setMelaHiggsWidth(wPOLE);
+    mela.setMelaLeptonInterference(TVar::InterfOn);
+    mela.computeP(pVAJHU_ggWWasZZ_sig_ghg2ghg4im, useConstants);
+    cout << "pVAJHU_ggWWasZZ_sig_ghg2ghg4im: " << pVAJHU_ggWWasZZ_sig_ghg2ghg4im << '\n' << endl;
+
+
     cout << "MCFM vs JHUGen Ratio comparison:" << endl;
     cout << "ggWWasZZ_sig_selfDg2: " << pVAMCFM_ggWWasZZ_sig_selfDg2/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg2/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
     cout << "ggWWasZZ_sig_selfDg1g2: " << pVAMCFM_ggWWasZZ_sig_selfDg1g2/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g2/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
@@ -556,6 +739,12 @@ void testME_Dec_MCFM_Ping(int flavor=2, int useMothers=0, bool useConstants=fals
     cout << "ggWWasZZ_sig_selfDg4: " << pVAMCFM_ggWWasZZ_sig_selfDg4/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg4/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
     cout << "ggWWasZZ_sig_selfDg1g4: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g4/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
     cout << "ggWWasZZ_sig_selfDg1g4im: " << pVAMCFM_ggWWasZZ_sig_selfDg1g4im/pVAMCFM_ggWWasZZ_sig_selfDg1 << '\t' << pVAJHU_ggWWasZZ_sig_selfDg1g4im/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "***" << endl;
+    cout << "MCFM_ggWWasZZ_sig_largemt4_kappatildet4: " << pVAMCFM_ggWWasZZ_sig_largemt4_kappatildet4/pVAMCFM_ggWWasZZ_sig_largemt4_kappat4 << endl;
+    cout << "MCFM_ggWWasZZ_sig_ghg2_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg2_gen4/pVAMCFM_ggWWasZZ_sig_largemt4_kappat4 << endl;
+    cout << "ggWWasZZ_sig_ghg4_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg4_gen4/pVAMCFM_ggWWasZZ_sig_ghg2_gen4 << '\t' << pVAJHU_ggWWasZZ_sig_ghg4/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_ghg2ghg4_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg2ghg4_gen4/pVAMCFM_ggWWasZZ_sig_ghg2_gen4 << '\t' << pVAJHU_ggWWasZZ_sig_ghg2ghg4/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
+    cout << "ggWWasZZ_sig_ghg2ghg4im_gen4: " << pVAMCFM_ggWWasZZ_sig_ghg2ghg4im_gen4/pVAMCFM_ggWWasZZ_sig_ghg2_gen4 << '\t' << pVAJHU_ggWWasZZ_sig_ghg2ghg4im/pVAJHU_ggWWasZZ_sig_selfDg1 << endl;
     cout << endl;
 
     /***** ZZ *****/
