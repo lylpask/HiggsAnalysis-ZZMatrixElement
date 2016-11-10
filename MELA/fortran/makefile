@@ -54,6 +54,13 @@ LIB = libjhugenmela.so
 
 all:    libs
 	g++ -Wl,-soname,$(LIB) -shared -o $(LIB) *.o
+	@echo " "
+	@echo " WARNING: if you updated the fortran code,"
+	@echo "          you need to move libjhugenmela.so"
+	@echo '          to the appropriate folder in data/'
+	@echo "          and then scram b.  Otherwise your changes"
+	@echo "          will not apply to any code you run."
+	@echo "          If you are running setup.sh this is done automatically."
 #	mv *.o $(OBJECTS)
 #	mv *.mod $(MODULES)
 
