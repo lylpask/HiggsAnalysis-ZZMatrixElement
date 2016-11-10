@@ -820,7 +820,7 @@ void testME_VH_JHUGen_Ping(){
   float mPOLE=125.;
   float wPOLE=4.07e-3;
 
-  TVar::VerbosityLevel verbosity = TVar::DEBUG;
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
   if (verbosity>=TVar::DEBUG) cout << "Initializing Mela..." << endl;
   Mela mela(erg_tev, mPOLE, verbosity);
   if (verbosity>=TVar::DEBUG) cout << "Mela is initialized" << endl;
@@ -942,7 +942,7 @@ void testME_VH_JHUGen_Ping(){
         mela.setProcess(TVar::HSMHiggs, TVar::JHUGen, prod);
         mela.computeProdP_VH(p0mplus, false, false);
         cout << "p0mplus: " << p0mplus << '\n' << endl;
-        /*
+
         float p0g1prime2=0;
         mela.setProcess(TVar::H0_g1prime2, TVar::JHUGen, prod);
         mela.computeProdP_VH(p0g1prime2, false, false);
@@ -957,6 +957,16 @@ void testME_VH_JHUGen_Ping(){
         mela.setProcess(TVar::H0minus, TVar::JHUGen, prod);
         mela.computeProdP_VH(p0minus, false, false);
         cout << "p0minus: " << p0minus << '\n' << endl;
+
+        float p0gzgs1prime2=0;
+        mela.setProcess(TVar::H0_Zgsg1prime2, TVar::JHUGen, prod);
+        mela.computeProdP_VH(p0gzgs1prime2, false, false);
+        cout << "p0gzgs1prime2: " << p0gzgs1prime2 << '\n' << endl;
+
+        float p0hpluszgs=0;
+        mela.setProcess(TVar::H0_Zgs, TVar::JHUGen, prod);
+        mela.computeProdP_VH(p0hpluszgs, false, false);
+        cout << "p0hpluszgs: " << p0hpluszgs << '\n' << endl;
 
         // SelfD MEs
         float p0mplus_selfD=0;
@@ -973,7 +983,7 @@ void testME_VH_JHUGen_Ping(){
 
         float p0hplus_selfD=0;
         mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, prod);
-        mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+        mela.selfDHzzcoupl[0][gHIGGS_VV_2][0]=1;
         mela.computeProdP_VH(p0hplus_selfD, false, false);
         cout << "p0hplus_selfD: " << p0hplus_selfD << '\n' << endl;
 
@@ -982,7 +992,18 @@ void testME_VH_JHUGen_Ping(){
         mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
         mela.computeProdP_VH(p0minus_selfD, false, false);
         cout << "p0minus_selfD: " << p0minus_selfD << '\n' << endl;
-        */
+
+        float p0gzgs1prime2_selfD=0;
+        mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, prod);
+        mela.selfDHzzcoupl[0][gHIGGS_ZA_1_PRIME2][0]=1;
+        mela.computeProdP_VH(p0gzgs1prime2_selfD, false, false);
+        cout << "p0gzgs1prime2_selfD: " << p0gzgs1prime2_selfD << '\n' << endl;
+
+        float p0hpluszgs_selfD=0;
+        mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, prod);
+        mela.selfDHzzcoupl[0][gHIGGS_ZA_2][0]=1;
+        mela.computeProdP_VH(p0hpluszgs_selfD, false, false);
+        cout << "p0hpluszgs_selfD: " << p0hpluszgs_selfD << '\n' << endl;
 
         cout << "*******************************************************" << endl;
       }
