@@ -5336,7 +5336,12 @@ double TUtil::VHiggsMatEl(
     verbosity
     );
   if ((mela_event.pAssociated.size()<(unsigned int)(nRequested_AssociatedJets+nRequested_AssociatedLeptons) && production!=TVar::GammaH) || (mela_event.pAssociated.size()<(unsigned int)nRequested_AssociatedPhotons && production==TVar::GammaH)){
-    if (verbosity>=TVar::ERROR) cerr << "TUtil::VHiggsMatEl: Number of associated particles is not supported!" << endl;
+    if (verbosity>=TVar::ERROR){
+      cerr << "TUtil::VHiggsMatEl: Number of associated particles (" << mela_event.pAssociated.size() << ") is less than ";
+      if (production!=TVar::GammaH) cerr << (nRequested_AssociatedJets+nRequested_AssociatedLeptons);
+      else cerr << nRequested_AssociatedPhotons;
+      cerr << endl;
+    }
     return sum_msqjk;
   }
 
@@ -5540,6 +5545,7 @@ double TUtil::VHiggsMatEl(
     if (verbosity>=TVar::DEBUG){
       cout << "TUtil::VHiggsMatEl: Outgoing H-> f fbar particles to compute for the ME template:" << endl;
       for (unsigned int ihf=0; ihf<Hffparticles.size(); ihf++) cout << "\t - (id8, id9) = (" << Hffparticles.at(ihf).first << ", " << Hffparticles.at(ihf).second << ")" << endl;
+      cout << "TUtil::VHiggsMatEl: ME scale for the H-> f fbar particles: " << Hffscale << endl;
     }
 
     if (production==TVar::Lep_WH || production==TVar::Had_WH){
@@ -5598,11 +5604,17 @@ double TUtil::VHiggsMatEl(
         vh_ids[1] = incomingPartons.at(ip).second;
         vh_ids[2] = PDGHelpers::getCoupledVertex(vh_ids[0], vh_ids[1]);
         if (!PDGHelpers::isAWBoson(vh_ids[2])) continue;
+        if (verbosity>=TVar::DEBUG) cout << "\tIncoming " << vh_ids[0] << "," << vh_ids[1] << " -> " << vh_ids[2] << endl;
+
+        double Vckmsq_in = pow(__modparameters_MOD_ckm(&(vh_ids[0]), &(vh_ids[1]))/__modparameters_MOD_scalefactor(&(vh_ids[0]), &(vh_ids[1])), 2);
+        if (verbosity>=TVar::DEBUG) cout << "\tNeed to divide the ME by |VCKM_incoming|**2 = " << Vckmsq_in << endl;
+
         for (unsigned int op=0; op<outgoingPartons.size(); op++){
-          vh_ids[5] = outgoingPartons.at(ip).first;
-          vh_ids[6] = outgoingPartons.at(ip).second;
+          vh_ids[5] = outgoingPartons.at(op).first;
+          vh_ids[6] = outgoingPartons.at(op).second;
           vh_ids[3] = PDGHelpers::getCoupledVertex(vh_ids[5], vh_ids[6]);
           if (vh_ids[2]!=vh_ids[3]) continue;
+          if (verbosity>=TVar::DEBUG) cout << "\t\tOutgoing " << vh_ids[3] << " -> " << vh_ids[5] << "," << vh_ids[6] << endl;
 
           // Compute a raw ME
           double msq=0;
@@ -5636,7 +5648,9 @@ double TUtil::VHiggsMatEl(
           // Determine the outgoing scale
           double scalesum_out=0;
           if (!(partonIsKnown[2] && partonIsKnown[3])){
-            msq /= pow(__modparameters_MOD_ckm(&(vh_ids[5]), &(vh_ids[6])), 2);
+            double Vckmsq_out = pow(__modparameters_MOD_ckm(&(vh_ids[5]), &(vh_ids[6])), 2);
+            if (verbosity>=TVar::DEBUG) cout << "\t\tDividing ME by |VCKM_outgoing|**2 = " << Vckmsq_out << endl;
+            msq /= Vckmsq_out;
             for (int outgoing1=1; outgoing1<=nf; outgoing1++){
               if (partonIsKnown[2] && outgoing1!=abs(vh_ids[5])) continue;
               if (outgoing1%2!=abs(vh_ids[5])%2 || outgoing1==6) continue;
@@ -5650,9 +5664,11 @@ double TUtil::VHiggsMatEl(
             }
           }
           else scalesum_out = 1;
+          if (verbosity>=TVar::DEBUG) cout << "\t\tScale for outgoing particles: " << scalesum_out << endl;
 
           // Divide ME by the incoming scale factor (will be multiplied again inside the loop)
-          msq /= pow(__modparameters_MOD_ckm(&(vh_ids[0]), &(vh_ids[1]))/__modparameters_MOD_scalefactor(&(vh_ids[0]), &(vh_ids[1])), 2);
+          if (verbosity>=TVar::DEBUG) cout << "\t\tDividing ME by |VCKM_incoming|**2 = " << Vckmsq_in << endl;
+          msq /= Vckmsq_in;
 
           // Sum all possible combinations
           for (int incoming1=1; incoming1<=nf; incoming1++){
@@ -5663,7 +5679,9 @@ double TUtil::VHiggsMatEl(
               if (partonIsKnown[1] && incoming2!=abs(vh_ids[1])) continue;
               if (incoming2%2!=abs(vh_ids[1])%2 || incoming2==6) continue;
               int jin = incoming2 * TMath::Sign(1, vh_ids[1]);
+              cout << "\t\t\tiin,jin = " << iin << "," << jin << endl;
               double scale_in = pow(__modparameters_MOD_ckm(&(iin), &(jin))/__modparameters_MOD_scalefactor(&(iin), &(jin)), 2);
+              if (verbosity>=TVar::DEBUG) cout << "\t\tScale for incoming particles: " << scale_in << endl;
               MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scalesum_out;
             }
           }
@@ -5715,14 +5733,25 @@ double TUtil::VHiggsMatEl(
         vh_ids[1] = incomingPartons.at(ip).second;
         vh_ids[2] = PDGHelpers::getCoupledVertex(vh_ids[0], vh_ids[1]);
         if (!PDGHelpers::isAZBoson(vh_ids[2])) continue; // Notice, Z-> Gamma + H should also have the id of the Z!
+        if (verbosity>=TVar::DEBUG) cout << "\tIncoming " << vh_ids[0] << "," << vh_ids[1] << " -> " << vh_ids[2] << endl;
+
+        // Determine the incoming scale
+        double scale_in=1;
+        if (!partonIsKnown[0] && !partonIsKnown[1]){
+          if (PDGHelpers::isDownTypeQuark(vh_ids[0])) scale_in=3;
+          else scale_in=2;
+        }
+        if (verbosity>=TVar::DEBUG) cout << "\tScale for incoming particles: " << scale_in << endl;
+
         for (unsigned int op=0; op<outgoingPartons.size(); op++){
-          vh_ids[5] = outgoingPartons.at(ip).first;
-          vh_ids[6] = outgoingPartons.at(ip).second;
+          vh_ids[5] = outgoingPartons.at(op).first;
+          vh_ids[6] = outgoingPartons.at(op).second;
           if (production==TVar::GammaH) vh_ids[3] = 22;
           else{
             vh_ids[3] = PDGHelpers::getCoupledVertex(vh_ids[5], vh_ids[6]);
             if (vh_ids[2]!=vh_ids[3]) continue;
           }
+          if (verbosity>=TVar::DEBUG) cout << "\t\tOutgoing " << vh_ids[3] << " -> " << vh_ids[5] << "," << vh_ids[6] << endl;
 
           // Compute a raw ME
           double msq=0;
@@ -5755,29 +5784,20 @@ double TUtil::VHiggsMatEl(
 
           // Determine the outgoing scale
           double scale_out=1;
-          if (!partonIsKnown[2] && !partonIsKnown[3]){
+          if (!partonIsKnown[2] && !partonIsKnown[3] && production!=TVar::GammaH){
             if (PDGHelpers::isDownTypeQuark(vh_ids[5])) scale_out=3;
-            else scale_out=2;
+            else if (PDGHelpers::isUpTypeQuark(vh_ids[5])) scale_out=2;
           }
-
-          // Determine the incoming scale
-          double scale_in=1;
-          if (!partonIsKnown[0] && !partonIsKnown[1]){
-            if (PDGHelpers::isDownTypeQuark(vh_ids[0])) scale_in=3;
-            else scale_in=2;
-          }
+          if (verbosity>=TVar::DEBUG) cout << "\t\tScale for outgoing particles: " << scale_out << endl;
 
           // Sum all possible combinations
           for (int incoming1=1; incoming1<=nf; incoming1++){
             if (partonIsKnown[0] && incoming1!=abs(vh_ids[0])) continue;
             if (incoming1%2!=abs(vh_ids[0])%2 || incoming1==6) continue;
             int iin = incoming1 * TMath::Sign(1, vh_ids[0]);
-            for (int incoming2=1; incoming2<=nf; incoming2++){
-              if (partonIsKnown[1] && incoming2!=abs(vh_ids[1])) continue;
-              if (incoming2%2!=abs(vh_ids[1])%2 || incoming2==6) continue;
-              int jin = incoming2 * TMath::Sign(1, vh_ids[1]);
-              MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scale_out;
-            }
+            int jin=-iin;
+            cout << "\t\t\tiin,jin = " << iin << "," << jin << endl;
+            MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scale_out;
           }
           // msq is now added to MatElSq.
         } // End loop over outgoing particle templates

@@ -121,21 +121,21 @@ public:
   };
 
   enum Process{
-    HSMHiggs,    //0+, call this for MCFM |H|**2.
-    H0minus,    //0-
-    H0hplus,    //0h+
-    H0_g1prime2,   //g1=0, g1prime2=-12046.01
-    H0_Zgs,
-    H0_gsgs,
-    H0_Zgs_PS,
-    H0_gsgs_PS,
+    HSMHiggs, // Call this for any MCFM |H|**2-only ME.
+    H0_g1prime2,
+    H0hplus,
+    H0minus,
     H0_Zgsg1prime2,
+    H0_Zgs,
+    H0_Zgs_PS,
+    H0_gsgs,
+    H0_gsgs_PS,
 
-    D_g1g4, // D_CP
-    D_g1g4_pi_2, // D_CP_T
-    D_g1g2,   // D_int
-    D_g1g2_pi_2, // D_int_T
-    D_g1g1prime2, // D_int_lambda1
+    D_g1g1prime2,
+    D_g1g2,
+    D_g1g2_pi_2,
+    D_g1g4,
+    D_g1g4_pi_2,
     D_zzzg,
     D_zzgg,
     D_zzzg_PS,
@@ -143,32 +143,32 @@ public:
     D_zzzg_g1prime2,
     D_zzzg_g1prime2_pi_2,
 
-    H1minus,    //1-
-    H1plus,    //1+
+    H1minus, // 1-
+    H1plus, // 1+
 
-    H2_g1, //2m+, Zg, gg
+    H2_g1, // 2m+, Zg, gg
     H2_g2, // 2h2+
     H2_g3, // 2h3+
-    H2_g4, //2h+
-    H2_g5, //2b+
-    H2_g1g5, //2m+
+    H2_g4, // 2h+
+    H2_g5, // 2b+
+    H2_g1g5, // 2m+
     H2_g6, // 2h6+
     H2_g7, // 2h7+
-    H2_g8, //2h-
+    H2_g8, // 2h-
     H2_g9, // 2h9-
     H2_g10, // 2h10-
 
-    bkgZGamma,    //Z+gamma
-    bkgZJets,    //Z + 0/1/2 jets (ZZGG, JQCD, JJQCD)
-    bkgZZ,    //qq/gg->ZZ
-    bkgWW,    //qq/gg->WW
-    bkgWWZZ,    //gg->ZZ+WW
+    bkgZGamma, // Z+gamma cont.
+    bkgZJets, // Z + 0/1/2 jets (ZZGG, JQCD, JJQCD)
+    bkgZZ, // qq/gg->ZZ cont.
+    bkgWW, // qq/gg->WW cont.
+    bkgWWZZ, // gg->ZZ+WW cont.
 
-    bkgZZ_SMHiggs,    //ggZZ+SMHigg
-    bkgWW_SMHiggs,    //ggWW+SMHiggs
-    bkgWWZZ_SMHiggs,    //ggZZ+WW+SMHiggs
+    bkgZZ_SMHiggs, // ggZZ cont. + SMHigg
+    bkgWW_SMHiggs, // ggWW cont. + SMHiggs
+    bkgWWZZ_SMHiggs, // ggZZ+WW cont. + SMHiggs
 
-    HSMHiggs_WWZZ,    //MCFM |H|**2 ZZ+WW with interference
+    HSMHiggs_WWZZ, // MCFM |H|**2 ZZ+WW with ZZ-WW interference
 
     /**** For width ***/
     D_gg10,
@@ -181,10 +181,13 @@ public:
     nProcesses
   };
   enum SuperMelaSyst{
-    SMSyst_None      = 0, // nominal value
-    SMSyst_ScaleUp   = 1, //Scale Uncertaintie
+    // Nominal value
+    SMSyst_None      = 0,
+    // Scale uncertainties
+    SMSyst_ScaleUp   = 1,
     SMSyst_ScaleDown = 2,
-    SMSyst_ResUp     = 3, // Resolution Uncertainty
+    // Resolution uncertainties
+    SMSyst_ResUp     = 3,
     SMSyst_ResDown   = 4
   };
   enum EventScaleScheme{
