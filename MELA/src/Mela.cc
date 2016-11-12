@@ -761,7 +761,19 @@ void Mela::computeProdDecP(
     cout << "Mela::computeProdDecP ME is not supported for ME " << myME_ << endl;
     hasFailed = true;
   }
-  if (myProduction_ != TVar::JJVBF){
+  if (
+    !(
+    myProduction_==TVar::Had_WH || myProduction_==TVar::Had_ZH
+    || myProduction_==TVar::Had_WH_S || myProduction_==TVar::Had_ZH_S
+    || myProduction_==TVar::Had_WH_TU || myProduction_==TVar::Had_ZH_TU
+    || myProduction_==TVar::Lep_ZH || myProduction_==TVar::Lep_WH
+    || myProduction_==TVar::Lep_ZH_S || myProduction_==TVar::Lep_WH_S
+    || myProduction_==TVar::Lep_ZH_TU || myProduction_==TVar::Lep_WH_TU
+    || myProduction_==TVar::JJVBF || myProduction_==TVar::JJEW || myProduction_==TVar::JJEWQCD || myProduction_==TVar::JJQCD
+    || myProduction_==TVar::JJVBF_S || myProduction_==TVar::JJEW_S || myProduction_==TVar::JJEWQCD_S || myProduction_==TVar::JJQCD_S
+    || myProduction_==TVar::JJVBF_TU || myProduction_==TVar::JJEW_TU || myProduction_==TVar::JJEWQCD_TU || myProduction_==TVar::JJQCD_TU
+    )
+    ){
     cout << "Mela::computeProdDecP production mode is not supported for production " << myProduction_ << endl;
     hasFailed = true;
   }

@@ -1322,9 +1322,6 @@ void TUtil::SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, doubl
     Q_fac *= multiplier_fac;
   }
 
-  /***** JHUGen Alpha_S *****/
-  // To be implemented
-
   /***** MCFM Alpha_S *****/
   bool nflav_is_same = (nflav_.nflav == mynflav);
   if (!nflav_is_same) cout << "TUtil::SetAlphaS: nflav=" << nflav_.nflav << " is the only one supported." << endl;
@@ -1337,6 +1334,7 @@ void TUtil::SetAlphaS(double& Q_ren, double& Q_fac, double multiplier_ren, doubl
   }
   nlooprun_.nlooprun = mynloop;
 
+  /***** JHUGen Alpha_S *****/
   /*
   ///// Disabling alpha_s computation from MCFM to replace with the JHUGen implementation, allows LHAPDF interface readily /////
   // For proper pdfwrapper_linux.f execution (alpha_s computation does not use pdf but examines the pdf name to initialize amz.)
@@ -4036,9 +4034,10 @@ double TUtil::JHUGenMatEl(
   }
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
   if (verbosity>=TVar::DEBUG){
+    GetAlphaS(&alphasVal, &alphasmzVal);
     cout
       << "TUtil::JHUGenMatEl: Reset AlphaS result:\n"
-      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
   return MatElSq;
 }
@@ -5276,9 +5275,10 @@ double TUtil::HJJMatEl(
   }
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
   if (verbosity>=TVar::DEBUG){
+    GetAlphaS(&alphasVal, &alphasmzVal);
     cout
       << "TUtil::HJJMatEl: Reset AlphaS result:\n"
-      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
   return sum_msqjk;
 }
@@ -5574,6 +5574,7 @@ double TUtil::VHiggsMatEl(
 
     // Setup outgoing partons
     vector<pair<int, int>> outgoingPartons;
+    // FIXME: The following 2/1 assignments assume the CKM element for this pair is non-zero (there are divisions by Vckmsq_in/out later on).
     if (partonIsKnown[2] && partonIsKnown[3]) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], MYIDUP_prod[3])); // Parton 0 and 1 are both known or Lep_WH
     else if (!partonIsKnown[2] && !partonIsKnown[3]){ // Parton 0 and 1 are unknown
       // Consider all 4 outgoing cases: d au, au d, u ad, ad u
@@ -5665,8 +5666,10 @@ double TUtil::VHiggsMatEl(
         if (verbosity>=TVar::DEBUG) cout << "\t\tScale for outgoing particles: " << scalesum_out << endl;
 
         // Divide ME by the incoming scale factor (will be multiplied again inside the loop)
-        if (verbosity>=TVar::DEBUG) cout << "\t\tDividing ME by |VCKM_incoming|**2 = " << Vckmsq_in << endl;
-        msq /= Vckmsq_in;
+        if (!partonIsKnown[0] || !partonIsKnown[1]){
+          if (verbosity>=TVar::DEBUG) cout << "\t\tDividing ME by |VCKM_incoming|**2 = " << Vckmsq_in << endl;
+          msq /= Vckmsq_in;
+        }
 
         // Sum all possible combinations
         for (int incoming1=1; incoming1<=nf; incoming1++){
@@ -5678,8 +5681,11 @@ double TUtil::VHiggsMatEl(
             if (incoming2%2!=abs(vh_ids[1])%2 || incoming2==6) continue;
             int jin = incoming2 * TMath::Sign(1, vh_ids[1]);
             if (verbosity>=TVar::DEBUG) cout << "\t\t\tiin,jin = " << iin << "," << jin << endl;
-            double scale_in = pow(__modparameters_MOD_ckm(&(iin), &(jin))/__modparameters_MOD_scalefactor(&(iin), &(jin)), 2);
-            if (verbosity>=TVar::DEBUG) cout << "\t\tScale for incoming particles: " << scale_in << endl;
+            double scale_in=1;
+            if (!partonIsKnown[0] || !partonIsKnown[1]){
+              scale_in = pow(__modparameters_MOD_ckm(&(iin), &(jin))/__modparameters_MOD_scalefactor(&(iin), &(jin)), 2);
+              if (verbosity>=TVar::DEBUG) cout << "\t\tScale for incoming particles: " << scale_in << endl;
+            }
             MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scalesum_out;
           }
         }
@@ -5820,9 +5826,10 @@ double TUtil::VHiggsMatEl(
   }
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
   if (verbosity>=TVar::DEBUG){
+    GetAlphaS(&alphasVal, &alphasmzVal);
     cout
       << "TUtil::VHiggsMatEl: Reset AlphaS result:\n"
-      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
   return sum_msqjk;
 }
@@ -6195,9 +6202,10 @@ double TUtil::TTHiggsMatEl(
   }
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
   if (verbosity>=TVar::DEBUG){
+    GetAlphaS(&alphasVal, &alphasmzVal);
     cout
       << "TUtil::TTHiggsMatEl: Reset AlphaS result:\n"
-      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
   return sum_msqjk;
 }
@@ -6361,9 +6369,10 @@ double TUtil::BBHiggsMatEl(
   }
   SetAlphaS(defaultRenScale, defaultFacScale, 1., 1., defaultNloop, defaultNflav, defaultPdflabel);
   if (verbosity>=TVar::DEBUG){
+    GetAlphaS(&alphasVal, &alphasmzVal);
     cout
       << "TUtil::BBHiggsMatEl: Reset AlphaS result:\n"
-      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << endl;
+      << "\tAfter reset, alphas scale: " << scale_.scale << ", PDF scale: " << facscale_.facscale << ", alphas(Qren): " << alphasVal << ", alphas(MZ): " << alphasmzVal << endl;
   }
   return sum_msqjk;
 }

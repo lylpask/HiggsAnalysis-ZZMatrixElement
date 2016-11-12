@@ -44,6 +44,15 @@ TEvtProb::TEvtProb(
   /***** Initialize JHUGen *****/
   InitializeJHUGen(pathtoPDFSet, PDFMember);
 
+  /**** Initialize alphaS *****/
+  const double GeV=1./100.;
+  double init_Q;
+  int init_nl, init_nf;
+  __modjhugenmela_MOD_getpdfconstants(&init_Q, &init_nl, &init_nf);
+  init_Q /= GeV;
+  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: Initializing the PDF with initial Q=" << init_Q << ", nloops=" << init_nl << ", nf=" << init_nf << endl;
+  SetAlphaS(init_Q, init_Q, 1, 1, init_nl, init_nf, "cteq6_l"); // "cteq6_l" is just some dummy variable
+
   /***** Initialize schemes *****/
   ResetCouplings();
   ResetRenFacScaleMode();
