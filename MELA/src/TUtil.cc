@@ -1792,7 +1792,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
     pApartId = new int[napart];
     for (unsigned int ip=0; ip<napart; ip++){
       pApartOrder[ip]=ip; // This order USUALLY does not change!
-      pApartId[ip]=mela_event.pDaughters.at(ip).first; // This order does not change.
+      pApartId[ip]=mela_event.pAssociated.at(ip).first; // This order does not change.
     }
   }
   int* pOrder = new int[ndau];
@@ -2163,8 +2163,8 @@ bool TUtil::MCFM_SetupParticleCouplings(
         }
       }
       if (hasZuu || hasZdd){
-        strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]]);
-        strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]]);
+        strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]], true);
+        strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]], true);
       }
       else if (hasZjj){
         strplabel[6]="qj";
@@ -2241,8 +2241,8 @@ bool TUtil::MCFM_SetupParticleCouplings(
         if (hasWplus || hasWminus || hasWjj) break;
       }
       if (hasWplus || hasWminus){ // W+ or W-
-        strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]]);
-        strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]]);
+        strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]], true);
+        strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]], true);
       }
       else if (hasWjj){ // W+/-
         strplabel[6]="qj";
@@ -2259,8 +2259,8 @@ bool TUtil::MCFM_SetupParticleCouplings(
     else if ((isWW || isZZ) && napart>=2 && (production==TVar::JJVBF || production==TVar::JJVBF_S || production==TVar::JJVBF_TU)){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJVBF)*2 + int(production==TVar::JJVBF_TU)*1 + int(production==TVar::JJVBF_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 0; // VBF-only process
-      strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]]);
-      strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]]);
+      strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]], true);
+      strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]], true);
     }
     else if ((isWW || isZZ) && napart>=2 && (production==TVar::JJEW || production==TVar::JJEWQCD || production==TVar::JJEW_S || production==TVar::JJEWQCD_S || production==TVar::JJEW_TU || production==TVar::JJEWQCD_TU)){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJEWQCD || production==TVar::JJEW)*2 + int(production==TVar::JJEWQCD_TU || production==TVar::JJEW_TU)*1 + int(production==TVar::JJEWQCD_S || production==TVar::JJEW_S)*0;;
@@ -2540,7 +2540,10 @@ bool TUtil::MCFM_SetupParticleCouplings(
   return result;
 }
 TString TUtil::GetMCFMParticleLabel(const int& pid, bool useQJ){
-  if (PDGHelpers::isAnUnknownJet(pid)){ if (useQJ) return TString("qj"); else return TString("pp"); }
+  if (PDGHelpers::isAnUnknownJet(pid)){
+    if (useQJ) return TString("qj");
+    else return TString("pp");
+  }
   else if (PDGHelpers::isAGluon(pid)) return TString("ig");
   else if (pid==1) return TString("dq");
   else if (pid==2) return TString("uq");
@@ -3348,11 +3351,11 @@ double TUtil::SumMatrixElementPDF(
     TUtil::MCFM_chooser(process, production, leptonInterf, verbosity, mela_event); // Set some of the specifics of the process through this function
   if (doProceed) doProceed = TUtil::MCFM_SetupParticleCouplings(process, production, verbosity, mela_event, &partOrder, &apartOrder); // Set the specifics of the daughter or associated particle couplings through this function
   if (partOrder.size()!=mela_event.pDaughters.size()){
-    if (verbosity >= TVar::ERROR) cerr << "Ordering size and number of daughter particles is not the same!" << endl;
+    if (verbosity >= TVar::ERROR) cerr << "Ordering size and number of daughter particles are not the same!" << endl;
     doProceed=false;
   }
   if (apartOrder.size()!=mela_event.pAssociated.size()){
-    if (verbosity >= TVar::ERROR) cerr << "Ordering size and number of associated particles is not the same!" << endl;
+    if (verbosity >= TVar::ERROR) cerr << "Ordering size and number of associated particles are not the same!" << endl;
     doProceed=false;
   }
   if (doProceed){
