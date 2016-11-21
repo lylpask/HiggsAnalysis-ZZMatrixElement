@@ -3728,7 +3728,15 @@ double TUtil::JHUGenMatEl(
     || process == TVar::H2_g10
     || process == TVar::SelfDefine_spin2
     );
-  if (!(isSpinZero || isSpinOne || isSpinTwo)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::JHUGenMatEl: Process " << process << " not supported." << endl; return MatElSq; }
+  if (!(isSpinZero || isSpinOne || isSpinTwo)){ if (verbosity>=TVar::ERROR) cerr << "TUtil::JHUGenMatEl: Process " << TVar::ProcessName(process) << " (" << process << ")" << " not supported." << endl; return MatElSq; }
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::JHUGenMatEl: Process " << TVar::ProcessName(process) << " is computing a spin-";
+    if (isSpinZero) cout << "0";
+    else if (isSpinOne) cout << "1";
+    else if (isSpinTwo) cout << "2";
+    else cout << "?";
+    cout << " ME with production " << TVar::ProductionName(production) << "." << endl;
+  }
 
   double msq[nmsq][nmsq]={ { 0 } }; // ME**2[parton2][parton1] for each incoming parton 1 and 2, used in RcdME
   int MYIDUP_tmp[4]={ 0 }; // Initial assignment array, unconverted. 0==Unassigned
