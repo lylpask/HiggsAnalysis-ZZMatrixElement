@@ -6450,7 +6450,7 @@ double TUtil::ResonancePropagator(double shat, TVar::ResonancePropagatorScheme s
 
   const double GeV=1./100.; // JHUGen mom. scale factor
   int isch=(int)scheme;
-  double shat_jhu = shat*GeV*shat*GeV;
+  double shat_jhu = pow(shat*GeV, 2);
   double prop = __modkinematics_MOD_getbwpropagator(&shat_jhu, &isch);
   prop *= pow(GeV, 4);
   return prop;
