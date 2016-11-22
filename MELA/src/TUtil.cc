@@ -1938,11 +1938,14 @@ bool TUtil::MCFM_SetupParticleCouplings(
     strplabel[0]="pp";
     strplabel[1]="pp";
     if (useQQVVQQany){ // Special case if using qqZZ/VVqq*
+      if (verbosity>=TVar::DEBUG) cout << "TUtil::MCFM_SetupParticleCouplings: Setting up mother labels for MCFM:";
       for (int ip=0; ip<min(2, (int)mela_event.pMothers.size()); ip++){
         const int* idmot = &(mela_event.pMothers.at(ip).first);
         if (!PDGHelpers::isAnUnknownJet((*idmot))) strplabel[ip]=TUtil::GetMCFMParticleLabel(*idmot);
+        if (verbosity>=TVar::DEBUG) cout << " " << *idmot << "=" << strplabel[ip];
         // No need to check unknown parton case, already "pp"
       }
+      if (verbosity>=TVar::DEBUG) cout << endl;
     }
 
     // Decay and associated particles
@@ -4685,15 +4688,31 @@ double TUtil::HJJMatEl(
       __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_zz_ijrs1234[1]));
       __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_zz_ijrs1243[1]));
 
-      rsel=1; ssel=-1; // uubar->(WW)->ddbar
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_ww_ijrs1234[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_ww_ijrs1243[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_ww_ijrs1234[1]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_ww_ijrs1243[1]));
-      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      for (unsigned int iswap=0; iswap<2; iswap++){
-        msq_uubar_ww_ijrs1234[iswap] /= ckm_takeout;
-        msq_uubar_ww_ijrs1243[iswap] /= ckm_takeout;
+      rsel=-1; ssel=1; // uubar->(WW)->ddbar
+      double ckm_ir = 0.;
+      double ckm_js = 0.;
+      while (ckm_ir==0.){
+        rsel += 2;
+        ssel -= 2;
+        if (abs(rsel)>=6){
+          rsel=-1; ssel=1;
+          isel+=2; jsel-=2;
+          continue;
+        }
+        if (abs(isel)>=6) break;
+        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
+        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+      }
+      if (ckm_ir!=0.){
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_ww_ijrs1234[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_ww_ijrs1243[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_ww_ijrs1234[1]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_ww_ijrs1243[1]));
+        ckm_takeout = pow(ckm_ir*ckm_js, 2);
+        for (unsigned int iswap=0; iswap<2; iswap++){
+          msq_uubar_ww_ijrs1234[iswap] /= ckm_takeout;
+          msq_uubar_ww_ijrs1243[iswap] /= ckm_takeout;
+        }
       }
     }
 
@@ -4720,16 +4739,32 @@ double TUtil::HJJMatEl(
       __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1234[1]));
       __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1243[1]));
 
-      isel=1; jsel=-1; // ddbar->(WW)->uubar
-      rsel=2; ssel=-2;
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1234[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1243[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1234[1]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1243[1]));
-      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      for (unsigned int iswap=0; iswap<2; iswap++){
-        msq_ddbar_ww_ijrs1234[iswap] /= ckm_takeout;
-        msq_ddbar_ww_ijrs1243[iswap] /= ckm_takeout;
+      // ddbar->(WW)->uubar
+      rsel=0; ssel=0;
+      double ckm_ir = 0.;
+      double ckm_js = 0.;
+      while (ckm_ir==0.){
+        rsel += 2;
+        ssel -= 2;
+        if (abs(rsel)>=6){
+          rsel=0; ssel=0;
+          isel+=2; jsel-=2;
+          continue;
+        }
+        if (abs(isel)>=6) break;
+        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
+        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+      }
+      if (ckm_ir!=0.){
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1234[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1243[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1234[1]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1243[1]));
+        ckm_takeout = pow(ckm_ir*ckm_js, 2);
+        for (unsigned int iswap=0; iswap<2; iswap++){
+          msq_ddbar_ww_ijrs1234[iswap] /= ckm_takeout;
+          msq_ddbar_ww_ijrs1243[iswap] /= ckm_takeout;
+        }
       }
     }
 
@@ -4749,16 +4784,43 @@ double TUtil::HJJMatEl(
       ||
       (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0)))
       ){
-      isel=2; jsel=1; // ud->(WW)->d'u'
-      rsel=3; ssel=4;
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1234[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1243[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1234[1]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1243[1]));
-      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      for (unsigned int iswap=0; iswap<2; iswap++){
-        msq_ud_wwonly_ijrs1234[iswap] /= ckm_takeout;
-        msq_ud_wwonly_ijrs1243[iswap] /= ckm_takeout;
+      // ud->(WW)->d'u'
+      double ckm_ir = 0.;
+      double ckm_js = 0.;
+      std::vector<std::pair<int, int>> ijarr, rsarr;
+      ijarr.push_back(pair<int, int>(2, 1)); rsarr.push_back(pair<int, int>(3, 4));
+      ijarr.push_back(pair<int, int>(2, 1)); rsarr.push_back(pair<int, int>(5, 4));
+      ijarr.push_back(pair<int, int>(2, 3)); rsarr.push_back(pair<int, int>(1, 4));
+      ijarr.push_back(pair<int, int>(2, 3)); rsarr.push_back(pair<int, int>(5, 4));
+      ijarr.push_back(pair<int, int>(2, 5)); rsarr.push_back(pair<int, int>(1, 4));
+      ijarr.push_back(pair<int, int>(2, 5)); rsarr.push_back(pair<int, int>(3, 4));
+
+      ijarr.push_back(pair<int, int>(4, 1)); rsarr.push_back(pair<int, int>(3, 2));
+      ijarr.push_back(pair<int, int>(4, 1)); rsarr.push_back(pair<int, int>(5, 2));
+      ijarr.push_back(pair<int, int>(4, 3)); rsarr.push_back(pair<int, int>(1, 2));
+      ijarr.push_back(pair<int, int>(4, 3)); rsarr.push_back(pair<int, int>(5, 2));
+      ijarr.push_back(pair<int, int>(4, 5)); rsarr.push_back(pair<int, int>(1, 2));
+      ijarr.push_back(pair<int, int>(4, 5)); rsarr.push_back(pair<int, int>(3, 2));
+
+      for (unsigned int ijrs=0; ijrs<ijarr.size(); ijrs++){
+        isel = ijarr.at(ijrs).first;
+        jsel = ijarr.at(ijrs).second;
+        rsel = rsarr.at(ijrs).first;
+        ssel = rsarr.at(ijrs).second;
+        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
+        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+        if (ckm_ir!=0. && ckm_js!=0.) break;
+      }
+      if (ckm_ir!=0. && ckm_js!=0.){
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1234[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1243[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ud_wwonly_ijrs1234[1]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ud_wwonly_ijrs1243[1]));
+        ckm_takeout = pow(ckm_ir*ckm_js, 2);
+        for (unsigned int iswap=0; iswap<2; iswap++){
+          msq_ud_wwonly_ijrs1234[iswap] /= ckm_takeout;
+          msq_ud_wwonly_ijrs1243[iswap] /= ckm_takeout;
+        }
       }
     }
 
@@ -4778,17 +4840,80 @@ double TUtil::HJJMatEl(
       ||
       (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
       ){
-      isel=-2; jsel=-1; // ubardbar->(WW)->dbar'ubar'
-      rsel=-3; ssel=-4;
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1234[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1243[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1234[1]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1243[1]));
-      ckm_takeout = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel) * __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
-      for (unsigned int iswap=0; iswap<2; iswap++){
-        msq_ubardbar_wwonly_ijrs1234[iswap] /= ckm_takeout;
-        msq_ubardbar_wwonly_ijrs1243[iswap] /= ckm_takeout;
+      // ubardbar->(WW)->dbar'ubar'
+      double ckm_ir = 0.;
+      double ckm_js = 0.;
+      std::vector<std::pair<int, int>> ijarr, rsarr;
+      ijarr.push_back(pair<int, int>(-2, -1)); rsarr.push_back(pair<int, int>(-3, -4));
+      ijarr.push_back(pair<int, int>(-2, -1)); rsarr.push_back(pair<int, int>(-5, -4));
+      ijarr.push_back(pair<int, int>(-2, -3)); rsarr.push_back(pair<int, int>(-1, -4));
+      ijarr.push_back(pair<int, int>(-2, -3)); rsarr.push_back(pair<int, int>(-5, -4));
+      ijarr.push_back(pair<int, int>(-2, -5)); rsarr.push_back(pair<int, int>(-1, -4));
+      ijarr.push_back(pair<int, int>(-2, -5)); rsarr.push_back(pair<int, int>(-3, -4));
+
+      ijarr.push_back(pair<int, int>(-4, -1)); rsarr.push_back(pair<int, int>(-3, -2));
+      ijarr.push_back(pair<int, int>(-4, -1)); rsarr.push_back(pair<int, int>(-5, -2));
+      ijarr.push_back(pair<int, int>(-4, -3)); rsarr.push_back(pair<int, int>(-1, -2));
+      ijarr.push_back(pair<int, int>(-4, -3)); rsarr.push_back(pair<int, int>(-5, -2));
+      ijarr.push_back(pair<int, int>(-4, -5)); rsarr.push_back(pair<int, int>(-1, -2));
+      ijarr.push_back(pair<int, int>(-4, -5)); rsarr.push_back(pair<int, int>(-3, -2));
+
+      for (unsigned int ijrs=0; ijrs<ijarr.size(); ijrs++){
+        isel = ijarr.at(ijrs).first;
+        jsel = ijarr.at(ijrs).second;
+        rsel = rsarr.at(ijrs).first;
+        ssel = rsarr.at(ijrs).second;
+        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
+        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+        if (ckm_ir!=0. && ckm_js!=0.) break;
       }
+      if (ckm_ir!=0. && ckm_js!=0.){
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1234[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1243[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ubardbar_wwonly_ijrs1234[1]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ubardbar_wwonly_ijrs1243[1]));
+        ckm_takeout = pow(ckm_ir*ckm_js, 2);
+        for (unsigned int iswap=0; iswap<2; iswap++){
+          msq_ubardbar_wwonly_ijrs1234[iswap] /= ckm_takeout;
+          msq_ubardbar_wwonly_ijrs1243[iswap] /= ckm_takeout;
+        }
+      }
+    }
+
+    if (verbosity>=TVar::DEBUG_VERBOSE){
+      cout << "msq_uu_zz_ijrs1234[" << iv << "] = " << msq_uu_zz_ijrs1234[iv] << endl;
+      cout << "msq_uu_zz_ijrs1243[" << iv << "] = " << msq_uu_zz_ijrs1243[iv] << endl;
+      cout << "msq_dd_zz_ijrs1234[" << iv << "] = " << msq_dd_zz_ijrs1234[iv] << endl;
+      cout << "msq_dd_zz_ijrs1243[" << iv << "] = " << msq_dd_zz_ijrs1243[iv] << endl;
+      cout << "msq_ubarubar_zz_ijrs1234[" << iv << "] = " << msq_ubarubar_zz_ijrs1234[iv] << endl;
+      cout << "msq_ubarubar_zz_ijrs1243[" << iv << "] = " << msq_ubarubar_zz_ijrs1243[iv] << endl;
+      cout << "msq_dbardbar_zz_ijrs1234[" << iv << "] = " << msq_dbardbar_zz_ijrs1234[iv] << endl;
+      cout << "msq_dbardbar_zz_ijrs1243[" << iv << "] = " << msq_dbardbar_zz_ijrs1243[iv] << endl;
+      cout << "msq_uu_zzid_ijrs1234[" << iv << "] = " << msq_uu_zzid_ijrs1234[iv] << endl;
+      cout << "msq_uu_zzid_ijrs1243[" << iv << "] = " << msq_uu_zzid_ijrs1243[iv] << endl;
+      cout << "msq_dd_zzid_ijrs1234[" << iv << "] = " << msq_dd_zzid_ijrs1234[iv] << endl;
+      cout << "msq_dd_zzid_ijrs1243[" << iv << "] = " << msq_dd_zzid_ijrs1243[iv] << endl;
+      cout << "msq_ubarubar_zzid_ijrs1234[" << iv << "] = " << msq_ubarubar_zzid_ijrs1234[iv] << endl;
+      cout << "msq_ubarubar_zzid_ijrs1243[" << iv << "] = " << msq_ubarubar_zzid_ijrs1243[iv] << endl;
+      cout << "msq_dbardbar_zzid_ijrs1234[" << iv << "] = " << msq_dbardbar_zzid_ijrs1234[iv] << endl;
+      cout << "msq_dbardbar_zzid_ijrs1243[" << iv << "] = " << msq_dbardbar_zzid_ijrs1243[iv] << endl;
+      cout << "msq_udbar_zz_ijrs1234[" << iv << "] = " << msq_udbar_zz_ijrs1234[iv] << endl;
+      cout << "msq_udbar_zz_ijrs1243[" << iv << "] = " << msq_udbar_zz_ijrs1243[iv] << endl;
+      cout << "msq_dubar_zz_ijrs1234[" << iv << "] = " << msq_dubar_zz_ijrs1234[iv] << endl;
+      cout << "msq_dubar_zz_ijrs1243[" << iv << "] = " << msq_dubar_zz_ijrs1243[iv] << endl;
+      cout << "msq_uubar_zz_ijrs1234[" << iv << "] = " << msq_uubar_zz_ijrs1234[iv] << endl;
+      cout << "msq_uubar_zz_ijrs1243[" << iv << "] = " << msq_uubar_zz_ijrs1243[iv] << endl;
+      cout << "msq_ddbar_zz_ijrs1234[" << iv << "] = " << msq_ddbar_zz_ijrs1234[iv] << endl;
+      cout << "msq_ddbar_zz_ijrs1243[" << iv << "] = " << msq_ddbar_zz_ijrs1243[iv] << endl;
+      cout << "msq_uubar_ww_ijrs1234[" << iv << "] = " << msq_uubar_ww_ijrs1234[iv] << endl;
+      cout << "msq_uubar_ww_ijrs1243[" << iv << "] = " << msq_uubar_ww_ijrs1243[iv] << endl;
+      cout << "msq_ddbar_ww_ijrs1234[" << iv << "] = " << msq_ddbar_ww_ijrs1234[iv] << endl;
+      cout << "msq_ddbar_ww_ijrs1243[" << iv << "] = " << msq_ddbar_ww_ijrs1243[iv] << endl;
+      cout << "msq_ud_wwonly_ijrs1234[" << iv << "] = " << msq_ud_wwonly_ijrs1234[iv] << endl;
+      cout << "msq_ud_wwonly_ijrs1243[" << iv << "] = " << msq_ud_wwonly_ijrs1243[iv] << endl;
+      cout << "msq_ubardbar_wwonly_ijrs1234[" << iv << "] = " << msq_ubardbar_wwonly_ijrs1234[iv] << endl;
+      cout << "msq_ubardbar_wwonly_ijrs1243[" << iv << "] = " << msq_ubardbar_wwonly_ijrs1243[iv] << endl;
+
     }
 
     int ijsel[3][121];
