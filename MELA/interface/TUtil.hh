@@ -10,6 +10,8 @@
 #include <vector>
 // TVar class
 #include "TVar.hh"
+// MCFM utilities
+#include "TMCFMUtils.hh"
 // Mod_Parameters
 #include "TModParameters.hh"
 // NNPDF Driver for JHUGen

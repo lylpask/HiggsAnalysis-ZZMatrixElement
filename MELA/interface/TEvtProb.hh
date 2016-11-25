@@ -39,7 +39,7 @@
 #include "TCouplings.hh"
 #include "TVar.hh"
 #include "TUtil.hh"
-#include <ZZMatrixElement/MELA/interface/MELAHXSWidth.h>
+#include "MELAHXSWidth.h"
 
 
 //----------------------------------------

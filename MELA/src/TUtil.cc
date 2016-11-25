@@ -1781,10 +1781,45 @@ bool TUtil::MCFM_SetupParticleCouplings(
   ){
   bool result=true;
 
+  // Initialize Z couplings
+  zcouple_.q1=0;
+  zcouple_.l1=0;
+  zcouple_.r1=0;
+  zcouple_.q2=0;
+  zcouple_.l2=0;
+  zcouple_.r2=0;
+
+  // Initialize plabels
   TString strplabel[mxpart];
+  for (int ip=0; ip<mxpart; ip++) strplabel[ip]="  ";
+
+  // Channel checks
   unsigned int ndau = mela_event.pDaughters.size();
-  unsigned int napart = mela_event.pAssociated.size();
   if (ndau<1) return false;
+  unsigned int napart = mela_event.pAssociated.size();
+  bool isWW = (ndau>=4 && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1)));
+  bool isZZ = (ndau>=4 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)));
+  //bool hasZZ4fInterf = isZZ && abs(pId[0])==abs(pId[2]) && abs(pId[1])==abs(pId[3]) && !PDGHelpers::isAnUnknownJet(pId[0]) && !PDGHelpers::isAnUnknownJet(pId[3]);
+  bool isZJJ = false;
+  if (ndau>=4) isZJJ = PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)); // No check on whether daughters 2 and 3 are jets. Notice both isZZ and isZJJ could be true
+  bool isZG = (ndau>=3 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)));
+  bool isGG = (ndau>=2 && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)));
+  bool hasZ1 = (isZZ || isZG || isZJJ);
+  bool hasZ2 = isZZ;
+  bool hasW1 = isWW;
+  bool hasW2 = isWW;
+  if (verbosity>=TVar::DEBUG){
+    cout << "TUtil::MCFM_SetupParticleCouplings(" << TVar::ProductionName(production) << ", " << TVar::ProcessName(process) << "):\nInitial configuration ";
+    if (isGG) cout << "is GG.";
+    else if (isZG) cout << "is ZG.";
+    else if (isZZ) cout << "is ZZ.";
+    else if (isZJJ) cout << "is ZJJ.";
+    else if (isWW) cout << "is WW.";
+    else cout << "has no valid decay!";
+    cout << endl;
+  }
+
+  // Setup the ordering arrays
   int* pApartOrder = 0;
   int* pApartId = 0;
   if (napart>0){
@@ -1805,18 +1840,6 @@ bool TUtil::MCFM_SetupParticleCouplings(
     pWOrder[ip]=ip;
     pId[ip]=mela_event.pDaughters.at(ip).first; // This order does not change.
   }
-  bool isWW = (ndau>=4 && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1)));
-  bool isZZ = (ndau>=4 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(1)));
-  //bool hasZZ4fInterf = isZZ && abs(pId[0])==abs(pId[2]) && abs(pId[1])==abs(pId[3]) && !PDGHelpers::isAnUnknownJet(pId[0]) && !PDGHelpers::isAnUnknownJet(pId[3]);
-  bool isZJJ = false;
-  if (ndau>=4) isZJJ = PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)); // No check on whether daughters 2 and 3 are jets. Notice both isZZ and isZJJ could be true
-  bool isZG = (ndau>=3 && PDGHelpers::isAZBoson(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)));
-  bool isGG = (ndau>=2 && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(0)) && PDGHelpers::isAPhoton(mela_event.intermediateVid.at(1)));
-
-  bool hasZ1 = (isZZ || isZG || isZJJ);
-  bool hasZ2 = isZZ;
-  bool hasW1 = isWW;
-  bool hasW2 = isWW;
 
   // Special case checks
   bool useQQBZGAM = (isZG && process == TVar::bkgZGamma && (production == TVar::ZZQQB || production == TVar::ZZINDEPENDENT));
@@ -1849,28 +1872,6 @@ bool TUtil::MCFM_SetupParticleCouplings(
     (production == TVar::JJEWQCD || production == TVar::JJEWQCD_S || production == TVar::JJEWQCD_TU)
     );
   bool useQQVVQQany = useQQVVQQ || useQQVVQQstrong || useQQVVQQboth;
-
-  if (verbosity>=TVar::DEBUG){
-    cout << "TUtil::MCFM_SetupParticleCouplings(" << TVar::ProductionName(production) << ", " << TVar::ProcessName(process) << "):\nInitial configuration ";
-    if (isGG) cout << "is GG.";
-    else if (isZG) cout << "is ZG.";
-    else if (isZZ) cout << "is ZZ.";
-    else if (isZJJ) cout << "is ZJJ.";
-    else if (isWW) cout << "is WW.";
-    else cout << "has no valid decay!";
-    cout << endl;
-  }
-
-  // Initialize Z couplings
-  zcouple_.q1=0;
-  zcouple_.l1=0;
-  zcouple_.r1=0;
-  zcouple_.q2=0;
-  zcouple_.l2=0;
-  zcouple_.r2=0;
-
-  // Initialize plabels
-  for (int ip=0; ip<mxpart; ip++) strplabel[ip]="  ";
 
   /**************************/
   /* Begin the setup checks */
@@ -2046,13 +2047,28 @@ bool TUtil::MCFM_SetupParticleCouplings(
           if (hasZll || hasZnn) break;
         }
       }
+      unsigned int iout=6;
+      unsigned int jout=7;
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]){
+          swap(iout, jout);
+          swap(pApartOrder[0], pApartOrder[1]);
+        }
+      }
       if (hasZll){
-        strplabel[6]="el";
-        strplabel[7]="ea";
+        strplabel[iout]="el";
+        strplabel[jout]="ea";
       }
       else if (hasZnn){
-        strplabel[6]="nl";
-        strplabel[7]="na";
+        strplabel[iout]="nl";
+        strplabel[jout]="na";
       }
       else result = false;
     }
@@ -2107,13 +2123,28 @@ bool TUtil::MCFM_SetupParticleCouplings(
         }
         if (hasWplus || hasWminus) break;
       }
+      unsigned int iout=6;
+      unsigned int jout=7;
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]){
+          swap(iout, jout);
+          swap(pApartOrder[0], pApartOrder[1]);
+        }
+      }
       if (hasWplus){ // W+
-        strplabel[6]="nl";
-        strplabel[7]="ea";
+        strplabel[iout]="nl";
+        strplabel[jout]="ea";
       }
       else if (hasWminus){ // W-
-        strplabel[6]="el";
-        strplabel[7]="na";
+        strplabel[iout]="el";
+        strplabel[jout]="na";
       }
       else result = false;
     }
@@ -2164,6 +2195,16 @@ bool TUtil::MCFM_SetupParticleCouplings(
           }
           if (hasZuu || hasZdd || hasZjj) break;
         }
+      }
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]) swap(pApartOrder[0], pApartOrder[1]);
       }
       if (hasZuu || hasZdd){
         strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]], true);
@@ -2243,6 +2284,16 @@ bool TUtil::MCFM_SetupParticleCouplings(
         }
         if (hasWplus || hasWminus || hasWjj) break;
       }
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]) swap(pApartOrder[0], pApartOrder[1]);
+      }
       if (hasWplus || hasWminus){ // W+ or W-
         strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]], true);
         strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]], true);
@@ -2256,18 +2307,54 @@ bool TUtil::MCFM_SetupParticleCouplings(
     else if ((isWW || isZZ) && napart>=2 && (production==TVar::JJQCD || production==TVar::JJQCD_S || production==TVar::JJQCD_TU)){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJQCD)*2 + int(production==TVar::JJQCD_TU)*1 + int(production==TVar::JJQCD_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 2; // Doesn't matter, already JJQCD
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]) swap(pApartOrder[0], pApartOrder[1]);
+      }
       strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]]);
       strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]]);
     }
     else if ((isWW || isZZ) && napart>=2 && (production==TVar::JJVBF || production==TVar::JJVBF_S || production==TVar::JJVBF_TU)){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJVBF)*2 + int(production==TVar::JJVBF_TU)*1 + int(production==TVar::JJVBF_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 0; // VBF-only process
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]) swap(pApartOrder[0], pApartOrder[1]);
+        /*
+        if (verbosity>=TVar::DEBUG){
+          cout << "AID[0]=" << pApartId[pApartOrder[0]] << "(@" << pApartOrder[0] << ")" << endl;
+          cout << "AID[1]=" << pApartId[pApartOrder[1]] << "(@" << pApartOrder[1] << ")" << endl;
+        }
+        */
+      }
       strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]], true);
       strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]], true);
     }
     else if ((isWW || isZZ) && napart>=2 && (production==TVar::JJEW || production==TVar::JJEWQCD || production==TVar::JJEW_S || production==TVar::JJEWQCD_S || production==TVar::JJEW_TU || production==TVar::JJEWQCD_TU)){
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJEWQCD || production==TVar::JJEW)*2 + int(production==TVar::JJEWQCD_TU || production==TVar::JJEW_TU)*1 + int(production==TVar::JJEWQCD_S || production==TVar::JJEW_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 2; // VBF+VH process
+      if (useQQVVQQany){
+        int qqvvqq_apartordering[2];
+        TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
+          mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
+          pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
+          qqvvqq_apartordering
+          );
+        if (qqvvqq_apartordering[0]==-1 || qqvvqq_apartordering[1]==-1) result=false;
+        else if (qqvvqq_apartordering[0]>qqvvqq_apartordering[1]) swap(pApartOrder[0], pApartOrder[1]);
+      }
       strplabel[6]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[0]]);
       strplabel[7]=TUtil::GetMCFMParticleLabel(pApartId[pApartOrder[1]]);
     }
@@ -3992,8 +4079,8 @@ double TUtil::JHUGenMatEl(
         else if (isSpinTwo) __modgraviton_MOD_evalamp_g_vv(p4, MYIDUP, &MatElTmp);
       }
       // Add CKM elements since they are not included
-      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second))/__modparameters_MOD_scalefactor(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second)), 2);
-      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) MatElTmp *= pow(__modparameters_MOD_ckm(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second))/__modparameters_MOD_scalefactor(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second)), 2);
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(0))) MatElTmp *= pow(__modparameters_MOD_ckmbare(&(idarray[0].at(v1).first), &(idarray[0].at(v1).second)), 2);
+      if (PDGHelpers::isAWBoson(mela_event.intermediateVid.at(1))) MatElTmp *= pow(__modparameters_MOD_ckmbare(&(idarray[1].at(v2).first), &(idarray[1].at(v2).second)), 2);
 
       if (verbosity >= TVar::DEBUG) cout << "=====\nTUtil::JHUGenMatEl: Instance MatElTmp = " << MatElTmp << "\n=====" << endl;
       MatElSq += MatElTmp;
@@ -4533,6 +4620,10 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
       &&
       (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      &&
+      (partonIsUnknown[2] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0))
+      &&
+      (partonIsUnknown[3] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
       ){
       isel=2; jsel=4; // uu'->(ZZ)->uu'
       rsel=isel; ssel=jsel;
@@ -4555,6 +4646,10 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
       &&
       (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
+      &&
+      (partonIsUnknown[2] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0))
+      &&
+      (partonIsUnknown[3] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0))
       ){
       isel=1; jsel=3; // dd'->(ZZ)->dd'
       rsel=isel; ssel=jsel;
@@ -4577,6 +4672,10 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
       &&
       (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      &&
+      (partonIsUnknown[2] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
+      &&
+      (partonIsUnknown[3] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
       ){
       isel=-2; jsel=-4; // ubarubar'->(ZZ)->ubarubar'
       rsel=isel; ssel=jsel;
@@ -4599,6 +4698,10 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
       &&
       (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
+      &&
+      (partonIsUnknown[2] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0))
+      &&
+      (partonIsUnknown[3] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0))
       ){
       isel=-1; jsel=-3; // dbardbar'->(ZZ)->dbardbar'
       rsel=isel; ssel=jsel;
@@ -4618,9 +4721,7 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      //      &&
-      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      (
       (partonIsUnknown[0] && partonIsUnknown[1])
       ||
       (
@@ -4632,6 +4733,21 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
       ||
       (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
+      )
+      &&
+      (
+      (partonIsUnknown[2] && partonIsUnknown[3])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)
+      )
+      ||
+      (partonIsUnknown[2] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0)))
+      ||
+      (partonIsUnknown[3] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)))
+      )
       ){
       isel=2; jsel=-1; // udbar->(ZZ)->udbar
       rsel=isel; ssel=jsel;
@@ -4642,9 +4758,7 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
-      //      &&
-      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      (
       (partonIsUnknown[0] && partonIsUnknown[1])
       ||
       (
@@ -4656,6 +4770,21 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)))
       ||
       (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
+      )
+      &&
+      (
+      (partonIsUnknown[2] && partonIsUnknown[3])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)
+      )
+      ||
+      (partonIsUnknown[2] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0)))
+      ||
+      (partonIsUnknown[3] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)))
+      )
       ){
       isel=1; jsel=-2; // dubar->(ZZ)->dubar
       rsel=isel; ssel=jsel;
@@ -4666,112 +4795,133 @@ double TUtil::HJJMatEl(
     }
 
     if (
-      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      //      &&
-      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
       (partonIsUnknown[0] && partonIsUnknown[1])
       ||
-      (
-      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[0]*MYIDUP_tmp[1]<0)
       ||
-      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
-      )
+      (partonIsUnknown[0] && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]))
       ||
-      (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
-      ||
-      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
+      (partonIsUnknown[1] && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]))
       ){
       isel=2; jsel=-2; // uubar->(ZZ)->uubar
-      rsel=isel; ssel=jsel;
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_zz_ijrs1234[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_zz_ijrs1243[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_zz_ijrs1234[1]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_zz_ijrs1243[1]));
-
-      rsel=-1; ssel=1; // uubar->(WW)->ddbar
-      double ckm_ir = 0.;
-      double ckm_js = 0.;
-      while (ckm_ir==0.){
-        rsel += 2;
-        ssel -= 2;
-        if (abs(rsel)>=6){
-          rsel=-1; ssel=1;
-          isel+=2; jsel-=2;
-          continue;
-        }
-        if (abs(isel)>=6) break;
-        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
-        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+      if (
+        (partonIsUnknown[2] && partonIsUnknown[3])
+        ||
+        (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[2]*MYIDUP_tmp[3]<0)
+        ||
+        (partonIsUnknown[2] && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]))
+        ||
+        (partonIsUnknown[3] && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]))
+        ){
+        rsel=isel; ssel=jsel; // uubar->(ZZ)->uubar
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_zz_ijrs1234[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_zz_ijrs1243[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_zz_ijrs1234[1]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_zz_ijrs1243[1]));
       }
-      if (ckm_ir!=0.){
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_ww_ijrs1234[0]));
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_ww_ijrs1243[0]));
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_ww_ijrs1234[1]));
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_ww_ijrs1243[1]));
-        ckm_takeout = pow(ckm_ir*ckm_js, 2);
-        for (unsigned int iswap=0; iswap<2; iswap++){
-          msq_uubar_ww_ijrs1234[iswap] /= ckm_takeout;
-          msq_uubar_ww_ijrs1243[iswap] /= ckm_takeout;
+      if (
+        (partonIsUnknown[2] && partonIsUnknown[3])
+        ||
+        (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[2]*MYIDUP_tmp[3]<0)
+        ||
+        (partonIsUnknown[2] && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]))
+        ||
+        (partonIsUnknown[3] && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]))
+        ){
+        rsel=-1; ssel=1; // uubar->(WW)->ddbar
+        double ckm_ir = 0.;
+        double ckm_js = 0.;
+        while (ckm_ir==0.){
+          rsel += 2;
+          ssel -= 2;
+          if (abs(rsel)>=6){
+            rsel=-1; ssel=1;
+            isel+=2; jsel-=2;
+            continue;
+          }
+          if (abs(isel)>=6) break;
+          ckm_ir = __modparameters_MOD_ckmbare(&isel, &rsel);
+          ckm_js = __modparameters_MOD_ckmbare(&jsel, &ssel);
+        }
+        if (ckm_ir!=0.){
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_uubar_ww_ijrs1234[0]));
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_uubar_ww_ijrs1243[0]));
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_uubar_ww_ijrs1234[1]));
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_uubar_ww_ijrs1243[1]));
+          ckm_takeout = pow(ckm_ir*ckm_js, 2);
+          for (unsigned int iswap=0; iswap<2; iswap++){
+            msq_uubar_ww_ijrs1234[iswap] /= ckm_takeout;
+            msq_uubar_ww_ijrs1243[iswap] /= ckm_takeout;
+          }
         }
       }
     }
 
     if (
-      //      (partonIsUnknown[0] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-      //      &&
-      //      (partonIsUnknown[1] || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
       (partonIsUnknown[0] && partonIsUnknown[1])
       ||
-      (
-      (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)
+      (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[0]*MYIDUP_tmp[1]<0)
       ||
-      (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
-      )
+      (partonIsUnknown[0] && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]))
       ||
-      (partonIsUnknown[0] && ((PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
-      ||
-      (partonIsUnknown[1] && ((PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
+      (partonIsUnknown[1] && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]))
       ){
-      isel=1; jsel=-1; // ddbar->(ZZ)->ddbar
-      rsel=isel; ssel=jsel;
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1234[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1243[0]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1234[1]));
-      __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1243[1]));
-
-      // ddbar->(WW)->uubar
-      rsel=0; ssel=0;
-      double ckm_ir = 0.;
-      double ckm_js = 0.;
-      while (ckm_ir==0.){
-        rsel += 2;
-        ssel -= 2;
-        if (abs(rsel)>=6){
-          rsel=0; ssel=0;
-          isel+=2; jsel-=2;
-          continue;
-        }
-        if (abs(isel)>=6) break;
-        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
-        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+      isel=1; jsel=-1;
+      if (
+        (partonIsUnknown[2] && partonIsUnknown[3])
+        ||
+        (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[2]*MYIDUP_tmp[3]<0)
+        ||
+        (partonIsUnknown[2] && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]))
+        ||
+        (partonIsUnknown[3] && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]))
+        ){
+        rsel=isel; ssel=jsel; // ddbar->(ZZ)->ddbar
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1234[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1243[0]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_zz_ijrs1234[1]));
+        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_zz_ijrs1243[1]));
       }
-      if (ckm_ir!=0.){
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1234[0]));
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1243[0]));
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1234[1]));
-        __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1243[1]));
-        ckm_takeout = pow(ckm_ir*ckm_js, 2);
-        for (unsigned int iswap=0; iswap<2; iswap++){
-          msq_ddbar_ww_ijrs1234[iswap] /= ckm_takeout;
-          msq_ddbar_ww_ijrs1243[iswap] /= ckm_takeout;
+      if (
+        (partonIsUnknown[2] && partonIsUnknown[3])
+        ||
+        (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[2]*MYIDUP_tmp[3]<0)
+        ||
+        (partonIsUnknown[2] && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]))
+        ||
+        (partonIsUnknown[3] && PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]))
+        ){
+        rsel=0; ssel=0; // ddbar->(WW)->uubar
+        double ckm_ir = 0.;
+        double ckm_js = 0.;
+        while (ckm_ir==0.){
+          rsel += 2;
+          ssel -= 2;
+          if (abs(rsel)>=6){
+            rsel=0; ssel=0;
+            isel+=2; jsel-=2;
+            continue;
+          }
+          if (abs(isel)>=6) break;
+          ckm_ir = __modparameters_MOD_ckmbare(&isel, &rsel);
+          ckm_js = __modparameters_MOD_ckmbare(&jsel, &ssel);
+        }
+        if (ckm_ir!=0.){
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1234[0]));
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &isel, &jsel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1243[0]));
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &ssel, &rsel, &(msq_ddbar_ww_ijrs1234[1]));
+          __modhiggsjj_MOD_evalamp_wbfh_unsymm_sa_select_exact(p4, &jsel, &isel, &rsel, &ssel, &(msq_ddbar_ww_ijrs1243[1]));
+          ckm_takeout = pow(ckm_ir*ckm_js, 2);
+          for (unsigned int iswap=0; iswap<2; iswap++){
+            msq_ddbar_ww_ijrs1234[iswap] /= ckm_takeout;
+            msq_ddbar_ww_ijrs1243[iswap] /= ckm_takeout;
+          }
         }
       }
     }
 
     if (
-      //      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0))
-      //      &&
-      //      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0))
+      (
       (partonIsUnknown[0] && partonIsUnknown[1])
       ||
       (
@@ -4783,32 +4933,41 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)))
       ||
       (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0)))
+      )
+      &&
+      (
+      (partonIsUnknown[2] && partonIsUnknown[3])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0)
+      )
+      ||
+      (partonIsUnknown[2] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0)))
+      ||
+      (partonIsUnknown[3] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0)))
+      )
       ){
       // ud->(WW)->d'u'
       double ckm_ir = 0.;
       double ckm_js = 0.;
-      std::vector<std::pair<int, int>> ijarr, rsarr;
-      ijarr.push_back(pair<int, int>(2, 1)); rsarr.push_back(pair<int, int>(3, 4));
-      ijarr.push_back(pair<int, int>(2, 1)); rsarr.push_back(pair<int, int>(5, 4));
-      ijarr.push_back(pair<int, int>(2, 3)); rsarr.push_back(pair<int, int>(1, 4));
-      ijarr.push_back(pair<int, int>(2, 3)); rsarr.push_back(pair<int, int>(5, 4));
-      ijarr.push_back(pair<int, int>(2, 5)); rsarr.push_back(pair<int, int>(1, 4));
-      ijarr.push_back(pair<int, int>(2, 5)); rsarr.push_back(pair<int, int>(3, 4));
-
-      ijarr.push_back(pair<int, int>(4, 1)); rsarr.push_back(pair<int, int>(3, 2));
-      ijarr.push_back(pair<int, int>(4, 1)); rsarr.push_back(pair<int, int>(5, 2));
-      ijarr.push_back(pair<int, int>(4, 3)); rsarr.push_back(pair<int, int>(1, 2));
-      ijarr.push_back(pair<int, int>(4, 3)); rsarr.push_back(pair<int, int>(5, 2));
-      ijarr.push_back(pair<int, int>(4, 5)); rsarr.push_back(pair<int, int>(1, 2));
-      ijarr.push_back(pair<int, int>(4, 5)); rsarr.push_back(pair<int, int>(3, 2));
-
-      for (unsigned int ijrs=0; ijrs<ijarr.size(); ijrs++){
-        isel = ijarr.at(ijrs).first;
-        jsel = ijarr.at(ijrs).second;
-        rsel = rsarr.at(ijrs).first;
-        ssel = rsarr.at(ijrs).second;
-        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
-        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+      const unsigned int nCombinations = 6;
+      int ijrs_arr[nCombinations][4] ={
+        { 2, 3, 1, 4 },
+        { 2, 3, 5, 4 },
+        { 2, 5, 1, 4 },
+        { 2, 5, 3, 4 },
+        { 2, 1, 3, 4 },
+        { 2, 1, 5, 4 }
+      };
+      for (unsigned int ijrs=0; ijrs<nCombinations; ijrs++){
+        isel = ijrs_arr[ijrs][0];
+        jsel = ijrs_arr[ijrs][1];
+        rsel = ijrs_arr[ijrs][2];
+        ssel = ijrs_arr[ijrs][3];
+        ckm_ir = __modparameters_MOD_ckmbare(&isel, &rsel);
+        ckm_js = __modparameters_MOD_ckmbare(&jsel, &ssel);
         if (ckm_ir!=0. && ckm_js!=0.) break;
       }
       if (ckm_ir!=0. && ckm_js!=0.){
@@ -4825,9 +4984,7 @@ double TUtil::HJJMatEl(
     }
 
     if (
-//      (partonIsUnknown[0] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0))
-//      &&
-//      (partonIsUnknown[1] || (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0))
+      (
       (partonIsUnknown[0] && partonIsUnknown[1])
       ||
       (
@@ -4839,32 +4996,41 @@ double TUtil::HJJMatEl(
       (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0)))
       ||
       (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
+      )
+      &&
+      (
+      (partonIsUnknown[2] && partonIsUnknown[3])
+      ||
+      (
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0)
+      ||
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)
+      )
+      ||
+      (partonIsUnknown[2] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0)))
+      ||
+      (partonIsUnknown[3] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)))
+      )
       ){
       // ubardbar->(WW)->dbar'ubar'
       double ckm_ir = 0.;
       double ckm_js = 0.;
-      std::vector<std::pair<int, int>> ijarr, rsarr;
-      ijarr.push_back(pair<int, int>(-2, -1)); rsarr.push_back(pair<int, int>(-3, -4));
-      ijarr.push_back(pair<int, int>(-2, -1)); rsarr.push_back(pair<int, int>(-5, -4));
-      ijarr.push_back(pair<int, int>(-2, -3)); rsarr.push_back(pair<int, int>(-1, -4));
-      ijarr.push_back(pair<int, int>(-2, -3)); rsarr.push_back(pair<int, int>(-5, -4));
-      ijarr.push_back(pair<int, int>(-2, -5)); rsarr.push_back(pair<int, int>(-1, -4));
-      ijarr.push_back(pair<int, int>(-2, -5)); rsarr.push_back(pair<int, int>(-3, -4));
-
-      ijarr.push_back(pair<int, int>(-4, -1)); rsarr.push_back(pair<int, int>(-3, -2));
-      ijarr.push_back(pair<int, int>(-4, -1)); rsarr.push_back(pair<int, int>(-5, -2));
-      ijarr.push_back(pair<int, int>(-4, -3)); rsarr.push_back(pair<int, int>(-1, -2));
-      ijarr.push_back(pair<int, int>(-4, -3)); rsarr.push_back(pair<int, int>(-5, -2));
-      ijarr.push_back(pair<int, int>(-4, -5)); rsarr.push_back(pair<int, int>(-1, -2));
-      ijarr.push_back(pair<int, int>(-4, -5)); rsarr.push_back(pair<int, int>(-3, -2));
-
-      for (unsigned int ijrs=0; ijrs<ijarr.size(); ijrs++){
-        isel = ijarr.at(ijrs).first;
-        jsel = ijarr.at(ijrs).second;
-        rsel = rsarr.at(ijrs).first;
-        ssel = rsarr.at(ijrs).second;
-        ckm_ir = __modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel);
-        ckm_js = __modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel);
+      const unsigned int nCombinations = 6;
+      int ijrs_arr[nCombinations][4] ={
+        { -2, -3, -1, -4 },
+        { -2, -3, -5, -4 },
+        { -2, -5, -1, -4 },
+        { -2, -5, -3, -4 },
+        { -2, -1, -3, -4 },
+        { -2, -1, -5, -4 }
+      };
+      for (unsigned int ijrs=0; ijrs<nCombinations; ijrs++){
+        isel = ijrs_arr[ijrs][0];
+        jsel = ijrs_arr[ijrs][1];
+        rsel = ijrs_arr[ijrs][2];
+        ssel = ijrs_arr[ijrs][3];
+        ckm_ir = __modparameters_MOD_ckmbare(&isel, &rsel);
+        ckm_js = __modparameters_MOD_ckmbare(&jsel, &ssel);
         if (ckm_ir!=0. && ckm_js!=0.) break;
       }
       if (ckm_ir!=0. && ckm_js!=0.){
@@ -4881,39 +5047,43 @@ double TUtil::HJJMatEl(
     }
 
     if (verbosity>=TVar::DEBUG_VERBOSE){
-      cout << "msq_uu_zz_ijrs1234[" << iv << "] = " << msq_uu_zz_ijrs1234[iv] << endl;
-      cout << "msq_uu_zz_ijrs1243[" << iv << "] = " << msq_uu_zz_ijrs1243[iv] << endl;
-      cout << "msq_dd_zz_ijrs1234[" << iv << "] = " << msq_dd_zz_ijrs1234[iv] << endl;
-      cout << "msq_dd_zz_ijrs1243[" << iv << "] = " << msq_dd_zz_ijrs1243[iv] << endl;
-      cout << "msq_ubarubar_zz_ijrs1234[" << iv << "] = " << msq_ubarubar_zz_ijrs1234[iv] << endl;
-      cout << "msq_ubarubar_zz_ijrs1243[" << iv << "] = " << msq_ubarubar_zz_ijrs1243[iv] << endl;
-      cout << "msq_dbardbar_zz_ijrs1234[" << iv << "] = " << msq_dbardbar_zz_ijrs1234[iv] << endl;
-      cout << "msq_dbardbar_zz_ijrs1243[" << iv << "] = " << msq_dbardbar_zz_ijrs1243[iv] << endl;
-      cout << "msq_uu_zzid_ijrs1234[" << iv << "] = " << msq_uu_zzid_ijrs1234[iv] << endl;
-      cout << "msq_uu_zzid_ijrs1243[" << iv << "] = " << msq_uu_zzid_ijrs1243[iv] << endl;
-      cout << "msq_dd_zzid_ijrs1234[" << iv << "] = " << msq_dd_zzid_ijrs1234[iv] << endl;
-      cout << "msq_dd_zzid_ijrs1243[" << iv << "] = " << msq_dd_zzid_ijrs1243[iv] << endl;
-      cout << "msq_ubarubar_zzid_ijrs1234[" << iv << "] = " << msq_ubarubar_zzid_ijrs1234[iv] << endl;
-      cout << "msq_ubarubar_zzid_ijrs1243[" << iv << "] = " << msq_ubarubar_zzid_ijrs1243[iv] << endl;
-      cout << "msq_dbardbar_zzid_ijrs1234[" << iv << "] = " << msq_dbardbar_zzid_ijrs1234[iv] << endl;
-      cout << "msq_dbardbar_zzid_ijrs1243[" << iv << "] = " << msq_dbardbar_zzid_ijrs1243[iv] << endl;
-      cout << "msq_udbar_zz_ijrs1234[" << iv << "] = " << msq_udbar_zz_ijrs1234[iv] << endl;
-      cout << "msq_udbar_zz_ijrs1243[" << iv << "] = " << msq_udbar_zz_ijrs1243[iv] << endl;
-      cout << "msq_dubar_zz_ijrs1234[" << iv << "] = " << msq_dubar_zz_ijrs1234[iv] << endl;
-      cout << "msq_dubar_zz_ijrs1243[" << iv << "] = " << msq_dubar_zz_ijrs1243[iv] << endl;
-      cout << "msq_uubar_zz_ijrs1234[" << iv << "] = " << msq_uubar_zz_ijrs1234[iv] << endl;
-      cout << "msq_uubar_zz_ijrs1243[" << iv << "] = " << msq_uubar_zz_ijrs1243[iv] << endl;
-      cout << "msq_ddbar_zz_ijrs1234[" << iv << "] = " << msq_ddbar_zz_ijrs1234[iv] << endl;
-      cout << "msq_ddbar_zz_ijrs1243[" << iv << "] = " << msq_ddbar_zz_ijrs1243[iv] << endl;
-      cout << "msq_uubar_ww_ijrs1234[" << iv << "] = " << msq_uubar_ww_ijrs1234[iv] << endl;
-      cout << "msq_uubar_ww_ijrs1243[" << iv << "] = " << msq_uubar_ww_ijrs1243[iv] << endl;
-      cout << "msq_ddbar_ww_ijrs1234[" << iv << "] = " << msq_ddbar_ww_ijrs1234[iv] << endl;
-      cout << "msq_ddbar_ww_ijrs1243[" << iv << "] = " << msq_ddbar_ww_ijrs1243[iv] << endl;
-      cout << "msq_ud_wwonly_ijrs1234[" << iv << "] = " << msq_ud_wwonly_ijrs1234[iv] << endl;
-      cout << "msq_ud_wwonly_ijrs1243[" << iv << "] = " << msq_ud_wwonly_ijrs1243[iv] << endl;
-      cout << "msq_ubardbar_wwonly_ijrs1234[" << iv << "] = " << msq_ubardbar_wwonly_ijrs1234[iv] << endl;
-      cout << "msq_ubardbar_wwonly_ijrs1243[" << iv << "] = " << msq_ubardbar_wwonly_ijrs1243[iv] << endl;
-
+      cout << "TUtil::HJJMatEl: The pre-computed MEs:" << endl;
+      for (unsigned int iswap=0; iswap<2; iswap++){
+        cout
+          << "\tmsq_uu_zz_ijrs1234[" << iswap << "] = " << msq_uu_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_uu_zz_ijrs1243[" << iswap << "] = " << msq_uu_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_dd_zz_ijrs1234[" << iswap << "] = " << msq_dd_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_dd_zz_ijrs1243[" << iswap << "] = " << msq_dd_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_ubarubar_zz_ijrs1234[" << iswap << "] = " << msq_ubarubar_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_ubarubar_zz_ijrs1243[" << iswap << "] = " << msq_ubarubar_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_dbardbar_zz_ijrs1234[" << iswap << "] = " << msq_dbardbar_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_dbardbar_zz_ijrs1243[" << iswap << "] = " << msq_dbardbar_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_uu_zzid_ijrs1234[" << iswap << "] = " << msq_uu_zzid_ijrs1234[iswap] << '\n'
+          << "\tmsq_uu_zzid_ijrs1243[" << iswap << "] = " << msq_uu_zzid_ijrs1243[iswap] << '\n'
+          << "\tmsq_dd_zzid_ijrs1234[" << iswap << "] = " << msq_dd_zzid_ijrs1234[iswap] << '\n'
+          << "\tmsq_dd_zzid_ijrs1243[" << iswap << "] = " << msq_dd_zzid_ijrs1243[iswap] << '\n'
+          << "\tmsq_ubarubar_zzid_ijrs1234[" << iswap << "] = " << msq_ubarubar_zzid_ijrs1234[iswap] << '\n'
+          << "\tmsq_ubarubar_zzid_ijrs1243[" << iswap << "] = " << msq_ubarubar_zzid_ijrs1243[iswap] << '\n'
+          << "\tmsq_dbardbar_zzid_ijrs1234[" << iswap << "] = " << msq_dbardbar_zzid_ijrs1234[iswap] << '\n'
+          << "\tmsq_dbardbar_zzid_ijrs1243[" << iswap << "] = " << msq_dbardbar_zzid_ijrs1243[iswap] << '\n'
+          << "\tmsq_udbar_zz_ijrs1234[" << iswap << "] = " << msq_udbar_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_udbar_zz_ijrs1243[" << iswap << "] = " << msq_udbar_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_dubar_zz_ijrs1234[" << iswap << "] = " << msq_dubar_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_dubar_zz_ijrs1243[" << iswap << "] = " << msq_dubar_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_uubar_zz_ijrs1234[" << iswap << "] = " << msq_uubar_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_uubar_zz_ijrs1243[" << iswap << "] = " << msq_uubar_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_ddbar_zz_ijrs1234[" << iswap << "] = " << msq_ddbar_zz_ijrs1234[iswap] << '\n'
+          << "\tmsq_ddbar_zz_ijrs1243[" << iswap << "] = " << msq_ddbar_zz_ijrs1243[iswap] << '\n'
+          << "\tmsq_uubar_ww_ijrs1234[" << iswap << "] = " << msq_uubar_ww_ijrs1234[iswap] << '\n'
+          << "\tmsq_uubar_ww_ijrs1243[" << iswap << "] = " << msq_uubar_ww_ijrs1243[iswap] << '\n'
+          << "\tmsq_ddbar_ww_ijrs1234[" << iswap << "] = " << msq_ddbar_ww_ijrs1234[iswap] << '\n'
+          << "\tmsq_ddbar_ww_ijrs1243[" << iswap << "] = " << msq_ddbar_ww_ijrs1243[iswap] << '\n'
+          << "\tmsq_ud_wwonly_ijrs1234[" << iswap << "] = " << msq_ud_wwonly_ijrs1234[iswap] << '\n'
+          << "\tmsq_ud_wwonly_ijrs1243[" << iswap << "] = " << msq_ud_wwonly_ijrs1243[iswap] << '\n'
+          << "\tmsq_ubardbar_wwonly_ijrs1234[" << iswap << "] = " << msq_ubardbar_wwonly_ijrs1234[iswap] << '\n'
+          << "\tmsq_ubardbar_wwonly_ijrs1243[" << iswap << "] = " << msq_ubardbar_wwonly_ijrs1243[iswap]
+          << endl;
+      }
     }
 
     int ijsel[3][121];
@@ -5031,14 +5201,14 @@ double TUtil::HJJMatEl(
           else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
             rsel=possible_rsel.at(ix);
-            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&isel, &rsel), 2);
             possible_Vsqir.push_back(ckmval);
           }
           if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
           else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
           for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
             ssel=possible_ssel.at(iy);
-            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&jsel, &ssel), 2);
             possible_Vsqjs.push_back(ckmval);
           }
 
@@ -5086,14 +5256,14 @@ double TUtil::HJJMatEl(
           else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
             rsel=possible_rsel.at(ix);
-            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&isel, &rsel), 2);
             possible_Vsqir.push_back(ckmval);
           }
           if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
           else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
           for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
             ssel=possible_ssel.at(iy);
-            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&jsel, &ssel), 2);
             possible_Vsqjs.push_back(ckmval);
           }
 
@@ -5255,14 +5425,14 @@ double TUtil::HJJMatEl(
           else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
             rsel=possible_rsel.at(ix);
-            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&isel, &rsel), 2);
             possible_Vsqir.push_back(ckmval);
           }
           if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
           else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
           for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
             ssel=possible_ssel.at(iy);
-            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&jsel, &ssel), 2);
             possible_Vsqjs.push_back(ckmval);
           }
 
@@ -5310,14 +5480,14 @@ double TUtil::HJJMatEl(
           else if (ijselIsDownType[0]){ possible_rsel.push_back(2); possible_rsel.push_back(4); }
           for (unsigned int ix=0; ix<possible_rsel.size(); ix++){
             rsel=possible_rsel.at(ix);
-            double ckmval = pow(__modparameters_MOD_ckm(&isel, &rsel)/__modparameters_MOD_scalefactor(&isel, &rsel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&isel, &rsel), 2);
             possible_Vsqir.push_back(ckmval);
           }
           if (ijselIsUpType[1]){ possible_ssel.push_back(1); possible_ssel.push_back(3); possible_ssel.push_back(5); }
           else if (ijselIsDownType[1]){ possible_ssel.push_back(2); possible_ssel.push_back(4); }
           for (unsigned int iy=0; iy<possible_ssel.size(); iy++){
             ssel=possible_ssel.at(iy);
-            double ckmval = pow(__modparameters_MOD_ckm(&jsel, &ssel)/__modparameters_MOD_scalefactor(&jsel, &ssel), 2);
+            double ckmval = pow(__modparameters_MOD_ckmbare(&jsel, &ssel), 2);
             possible_Vsqjs.push_back(ckmval);
           }
 
@@ -5741,7 +5911,7 @@ double TUtil::VHiggsMatEl(
       if (!PDGHelpers::isAWBoson(vh_ids[2])) continue;
       if (verbosity>=TVar::DEBUG) cout << "\tIncoming " << vh_ids[0] << "," << vh_ids[1] << " -> " << vh_ids[2] << endl;
 
-      double Vckmsq_in = pow(__modparameters_MOD_ckm(&(vh_ids[0]), &(vh_ids[1]))/__modparameters_MOD_scalefactor(&(vh_ids[0]), &(vh_ids[1])), 2);
+      double Vckmsq_in = pow(__modparameters_MOD_ckmbare(&(vh_ids[0]), &(vh_ids[1])), 2);
       if (verbosity>=TVar::DEBUG) cout << "\tNeed to divide the ME by |VCKM_incoming|**2 = " << Vckmsq_in << endl;
 
       for (unsigned int op=0; op<outgoingPartons.size(); op++){
@@ -5819,7 +5989,7 @@ double TUtil::VHiggsMatEl(
             if (verbosity>=TVar::DEBUG) cout << "\t\t\tiin,jin = " << iin << "," << jin << endl;
             double scale_in=1;
             if (!partonIsKnown[0] || !partonIsKnown[1]){
-              scale_in = pow(__modparameters_MOD_ckm(&(iin), &(jin))/__modparameters_MOD_scalefactor(&(iin), &(jin)), 2);
+              scale_in = pow(__modparameters_MOD_ckmbare(&(iin), &(jin)), 2);
               if (verbosity>=TVar::DEBUG) cout << "\t\tScale for incoming particles: " << scale_in << endl;
             }
             MatElsq[jin+5][iin+5] += msq * 0.25 * scale_in *scalesum_out;

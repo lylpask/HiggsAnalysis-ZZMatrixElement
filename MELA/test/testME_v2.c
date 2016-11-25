@@ -1017,6 +1017,14 @@ void testME_VH_JHUGen_Ping(){
   tout.close();
 }
 
+void testME_ProdDec_MCFM_Ordering(int iSel, int jSel, int rSel, int sSel){
+  int order[2];
+  TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(iSel, jSel, rSel, sSel, order);
+  if (order[0]!=-1) cout << "testME_ProdDec_MCFM_Ordering::Order of particles should be "
+    << order[0] << " "
+    << order[1] << endl;
+}
+
 void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==VH*/){
   ofstream tout("testME_ProdDec_MCFM_JHUGen_Comparison_Ping.out");
   streambuf* coutbuf = cout.rdbuf();
@@ -1031,10 +1039,10 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
   if (motherflavor==1){ idMother[0]=2; idMother[1]=1; }
   else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; }
   // VBF ZZ-only(+)WH
-  else if (motherflavor==3){ idMother[0]=2; idMother[1]=-1; }
+  else if (motherflavor==3){ idMother[0]=2; idMother[1]=-1; } // Passed: (3,1,0);(3,2,1) -> (3,0,0);(3,0,1) -> Check!
   else if (motherflavor==4){ idMother[0]=-2; idMother[1]=1; }
   // VBF ZZ(+)ZH or WW(+)ZH
-  else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; }
+  else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; } // Passed: (5,1,0)
   else if (motherflavor==6){ idMother[0]=-2; idMother[1]=2; }
   else if (motherflavor==7){ idMother[0]=1; idMother[1]=-1; }
   else if (motherflavor==8){ idMother[0]=-1; idMother[1]=1; }
@@ -1053,10 +1061,10 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
   if (doEval){
     Mela mela(erg_tev, mPOLE, verbosity);
 
-    float p_prod_0mplus_dec_0mplus_VAJHU;
-    float p_prod_0mplus_dec_0mplus_VAMCFM;
-    float p_prod_0minus_dec_0minus_VAJHU;
-    float p_prod_0minus_dec_0minus_VAMCFM;
+    float p_prod_0mplus_dec_0mplus_VAJHU; double pArray_prod_0mplus_dec_0mplus_VAJHU[nmsq][nmsq]={ 0 };
+    float p_prod_0mplus_dec_0mplus_VAMCFM; double pArray_prod_0mplus_dec_0mplus_VAMCFM[nmsq][nmsq]={ 0 };
+    float p_prod_0minus_dec_0minus_VAJHU; double pArray_prod_0minus_dec_0minus_VAJHU[nmsq][nmsq]={ 0 };
+    float p_prod_0minus_dec_0minus_VAMCFM; double pArray_prod_0minus_dec_0minus_VAMCFM[nmsq][nmsq]={ 0 };
 
     float mzz = 0;
     float mjj = 0;
@@ -1112,7 +1120,7 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     for (unsigned int ip=6; ip<8; ip++){
       associated.push_back(
         SimpleParticle_t(
-        0,
+        idMother[ip-6], // Is this wrong? No, not really. We want to check all initial particles.
         TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
         )
         );
@@ -1197,6 +1205,12 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
         );
     }
 
+    // Set CKM to be diagonal for this test
+    double invckm_ud=1, invckm_us=0, invckm_cd=0, invckm_cs=1, invckm_ts=0, invckm_tb=1, invckm_ub=0, invckm_cb=0, invckm_td=0;
+    TUtil::SetCKMElements(&invckm_ud, &invckm_us, &invckm_cd, &invckm_cs, &invckm_ts, &invckm_tb, &invckm_ub, &invckm_cb, &invckm_td);
+
+    if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
+    else spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
 
     /***** JHUGen *****/
 
@@ -1209,14 +1223,22 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
     mela.computeP(p_dec_0minus_VAJHU, false);
 
-    float p_prod_0mplus_VAJHU=0;
-    float p_prod_0minus_VAJHU=0;
+    float p_prod_0mplus_VAJHU=0; double pArray_prod_0mplus_VAJHU[nmsq][nmsq]={ 0 };
+    float p_prod_0minus_VAJHU=0; double pArray_prod_0minus_VAJHU[nmsq][nmsq]={ 0 };
     if (vbfvhchannel==0){
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
 
+      mela.setVerbosity(TVar::DEBUG_VERBOSE);
       if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
       else{ mela.selfDHwwcoupl[0][gHIGGS_VV_1][0]=1; mela.differentiate_HWW_HZZ=true; }
       mela.computeProdP(p_prod_0mplus_VAJHU, false);
+      mela.getIORecord()->getUnweightedMEArray(pArray_prod_0mplus_VAJHU);
+      mela.setVerbosity(TVar::DEBUG);
+
+      if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
+      else{ mela.selfDHwwcoupl[0][gHIGGS_VV_4][0]=1; mela.differentiate_HWW_HZZ=true; }
+      mela.computeProdP(p_prod_0minus_VAJHU, false);
+      mela.getIORecord()->getUnweightedMEArray(pArray_prod_0minus_VAJHU);
     }
     else{
       if (prod==TVar::Had_ZH_S){
@@ -1225,10 +1247,12 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
         if (isZZWW!=2) mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
         else mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0;
         mela.computeProdP(p_prod_0mplus_VAJHU, false);
+        mela.getIORecord()->getUnweightedMEArray(pArray_prod_0mplus_VAJHU);
 
         if (isZZWW!=2) mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
         else mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=0;
         mela.computeProdP(p_prod_0minus_VAJHU, false);
+        mela.getIORecord()->getUnweightedMEArray(pArray_prod_0minus_VAJHU);
       }
       else if (prod==TVar::Had_WH_S){
         mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
@@ -1236,10 +1260,12 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
         if (isZZWW!=1) mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
         else mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0;
         mela.computeProdP(p_prod_0mplus_VAJHU, false);
+        mela.getIORecord()->getUnweightedMEArray(pArray_prod_0mplus_VAJHU);
 
         if (isZZWW!=1) mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
         else mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=0;
         mela.computeProdP(p_prod_0minus_VAJHU, false);
+        mela.getIORecord()->getUnweightedMEArray(pArray_prod_0minus_VAJHU);
       }
     }
 
@@ -1253,8 +1279,13 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     p_prod_0mplus_VAJHU *= propagator;
     p_prod_0minus_VAJHU *= propagator;
 
-    p_prod_0mplus_dec_0mplus_VAJHU=p_prod_0mplus_VAJHU*p_dec_0mplus_VAJHU;
-    p_prod_0minus_dec_0minus_VAJHU=p_prod_0minus_VAJHU*p_dec_0minus_VAJHU;
+    p_prod_0mplus_dec_0mplus_VAJHU=p_prod_0mplus_VAJHU*p_dec_0mplus_VAJHU; for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) pArray_prod_0mplus_dec_0mplus_VAJHU[ii][jj] = pArray_prod_0mplus_VAJHU[ii][jj]*p_dec_0mplus_VAJHU; }
+    if (prod==TVar::Had_WH_S && isZZWW==2){ // MCFM setting above turns off ZZ anomalous couplings if WH with WW couplings tested, so we should do the same here. 
+      p_prod_0minus_dec_0minus_VAJHU=p_prod_0minus_VAJHU*p_dec_0mplus_VAJHU; for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) pArray_prod_0minus_dec_0minus_VAJHU[ii][jj] = pArray_prod_0minus_VAJHU[ii][jj]*p_dec_0mplus_VAJHU; }
+    }
+    else{
+      p_prod_0minus_dec_0minus_VAJHU=p_prod_0minus_VAJHU*p_dec_0minus_VAJHU; for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) pArray_prod_0minus_dec_0minus_VAJHU[ii][jj] = pArray_prod_0minus_VAJHU[ii][jj]*p_dec_0minus_VAJHU; }
+    }
 
     /***** MCFM *****/
 
@@ -1263,26 +1294,57 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
     else{ mela.selfDHwwcoupl[0][gHIGGS_VV_1][0]=1; mela.differentiate_HWW_HZZ=true; }
     mela.computeProdDecP(p_prod_0mplus_dec_0mplus_VAMCFM, false);
+    mela.getIORecord()->getUnweightedMEArray(pArray_prod_0mplus_dec_0mplus_VAMCFM);
 
     if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
     else{ mela.selfDHwwcoupl[0][gHIGGS_VV_4][0]=1; mela.differentiate_HWW_HZZ=true; }
     mela.computeProdDecP(p_prod_0minus_dec_0minus_VAMCFM, false);
+    mela.getIORecord()->getUnweightedMEArray(pArray_prod_0minus_dec_0minus_VAMCFM);
 
     cout << "Production variables:\n";
-    cout << "mJJ = " << mjj << endl;
-    cout << "Phi = " << Phi << endl;
-    cout << "JHUGen (mass, width): (" << mh << ", " << gah << ")" << endl;
-    cout << "JHUGen propagator: " << propagator << endl;
+    cout << "\tmJJ = " << mjj << endl;
+    cout << "\tPhi = " << Phi << endl;
+    cout << "\tJHUGen (mass, width): (" << mh << ", " << gah << ")" << endl;
+    cout << "\tJHUGen propagator: " << propagator << endl;
     cout << "0mplus" << endl;
-    cout << "JHUGen decay-alone: " << p_dec_0mplus_VAJHU << endl;
-    cout << "JHUGen prod.-alone: " << p_prod_0mplus_VAJHU << endl;
-    cout << "JHUGen ME: " << p_prod_0mplus_dec_0mplus_VAJHU << endl;
-    cout << "MCFM ME: " << p_prod_0mplus_dec_0mplus_VAMCFM << endl;
+    cout << "\tJHUGen decay-alone: " << p_dec_0mplus_VAJHU << endl;
+    cout << "\tJHUGen prod.-alone: " << p_prod_0mplus_VAJHU << endl;
+    cout << "\tJHUGen ME: " << p_prod_0mplus_dec_0mplus_VAJHU << endl;
+    cout << "\tMCFM ME: " << p_prod_0mplus_dec_0mplus_VAMCFM << endl;
     cout << "0minus" << endl;
-    cout << "JHUGen decay-alone: " << p_dec_0minus_VAJHU << endl;
-    cout << "JHUGen prod.-alone: " << p_prod_0minus_VAJHU << endl;
-    cout << "JHUGen ME: " << p_prod_0minus_dec_0minus_VAJHU << endl;
-    cout << "MCFM ME: " << p_prod_0minus_dec_0minus_VAMCFM << endl;
+    cout << "\tJHUGen decay-alone: " << p_dec_0minus_VAJHU << endl;
+    cout << "\tJHUGen prod.-alone: " << p_prod_0minus_VAJHU << endl;
+    cout << "\tJHUGen ME: " << p_prod_0minus_dec_0minus_VAJHU << endl;
+    cout << "\tMCFM ME: " << p_prod_0minus_dec_0minus_VAMCFM << endl;
+
+    cout << "Arrays:\n0mplus" << endl;
+    cout << "\tJHUGen" << endl;
+    for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) cout << '\t' << pArray_prod_0mplus_dec_0mplus_VAJHU[ii][jj]; cout << endl; }
+    cout << "\tMCFM" << endl;
+    for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) cout << '\t' << pArray_prod_0mplus_dec_0mplus_VAMCFM[ii][jj]; cout << endl; }
+    cout << "\tJHUGen/MCFM Ratio" << endl;
+    for (int ii=0; ii<nmsq; ii++){
+      for (int jj=0; jj<nmsq; jj++){
+        cout << '\t';
+        if (pArray_prod_0mplus_dec_0mplus_VAMCFM[ii][jj]!=0.) cout << pArray_prod_0mplus_dec_0mplus_VAJHU[ii][jj]/pArray_prod_0mplus_dec_0mplus_VAMCFM[ii][jj];
+        else cout << 0;
+      }
+      cout << endl;
+    }
+    cout << "0minus" << endl;
+    cout << "\tJHUGen" << endl;
+    for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) cout << '\t' << pArray_prod_0minus_dec_0minus_VAJHU[ii][jj]; cout << endl; }
+    cout << "\tMCFM" << endl;
+    for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) cout << '\t' << pArray_prod_0minus_dec_0minus_VAMCFM[ii][jj]; cout << endl; }
+    cout << "\tJHUGen/MCFM Ratio" << endl;
+    for (int ii=0; ii<nmsq; ii++){
+      for (int jj=0; jj<nmsq; jj++){
+        cout << '\t';
+        if (pArray_prod_0minus_dec_0minus_VAMCFM[ii][jj]!=0.) cout << pArray_prod_0minus_dec_0minus_VAJHU[ii][jj]/pArray_prod_0minus_dec_0minus_VAMCFM[ii][jj];
+        else cout << 0;
+      }
+      cout << endl;
+    }
 
     TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
 
