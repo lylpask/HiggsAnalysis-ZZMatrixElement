@@ -171,6 +171,7 @@ protected:
   // Initialization functions
   void InitializeMCFM();
   void InitializeJHUGen(const char* pathtoPDFSet, int PDFMember);
+  void CrossInitialize();
 
   // Check if at least one input candidate is present
   bool CheckInputPresent();

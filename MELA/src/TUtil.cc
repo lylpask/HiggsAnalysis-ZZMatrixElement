@@ -1157,39 +1157,19 @@ void TUtil::SetDecayWidth(double inwidth, int ipart){
 void TUtil::SetCKMElements(double* invckm_ud, double* invckm_us, double* invckm_cd, double* invckm_cs, double* invckm_ts, double* invckm_tb, double* invckm_ub, double* invckm_cb, double* invckm_td){
   __modparameters_MOD_computeckmelements(invckm_ud, invckm_us, invckm_cd, invckm_cs, invckm_ts, invckm_tb, invckm_ub, invckm_cb, invckm_td);
 
-  double sum;
-
-  if (invckm_ud!=0) cabib_.Vud = *invckm_ud;
-  else cabib_.Vud = 0;
-  if (invckm_us!=0) cabib_.Vus = *invckm_us;
-  else cabib_.Vus = 0;
-  // Treatment of this one is different!
-  if (invckm_ub!=0) cabib_.Vub = *invckm_ub;
-  else{
-    double diff = 1.-pow(cabib_.Vud, 2)-pow(cabib_.Vus, 2);
-    if (diff>=0.) cabib_.Vub = sqrt(diff);
-    else cabib_.Vub = 0;
-  }
-  sum = sqrt(pow(cabib_.Vud, 2) + pow(cabib_.Vus, 2) + pow(cabib_.Vub, 2));
-  cabib_.Vud/=sum;
-  cabib_.Vus/=sum;
-  cabib_.Vub/=sum;
-
-  if (invckm_ud!=0) cabib_.Vcd = *invckm_ud;
-  else cabib_.Vcd = 0;
-  if (invckm_us!=0) cabib_.Vcs = *invckm_us;
-  else cabib_.Vcs = 0;
-  // Treatment of this one is different!
-  if (invckm_ub!=0) cabib_.Vcb = *invckm_ub;
-  else{
-    double diff = 1.-pow(cabib_.Vcd, 2)-pow(cabib_.Vcs, 2);
-    if (diff>=0.) cabib_.Vcb = sqrt(diff);
-    else cabib_.Vcb = 0;
-  }
-  sum = sqrt(pow(cabib_.Vcd, 2) + pow(cabib_.Vcs, 2) + pow(cabib_.Vcb, 2));
-  cabib_.Vcd/=sum;
-  cabib_.Vcs/=sum;
-  cabib_.Vcb/=sum;
+  int i, j;
+  i=2; j=1;
+  cabib_.Vud = __modparameters_MOD_ckmbare(&i, &j);
+  i=2; j=3;
+  cabib_.Vus = __modparameters_MOD_ckmbare(&i, &j);
+  i=2; j=5;
+  cabib_.Vub = __modparameters_MOD_ckmbare(&i, &j);
+  i=4; j=1;
+  cabib_.Vcd = __modparameters_MOD_ckmbare(&i, &j);
+  i=4; j=3;
+  cabib_.Vcs = __modparameters_MOD_ckmbare(&i, &j);
+  i=4; j=5;
+  cabib_.Vcb = __modparameters_MOD_ckmbare(&i, &j);
   // Do not call ckmfill_(), it is called by MCFM_chooser!
 }
 
