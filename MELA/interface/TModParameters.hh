@@ -17,8 +17,9 @@ extern "C" {
   int __modparameters_MOD_coupledvertex(int id[2], int* hel, int* useahcoupl);
 #define CoupledVertex __modparameters_MOD_coupledvertex
 
-  double __modparameters_MOD_ckm(int* id1in, int* id2in); // |VCKM|*ScaleFactor
   double __modparameters_MOD_scalefactor(int* id1in, int* id2in); // ScaleFactor
+  double __modparameters_MOD_ckmbare(int* id1in, int* id2in); // VCKM
+  double __modparameters_MOD_ckm(int* id1in, int* id2in); // VCKM*ScaleFactor
 
   void __modparameters_MOD_setmass(double* mass, int* ipart);
   void __modparameters_MOD_setdecaywidth(double* width, int* ipart);

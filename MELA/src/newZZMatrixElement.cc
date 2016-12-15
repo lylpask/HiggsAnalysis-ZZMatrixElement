@@ -184,7 +184,7 @@ void newZZMatrixElement::resetPerEvent(){
   if (wHiggs[0]>=0.) set_wHiggs(-1., 0);
 
   if (mHiggs[1]>=0.) set_mHiggs(-1., 1);
-  if (wHiggs[1]>0.) set_wHiggs(0., 1);
+  if (wHiggs[1]>=0.) set_wHiggs(-1., 1);
 
   Xcal2.SetHiggsMass(mHiggs[0], -1, -1);
 

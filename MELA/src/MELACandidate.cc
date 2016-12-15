@@ -9,7 +9,7 @@ associatedByHighestPt(associatedByHighestPt_),
 isShallowCopy(false)
 {}
 MELACandidate::~MELACandidate(){
-  if (!isShallowCopy){ // Delete owned objjects, or not
+  if (!isShallowCopy){ // Delete owned objects, or not
     for (unsigned int i=0; i<sortedVs.size(); i++) delete sortedVs.at(i);
   }
   sortedVs.clear();
@@ -546,7 +546,7 @@ void MELACandidate::testPreSelectedDaughters(){
 }
 
 
-bool MELACandidate::checkTopCandidateExists(MELATopCandidate* myParticle, std::vector<MELATopCandidate*>& particleArray){
+bool MELACandidate::checkTopCandidateExists(MELATopCandidate* myParticle, std::vector<MELATopCandidate*>& particleArray)const{
   for (std::vector<MELATopCandidate*>::iterator it = particleArray.begin(); it<particleArray.end(); it++){
     if ((*it)==myParticle) return true;
   }

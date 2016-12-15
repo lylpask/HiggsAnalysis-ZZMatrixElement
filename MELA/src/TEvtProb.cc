@@ -44,11 +44,11 @@ TEvtProb::TEvtProb(
   /***** Initialize JHUGen *****/
   InitializeJHUGen(pathtoPDFSet, PDFMember);
 
-  /***** Initialize schemes *****/
-  ResetCouplings();
-  ResetRenFacScaleMode();
+  /***** Cross-initializations *****/
+  CrossInitialize();
+
+  /***** Initialize input event properties *****/
   ResetInputEvent();
-  SetPrimaryHiggsMass(125.); // Should come after InitializeMCFM and InitializeJHUGen
   SetCandidateDecayMode(TVar::CandidateDecay_ZZ);
 
   if (verbosity>=TVar::DEBUG) cout << "End TEvtProb constructor" << endl;
@@ -129,6 +129,40 @@ void TEvtProb::InitializeJHUGen(const char* pathtoPDFSet, int PDFMember){
   InitJHUGenMELA(pathtoPDFSet, PDFMember);
 
   if (verbosity>=TVar::DEBUG) cout << "End TEvtProb::InitializeJHUGen" << endl;
+}
+void TEvtProb::CrossInitialize(){
+  if (verbosity>=TVar::DEBUG) cout << "Begin TEvtProb::CrossInitialize" << endl;
+
+  /**** Initialize alphaS *****/
+  const double GeV=1./100.;
+  double init_Q;
+  int init_nl, init_nf;
+  __modjhugenmela_MOD_getpdfconstants(&init_Q, &init_nl, &init_nf);
+  init_Q /= GeV;
+  if (verbosity>=TVar::DEBUG) cout << "TEvtProb::TEvtProb: Initializing the PDF with initial Q=" << init_Q << ", nloops=" << init_nl << ", nf=" << init_nf << endl;
+  SetAlphaS(init_Q, init_Q, 1, 1, init_nl, init_nf, "cteq6_l"); // "cteq6_l" is just some dummy variable
+
+  /**** Initialize MCFM CKM initializers in cabib.f using JHUGen defaults *****/
+  int i, j;
+  i=2; j=1;
+  cabib_.Vud = __modparameters_MOD_ckmbare(&i, &j);
+  i=2; j=3;
+  cabib_.Vus = __modparameters_MOD_ckmbare(&i, &j);
+  i=2; j=5;
+  cabib_.Vub = __modparameters_MOD_ckmbare(&i, &j);
+  i=4; j=1;
+  cabib_.Vcd = __modparameters_MOD_ckmbare(&i, &j);
+  i=4; j=3;
+  cabib_.Vcs = __modparameters_MOD_ckmbare(&i, &j);
+  i=4; j=5;
+  cabib_.Vcb = __modparameters_MOD_ckmbare(&i, &j);
+
+  /***** Initialize schemes *****/
+  ResetCouplings();
+  ResetRenFacScaleMode();
+  SetPrimaryHiggsMass(125.); // Should come after InitializeMCFM and InitializeJHUGen
+
+  if (verbosity>=TVar::DEBUG) cout << "End TEvtProb::CrossInitialize" << endl;
 }
 
 // Set NNPDF driver path
