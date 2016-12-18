@@ -1294,16 +1294,16 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
 
   int idMother[2]={ 0 };
   // VBF ZZ(+)WW
-  if (motherflavor==1){ idMother[0]=2; idMother[1]=1; }
-  else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; }
+  if (motherflavor==1){ idMother[0]=2; idMother[1]=1; } // Passed: (1,1,0). (1,2,0) SM ok, fa3 not (fa3 ratio less than SM ratio, no swap seen).
+  else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; } // Passed: (2,1,0). (2,2,0) SM ok, fa3 not (fa3 ratio less than SM ratio, no swap seen).
   // VBF ZZ-only(+)WH
   else if (motherflavor==3){ idMother[0]=2; idMother[1]=-1; } // Passed: (3,1,0);(3,2,1) -> (3,0,0);(3,0,1) -> Check!
-  else if (motherflavor==4){ idMother[0]=-2; idMother[1]=1; }
+  else if (motherflavor==4){ idMother[0]=-2; idMother[1]=1; } // Passed: (4,1,0);(4,2,1) -> (4,0,0);(4,0,1) -> Check!
   // VBF ZZ(+)ZH or WW(+)ZH
-  else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; } // Passed: (5,1,0)
-  else if (motherflavor==6){ idMother[0]=-2; idMother[1]=2; }
-  else if (motherflavor==7){ idMother[0]=1; idMother[1]=-1; }
-  else if (motherflavor==8){ idMother[0]=-1; idMother[1]=1; }
+  else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; } // Passed: (5,1,0). (5,2,0) SM ok, fa3 not (fa3 ratio less than SM ratio, no swap seen, same as 1,2,0). (5,1,1) does not give correct ratios, qqb and qbq initial states have opposite uub, ddb less-more trend.
+  else if (motherflavor==6){ idMother[0]=-2; idMother[1]=2; } // Passed: (6,1,0)
+  else if (motherflavor==7){ idMother[0]=1; idMother[1]=-1; } // Passed: (7,1,0)
+  else if (motherflavor==8){ idMother[0]=-1; idMother[1]=1; } // Passed: (8,1,0)
 
   bool doEval=true;
   TVar::VerbosityLevel verbosity = TVar::DEBUG;
@@ -1467,9 +1467,6 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     double invckm_ud=1, invckm_us=0, invckm_cd=0, invckm_cs=1, invckm_ts=0, invckm_tb=1, invckm_ub=0, invckm_cb=0, invckm_td=0;
     TUtil::SetCKMElements(&invckm_ud, &invckm_us, &invckm_cd, &invckm_cs, &invckm_ts, &invckm_tb, &invckm_ub, &invckm_cb, &invckm_td);
 
-    if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
-    else spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
-
     /***** JHUGen *****/
 
     mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::ZZINDEPENDENT);
@@ -1538,7 +1535,7 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     p_prod_0minus_VAJHU *= propagator;
 
     p_prod_0mplus_dec_0mplus_VAJHU=p_prod_0mplus_VAJHU*p_dec_0mplus_VAJHU; for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) pArray_prod_0mplus_dec_0mplus_VAJHU[ii][jj] = pArray_prod_0mplus_VAJHU[ii][jj]*p_dec_0mplus_VAJHU; }
-    if (prod==TVar::Had_WH_S && isZZWW==2){ // MCFM setting above turns off ZZ anomalous couplings if WH with WW couplings tested, so we should do the same here. 
+    if (isZZWW==2){ // MCFM setting above turns off ZZ anomalous couplings if WH with WW couplings tested, so we should do the same here. 
       p_prod_0minus_dec_0minus_VAJHU=p_prod_0minus_VAJHU*p_dec_0mplus_VAJHU; for (int ii=0; ii<nmsq; ii++){ for (int jj=0; jj<nmsq; jj++) pArray_prod_0minus_dec_0minus_VAJHU[ii][jj] = pArray_prod_0minus_VAJHU[ii][jj]*p_dec_0mplus_VAJHU; }
     }
     else{
@@ -1546,6 +1543,9 @@ void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0
     }
 
     /***** MCFM *****/
+
+    if (isZZWW==2) spinzerohiggs_anomcoupl_.AnomalCouplDK=0;
+    else spinzerohiggs_anomcoupl_.AnomalCouplDK=1;
 
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, prod);
 
