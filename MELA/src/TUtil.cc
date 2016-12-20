@@ -1586,6 +1586,13 @@ bool TUtil::MCFM_chooser(
     breit_.mass3 =masses_mcfm_.zmass;
     breit_.width3=masses_mcfm_.zwidth;
 
+    vsymfact_.vsymfact=1.0;
+    interference_.interference=false;
+    if (hasZZ4fInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+      vsymfact_.vsymfact=0.5;
+      interference_.interference=true;
+    }
+
     if (verbosity>=TVar::DEBUG) cout << "TUtil::MCFM_chooser: Setup is (production, process)=(" << TVar::ProductionName(production) << ", " << TVar::ProcessName(process) << ")" << endl;
 
   }
@@ -1690,6 +1697,13 @@ bool TUtil::MCFM_chooser(
     breit_.width2=masses_mcfm_.zwidth;
     breit_.mass3 =masses_mcfm_.zmass;
     breit_.width3=masses_mcfm_.zwidth;
+
+    vsymfact_.vsymfact=1.0;
+    interference_.interference=false;
+    if (hasZZ4fInterf && (leptonInterf==TVar::DefaultLeptonInterf || leptonInterf==TVar::InterfOn)){
+      vsymfact_.vsymfact=0.5;
+      interference_.interference=true;
+    }
 
     if (verbosity>=TVar::DEBUG) cout << "TUtil::MCFM_chooser: Setup is (production, process)=(" << TVar::ProductionName(production) << ", " << TVar::ProcessName(process) << ")" << endl;
 

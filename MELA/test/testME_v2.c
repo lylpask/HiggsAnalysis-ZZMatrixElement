@@ -1283,7 +1283,7 @@ void testME_ProdDec_MCFM_Ordering(int iSel, int jSel, int rSel, int sSel){
     << order[1] << endl;
 }
 
-void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==VH*/, int hasInterf=0){
+void testME_ProdDec_MCFM_JHUGen_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==VH*/, int hasInterf=0 /*0==2l2l, 1==4l*/){
   ofstream tout("testME_ProdDec_MCFM_JHUGen_Comparison_Ping.out");
   streambuf* coutbuf = cout.rdbuf();
   //cout.rdbuf(tout.rdbuf());
