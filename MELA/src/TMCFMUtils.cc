@@ -30,7 +30,7 @@ void TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(int iSel, int jSel, int rS
         order[0]=0;
         order[1]=1;
         outFound=true;
-        cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", unswapped r, s = " << rSel << " " << sSel << endl;
+        //cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", unswapped r, s = " << rSel << " " << sSel << endl;
       }
       else if (
         (PDGHelpers::isAnUnknownJet(rSel) || rSel==hash.at(ih)[3])
@@ -40,7 +40,7 @@ void TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(int iSel, int jSel, int rS
         order[0]=1;
         order[1]=0;
         outFound=true;
-        cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", swapped r, s = " << rSel << " " << sSel << endl;
+        //cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", swapped r, s = " << rSel << " " << sSel << endl;
       }
     }
     // Final particles l/nu
@@ -61,7 +61,7 @@ void TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(int iSel, int jSel, int rS
         order[0]=0;
         order[1]=1;
         outFound=true;
-        cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", unswapped r, s = " << rSel << " " << sSel << endl;
+        //cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", unswapped r, s = " << rSel << " " << sSel << endl;
       }
       else if (
         (
@@ -77,7 +77,7 @@ void TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(int iSel, int jSel, int rS
         order[0]=1;
         order[1]=0;
         outFound=true;
-        cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", swapped r, s = " << rSel << " " << sSel << endl;
+        //cout << "Hash requested outgoing "<< hash.at(ih)[2] << " " << hash.at(ih)[3] << ", swapped r, s = " << rSel << " " << sSel << endl;
       }
       if (PDGHelpers::getCoupledVertex(rSel, sSel)!=PDGHelpers::getCoupledVertex(hash.at(ih)[2], hash.at(ih)[3])) outFound=false;
     }
@@ -204,8 +204,8 @@ std::vector<TMCFMUtils::intQuad_t> TMCFMUtils::Hash_QQVVQQStrong(){
   jcfg.push_back(TMCFMUtils::intQuad_t(1, 0, 2, 3)); // qbq->gg
   jcfg.push_back(TMCFMUtils::intQuad_t(2, 3, 0, 1)); // gg->qbq
   jcfg.push_back(TMCFMUtils::intQuad_t(2, 1, 0, 3)); // gqb->qbg
-  jcfg.push_back(TMCFMUtils::intQuad_t(1, 2, 0, 3)); // qbg->qbg
-  jcfg.push_back(TMCFMUtils::intQuad_t(3, 0, 2, 1)); // gq->gq
+  jcfg.push_back(TMCFMUtils::intQuad_t(2, 0, 1, 3)); // qbg->qbg
+  jcfg.push_back(TMCFMUtils::intQuad_t(1, 3, 2, 0)); // gq->gq
   jcfg.push_back(TMCFMUtils::intQuad_t(0, 3, 2, 1)); // qg->gq
 
   std::vector<TMCFMUtils::intQuad_t> pcfg;

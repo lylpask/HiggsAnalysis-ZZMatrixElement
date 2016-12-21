@@ -2542,7 +2542,13 @@ bool TUtil::MCFM_SetupParticleCouplings(
       // All of these require ZZ ordering since they use either ZZ ME or VV ME
       if (process==TVar::HSMHiggs || process==TVar::bkgZZ_SMHiggs || process==TVar::bkgZZ){
         ordering = pZOrder;
-        if (!hasZ1 || !hasZ2) result = false;
+        if (
+          !(
+          (hasZ1 && hasZ2)
+          ||
+          (process==TVar::HSMHiggs && hasW1 && hasW2)
+          )
+          ) result = false;
       }
       else if (process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ_SMHiggs || process==TVar::bkgWWZZ){
         ordering = pZOrder;
@@ -2572,7 +2578,13 @@ bool TUtil::MCFM_SetupParticleCouplings(
       // All of these require ZZ ordering since they use either ZZ ME or VV ME
       else if (process==TVar::HSMHiggs || process==TVar::bkgZZ_SMHiggs || process==TVar::bkgZZ){
         ordering = pZOrder;
-        if (!hasZ1 || !hasZ2) result = false;
+        if (
+          !(
+          (hasZ1 && hasZ2)
+          ||
+          (process==TVar::HSMHiggs && hasW1 && hasW2)
+          )
+          ) result = false;
       }
       else if (process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ_SMHiggs || process==TVar::bkgWWZZ){
         ordering = pZOrder;
