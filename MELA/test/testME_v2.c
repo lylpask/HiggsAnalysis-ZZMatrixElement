@@ -1284,7 +1284,7 @@ void testME_ProdDec_MCFM_Ordering(int iSel, int jSel, int rSel, int sSel){
 }
 
 
-void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==VH*/, int hasInterf=0 /*0==2l2l, 1==4l*/){
+void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==HadVH, 2==LepVH*/, int hasInterf=0 /*0==2l2l, 1==4l*/){
   TString outname = Form("testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping_%i_%i_%i_%s.out", motherflavor, isZZWW, vbfvhchannel, (hasInterf ? "4l" : "2l2l"));
   ofstream tout(outname.Data());
   streambuf* coutbuf = cout.rdbuf();
@@ -1327,30 +1327,47 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
   float mPOLE=125.0;
   float wPOLE=4.07e-3;
 
-  int idMother[2]={ 0 };
-  // FIX ME:
-  // Noticed that MCFM passes (3,2,0) == WW fusion for udb. The passing MEs are (-2,2)/(2,-2) -> (-1,2)
-  // Noticed that MCFM passes (4,2,0) == WW fusion for dub. The passing MEs are (-1,1)/(1,-1) -> (-2,1)
-  // Noticed that MCFM passes (5,1,0) == ZZ fusion for uub. The passing MEs are (-2,1..3.4.5)/(2,-1..-3.-4.-5)/(-4,3)/(3,-4) -> (-2,2). Initial (-2,4)==(-2,2) etc; (-2,1)==(-2,3) etc.
-  // VBF ZZ(+)WW
-  if (motherflavor==1){ idMother[0]=2; idMother[1]=1; } // Passed: (1,1,0);(1,2,0) -> Check!
-  else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; } // Passed: (2,1,0);(2,2,0) -> Check!
-  // VBF ZZ-only(+)WH
-  else if (motherflavor==3){ idMother[0]=2; idMother[1]=-1; } // Passed: (3,1,0);(3,2,1) -> (3,0,0);(3,0,1) -> Check!
-  else if (motherflavor==4){ idMother[0]=-2; idMother[1]=1; } // Passed: (4,1,0);(4,2,1) -> (4,0,0);(4,0,1) -> Check!
-  // VBF ZZ(+)ZH or WW(+)ZH
-  else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; } // Passed: (5,1,0);(5,2,0);(5,1,1) -> Check
-  else if (motherflavor==6){ idMother[0]=-2; idMother[1]=2; } // Passed: (6,1,0);(6,2,0);(6,1,1) -> Check
-  else if (motherflavor==7){ idMother[0]=1; idMother[1]=-1; } // Passed: (7,1,0);(7,2,0);(7,1,1) -> Check
-  else if (motherflavor==8){ idMother[0]=-1; idMother[1]=1; } // Passed: (8,1,0);(8,2,0);(8,1,1) -> Check
-
   bool doEval=true;
-  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  int idMother[2]={ 0 };
+  if (vbfvhchannel<=1){
+    // FIX ME:
+    // Noticed that MCFM passes (3,2,0) == WW fusion for udb. The passing MEs are (-2,2)/(2,-2) -> (-1,2)
+    // Noticed that MCFM passes (4,2,0) == WW fusion for dub. The passing MEs are (-1,1)/(1,-1) -> (-2,1)
+    // Noticed that MCFM passes (5,1,0) == ZZ fusion for uub. The passing MEs are (-2,1..3.4.5)/(2,-1..-3.-4.-5)/(-4,3)/(3,-4) -> (-2,2). Initial (-2,4)==(-2,2) etc; (-2,1)==(-2,3) etc.
+    // VBF ZZ(+)WW
+    if (motherflavor==1){ idMother[0]=2; idMother[1]=1; } // Passed: (1,1,0);(1,2,0) -> Check!
+    else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; } // Passed: (2,1,0);(2,2,0) -> Check!
+    // VBF ZZ-only(+)WH
+    else if (motherflavor==3){ idMother[0]=2; idMother[1]=-1; } // Passed: (3,1,0);(3,2,1) -> (3,0,0);(3,0,1) -> Check!
+    else if (motherflavor==4){ idMother[0]=-2; idMother[1]=1; } // Passed: (4,1,0);(4,2,1) -> (4,0,0);(4,0,1) -> Check!
+    // VBF ZZ(+)ZH or WW(+)ZH
+    else if (motherflavor==5){ idMother[0]=2; idMother[1]=-2; } // Passed: (5,1,0);(5,2,0);(5,1,1) -> Check
+    else if (motherflavor==6){ idMother[0]=-2; idMother[1]=2; } // Passed: (6,1,0);(6,2,0);(6,1,1) -> Check
+    else if (motherflavor==7){ idMother[0]=1; idMother[1]=-1; } // Passed: (7,1,0);(7,2,0);(7,1,1) -> Check
+    else if (motherflavor==8){ idMother[0]=-1; idMother[1]=1; } // Passed: (8,1,0);(8,2,0);(8,1,1) -> Check
+  }
+  else if (vbfvhchannel==2){
+    if (motherflavor==3){ idMother[0]=14; idMother[1]=-13; }
+    else if (motherflavor==4){ idMother[0]=-14; idMother[1]=13; }
+    // VBF ZZ(+)ZH or WW(+)ZH
+    else if (motherflavor==5){ idMother[0]=14; idMother[1]=-14; } // Bkg. (5,1,2)/(5,1,1) is not the same between signal and bkg, The (5,1,2) ME is also twice larger (ratio of JHUGen is twice smaller).
+    else if (motherflavor==6){ idMother[0]=-14; idMother[1]=14; }
+    else if (motherflavor==7){ idMother[0]=13; idMother[1]=-13; }
+    else if (motherflavor==8){ idMother[0]=-13; idMother[1]=13; }
+    else doEval=false;
+  }
+
+  TVar::VerbosityLevel verbosity = TVar::DEBUG;
   TVar::Production prod;
   if (vbfvhchannel==0) prod=TVar::JJVBF_S;
   else if (vbfvhchannel==1){
     if (idMother[0]==-idMother[1]) prod=TVar::Had_ZH_S;
     else if (TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) prod=TVar::Had_WH_S;
+    else doEval=false;
+  }
+  else if (vbfvhchannel==2){
+    if (idMother[0]==-idMother[1]) prod=TVar::Lep_ZH_S;
+    else if (TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) prod=TVar::Lep_WH_S;
     else doEval=false;
   }
   else doEval=false;
@@ -1362,6 +1379,7 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
     jhume p_prod_0minus_dec_0minus_VAJHU;
     jhume p_prod_fa3_dec_fa3_VAJHU;
 
+    mcfmme p_bkg_VAMCFM;
     mcfmme p_prod_0mplus_dec_0mplus_VAMCFM;
     mcfmme p_prod_0minus_dec_0minus_VAMCFM;
     mcfmme p_prod_fa3_dec_fa3_VAMCFM;
@@ -1583,12 +1601,48 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
         mela.computeProdP(p_prod_fa3_dec_fa3_VAJHU.prodme, false);
         mela.getIORecord()->getUnweightedMEArray(p_prod_fa3_dec_fa3_VAJHU.mearray);
       }
+      else if (prod==TVar::Lep_ZH_S){
+        mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_ZH);
+
+        if (isZZWW!=2) mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+        else mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0;
+        mela.computeProdP(p_prod_0mplus_dec_0mplus_VAJHU.prodme, false);
+        mela.getIORecord()->getUnweightedMEArray(p_prod_0mplus_dec_0mplus_VAJHU.mearray);
+
+        if (isZZWW!=2) mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
+        else mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=0;
+        mela.computeProdP(p_prod_0minus_dec_0minus_VAJHU.prodme, false);
+        mela.getIORecord()->getUnweightedMEArray(p_prod_0minus_dec_0minus_VAJHU.mearray);
+
+        if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; }
+        else{ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0; mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=0; }
+        mela.computeProdP(p_prod_fa3_dec_fa3_VAJHU.prodme, false);
+        mela.getIORecord()->getUnweightedMEArray(p_prod_fa3_dec_fa3_VAJHU.mearray);
+      }
+      else if (prod==TVar::Lep_WH_S){
+        mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
+
+        if (isZZWW!=1) mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
+        else mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0;
+        mela.computeProdP(p_prod_0mplus_dec_0mplus_VAJHU.prodme, false);
+        mela.getIORecord()->getUnweightedMEArray(p_prod_0mplus_dec_0mplus_VAJHU.mearray);
+
+        if (isZZWW!=1) mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1;
+        else mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=0;
+        mela.computeProdP(p_prod_0minus_dec_0minus_VAJHU.prodme, false);
+        mela.getIORecord()->getUnweightedMEArray(p_prod_0minus_dec_0minus_VAJHU.mearray);
+
+        if (isZZWW!=1){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=1; }
+        else{ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0; mela.selfDHzzcoupl[0][gHIGGS_VV_4][0]=0; }
+        mela.computeProdP(p_prod_fa3_dec_fa3_VAJHU.prodme, false);
+        mela.getIORecord()->getUnweightedMEArray(p_prod_fa3_dec_fa3_VAJHU.mearray);
+      }
     }
 
     double mh=mPOLE;
     double gah=wPOLE;
     double propagator = 1./(pow(pow(mzz, 2)-pow(mPOLE, 2), 2)+pow(mPOLE*wPOLE, 2));
-    if (vbfvhchannel==1){ // JHUGen VH pseudo-propagator
+    if (vbfvhchannel>=1){ // JHUGen VH pseudo-propagator
       mela.getIORecord()->getHiggsMassWidth(mh, gah, 0);
       propagator /= 1./(pow(pow(mzz, 2)-pow(mh, 2), 2) + pow(mh*gah, 2));
     }
@@ -1628,11 +1682,17 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
     mela.computeProdDecP(p_prod_fa3_dec_fa3_VAMCFM.proddecme, false);
     mela.getIORecord()->getUnweightedMEArray(p_prod_fa3_dec_fa3_VAMCFM.mearray);
 
+    mela.setProcess(TVar::bkgZZ, TVar::MCFM, prod);
+    mela.computeProdDecP(p_bkg_VAMCFM.proddecme, false);
+    mela.getIORecord()->getUnweightedMEArray(p_bkg_VAMCFM.mearray);
+
     cout << "Production variables:\n";
     cout << "\tmJJ = " << mjj << endl;
     cout << "\tPhi = " << Phi << endl;
     cout << "\tJHUGen (mass, width): (" << mh << ", " << gah << ")" << endl;
     cout << "\tJHUGen propagator: " << propagator << endl;
+    cout << "Bkg" << endl;
+    cout << "\tMCFM ME: " << p_bkg_VAMCFM.proddecme << endl;
     cout << "0mplus" << endl;
     cout << "\tJHUGen decay-alone: " << p_prod_0mplus_dec_0mplus_VAJHU.decme << endl;
     cout << "\tJHUGen prod.-alone: " << p_prod_0mplus_dec_0mplus_VAJHU.prodme << endl;
@@ -1649,7 +1709,11 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
     cout << "\tJHUGen ME: " << p_prod_fa3_dec_fa3_VAJHU.proddecme << endl;
     cout << "\tMCFM ME: " << p_prod_fa3_dec_fa3_VAMCFM.proddecme << endl;
 
-    cout << "Arrays:\n0mplus" << endl;
+    cout << "Arrays:" << endl;
+    cout << "Bkg" << endl;
+    cout << "\tMCFM" << endl;
+    p_bkg_VAMCFM.printarray();
+    cout << "0mplus" << endl;
     cout << "\tJHUGen" << endl;
     p_prod_0mplus_dec_0mplus_VAJHU.printarray();
     cout << "\tMCFM" << endl;
