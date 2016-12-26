@@ -1285,9 +1285,10 @@ void testME_ProdDec_MCFM_Ordering(int iSel, int jSel, int rSel, int sSel){
 
 
 void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==VH*/, int hasInterf=0 /*0==2l2l, 1==4l*/){
-  ofstream tout("testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping.out");
+  TString outname = Form("testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping_%i_%i_%i_%s.out", motherflavor, isZZWW, vbfvhchannel, (hasInterf ? "4l" : "2l2l"));
+  ofstream tout(outname.Data());
   streambuf* coutbuf = cout.rdbuf();
-  //cout.rdbuf(tout.rdbuf());
+  cout.rdbuf(tout.rdbuf());
 
   struct mcfmme{
     float proddecme;
@@ -1328,9 +1329,9 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
 
   int idMother[2]={ 0 };
   // FIX ME:
-  // Noticed that MCFM passes (3,2,0) == WW fusion for udb. The passing MEs are (-2,2)/(2,-2)/(-2,4)/(4,-2) -> (2,-1)
-  // Noticed that MCFM passes (4,2,0) == WW fusion for dub. The passing MEs are (-1,1)/(1,-1)/(-1,3)/(3,-1) -> (1,-2)
-  // Noticed that MCFM passes (5,1,0) == ZZ fusion for uub. The passing MEs are (-2,1..3.4.5)/(2,-1..-3.-4.-5)/(-4,3)/(3,-4) -> (2,-2). Initial (-2,4)==(-2,2) etc; (-2,1)==(-2,3) etc.
+  // Noticed that MCFM passes (3,2,0) == WW fusion for udb. The passing MEs are (-2,2)/(2,-2) -> (-1,2)
+  // Noticed that MCFM passes (4,2,0) == WW fusion for dub. The passing MEs are (-1,1)/(1,-1) -> (-2,1)
+  // Noticed that MCFM passes (5,1,0) == ZZ fusion for uub. The passing MEs are (-2,1..3.4.5)/(2,-1..-3.-4.-5)/(-4,3)/(3,-4) -> (-2,2). Initial (-2,4)==(-2,2) etc; (-2,1)==(-2,3) etc.
   // VBF ZZ(+)WW
   if (motherflavor==1){ idMother[0]=2; idMother[1]=1; } // Passed: (1,1,0);(1,2,0) -> Check!
   else if (motherflavor==2){ idMother[0]=-2; idMother[1]=-1; } // Passed: (2,1,0);(2,2,0) -> Check!
