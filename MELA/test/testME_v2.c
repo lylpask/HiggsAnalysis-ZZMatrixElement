@@ -1710,9 +1710,6 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
     cout << "\tMCFM ME: " << p_prod_fa3_dec_fa3_VAMCFM.proddecme << endl;
 
     cout << "Arrays:" << endl;
-    cout << "Bkg" << endl;
-    cout << "\tMCFM" << endl;
-    p_bkg_VAMCFM.printarray();
     cout << "0mplus" << endl;
     cout << "\tJHUGen" << endl;
     p_prod_0mplus_dec_0mplus_VAJHU.printarray();
@@ -1751,6 +1748,18 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZ_Comparison_Ping(int motherflavor=0, int is
       for (int jj=0; jj<nmsq; jj++){
         cout << '\t';
         if (p_prod_fa3_dec_fa3_VAMCFM.mearray[ii][jj]!=0.) cout << p_prod_fa3_dec_fa3_VAJHU.mearray[ii][jj]/p_prod_fa3_dec_fa3_VAMCFM.mearray[ii][jj];
+        else cout << 0;
+      }
+      cout << endl;
+    }
+    cout << "Bkg" << endl;
+    cout << "\tMCFM" << endl;
+    p_bkg_VAMCFM.printarray();
+    cout << "\tMCFM 0mplus/Bkg Ratio" << endl;
+    for (int ii=0; ii<nmsq; ii++){
+      for (int jj=0; jj<nmsq; jj++){
+        cout << '\t';
+        if (p_bkg_VAMCFM.mearray[ii][jj]!=0.) cout << p_prod_0mplus_dec_0mplus_VAJHU.mearray[ii][jj]/p_bkg_VAMCFM.mearray[ii][jj];
         else cout << 0;
       }
       cout << endl;
