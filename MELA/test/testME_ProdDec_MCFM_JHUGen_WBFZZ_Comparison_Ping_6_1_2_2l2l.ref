@@ -169,8 +169,8 @@ Start superMELA
 Begin SuperMELA::init...
 Range width=35
 Parsing signal shape systematics from input card /afs/cern.ch/work/u/usarica/scratch-ZZdevelopment/CJLST_4l/CMSSW_8_0_8/src/ZZMatrixElement/MELA/data/CombinationInputs/SM_inputs_8TeV/inputs_4mu.txt
-mean_CB systematics (ele and mu): 6.95297e-310 / 0.001
-sigma_CB systematics (ele and mu): 6.95297e-310 / 0.2
+mean_CB systematics (ele and mu): 6.95281e-310 / 0.001
+sigma_CB systematics (ele and mu): 6.95281e-310 / 0.2
 Reading signal shape formulas
 Parsing input card /afs/cern.ch/work/u/usarica/scratch-ZZdevelopment/CJLST_4l/CMSSW_8_0_8/src/ZZMatrixElement/MELA/data/CombinationInputs/SM_inputs_8TeV/inputs_4mu.txt
 alpha_CB == (-6.83599)+(0.196814*@0)+(-0.00179054*@0*@0)+(7.59602e-06*@0*@0*@0)+(-1.48893e-08*@0*@0*@0*@0)+(1.07477e-11*@0*@0*@0*@0*@0)
@@ -202,17 +202,17 @@ Value of signal m4l BW shape is 0.0531392
   Value State: DIRTY
   Shape State: DIRTY
   Attributes: 
-  Address: 0x65ea5e0
+  Address: 0x68d3bb0
   Clients: 
   Servers: 
-    (0x658c010,V-) RooRealVar::CMS_zz4l_mass "CMS_zz4l_mass"
-    (0x65e96b0,--) RooAbsPdf::signalBW_ggH "signalBW_ggH"
-    (0x6633930,--) RooAbsPdf::signalCB_ggH "signalCB_ggH"
-    (0x662f6f0,V-) RooRealVar::CMS_zz4l_mean_BW_sig_4mu_8 "CMS_zz4l_mean_BW"
-    (0x662fd80,V-) RooRealVar::CMS_zz4l_width_BW_sig_4mu_8 "CMS_zz4l_width_BW"
-    (0x7ffe32b70040,V-) RooRealVar::CMS_zz4l_mean_sig_corrMH "CMS_zz4l_mean_sig_corrMH"
-    (0x7ffe32b70460,V-) RooRealVar::CMS_zz4l_sigma_sig_corrMH "CMS_zz4l_sigma_sig_corrMH"
-    (0x662a260,V-) RooRealVar::mH "mH"
+    (0x68bea60,V-) RooRealVar::CMS_zz4l_mass "CMS_zz4l_mass"
+    (0x68d2c80,--) RooAbsPdf::signalBW_ggH "signalBW_ggH"
+    (0x68d1be0,--) RooAbsPdf::signalCB_ggH "signalCB_ggH"
+    (0x68d9780,V-) RooRealVar::CMS_zz4l_mean_BW_sig_4mu_8 "CMS_zz4l_mean_BW"
+    (0x68d9e10,V-) RooRealVar::CMS_zz4l_width_BW_sig_4mu_8 "CMS_zz4l_width_BW"
+    (0x7ffd6914e020,V-) RooRealVar::CMS_zz4l_mean_sig_corrMH "CMS_zz4l_mean_sig_corrMH"
+    (0x7ffd6914e440,V-) RooRealVar::CMS_zz4l_sigma_sig_corrMH "CMS_zz4l_sigma_sig_corrMH"
+    (0x68cd5e0,V-) RooRealVar::mH "mH"
   Proxies: 
     !x -> CMS_zz4l_mass
     !xprime ->  (empty)
@@ -864,18 +864,6 @@ TUtil::SumMatrixElementPDF: Set AlphaS:
 	Before set, alphas scale: 91.2, PDF scale: 91.2
 	renQ: 59.4084 ( x 0.5), facQ: 59.4084 ( x 0.5)
 	After set, alphas scale: 59.4084, PDF scale: 59.4084, alphas(Qren): 0.139483, alphas(MZ): 0.13
-HERE
-0	0	0	0	0	0	0	0	0	0	2.13254e-23	
-0	0	0	0	0	0	0	0	0	6.51225e-23	0	
-0	0	0	0	0	0	0	0	2.13254e-23	0	0	
-0	0	0	0	0	0	0	6.51225e-23	0	0	0	
-0	0	0	0	0	0	2.13254e-23	0	0	0	0	
-0	0	0	0	0	0	0	0	0	0	0	
-0	0	0	0	4.60069e-22	0	0	0	0	0	0	
-0	0	0	3.08355e-22	0	0	0	0	0	0	0	
-0	0	4.60069e-22	0	0	0	0	0	0	0	0	
-0	3.08355e-22	0	0	0	0	0	0	0	0	0	
-4.60069e-22	0	0	0	0	0	0	0	0	0	0	
 Begin TUtil::SumMEPDF
 Begin TUtil::ComputePDF
 xx[0]: 0.133135, xx[1] = 0.0960052, xmin = 1e-08
@@ -1004,18 +992,6 @@ TUtil::SumMatrixElementPDF: Set AlphaS:
 	Before set, alphas scale: 91.2, PDF scale: 91.2
 	renQ: 59.4084 ( x 0.5), facQ: 59.4084 ( x 0.5)
 	After set, alphas scale: 59.4084, PDF scale: 59.4084, alphas(Qren): 0.139483, alphas(MZ): 0.13
-HERE
-0	0	0	0	0	0	0	0	0	0	3.25396e-20	
-0	0	0	0	0	0	0	0	0	2.47217e-20	0	
-0	0	0	0	0	0	0	0	3.25396e-20	0	0	
-0	0	0	0	0	0	0	2.47217e-20	0	0	0	
-0	0	0	0	0	0	3.25396e-20	0	0	0	0	
-0	0	0	0	0	0	0	0	0	0	0	
-0	0	0	0	2.78133e-20	0	0	0	0	0	0	
-0	0	0	2.21015e-20	0	0	0	0	0	0	0	
-0	0	2.78133e-20	0	0	0	0	0	0	0	0	
-0	2.21015e-20	0	0	0	0	0	0	0	0	0	
-2.78133e-20	0	0	0	0	0	0	0	0	0	0	
 Begin TUtil::SumMEPDF
 Begin TUtil::ComputePDF
 xx[0]: 0.133135, xx[1] = 0.0960052, xmin = 1e-08
@@ -1144,18 +1120,6 @@ TUtil::SumMatrixElementPDF: Set AlphaS:
 	Before set, alphas scale: 91.2, PDF scale: 91.2
 	renQ: 59.4084 ( x 0.5), facQ: 59.4084 ( x 0.5)
 	After set, alphas scale: 59.4084, PDF scale: 59.4084, alphas(Qren): 0.139483, alphas(MZ): 0.13
-HERE
-0	0	0	0	0	0	0	0	0	0	6.47828e-19	
-0	0	0	0	0	0	0	0	0	4.88423e-19	0	
-0	0	0	0	0	0	0	0	6.47828e-19	0	0	
-0	0	0	0	0	0	0	4.88423e-19	0	0	0	
-0	0	0	0	0	0	6.47828e-19	0	0	0	0	
-0	0	0	0	0	0	0	0	0	0	0	
-0	0	0	0	5.19779e-19	0	0	0	0	0	0	
-0	0	0	4.17435e-19	0	0	0	0	0	0	0	
-0	0	5.19779e-19	0	0	0	0	0	0	0	0	
-0	4.17435e-19	0	0	0	0	0	0	0	0	0	
-5.19779e-19	0	0	0	0	0	0	0	0	0	0	
 Begin TUtil::SumMEPDF
 Begin TUtil::ComputePDF
 xx[0]: 0.133135, xx[1] = 0.0960052, xmin = 1e-08
@@ -1284,18 +1248,6 @@ TUtil::SumMatrixElementPDF: Set AlphaS:
 	Before set, alphas scale: 91.2, PDF scale: 91.2
 	renQ: 59.4084 ( x 0.5), facQ: 59.4084 ( x 0.5)
 	After set, alphas scale: 59.4084, PDF scale: 59.4084, alphas(Qren): 0.139483, alphas(MZ): 0.13
-HERE
-0	0	0	0	0	0	0	0	0	0	3.75761e-21	
-0	0	0	0	0	0	0	0	0	2.74527e-20	0	
-0	0	0	0	0	0	0	0	3.75761e-21	0	0	
-0	0	0	0	0	0	0	7.32855e-20	0	0	0	
-0	0	0	0	0	0	2.46742e-20	0	0	0	0	
-0	0	0	0	0	0	0	0	0	0	0	
-0	0	0	0	3.97409e-19	0	0	0	0	0	0	
-0	0	0	2.44542e-20	0	0	0	0	0	0	0	
-0	0	3.96927e-19	0	0	0	0	0	0	0	0	
-0	2.38069e-20	0	0	0	0	0	0	0	0	0	
-3.96927e-19	0	0	0	0	0	0	0	0	0	0	
 Begin TUtil::SumMEPDF
 Begin TUtil::ComputePDF
 xx[0]: 0.133135, xx[1] = 0.0960052, xmin = 1e-08
@@ -1316,23 +1268,23 @@ fx1, fx2[5] = 0.08009410.199913
 TUtil::SumMEPDF: Setting RcdME
 End TUtil::SumMEPDF
 TUtil::SumMatrixElementPDF: The number of ME instances: 10. MEsq[ip][jp] = 
-0	0	0	0	0	0	0	0	0	0	3.75761e-21	
-0	0	0	0	0	0	0	0	0	2.74527e-20	0	
-0	0	0	0	0	0	0	0	3.75761e-21	0	0	
-0	0	0	0	0	0	0	7.32855e-20	0	0	0	
-0	0	0	0	0	0	2.46742e-20	0	0	0	0	
+0	0	0	0	0	0	0	0	0	0	7.11253e-21	
+0	0	0	0	0	0	0	0	0	2.2782e-20	0	
+0	0	0	0	0	0	0	0	7.11253e-21	0	0	
+0	0	0	0	0	0	0	2.2782e-20	0	0	0	
+0	0	0	0	0	0	7.11253e-21	0	0	0	0	
 0	0	0	0	0	0	0	0	0	0	0	
-0	0	0	0	3.97409e-19	0	0	0	0	0	0	
-0	0	0	2.44542e-20	0	0	0	0	0	0	0	
-0	0	3.96927e-19	0	0	0	0	0	0	0	0	
-0	2.38069e-20	0	0	0	0	0	0	0	0	0	
-3.96927e-19	0	0	0	0	0	0	0	0	0	0	
+0	0	0	0	3.97055e-19	0	0	0	0	0	0	
+0	0	0	2.3981e-20	0	0	0	0	0	0	0	
+0	0	3.97055e-19	0	0	0	0	0	0	0	0	
+0	2.3981e-20	0	0	0	0	0	0	0	0	0	
+3.97055e-19	0	0	0	0	0	0	0	0	0	0	
 TUtil::SumMatrixElementPDF: Reset AlphaS:
 	Before reset, alphas scale: 59.4084, PDF scale: 59.4084
 TUtil::SumMatrixElementPDF: Reset AlphaS result:
 	After reset, alphas scale: 91.2, PDF scale: 91.2
-End TUtil::SumMatrixElementPDF(1.74e-18)
-Process bkgZZ TEvtProb::XsecCalc_VVXVV: dXsec=1.74e-18
+End TUtil::SumMatrixElementPDF(1.53599e-18)
+Process bkgZZ TEvtProb::XsecCalc_VVXVV: dXsec=1.53599e-18
 End XsecCalc_VVXVV
 TEvtProb::SetHiggsMass(125, -1, -1):
 	hmass: 125, 0.00407
@@ -1346,7 +1298,7 @@ Production variables:
 	JHUGen (mass, width): (118.817, 0.0034064)
 	JHUGen propagator: 7.20761e-08
 Bkg
-	MCFM ME: 1.74e-18
+	MCFM ME: 1.53599e-18
 0mplus
 	JHUGen decay-alone: 3.44497e-05
 	JHUGen prod.-alone: 3.57662e-17
@@ -1476,31 +1428,31 @@ fa3
 	0.382208	0	0	0	0	0	0	0	0	0	0
 Bkg
 	MCFM
-	0	0	0	0	0	0	0	0	0	0	3.75761e-21
-	0	0	0	0	0	0	0	0	0	2.74527e-20	0
-	0	0	0	0	0	0	0	0	3.75761e-21	0	0
-	0	0	0	0	0	0	0	7.32855e-20	0	0	0
-	0	0	0	0	0	0	2.46742e-20	0	0	0	0
+	0	0	0	0	0	0	0	0	0	0	7.11253e-21
+	0	0	0	0	0	0	0	0	0	2.2782e-20	0
+	0	0	0	0	0	0	0	0	7.11253e-21	0	0
+	0	0	0	0	0	0	0	2.2782e-20	0	0	0
+	0	0	0	0	0	0	7.11253e-21	0	0	0	0
 	0	0	0	0	0	0	0	0	0	0	0
-	0	0	0	0	3.97409e-19	0	0	0	0	0	0
-	0	0	0	2.44542e-20	0	0	0	0	0	0	0
-	0	0	3.96927e-19	0	0	0	0	0	0	0	0
-	0	2.38069e-20	0	0	0	0	0	0	0	0	0
-	3.96927e-19	0	0	0	0	0	0	0	0	0	0
+	0	0	0	0	3.97055e-19	0	0	0	0	0	0
+	0	0	0	2.3981e-20	0	0	0	0	0	0	0
+	0	0	3.97055e-19	0	0	0	0	0	0	0	0
+	0	2.3981e-20	0	0	0	0	0	0	0	0	0
+	3.97055e-19	0	0	0	0	0	0	0	0	0	0
 	MCFM 0mplus/Bkg Ratio
-	0	0	0	0	0	0	0	0	0	0	0.00216913
-	0	0	0	0	0	0	0	0	0	0.000906665	0
-	0	0	0	0	0	0	0	0	0.00216913	0	0
-	0	0	0	0	0	0	0	0.000339636	0	0	0
-	0	0	0	0	0	0	0.000330334	0	0	0	0
+	0	0	0	0	0	0	0	0	0	0	0.00114597
+	0	0	0	0	0	0	0	0	0	0.00109254	0
+	0	0	0	0	0	0	0	0	0.00114597	0	0
+	0	0	0	0	0	0	0	0.00109254	0	0	0
+	0	0	0	0	0	0	0.00114597	0	0	0	0
 	0	0	0	0	0	0	0	0	0	0	0
-	0	0	0	0	0.000442471	0	0	0	0	0	0
-	0	0	0	0.00481945	0	0	0	0	0	0	0
-	0	0	0.000443009	0	0	0	0	0	0	0	0
-	0	0.00495048	0	0	0	0	0	0	0	0	0
-	0.000443009	0	0	0	0	0	0	0	0	0	0
+	0	0	0	0	0.000442865	0	0	0	0	0	0
+	0	0	0	0.00491455	0	0	0	0	0	0	0
+	0	0	0.000442865	0	0	0	0	0	0	0	0
+	0	0.00491455	0	0	0	0	0	0	0	0	0
+	0.000442865	0	0	0	0	0	0	0	0	0	0
 ***** TUtil::PrintCandidateSummary *****
-Candidate: 0x662d190
+Candidate: 0x691c170
 	Has 2 mothers
 		V0 (0) (X,Y,Z,T)=( 0 , 0 , -865.379 , -865.379 )
 		V1 (0) (X,Y,Z,T)=( 0 , 0 , 624.034 , -624.034 )
