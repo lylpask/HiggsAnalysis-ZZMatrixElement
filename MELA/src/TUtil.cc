@@ -2429,13 +2429,17 @@ bool TUtil::MCFM_SetupParticleCouplings(
             strplabel[3]="qj";
           }
         }
-        if (!useQQVVQQany){ // colfac34_56 handles all couplings instead of this simple scaling (Reason: WW Final states)
+        if (!useQQVVQQany){ // colfac34_56 handles all couplings instead of this simple scaling (Reason: WW final states)
           zcouple_.l1 *= sqrt(3.);
           zcouple_.r1 *= sqrt(3.);
           zcouple_.q1 *= sqrt(3.);
         }
       } // End Z1 daughter id tests
     } // End ZZ/ZG/ZJJ Z1 couplings
+    else if (useQQVVQQany){
+      strplabel[2]=TUtil::GetMCFMParticleLabel(pId[pZOrder[0]]);
+      strplabel[3]=TUtil::GetMCFMParticleLabel(pId[pZOrder[1]]);
+    }
 
     // Couplings for Z2
     if (isWW && (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgWW){} // Skip this one, already handled above
@@ -2512,6 +2516,10 @@ bool TUtil::MCFM_SetupParticleCouplings(
         }
       } // End Z2 daughter id tests
     } // End ZZ Z2 couplings
+    else if (useQQVVQQany){
+      strplabel[4]=TUtil::GetMCFMParticleLabel(pId[pZOrder[2]]);
+      strplabel[5]=TUtil::GetMCFMParticleLabel(pId[pZOrder[3]]);
+    }
 
   } // End check WW, ZZ, ZG etc.
 
