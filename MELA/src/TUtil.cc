@@ -2429,13 +2429,17 @@ bool TUtil::MCFM_SetupParticleCouplings(
             strplabel[3]="qj";
           }
         }
-        if (!useQQVVQQany){ // colfac34_56 handles all couplings instead of this simple scaling (Reason: WW Final states)
+        if (!useQQVVQQany){ // colfac34_56 handles all couplings instead of this simple scaling (Reason: WW final states)
           zcouple_.l1 *= sqrt(3.);
           zcouple_.r1 *= sqrt(3.);
           zcouple_.q1 *= sqrt(3.);
         }
       } // End Z1 daughter id tests
     } // End ZZ/ZG/ZJJ Z1 couplings
+    else if (useQQVVQQany){
+      strplabel[2]=TUtil::GetMCFMParticleLabel(pId[pZOrder[0]]);
+      strplabel[3]=TUtil::GetMCFMParticleLabel(pId[pZOrder[1]]);
+    }
 
     // Couplings for Z2
     if (isWW && (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB) && process == TVar::bkgWW){} // Skip this one, already handled above
@@ -2512,6 +2516,10 @@ bool TUtil::MCFM_SetupParticleCouplings(
         }
       } // End Z2 daughter id tests
     } // End ZZ Z2 couplings
+    else if (useQQVVQQany){
+      strplabel[4]=TUtil::GetMCFMParticleLabel(pId[pZOrder[2]]);
+      strplabel[5]=TUtil::GetMCFMParticleLabel(pId[pZOrder[3]]);
+    }
 
   } // End check WW, ZZ, ZG etc.
 
@@ -3457,6 +3465,7 @@ double TUtil::SumMatrixElementPDF(
   if (doProceed){
     int NPart=npart_.npart+2; // +2 for mothers
     double p4[4][mxpart]={ { 0 } };
+    int id[mxpart]; for (int ipar=0; ipar<mxpart; ipar++) id[ipar]=-9000;
     double msq[nmsq][nmsq]={ { 0 } };
     int channeltoggle=0;
 
@@ -3472,6 +3481,7 @@ double TUtil::SumMatrixElementPDF(
         p4[2][ipar] = -mela_event.pMothers.at(ipar).second.Z();
         p4[3][ipar] = -mela_event.pMothers.at(ipar).second.T();
         MomStore[ipar] = mela_event.pMothers.at(ipar).second;
+        id[ipar] = mela_event.pMothers.at(ipar).first;
       }
       else{
         p4[0][ipar] = mela_event.pMothers.at(ipar).second.X();
@@ -3479,6 +3489,7 @@ double TUtil::SumMatrixElementPDF(
         p4[2][ipar] = mela_event.pMothers.at(ipar).second.Z();
         p4[3][ipar] = mela_event.pMothers.at(ipar).second.T();
         MomStore[ipar] = -mela_event.pMothers.at(ipar).second;
+        id[ipar] = mela_event.pMothers.at(ipar).first;
       }
     }
 
@@ -3496,6 +3507,7 @@ double TUtil::SumMatrixElementPDF(
       p4[2][ipar] = momTmp->Z();
       p4[3][ipar] = momTmp->T();
       MomStore[ipar]=*momTmp;
+      id[ipar] = mela_event.pDaughters.at(partOrder.at(ix)).first;
     }
     for (int ix=0; ix<(int)apartOrder.size(); ix++){
       int ipar = min((int)mxpart, min(NPart, (int)(partOrder.size()+2)))+ix;
@@ -3506,6 +3518,7 @@ double TUtil::SumMatrixElementPDF(
       p4[2][ipar] = momTmp->Z();
       p4[3][ipar] = momTmp->T();
       MomStore[ipar]=*momTmp;
+      id[ipar] = mela_event.pAssociated.at(apartOrder.at(ix)).first;
     }
 
     if (verbosity >= TVar::DEBUG){ for (int i=0; i<NPart; i++) cout << "p["<<i<<"] (Px, Py, Pz, E):\t" << p4[0][i] << '\t' << p4[1][i] << '\t' << p4[2][i] << '\t' << p4[3][i] << endl; }
@@ -3551,35 +3564,30 @@ double TUtil::SumMatrixElementPDF(
         else/* if (production == TVar::ZZQQB_TU)*/ channeltoggle=2;
         qqb_zz_stu_(p4[0], msq[0], &channeltoggle);
       }
+      nInstances=WipeMEArray(process, production, id, msq);
 
       // Sum over valid MEs without PDF weights
       // By far the dominant contribution is uub initial state.
       for (int iquark=-5; iquark<=5; iquark++){
         for (int jquark=-5; jquark<=5; jquark++){
           if (
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-            )
+            (PDGHelpers::isAnUnknownJet(id[0]) || (PDGHelpers::isAGluon(id[0]) && iquark==0) || iquark==id[0])
             &&
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-            )
+            (PDGHelpers::isAnUnknownJet(id[1]) || (PDGHelpers::isAGluon(id[1]) && jquark==0) || jquark==id[1])
             ){
             if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+              PDGHelpers::isAnUnknownJet(id[0])
               &&
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+              PDGHelpers::isAnUnknownJet(id[1])
               ) msqjk = msq[3][7]+msq[7][3]; // Use only uub initial state
             else if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first)
+              PDGHelpers::isAnUnknownJet(id[0])
               ) msqjk = msq[jquark+5][-jquark+5];
             else if (
-              PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first)
+              PDGHelpers::isAnUnknownJet(id[1])
               ) msqjk = msq[-iquark+5][iquark+5];
             else msqjk += msq[jquark+5][iquark+5];
-            if (msq[jquark+5][iquark+5]>0.) nInstances++;
           }
-          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
         }
       }
       SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
@@ -3609,19 +3617,14 @@ double TUtil::SumMatrixElementPDF(
         }
       }
 
+      nInstances=WipeMEArray(process, production, id, msq);
       if (
-        (
-        PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(0).first)
-        )
+        (PDGHelpers::isAnUnknownJet(id[0]) || PDGHelpers::isAGluon(id[0]))
         &&
-        (
-        PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || PDGHelpers::isAGluon(mela_event.pMothers.at(1).first)
-        )
+        (PDGHelpers::isAnUnknownJet(id[1]) || PDGHelpers::isAGluon(id[1]))
         ){
         msqjk = msq[5][5];
-        if (msq[5][5]>=0.) nInstances=1;
       }
-      else msq[5][5]=0; // Kill the ME instance if mothers are known and their ids do not match to gluons.
       SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
     else if (
@@ -3688,50 +3691,7 @@ double TUtil::SumMatrixElementPDF(
         //  ); // No JJQCD-VV ME in MCFM
       }
 
-      for (int iquark=-5; iquark<=5; iquark++){
-        for (int jquark=-5; jquark<=5; jquark++){
-          if (
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(0).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(0).first) && iquark==0) || iquark==mela_event.pMothers.at(0).first
-            )
-            &&
-            (
-            PDGHelpers::isAnUnknownJet(mela_event.pMothers.at(1).first) || (PDGHelpers::isAGluon(mela_event.pMothers.at(1).first) && jquark==0) || jquark==mela_event.pMothers.at(1).first
-            )
-            ){
-            // Kill all non-VH initial parton states
-            if (
-              (
-              (
-              production==TVar::Had_WH || production==TVar::Lep_WH
-              || production==TVar::Had_WH_S || production==TVar::Lep_WH_S
-              || production==TVar::Had_WH_TU || production==TVar::Lep_WH_TU
-              )
-              &&
-              (
-              (TMath::Sign(1, iquark)==TMath::Sign(1, jquark))
-              ||
-              (PDGHelpers::isUpTypeQuark(iquark) && PDGHelpers::isUpTypeQuark(jquark))
-              ||
-              (PDGHelpers::isDownTypeQuark(iquark) && PDGHelpers::isDownTypeQuark(jquark))
-              )
-              )
-              ||
-              (
-              (
-              production==TVar::Had_ZH || production==TVar::Lep_ZH
-              || production==TVar::Had_ZH_S || production==TVar::Lep_ZH_S
-              || production==TVar::Had_ZH_TU || production==TVar::Lep_ZH_TU
-              )
-              &&
-              (iquark!=-jquark)
-              )
-              ) msq[jquark+5][iquark+5]=0;
-            else if (msq[jquark+5][iquark+5]>0.) nInstances++;
-          }
-          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
-        }
-      }
+      nInstances=WipeMEArray(process, production, id, msq);
       msqjk = SumMEPDF(MomStore[0], MomStore[1], msq, RcdME, EBEAM, verbosity);
     }
 
@@ -6689,6 +6649,122 @@ double TUtil::BBHiggsMatEl(
   return sum_msqjk;
 }
 
+// Wipe MEs
+int TUtil::WipeMEArray(const TVar::Process& process, const TVar::Production& production, const int id[mxpart], double msq[nmsq][nmsq]){
+  int nInstances=0;
+  if (
+    (production == TVar::ZZINDEPENDENT || production == TVar::ZZQQB)
+    ||
+    ((production == TVar::ZZQQB_STU || production == TVar::ZZQQB_S || production == TVar::ZZQQB_TU) && process == TVar::bkgZZ)
+    ){
+    // Sum over valid MEs without PDF weights
+    // By far the dominant contribution is uub initial state.
+    for (int iquark=-5; iquark<=5; iquark++){
+      for (int jquark=-5; jquark<=5; jquark++){
+        if (
+          (PDGHelpers::isAnUnknownJet(id[0]) || (PDGHelpers::isAGluon(id[0]) && iquark==0) || iquark==id[0])
+          &&
+          (PDGHelpers::isAnUnknownJet(id[1]) || (PDGHelpers::isAGluon(id[1]) && jquark==0) || jquark==id[1])
+          ){
+          if (msq[jquark+5][iquark+5]>0.) nInstances++;
+        }
+        else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+      }
+    }
+  }
+  else if (production == TVar::ZZGG){
+    if (
+      (PDGHelpers::isAnUnknownJet(id[0]) || PDGHelpers::isAGluon(id[0]))
+      &&
+      (PDGHelpers::isAnUnknownJet(id[1]) || PDGHelpers::isAGluon(id[1]))
+      ){
+      if (msq[5][5]>0.) nInstances=1;
+    }
+    else msq[5][5]=0; // Kill the ME instance if mothers are known and their ids do not match to gluons.
+  }
+  else if (
+    production==TVar::Had_WH || production==TVar::Had_ZH
+    || production==TVar::Had_WH_S || production==TVar::Had_ZH_S
+    || production==TVar::Had_WH_TU || production==TVar::Had_ZH_TU
+    || production==TVar::Lep_WH || production==TVar::Lep_ZH
+    || production==TVar::Lep_WH_S || production==TVar::Lep_ZH_S
+    || production==TVar::Lep_WH_TU || production==TVar::Lep_ZH_TU
+    || production==TVar::JJVBF || production==TVar::JJEW || production==TVar::JJEWQCD
+    || production==TVar::JJVBF_S || production==TVar::JJEW_S || production==TVar::JJEWQCD_S
+    || production==TVar::JJVBF_TU || production==TVar::JJEW_TU || production==TVar::JJEWQCD_TU
+    || production==TVar::JJQCD || production==TVar::JJQCD_S || production==TVar::JJQCD_TU
+    ){
+    // Z+2 jets
+    if (process == TVar::bkgZJets){
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++){
+          if (
+            (PDGHelpers::isAnUnknownJet(id[0]) || (PDGHelpers::isAGluon(id[0]) && iquark==0) || iquark==id[0])
+            &&
+            (PDGHelpers::isAnUnknownJet(id[1]) || (PDGHelpers::isAGluon(id[1]) && jquark==0) || jquark==id[1])
+            ){
+            if (msq[jquark+5][iquark+5]>0.) nInstances++;
+          }
+          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+        }
+      }
+    }
+    // VBF or QCD MCFM SBI, S or B
+    else{
+      for (int iquark=-5; iquark<=5; iquark++){
+        for (int jquark=-5; jquark<=5; jquark++){
+          if (
+            (
+            PDGHelpers::isAnUnknownJet(id[0]) || (PDGHelpers::isAGluon(id[0]) && iquark==0) || iquark==id[0]
+            )
+            &&
+            (
+            PDGHelpers::isAnUnknownJet(id[1]) || (PDGHelpers::isAGluon(id[1]) && jquark==0) || jquark==id[1]
+            )
+            ){
+            // Kill all non-VH initial parton states
+            if (
+              (
+              (
+              production==TVar::Had_WH || production==TVar::Lep_WH
+              || production==TVar::Had_WH_S || production==TVar::Lep_WH_S
+              || production==TVar::Had_WH_TU || production==TVar::Lep_WH_TU
+              )
+              &&
+              (
+              (TMath::Sign(1, iquark)==TMath::Sign(1, jquark))
+              ||
+              (PDGHelpers::isUpTypeQuark(iquark) && PDGHelpers::isUpTypeQuark(jquark))
+              ||
+              (PDGHelpers::isDownTypeQuark(iquark) && PDGHelpers::isDownTypeQuark(jquark))
+              )
+              )
+              ||
+              (
+              (
+              production==TVar::Had_ZH || production==TVar::Lep_ZH
+              || production==TVar::Had_ZH_S || production==TVar::Lep_ZH_S
+              || production==TVar::Had_ZH_TU || production==TVar::Lep_ZH_TU
+              )
+              &&
+              (iquark!=-jquark)
+              )
+              ) msq[jquark+5][iquark+5]=0;
+
+            // Check against a hash
+            int order[2]={ -1, -1 };
+            TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(iquark, jquark, id[6], id[7], order);
+            if (order[0]<0 || order[1]<0) msq[jquark+5][iquark+5]=0;
+
+            if (msq[jquark+5][iquark+5]>0.) nInstances++;
+          }
+          else msq[jquark+5][iquark+5]=0; // Kill the ME instance if mothers are known and their ids do not match the PDF indices.
+        }
+      }
+    }
+  }
+  return nInstances;
+}
 // CheckPartonMomFraction computes xx[0:1] based on p0, p1
 bool TUtil::CheckPartonMomFraction(const TLorentzVector& p0, const TLorentzVector& p1, double xx[2], const double& EBEAM, const TVar::VerbosityLevel& verbosity){
   //Make sure parton Level Energy fraction is [0,1]
