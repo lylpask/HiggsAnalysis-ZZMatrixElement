@@ -3465,8 +3465,10 @@ double TUtil::SumMatrixElementPDF(
   if (doProceed){
     int NPart=npart_.npart+2; // +2 for mothers
     double p4[4][mxpart]={ { 0 } };
+    double p4_tmp[4][mxpart]={ { 0 } };
     int id[mxpart]; for (int ipar=0; ipar<mxpart; ipar++) id[ipar]=-9000;
     double msq[nmsq][nmsq]={ { 0 } };
+    double msq_tmp[nmsq][nmsq]={ { 0 } };
     int channeltoggle=0;
 
     TLorentzVector MomStore[mxpart];
@@ -3653,10 +3655,34 @@ double TUtil::SumMatrixElementPDF(
           || production==TVar::JJVBF || production==TVar::JJEW
           || production==TVar::JJVBF_S || production==TVar::JJEW_S
           || production==TVar::JJVBF_TU || production==TVar::JJEW_TU
-          ) qq_zzqq_(p4[0], msq[0]);
+          ){
+          qq_zzqq_(p4[0], msq[0]);
+          if (PDGHelpers::isAnUnknownJet(id[partOrder.size()+2]) && PDGHelpers::isAnUnknownJet(id[partOrder.size()+3])){
+            for (unsigned int ix=0; ix<4; ix++){
+              for (int ip=0; ip<mxpart; ip++){
+                p4_tmp[ix][ip]=p4[ix][ip];
+              }
+              swap(p4_tmp[ix][partOrder.size()+2], p4_tmp[ix][partOrder.size()+3]);
+            }
+            qq_zzqq_(p4_tmp[0], msq_tmp[0]);
+            for (int iquark=-5; iquark<=5; iquark++){ for (int jquark=-5; jquark<=5; jquark++){ msq[jquark+5][iquark+5] = (msq[jquark+5][iquark+5] + msq_tmp[jquark+5][iquark+5]); if (iquark==jquark) msq[jquark+5][iquark+5]*=0.5; } }
+          }
+        }
         else if (
           production==TVar::JJQCD || production==TVar::JJQCD_S || production==TVar::JJQCD_TU
-          ) qq_zzqqstrong_(p4[0], msq[0]);
+          ){
+          qq_zzqqstrong_(p4[0], msq[0]);
+          if (PDGHelpers::isAnUnknownJet(id[partOrder.size()+2]) && PDGHelpers::isAnUnknownJet(id[partOrder.size()+3])){
+            for (unsigned int ix=0; ix<4; ix++){
+              for (int ip=0; ip<mxpart; ip++){
+                p4_tmp[ix][ip]=p4[ix][ip];
+              }
+              swap(p4_tmp[ix][partOrder.size()+2], p4_tmp[ix][partOrder.size()+3]);
+            }
+            qq_zzqqstrong_(p4_tmp[0], msq_tmp[0]);
+            for (int iquark=-5; iquark<=5; iquark++){ for (int jquark=-5; jquark<=5; jquark++){ msq[jquark+5][iquark+5] = (msq[jquark+5][iquark+5] + msq_tmp[jquark+5][iquark+5]); if (iquark==jquark) msq[jquark+5][iquark+5]*=0.5; } }
+          }
+        }
       }
       else if (isWW && (process==TVar::bkgWW_SMHiggs || process==TVar::HSMHiggs || process==TVar::bkgWW)){
         if (
@@ -3669,10 +3695,34 @@ double TUtil::SumMatrixElementPDF(
           || production==TVar::JJVBF || production==TVar::JJEW
           || production==TVar::JJVBF_S || production==TVar::JJEW_S
           || production==TVar::JJVBF_TU || production==TVar::JJEW_TU
-          ) qq_wwqq_(p4[0], msq[0]);
+          ){
+          qq_wwqq_(p4[0], msq[0]);
+          if (PDGHelpers::isAnUnknownJet(id[partOrder.size()+2]) && PDGHelpers::isAnUnknownJet(id[partOrder.size()+3])){
+            for (unsigned int ix=0; ix<4; ix++){
+              for (int ip=0; ip<mxpart; ip++){
+                p4_tmp[ix][ip]=p4[ix][ip];
+              }
+              swap(p4_tmp[ix][partOrder.size()+2], p4_tmp[ix][partOrder.size()+3]);
+            }
+            qq_wwqq_(p4_tmp[0], msq_tmp[0]);
+            for (int iquark=-5; iquark<=5; iquark++){ for (int jquark=-5; jquark<=5; jquark++){ msq[jquark+5][iquark+5] = (msq[jquark+5][iquark+5] + msq_tmp[jquark+5][iquark+5]); if (iquark==jquark) msq[jquark+5][iquark+5]*=0.5; } }
+          }
+        }
         else if (
           production==TVar::JJQCD || production==TVar::JJQCD_S || production==TVar::JJQCD_TU
-          ) qq_wwqqstrong_(p4[0], msq[0]);
+          ){
+          qq_wwqqstrong_(p4[0], msq[0]);
+          if (PDGHelpers::isAnUnknownJet(id[partOrder.size()+2]) && PDGHelpers::isAnUnknownJet(id[partOrder.size()+3])){
+            for (unsigned int ix=0; ix<4; ix++){
+              for (int ip=0; ip<mxpart; ip++){
+                p4_tmp[ix][ip]=p4[ix][ip];
+              }
+              swap(p4_tmp[ix][partOrder.size()+2], p4_tmp[ix][partOrder.size()+3]);
+            }
+            qq_wwqqstrong_(p4_tmp[0], msq_tmp[0]);
+            for (int iquark=-5; iquark<=5; iquark++){ for (int jquark=-5; jquark<=5; jquark++){ msq[jquark+5][iquark+5] = (msq[jquark+5][iquark+5] + msq_tmp[jquark+5][iquark+5]); if (iquark==jquark) msq[jquark+5][iquark+5]*=0.5; } }
+          }
+        }
       }
       else if ((isWW || isZZ) && (process==TVar::bkgWWZZ_SMHiggs || process==TVar::HSMHiggs_WWZZ || process==TVar::bkgWWZZ)){
         if (
@@ -3685,7 +3735,19 @@ double TUtil::SumMatrixElementPDF(
           || production==TVar::JJVBF || production==TVar::JJEW
           || production==TVar::JJVBF_S || production==TVar::JJEW_S
           || production==TVar::JJVBF_TU || production==TVar::JJEW_TU
-          ) qq_vvqq_(p4[0], msq[0]);
+          ){
+          qq_vvqq_(p4[0], msq[0]);
+          if (PDGHelpers::isAnUnknownJet(id[partOrder.size()+2]) && PDGHelpers::isAnUnknownJet(id[partOrder.size()+3])){
+            for (unsigned int ix=0; ix<4; ix++){
+              for (int ip=0; ip<mxpart; ip++){
+                p4_tmp[ix][ip]=p4[ix][ip];
+              }
+              swap(p4_tmp[ix][partOrder.size()+2], p4_tmp[ix][partOrder.size()+3]);
+            }
+            qq_vvqq_(p4_tmp[0], msq_tmp[0]);
+            for (int iquark=-5; iquark<=5; iquark++){ for (int jquark=-5; jquark<=5; jquark++){ msq[jquark+5][iquark+5] = (msq[jquark+5][iquark+5] + msq_tmp[jquark+5][iquark+5]); if (iquark==jquark) msq[jquark+5][iquark+5]*=0.5; } }
+          }
+        }
         //else if (
         //  production==TVar::JJQCD || production==TVar::JJQCD_S || production==TVar::JJQCD_TU
         //  ); // No JJQCD-VV ME in MCFM

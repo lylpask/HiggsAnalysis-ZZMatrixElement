@@ -1339,12 +1339,15 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
   int idMother[2]={ 0 };
   if (vbfvhchannel<=1){
     // VBF ZZ(+)WW
-    if (motherflavor==1){
+    if (motherflavor==0){
+      doEval = true;
+    }
+    else if (motherflavor==1){
       idMother[0]=2; idMother[1]=1;
       doEval =
         (isZZWW==1 && vbfvhchannel==0) ||
         (isZZWW==2 && vbfvhchannel==0);
-    } // Passed: (1,1,0);(1,2,0) -> Check!
+    }
     else if (motherflavor==2){
       idMother[0]=-2; idMother[1]=-1;
       doEval =
