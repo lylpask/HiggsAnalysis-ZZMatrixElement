@@ -1284,7 +1284,7 @@ void testME_ProdDec_MCFM_Ordering(int iSel, int jSel, int rSel, int sSel){
 }
 
 
-void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==HadVH, 2==LepVH*/, int decZZWW=1, int hasInterf=0 /*0==2l2l, 1==4l*/){
+void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int isZZWW=0 /*1==ZZ, 2==WW*/, int vbfvhchannel=0 /*0==VBF, 1==HadVH, 2==LepVH*/, int decZZWW=1 /*1==ZZ, 2==WW*/, int hasInterf=0 /*0==2l2l, 1==4l*/){
   TString outname;
   int isZZWWdecflag;
   if (decZZWW==1){
@@ -1339,7 +1339,7 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
   int idMother[2]={ 0 };
   if (vbfvhchannel<=1){
     // VBF ZZ(+)WW
-    if (motherflavor==0){
+    if (motherflavor==0){ // qq-<qq gives wrong ratio in 4l interf.
       doEval = true;
     }
     else if (motherflavor==1){
@@ -1400,7 +1400,152 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
         (isZZWW==2 && vbfvhchannel==0) ||
         (isZZWW==1 && vbfvhchannel>=1);
     }
-    else doEval=false;
+    // Extra pieces
+    // VBF ZZ(+)WW
+    else if (motherflavor==9){ // (9,2,0) ZA/AA MEs are not correct.
+      idMother[0]=4; idMother[1]=3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0);
+    }
+    else if (motherflavor==10){
+      idMother[0]=4; idMother[1]=1;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0);
+    }
+    else if (motherflavor==11){
+      idMother[0]=2; idMother[1]=3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0);
+    }
+    else if (motherflavor==12){ // (12,2,0) ZA/AA MEs are not correct.
+      idMother[0]=-4; idMother[1]=-3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0);
+    }
+    else if (motherflavor==13){
+      idMother[0]=-4; idMother[1]=-1;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0);
+    }
+    else if (motherflavor==14){
+      idMother[0]=-2; idMother[1]=-3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0);
+    }
+    // VBF ZZ-only(+)WH
+    else if (motherflavor==15){
+      idMother[0]=4; idMother[1]=-3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel>=1) ||
+        (isZZWW==0 && vbfvhchannel==0) ||
+        (isZZWW==0 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==16){
+      idMother[0]=4; idMother[1]=-1;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel>=1) ||
+        (isZZWW==0 && vbfvhchannel==0) ||
+        (isZZWW==0 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==17){
+      idMother[0]=2; idMother[1]=-3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel>=1) ||
+        (isZZWW==0 && vbfvhchannel==0) ||
+        (isZZWW==0 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==18){
+      idMother[0]=-4; idMother[1]=3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel>=1) ||
+        (isZZWW==0 && vbfvhchannel==0) ||
+        (isZZWW==0 && vbfvhchannel==1);
+    }
+    else if (motherflavor==19){
+      idMother[0]=-4; idMother[1]=1;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel>=1) ||
+        (isZZWW==0 && vbfvhchannel==0) ||
+        (isZZWW==0 && vbfvhchannel==1);
+    }
+    else if (motherflavor==20){
+      idMother[0]=-2; idMother[1]=3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel>=1) ||
+        (isZZWW==0 && vbfvhchannel==0) ||
+        (isZZWW==0 && vbfvhchannel==1);
+    }
+    // VBF ZZ(+)ZH or WW(+)ZH
+    else if (motherflavor==21){
+      idMother[0]=4; idMother[1]=-4;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==22){
+      idMother[0]=-4; idMother[1]=4;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==23){
+      idMother[0]=3; idMother[1]=-3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==24){
+      idMother[0]=-3; idMother[1]=3;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==25){
+      idMother[0]=5; idMother[1]=-5;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1);
+    }
+    else if (motherflavor==26){
+      idMother[0]=-5; idMother[1]=5;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1);
+    }
+    else if (motherflavor<=31){
+      idMother[0]=-(motherflavor-26); idMother[1]=0;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1) ||
+        (isZZWW==2 && vbfvhchannel>=1);
+    }
+    else if (motherflavor<=36){
+      idMother[0]=(motherflavor-31); idMother[1]=0;
+      doEval =
+        (isZZWW==1 && vbfvhchannel==0) ||
+        (isZZWW==2 && vbfvhchannel==0) ||
+        (isZZWW==1 && vbfvhchannel>=1) ||
+        (isZZWW==2 && vbfvhchannel>=1);
+    }
   }
   else if (vbfvhchannel==2){
     // VBF ZZ-only(+)WH
@@ -1439,7 +1584,7 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     }
   }
 
-  TVar::VerbosityLevel verbosity = TVar::ERROR;
+  TVar::VerbosityLevel verbosity = TVar::DEBUG;
   TVar::Production prod;
   if (vbfvhchannel==0) prod=TVar::JJVBF_S;
   else if (vbfvhchannel==1){
@@ -2039,10 +2184,12 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
   }
 }
 
-void testME_ProdDec_MCFM_JHUGen_JJQCDZZ_Comparison_Ping(int motherflavor=0, int hasInterf=0 /*0==2l2l, 1==4l*/){
-  ofstream tout("testME_ProdDec_MCFM_JHUGen_JJQCDZZ_Comparison_Ping.out");
-  streambuf* coutbuf = cout.rdbuf();
-  //cout.rdbuf(tout.rdbuf());
+void testME_ProdDec_MCFM_JHUGen_JJQCDZZWW_Comparison_Ping(int motherflavor=0, int decZZWW=1 /*1==ZZ, 2==WW*/, int hasInterf=0 /*0==2l2l, 1==4l*/){
+  if (hasInterf==1 && decZZWW==2) return;
+  TString outname;
+  if (decZZWW==1) outname = Form("testME_ProdDec_MCFM_JHUGen_JJQCDZZ_Comparison_Ping_%i_%s.out", motherflavor, (hasInterf ? "4l" : "2l2l"));
+  else if (decZZWW==2) outname = Form("testME_ProdDec_MCFM_JHUGen_JJQCDWW_Comparison_Ping_%i.out", motherflavor);
+  else return;
 
   struct mcfmme{
     float proddecme;
@@ -2063,9 +2210,11 @@ void testME_ProdDec_MCFM_JHUGen_JJQCDZZ_Comparison_Ping(int motherflavor=0, int 
   float mPOLE=125.0;
   float wPOLE=4.07e-3;
 
+  bool doEval=true;
   int idMother[2]={ 0 };
   // Ordering logic that involves gluons needs to be revised: case 19 only gives qqb/qbq/gq/qg, not qbg or gqb
-  if (motherflavor==1){ idMother[0]=2; idMother[1]=-2; }
+  if (motherflavor==0){}
+  else if (motherflavor==1){ idMother[0]=2; idMother[1]=-2; }
   else if (motherflavor==2){ idMother[0]=-2; idMother[1]=2; }
   else if (motherflavor==3){ idMother[0]=1; idMother[1]=-1; }
   else if (motherflavor==4){ idMother[0]=-1; idMother[1]=1; }
@@ -2084,99 +2233,122 @@ void testME_ProdDec_MCFM_JHUGen_JJQCDZZ_Comparison_Ping(int motherflavor=0, int 
   else if (motherflavor==15){ idMother[0]=-2; idMother[1]=0; }
   else if (motherflavor==16){ idMother[0]=1; idMother[1]=0; }
   else if (motherflavor==17){ idMother[0]=-1; idMother[1]=0; }
-  else if (motherflavor==19){ idMother[0]=21; idMother[1]=0; }
 
-  else if (motherflavor==20){ idMother[0]=0; idMother[1]=0; }
+  else if (motherflavor==18){ idMother[0]=4; idMother[1]=0; }
+  else if (motherflavor==19){ idMother[0]=-4; idMother[1]=0; }
+  else if (motherflavor==20){ idMother[0]=3; idMother[1]=0; }
+  else if (motherflavor==21){ idMother[0]=-3; idMother[1]=0; }
+  else if (motherflavor==22){ idMother[0]=5; idMother[1]=0; }
+  else if (motherflavor==23){ idMother[0]=-5; idMother[1]=0; }
 
-  TVar::VerbosityLevel verbosity = TVar::ERROR;
-  TVar::Production prod = TVar::JJQCD;
+  else if (motherflavor==24){ idMother[0]=21; idMother[1]=0; }
 
-  Mela mela(erg_tev, mPOLE, verbosity);
+  else doEval=false;
 
-  mcfmme p_prod_JJQCD_VAMCFM;
+  if (doEval){
+    ofstream tout(outname.Data());
+    streambuf* coutbuf = cout.rdbuf();
+    cout.rdbuf(tout.rdbuf());
 
-  float mzz = 0;
-  float mjj = 0;
+    TVar::VerbosityLevel verbosity = TVar::DEBUG;
+    TVar::Production prod = TVar::JJQCD;
 
-  float pingMom[8][4]={
-    { 0, 0, -865.37881546721542, -865.37881546721542 },
-    { 0, 0, 624.03396598421773, -624.03396598421773 },
-    { 7.6145299215002638, -17.259247740062808, 9.4660586470659975, 21.106135714241464 },
-    { 90.901719112641416, -69.683681833050798, 32.066319224729980, 118.94194752090492 },
-    { 78.476352131782917, -35.264818847819797, -8.8615639484695272, 86.490881645951262 },
-    { 191.68369742375290, -197.85205601463366, 100.99437243828194, 293.40746273989180 },
-    { -131.59521398083137, 330.56000090294270, 437.01695094737875, 563.53440884737279 },
-    { -237.08108460884614, -10.500196467375645, -329.33728782598945, 405.93194498307093 }
-  };
+    Mela mela(erg_tev, mPOLE, verbosity);
 
-  int GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
-  GenLep1Id=13;
-  GenLep2Id=-13;
-  if (hasInterf==0){
-    GenLep3Id=11;
-    GenLep4Id=-11;
+    mcfmme p_prod_JJQCD_VAMCFM;
+
+    float mzz = 0;
+    float mjj = 0;
+
+    float pingMom[8][4]={
+      { 0, 0, -865.37881546721542, -865.37881546721542 },
+      { 0, 0, 624.03396598421773, -624.03396598421773 },
+      { 7.6145299215002638, -17.259247740062808, 9.4660586470659975, 21.106135714241464 },
+      { 90.901719112641416, -69.683681833050798, 32.066319224729980, 118.94194752090492 },
+      { 78.476352131782917, -35.264818847819797, -8.8615639484695272, 86.490881645951262 },
+      { 191.68369742375290, -197.85205601463366, 100.99437243828194, 293.40746273989180 },
+      { -131.59521398083137, 330.56000090294270, 437.01695094737875, 563.53440884737279 },
+      { -237.08108460884614, -10.500196467375645, -329.33728782598945, 405.93194498307093 }
+    };
+
+    int GenLep1Id=0, GenLep2Id=0, GenLep3Id=0, GenLep4Id=0;
+    if (decZZWW==1){
+      GenLep1Id=13;
+      GenLep2Id=-13;
+      if (hasInterf==0){
+        GenLep3Id=11;
+        GenLep4Id=-11;
+      }
+      else{
+        GenLep3Id=GenLep1Id;
+        GenLep4Id=GenLep2Id;
+      }
+      mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
+    }
+    else{
+      GenLep1Id=13;
+      GenLep2Id=-14;
+      GenLep3Id=12;
+      GenLep4Id=-11;
+      mela.setCandidateDecayMode(TVar::CandidateDecay_WW);
+    }
+
+    int idOrdered[4] ={ GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id };
+
+    SimpleParticleCollection_t mothers;
+    for (unsigned int ip=0; ip<2; ip++){
+      mothers.push_back(
+        SimpleParticle_t(
+        0,
+        TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
+        )
+        );
+    };
+    SimpleParticleCollection_t daughters;
+    for (unsigned int ip=2; ip<6; ip++){
+      daughters.push_back(
+        SimpleParticle_t(
+        idOrdered[ip-2],
+        TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
+        )
+        );
+    };
+    SimpleParticleCollection_t associated;
+    for (unsigned int ip=6; ip<8; ip++){
+      associated.push_back(
+        SimpleParticle_t(
+        idMother[ip-6], // Is this wrong? No, not really. We want to check all initial particles.
+        TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
+        )
+        );
+    };
+    mjj = (associated.at(0).second+associated.at(1).second).M();
+    mzz = (daughters.at(0).second+daughters.at(1).second+daughters.at(2).second+daughters.at(3).second).M();
+
+    mela.setInputEvent(&daughters, &associated, &mothers, true);
+
+    /***** MCFM *****/
+
+    mela.setProcess((decZZWW==1 ? TVar::bkgZZ : TVar::bkgWW), TVar::MCFM, prod);
+
+    mela.computeProdDecP(p_prod_JJQCD_VAMCFM.proddecme, false);
+    mela.getIORecord()->getUnweightedMEArray(p_prod_JJQCD_VAMCFM.mearray);
+
+    cout << "Production variables:\n";
+    cout << "\tmZZ = " << mzz << endl;
+    cout << "\tmJJ = " << mjj << endl;
+    cout << "JJQCD ZZ" << endl;
+    cout << "\tMCFM ME: " << p_prod_JJQCD_VAMCFM.proddecme << endl;
+    cout << "\tArray:" << endl;
+    p_prod_JJQCD_VAMCFM.printarray();
+
+    TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
+
+    mela.resetInputEvent();
+
+    cout.rdbuf(coutbuf);
+    tout.close();
   }
-  else{
-    GenLep3Id=GenLep1Id;
-    GenLep4Id=GenLep2Id;
-  }
-  mela.setCandidateDecayMode(TVar::CandidateDecay_ZZ);
-  int idOrdered[4] ={ GenLep1Id, GenLep2Id, GenLep3Id, GenLep4Id };
-
-  SimpleParticleCollection_t mothers;
-  for (unsigned int ip=0; ip<2; ip++){
-    mothers.push_back(
-      SimpleParticle_t(
-      0,
-      TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
-      )
-      );
-  };
-  SimpleParticleCollection_t daughters;
-  for (unsigned int ip=2; ip<6; ip++){
-    daughters.push_back(
-      SimpleParticle_t(
-      idOrdered[ip-2],
-      TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
-      )
-      );
-  };
-  SimpleParticleCollection_t associated;
-  for (unsigned int ip=6; ip<8; ip++){
-    associated.push_back(
-      SimpleParticle_t(
-      idMother[ip-6], // Is this wrong? No, not really. We want to check all initial particles.
-      TLorentzVector(pingMom[ip][0], pingMom[ip][1], pingMom[ip][2], pingMom[ip][3])
-      )
-      );
-  };
-  mjj = (associated.at(0).second+associated.at(1).second).M();
-  mzz = (daughters.at(0).second+daughters.at(1).second+daughters.at(2).second+daughters.at(3).second).M();
-
-  mela.setInputEvent(&daughters, &associated, &mothers, true);
-
-  /***** MCFM *****/
-
-  mela.setProcess(TVar::bkgZZ, TVar::MCFM, prod);
-
-  mela.computeProdDecP(p_prod_JJQCD_VAMCFM.proddecme, false);
-  mela.getIORecord()->getUnweightedMEArray(p_prod_JJQCD_VAMCFM.mearray);
-
-  cout << "Production variables:\n";
-  cout << "\tmZZ = " << mzz << endl;
-  cout << "\tmJJ = " << mjj << endl;
-  cout << "JJQCD ZZ" << endl;
-  cout << "\tMCFM ME: " << p_prod_JJQCD_VAMCFM.proddecme << endl;
-  cout << "\tArray:" << endl;
-  p_prod_JJQCD_VAMCFM.printarray();
-
-  TUtil::PrintCandidateSummary(mela.getCurrentCandidate());
-
-  mela.resetInputEvent();
-
-
-  cout.rdbuf(coutbuf);
-  tout.close();
 }
 
 

@@ -94,7 +94,6 @@ std::vector<TMCFMUtils::intQuad_t> TMCFMUtils::Hash_QQVVQQAny(){
   return pcfg;
 }
 std::vector<TMCFMUtils::intQuad_t> TMCFMUtils::Hash_QQVVQQ(){
-  // FIXME: NEED TO INCLUDE LEPTONS AS WELL FOR J=4-8 AND 9-12
   /*
   Based on the following cases in MCFM:
   parameter(
@@ -110,36 +109,30 @@ std::vector<TMCFMUtils::intQuad_t> TMCFMUtils::Hash_QQVVQQ(){
   std::vector<TMCFMUtils::intQuad_t> base_cfg;
   // uc_uc
   base_cfg.push_back(TMCFMUtils::intQuad_t(2, 4, 2, 4));
-  // uu_uu
-  base_cfg.push_back(TMCFMUtils::intQuad_t(2));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(4));
   // ds_ds
   base_cfg.push_back(TMCFMUtils::intQuad_t(1, 3, 1, 3));
   base_cfg.push_back(TMCFMUtils::intQuad_t(1, 5, 1, 5));
   base_cfg.push_back(TMCFMUtils::intQuad_t(3, 5, 3, 5));
-  // dd_dd
-  base_cfg.push_back(TMCFMUtils::intQuad_t(1));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(3));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(5));
   // ub_ub
   base_cfg.push_back(TMCFMUtils::intQuad_t(2, 3, 2, 3));
   base_cfg.push_back(TMCFMUtils::intQuad_t(2, 5, 2, 5));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(4, 1, 4, 1));
   base_cfg.push_back(TMCFMUtils::intQuad_t(4, 5, 4, 5));
   // dc_dc
   base_cfg.push_back(TMCFMUtils::intQuad_t(1, 4, 1, 4));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(3, 2, 3, 2));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(5, 2, 5, 2));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(5, 4, 5, 4));
   // du_du
   base_cfg.push_back(TMCFMUtils::intQuad_t(1, 2, 1, 2));
   base_cfg.push_back(TMCFMUtils::intQuad_t(3, 4, 3, 4));
   // dc_us
   base_cfg.push_back(TMCFMUtils::intQuad_t(1, 4, 2, 3));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(3, 2, 4, 1));
   // us_dc
   base_cfg.push_back(TMCFMUtils::intQuad_t(2, 3, 1, 4));
-  base_cfg.push_back(TMCFMUtils::intQuad_t(4, 1, 3, 2));
+  // uu_uu
+  base_cfg.push_back(TMCFMUtils::intQuad_t(2));
+  base_cfg.push_back(TMCFMUtils::intQuad_t(4));
+  // dd_dd
+  base_cfg.push_back(TMCFMUtils::intQuad_t(1));
+  base_cfg.push_back(TMCFMUtils::intQuad_t(3));
+  base_cfg.push_back(TMCFMUtils::intQuad_t(5));
 
   std::vector<TMCFMUtils::intQuad_t> jcfg;
   jcfg.push_back(TMCFMUtils::intQuad_t(0, 1, 2, 3));
