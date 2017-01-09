@@ -1588,13 +1588,13 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
   TVar::Production prod;
   if (vbfvhchannel==0) prod=TVar::JJVBF_S;
   else if (vbfvhchannel==1){
-    if (idMother[0]==-idMother[1]) prod=TVar::Had_ZH_S;
-    else if (TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) prod=TVar::Had_WH_S;
+    if ((idMother[0]==-idMother[1] && idMother[0]!=0) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==1)) prod=TVar::Had_ZH_S;
+    else if ((TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==2)) prod=TVar::Had_WH_S;
     else doEval=false;
   }
   else if (vbfvhchannel==2){
-    if (idMother[0]==-idMother[1]) prod=TVar::Lep_ZH_S;
-    else if (TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) prod=TVar::Lep_WH_S;
+    if ((idMother[0]==-idMother[1] && idMother[0]!=0) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==1)) prod=TVar::Lep_ZH_S;
+    else if ((TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==2)) prod=TVar::Lep_WH_S;
     else doEval=false;
   }
   else doEval=false;
@@ -1837,6 +1837,7 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     }
     if (vbfvhchannel==0){
       mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::JJVBF);
+      cout << "JHUGen production chosen: " << TVar::ProductionName(TVar::JJVBF) << endl;
 
       if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
       else{ mela.selfDHwwcoupl[0][gHIGGS_VV_1][0]=1; mela.differentiate_HWW_HZZ=true; }
@@ -1960,8 +1961,14 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     }
     else{
       if (prod==TVar::Had_ZH_S || prod==TVar::Lep_ZH_S){
-        if (prod==TVar::Had_ZH_S) mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
-        else mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_ZH);
+        if (prod==TVar::Had_ZH_S){
+          mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_ZH);
+          cout << "JHUGen production chosen: " << TVar::ProductionName(TVar::Had_ZH) << endl;
+        }
+        else{
+          mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_ZH);
+          cout << "JHUGen production chosen: " << TVar::ProductionName(TVar::Lep_ZH) << endl;
+        }
 
         if (isZZWW!=2) mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
         else mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=0;
@@ -2014,8 +2021,14 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
         }
       }
       else if (prod==TVar::Had_WH_S || prod==TVar::Lep_WH_S){
-        if (prod==TVar::Had_WH_S) mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
-        else mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
+        if (prod==TVar::Had_WH_S){
+          mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Had_WH);
+          cout << "JHUGen production chosen: " << TVar::ProductionName(TVar::Had_WH) << endl;
+        }
+        else{
+          mela.setProcess(TVar::SelfDefine_spin0, TVar::JHUGen, TVar::Lep_WH);
+          cout << "JHUGen production chosen: " << TVar::ProductionName(TVar::Lep_WH) << endl;
+        }
 
         if (isZZWW!=1) mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1;
         mela.computeProdP(p_prod_0mplus_dec_0mplus_VAJHU.prodme, false);
@@ -2084,6 +2097,8 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     else spinzerohiggs_anomcoupl_.AnomalCouplDK=1; // Test prod*decay couplings
 
     mela.setProcess(TVar::HSMHiggs, TVar::MCFM, prod);
+    cout << "MCFM production chosen: " << TVar::ProductionName(prod) << endl;
+    cout << "spinzerohiggs_anomcoupl_.AnomalCouplDK=" << spinzerohiggs_anomcoupl_.AnomalCouplDK << endl;
 
     if (isZZWW!=2){ mela.selfDHzzcoupl[0][gHIGGS_VV_1][0]=1; if (isZZWW==1) mela.differentiate_HWW_HZZ=true; }
     else{ mela.selfDHwwcoupl[0][gHIGGS_VV_1][0]=1; mela.differentiate_HWW_HZZ=true; }

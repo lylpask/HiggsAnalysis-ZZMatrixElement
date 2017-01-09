@@ -2046,7 +2046,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       unsigned int iout=6;
       unsigned int jout=7;
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
@@ -2075,7 +2075,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       bool hasWminus=false;
       for (unsigned int ix=0; ix<napart; ix++){
         if (PDGHelpers::isAJet(pApartId[ix])) continue;
-        for (unsigned int iy=ix; iy<napart; iy++){
+        for (unsigned int iy=ix+1; iy<napart; iy++){
           if (PDGHelpers::isAJet(pApartId[iy])) continue;
           int Vid = PDGHelpers::getCoupledVertex(pApartId[ix], pApartId[iy]);
           if (
@@ -2122,7 +2122,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       unsigned int iout=6;
       unsigned int jout=7;
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
@@ -2193,7 +2193,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
         }
       }
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
@@ -2220,7 +2220,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       bool hasWjj=false;
       for (unsigned int ix=0; ix<napart; ix++){
         if (!PDGHelpers::isAJet(pApartId[ix])) continue;
-        for (unsigned int iy=ix; iy<napart; iy++){
+        for (unsigned int iy=ix+1; iy<napart; iy++){
           if (!PDGHelpers::isAJet(pApartId[iy])) continue;
           int Vid;
           if (!PDGHelpers::isAnUnknownJet(pApartId[ix]) && !PDGHelpers::isAnUnknownJet(pApartId[iy])) Vid = PDGHelpers::getCoupledVertex(pApartId[ix], pApartId[iy]);
@@ -2281,7 +2281,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
         if (hasWplus || hasWminus || hasWjj) break;
       }
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
@@ -2304,7 +2304,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJQCD)*2 + int(production==TVar::JJQCD_TU)*1 + int(production==TVar::JJQCD_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 2; // Doesn't matter, already JJQCD
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
@@ -2320,7 +2320,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJVBF)*2 + int(production==TVar::JJVBF_TU)*1 + int(production==TVar::JJVBF_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 0; // VBF-only process
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],
@@ -2342,7 +2342,7 @@ bool TUtil::MCFM_SetupParticleCouplings(
       spinzerohiggs_anomcoupl_.channeltoggle_stu = int(production==TVar::JJEWQCD || production==TVar::JJEW)*2 + int(production==TVar::JJEWQCD_TU || production==TVar::JJEW_TU)*1 + int(production==TVar::JJEWQCD_S || production==TVar::JJEW_S)*0;;
       spinzerohiggs_anomcoupl_.vvhvvtoggle_vbfvh = 2; // VBF+VH process
       if (useQQVVQQany){
-        int qqvvqq_apartordering[2];
+        int qqvvqq_apartordering[2]={ -1, -1 };
         TMCFMUtils::AssociatedParticleOrdering_QQVVQQAny(
           mela_event.pMothers.at(0).first, mela_event.pMothers.at(1).first,
           pApartId[pApartOrder[0]], pApartId[pApartOrder[1]],

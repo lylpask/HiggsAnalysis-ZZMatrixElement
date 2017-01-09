@@ -145,7 +145,7 @@ Mela::Mela(
   super = new SuperMELA(mh_, "4mu", superMELA_LHCsqrts); // preliminary intialization, we adjust the flavor later
   char cardpath[500];
   sprintf(cardpath, "data/CombinationInputs/SM_inputs_%dTeV/inputs_4mu.txt", superMELA_LHCsqrts);
-  const string cardfile = MELAPKGPATH + cardpath;
+  string cardfile = MELAPKGPATH + cardpath;
   super->SetPathToCards(cardfile.substr(0, cardfile.length()-14).c_str());
   super->SetVerbosity((myVerbosity_>=TVar::DEBUG));
   super->init();

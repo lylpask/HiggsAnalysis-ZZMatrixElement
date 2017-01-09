@@ -1,6 +1,7 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <cmath>
+#include <cassert>
 #include "SuperMELA.h"
 #include "MELAHXSWidth.h"
 #include "RooArgSet.h"
@@ -353,15 +354,19 @@ void SuperMELA::readSigSystFromFile(
 
   //open text file
   string fCardName=pathToCards_+"inputs_"+strChan_+".txt";
-  if (verbose_)std::cout << "Parsing signal shape systematics from input card " << fCardName.c_str() << std::endl;
+  if (verbose_) std::cout << "SuperMELA::readSigSystFromFile: Parsing signal shape systematics from input card " << fCardName.c_str() << std::endl;
   ifstream card(fCardName.c_str(), ios::in);
+  if (!card.good()){
+    std::cerr << "SuperMELA::readSigSystFromFile: Input card " << fCardName << " is not good!" << std::endl;
+    assert(0);
+  }
   string line;
   while (card.good()){
     getline(card, line);
     std::vector<string> fields;
     split(fields, line, boost::is_any_of(" "), boost::token_compress_on);
 
-    if (fields.size()==0 || !(fields[0]=="systematic"&&fields[1]=="param")) continue;
+    if (fields.size()<2 || !(fields[0]=="systematic"&&fields[1]=="param")) continue;
 
     if (fields.size()!=4){
       std::cout << "Error in SuperMELA::readSigSystFromFile! Incorrect format of line " << line.c_str() << std::endl;
@@ -486,7 +491,6 @@ void SuperMELA::readBkgParsFromFile(std::vector<double>& apars){
   card.close();
 }
 
-// Disabled
 void SuperMELA::calc_mZZ_range(const double mHVal, double& low_M, double& high_M){
   //low_M=0.;
   //high_M=sqrts_*1000.;
