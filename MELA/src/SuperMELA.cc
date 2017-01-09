@@ -1,7 +1,6 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <cmath>
-#include <FWCore/ParameterSet/interface/FileInPath.h>
 #include "SuperMELA.h"
 #include "MELAHXSWidth.h"
 #include "RooArgSet.h"
@@ -492,9 +491,14 @@ void SuperMELA::calc_mZZ_range(const double mHVal, double& low_M, double& high_M
   //low_M=0.;
   //high_M=sqrts_*1000.;
 
-  edm::FileInPath fip("ZZMatrixElement/MELA/data/HiggsTotalWidth_YR3.txt");
+#ifdef _melapkgpathstr_
+  const string MELAPKGPATH = _melapkgpathstr_;
+#else
+  cout << "SuperMELA::calc_mZZ_range: MELA package path is undefined! Please modify the makefle or the makefile-equivalent!" << endl;
+  assert(0);
+#endif
+  string path = MELAPKGPATH + "data/HiggsTotalWidth_YR3.txt";
 
-  string path = fip.fullPath();
   path.erase((std::find(path.rbegin(), path.rend(), '/').base()), path.end());
   MELAHXSWidth* myCSW = new MELAHXSWidth(path.c_str());
 
