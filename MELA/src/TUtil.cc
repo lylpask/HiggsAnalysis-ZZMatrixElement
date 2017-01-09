@@ -76,7 +76,7 @@ pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
       jet1massless=jet1;
       jet2massless=jet2;
     }
-    else if (jet1==nullFourVector || jet2==nullFourVector || JetMassScheme==TVar::MomentumToEnergy){
+    else if (jet1==nullFourVector || jet2==nullFourVector || jet1==jet2 || JetMassScheme==TVar::MomentumToEnergy){
       TUtil::scaleMomentumToEnergy(jet1, jet1massless, m1);
       TUtil::scaleMomentumToEnergy(jet2, jet2massless, m2);
     }
@@ -95,7 +95,7 @@ pair<TLorentzVector, TLorentzVector> TUtil::removeMassFromPair(
       jet1massless=jet1;
       jet2massless=jet2;
     }
-    else if (jet1==nullFourVector || jet2==nullFourVector || LeptonMassScheme==TVar::MomentumToEnergy){
+    else if (jet1==nullFourVector || jet2==nullFourVector || jet1==jet2 || LeptonMassScheme==TVar::MomentumToEnergy){
       TUtil::scaleMomentumToEnergy(jet1, jet1massless, m1);
       TUtil::scaleMomentumToEnergy(jet2, jet2massless, m2);
     }
