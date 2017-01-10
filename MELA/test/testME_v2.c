@@ -1335,6 +1335,8 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
   float mPOLE=125.0;
   float wPOLE=4.07e-3;
 
+  TVar::VerbosityLevel verbosity = TVar::ERROR;
+
   bool doEval=false;
   int idMother[2]={ 0 };
   if (vbfvhchannel<=1){
@@ -1342,13 +1344,13 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     if (motherflavor==0){
       doEval = true;
     }
-    else if (motherflavor==1){ // (2,2,0) 4l interference is not right in ZA/AA
+    else if (motherflavor==1){
       idMother[0]=2; idMother[1]=1;
       doEval =
         (isZZWW==1 && vbfvhchannel==0) ||
         (isZZWW==2 && vbfvhchannel==0);
     }
-    else if (motherflavor==2){ // (2,2,0) 4l interference is not right in ZA/AA
+    else if (motherflavor==2){
       idMother[0]=-2; idMother[1]=-1;
       doEval =
         (isZZWW==1 && vbfvhchannel==0) ||
@@ -1402,7 +1404,7 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     }
     // Extra pieces
     // VBF ZZ(+)WW
-    else if (motherflavor==9){ // (9,2,0) ZA/AA MEs are not correct. Check fix.
+    else if (motherflavor==9){
       idMother[0]=4; idMother[1]=3;
       doEval =
         (isZZWW==1 && vbfvhchannel==0) ||
@@ -1420,7 +1422,7 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
         (isZZWW==1 && vbfvhchannel==0) ||
         (isZZWW==2 && vbfvhchannel==0);
     }
-    else if (motherflavor==12){ // (12,2,0) ZA/AA MEs are not correct. Check fix.
+    else if (motherflavor==12){
       idMother[0]=-4; idMother[1]=-3;
       doEval =
         (isZZWW==1 && vbfvhchannel==0) ||
@@ -1584,17 +1586,28 @@ void testME_ProdDec_MCFM_JHUGen_WBFZZWW_Comparison_Ping(int motherflavor=0, int 
     }
   }
 
-  TVar::VerbosityLevel verbosity = TVar::ERROR;
   TVar::Production prod;
   if (vbfvhchannel==0) prod=TVar::JJVBF_S;
   else if (vbfvhchannel==1){
-    if ((idMother[0]==-idMother[1] && idMother[0]!=0) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==1)) prod=TVar::Had_ZH_S;
-    else if ((TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==2)) prod=TVar::Had_WH_S;
+    if (
+      (idMother[0]==-idMother[1] && idMother[0]!=0)
+      ||
+      (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==1)
+      ||
+      (idMother[0]!=-idMother[1] && (idMother[0]==0 || idMother[1]==0) && isZZWW==1)
+      ) prod=TVar::Had_ZH_S;
+    else if (
+      (TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2)
+      ||
+      (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==2)
+      ||
+      ((idMother[0]==0 || idMother[1]==0) && isZZWW==2)
+      ) prod=TVar::Had_WH_S;
     else doEval=false;
   }
   else if (vbfvhchannel==2){
-    if ((idMother[0]==-idMother[1] && idMother[0]!=0) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==1)) prod=TVar::Lep_ZH_S;
-    else if ((TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) || (idMother[0]==-idMother[1] && idMother[0]==0 && isZZWW==2)) prod=TVar::Lep_WH_S;
+    if (idMother[0]==-idMother[1] && idMother[0]!=0) prod=TVar::Lep_ZH_S;
+    else if (TMath::Sign(1, idMother[0])==-TMath::Sign(1, idMother[1]) && abs(idMother[0])%2!=abs(idMother[1])%2) prod=TVar::Lep_WH_S;
     else doEval=false;
   }
   else doEval=false;

@@ -4980,12 +4980,12 @@ double TUtil::HJJMatEl(
       (
       (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)
       ||
-      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0)
       )
       ||
       (partonIsUnknown[0] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[1]) && MYIDUP_tmp[1]>0)))
       ||
-      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0)))
+      (partonIsUnknown[1] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[0]) && MYIDUP_tmp[0]>0)))
       )
       &&
       (
@@ -4994,12 +4994,12 @@ double TUtil::HJJMatEl(
       (
       (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0)
       ||
-      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)
+      (PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0 && PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0)
       )
       ||
       (partonIsUnknown[2] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[3]) && MYIDUP_tmp[3]>0)))
       ||
-      (partonIsUnknown[3] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0)))
+      (partonIsUnknown[3] && ((PDGHelpers::isUpTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]<0) || (PDGHelpers::isDownTypeQuark(MYIDUP_tmp[2]) && MYIDUP_tmp[2]>0)))
       )
       ){
       isel=1; jsel=-2; // dubar->(ZZ)->dubar
@@ -6072,6 +6072,7 @@ double TUtil::VHiggsMatEl(
     // Setup incoming partons
     vector<pair<int, int>> incomingPartons;
     if (partonIsKnown[0] && partonIsKnown[1]) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], MYIDUP_prod[1])); // Parton 0 and 1 are both known
+    // FIXME: The following 2/1 assignments assume the CKM element for this pair is non-zero (there are divisions by Vckmsq_in/out later on).
     else if (!partonIsKnown[0] && !partonIsKnown[1]){ // Parton 0 and 1 are unknown
       // Consider all 4 incoming cases: d au, au d, u ad, ad u
       incomingPartons.push_back(pair<int, int>(1, -2)); // du~ -> W-
@@ -6081,13 +6082,41 @@ double TUtil::VHiggsMatEl(
     }
     else if (!partonIsKnown[1] && partonIsKnown[0]){ // Parton 0 is known
       // Consider the only possible general cases
-      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[0])) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], -TMath::Sign(1, MYIDUP_prod[0]))); // ud~ or u~d
-      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[0])) incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], -TMath::Sign(2, MYIDUP_prod[0]))); // du~ or d~u
+      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[0])){ // ud~ or u~d
+        for (int iqf=1; iqf<=5; iqf++){
+          if (iqf%2==0) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[0]);
+          double ckm_test = __modparameters_MOD_ckmbare(&(MYIDUP_prod[0]), &jqf);
+          if (ckm_test!=0.){ incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], jqf)); break; }
+        }
+      }
+      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[0])){ // du~ or d~u
+        for (int iqf=2; iqf<=4; iqf++){
+          if (iqf%2==1) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[0]);
+          double ckm_test = __modparameters_MOD_ckmbare(&(MYIDUP_prod[0]), &jqf);
+          if (ckm_test!=0.){ incomingPartons.push_back(pair<int, int>(MYIDUP_prod[0], jqf)); break; }
+        }
+      }
     }
     else/* if (!partonIsKnown[0] && partonIsKnown[1])*/{ // Parton 1 is known
       // Consider the only possible general cases
-      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[1])) incomingPartons.push_back(pair<int, int>(-TMath::Sign(1, MYIDUP_prod[1]), MYIDUP_prod[1])); // ud~ or u~d
-      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[1])) incomingPartons.push_back(pair<int, int>(-TMath::Sign(2, MYIDUP_prod[1]), MYIDUP_prod[1])); // du~ or d~u
+      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[1])){ // ud~ or u~d
+        for (int iqf=1; iqf<=5; iqf++){
+          if (iqf%2==0) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[1]);
+          double ckm_test = __modparameters_MOD_ckmbare(&jqf, &(MYIDUP_prod[1]));
+          if (ckm_test!=0.){ incomingPartons.push_back(pair<int, int>(jqf, MYIDUP_prod[1])); break; }
+        }
+      }
+      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[1])){ // du~ or d~u
+        for (int iqf=2; iqf<=4; iqf++){
+          if (iqf%2==1) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[1]);
+          double ckm_test = __modparameters_MOD_ckmbare(&jqf, &(MYIDUP_prod[1]));
+          if (ckm_test!=0.){ incomingPartons.push_back(pair<int, int>(jqf, MYIDUP_prod[1])); break; }
+        }
+      }
     }
     if (verbosity>=TVar::DEBUG){
       cout << "TUtil::VHiggsMatEl: Incoming partons to compute for the ME template:" << endl;
@@ -6096,8 +6125,8 @@ double TUtil::VHiggsMatEl(
 
     // Setup outgoing partons
     vector<pair<int, int>> outgoingPartons;
-    // FIXME: The following 2/1 assignments assume the CKM element for this pair is non-zero (there are divisions by Vckmsq_in/out later on).
     if (partonIsKnown[2] && partonIsKnown[3]) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], MYIDUP_prod[3])); // Parton 0 and 1 are both known or Lep_WH
+    // FIXME: The following 2/1 assignments assume the CKM element for this pair is non-zero (there are divisions by Vckmsq_in/out later on).
     else if (!partonIsKnown[2] && !partonIsKnown[3]){ // Parton 0 and 1 are unknown
       // Consider all 4 outgoing cases: d au, au d, u ad, ad u
       outgoingPartons.push_back(pair<int, int>(1, -2)); // W- -> du~
@@ -6107,13 +6136,41 @@ double TUtil::VHiggsMatEl(
     }
     else if (!partonIsKnown[3] && partonIsKnown[2]){ // Parton 0 is known
       // Consider the only possible general cases
-      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[2])) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], -TMath::Sign(1, MYIDUP_prod[2]))); // ud~ or u~d
-      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[2])) outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], -TMath::Sign(2, MYIDUP_prod[2]))); // du~ or d~u
+      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[2])){ // ud~ or u~d
+        for (int iqf=1; iqf<=5; iqf++){
+          if (iqf%2==0) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[2]);
+          double ckm_test = __modparameters_MOD_ckmbare(&(MYIDUP_prod[2]), &jqf);
+          if (ckm_test!=0.){ outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], jqf)); break; }
+        }
+      }
+      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[2])){ // du~ or d~u
+        for (int iqf=2; iqf<=4; iqf++){
+          if (iqf%2==1) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[2]);
+          double ckm_test = __modparameters_MOD_ckmbare(&(MYIDUP_prod[2]), &jqf);
+          if (ckm_test!=0.){ outgoingPartons.push_back(pair<int, int>(MYIDUP_prod[2], jqf)); break; }
+        }
+      }
     }
     else/* if (!partonIsKnown[2] && partonIsKnown[3])*/{ // Parton 1 is known
       // Consider the only possible general cases
-      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[3])) outgoingPartons.push_back(pair<int, int>(-TMath::Sign(1, MYIDUP_prod[3]), MYIDUP_prod[3])); // ud~ or u~d
-      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[3])) outgoingPartons.push_back(pair<int, int>(-TMath::Sign(2, MYIDUP_prod[3]), MYIDUP_prod[3])); // du~ or d~u
+      if (PDGHelpers::isUpTypeQuark(MYIDUP_prod[3])){ // ud~ or u~d
+        for (int iqf=1; iqf<=5; iqf++){
+          if (iqf%2==0) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[3]);
+          double ckm_test = __modparameters_MOD_ckmbare(&jqf, &(MYIDUP_prod[3]));
+          if (ckm_test!=0.){ outgoingPartons.push_back(pair<int, int>(jqf, MYIDUP_prod[3])); break; }
+        }
+      }
+      else if (PDGHelpers::isDownTypeQuark(MYIDUP_prod[3])){ // du~ or d~u
+        for (int iqf=2; iqf<=4; iqf++){
+          if (iqf%2==1) continue;
+          int jqf = -TMath::Sign(iqf, MYIDUP_prod[3]);
+          double ckm_test = __modparameters_MOD_ckmbare(&jqf, &(MYIDUP_prod[3]));
+          if (ckm_test!=0.){ outgoingPartons.push_back(pair<int, int>(jqf, MYIDUP_prod[3])); break; }
+        }
+      }
     }
     if (verbosity>=TVar::DEBUG){
       cout << "TUtil::VHiggsMatEl: Outgoing particles to compute for the ME template:" << endl;
