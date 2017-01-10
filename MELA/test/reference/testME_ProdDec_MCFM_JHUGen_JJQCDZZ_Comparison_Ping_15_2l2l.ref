@@ -1,7 +1,7 @@
 Production variables:
 	mZZ = 118.817
 	mJJ = 830.608
-JJQCD ZZ
+MEsq:
 	MCFM ME: 1.4501e-18
 	Array:
 	0	0	0	0	0	0	0	0	0	0	0
@@ -16,7 +16,7 @@ JJQCD ZZ
 	0	0	0	0	0	0	0	0	0	2.55879e-17	0
 	0	0	0	0	0	0	0	0	0	0	0
 ***** TUtil::PrintCandidateSummary *****
-Candidate: 0x6f87ba0
+Candidate: 0x1057fe00
 	Has 2 mothers
 		V0 (0) (X,Y,Z,T)=( 0 , 0 , -865.379 , -865.379 )
 		V1 (0) (X,Y,Z,T)=( 0 , 0 , 624.034 , -624.034 )
