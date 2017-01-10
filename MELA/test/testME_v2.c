@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <iomanip>
+#include "Mela.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
 #include "TLorentzRotation.h"
@@ -16,7 +17,6 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TH3F.h"
-#include <ZZMatrixElement/MELA/interface/Mela.h>
 
 
 using namespace RooFit;
