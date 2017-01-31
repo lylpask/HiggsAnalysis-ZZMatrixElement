@@ -63,15 +63,17 @@ Mela::Mela(
   // Create symlinks to the required files, if these are not already present (do nothing otherwise)
   if (myVerbosity_>=TVar::DEBUG) cout << "Create symlinks to the required files if these are not already present:" << endl;
 
-#ifdef _melapkgpathstr_
-  //const string MELAPKGPATH = _melapkgpathstr_;
+#if defined(_usingCMSSW_)
   string MELAPKGPATH = std::getenv( "CMSSW_BASE" );
   MELAPKGPATH+="/src/ZZMatrixElement/MELA/";
-  if (myVerbosity_>=TVar::DEBUG)  cout << "\t- MELA package path: " << MELAPKGPATH << endl;
+#elif defined(_melapkgpathstr_)
+  const string MELAPKGPATH = _melapkgpathstr_;
 #else
   cout << "MELA package path is undefined! Please modify the makefle or the makefile-equivalent!" << endl;
   assert(0);
 #endif
+
+  if (myVerbosity_>=TVar::DEBUG)  cout << "\t- MELA package path: " << MELAPKGPATH << endl;
 
   const string mcfmWarning = MELAPKGPATH + "data/ffwarn.dat"; symlink(mcfmWarning.c_str(), "ffwarn.dat");
   const string mcfm_brsm_o = MELAPKGPATH + "data/br.sm1"; symlink(mcfm_brsm_o.c_str(), "br.sm1");
@@ -2001,14 +2003,17 @@ MelaPConstant* Mela::getPConstantHandle(
   if (myVerbosity_>=TVar::DEBUG) cout << "Begin Mela::getPConstantHandle" << endl;
 
   if (myVerbosity_>=TVar::DEBUG) cout << "Mela::getPConstantHandle: relpath and spline name: " << relpath << ", " << spname << endl;
-#ifdef _melapkgpathstr_
-  //const string MELAPKGPATH = _melapkgpathstr_;
+
+#if defined(_usingCMSSW_)
   string MELAPKGPATH = std::getenv( "CMSSW_BASE" );
   MELAPKGPATH+="/src/ZZMatrixElement/MELA/";
+#elif defined(_melapkgpathstr_)
+  const string MELAPKGPATH = _melapkgpathstr_;
 #else
   cout << "Mela::getPConstantHandle: MELA package path is undefined! Please modify the makefle or the makefile-equivalent!" << endl;
   assert(0);
 #endif
+
   const string path = MELAPKGPATH + "data/";
   string cfile_fullpath = path;
   cfile_fullpath.append(relpath);
