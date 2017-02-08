@@ -495,16 +495,12 @@ void SuperMELA::calc_mZZ_range(const double mHVal, double& low_M, double& high_M
   //low_M=0.;
   //high_M=sqrts_*1000.;
 
-#if defined(_usingCMSSW_) && _usingCMSSW_ == 1
-  string MELAPKGPATH = std::getenv( "CMSSW_BASE" );
-  MELAPKGPATH+="/src/ZZMatrixElement/MELA/";
-#elif defined(_melapkgpathstr_)
+#ifdef _melapkgpathstr_
   const string MELAPKGPATH = _melapkgpathstr_;
 #else
   cout << "SuperMELA::calc_mZZ_range: MELA package path is undefined! Please modify the makefle or the makefile-equivalent!" << endl;
   assert(0);
 #endif
-
   string path = MELAPKGPATH + "data/HiggsTotalWidth_YR3.txt";
 
   path.erase((std::find(path.rbegin(), path.rend(), '/').base()), path.end());
