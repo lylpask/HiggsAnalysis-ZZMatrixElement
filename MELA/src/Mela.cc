@@ -29,6 +29,7 @@ Please adhere to the following coding conventions:
 #include "RooqqZZ_JHU_ZgammaZZ_fast.h"
 #include "RooqqZZ_JHU.h"
 #include "SuperMELA.h"
+#include "makestringhack.h"
 
 #include "RooMsgService.h"
 #include "TFile.h"
