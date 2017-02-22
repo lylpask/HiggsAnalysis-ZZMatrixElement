@@ -2,7 +2,6 @@
 #include <sstream>
 #include <cmath>
 #include <cassert>
-#include "makestringhack.h"
 #include "SuperMELA.h"
 #include "MELAHXSWidth.h"
 #include "RooArgSet.h"
