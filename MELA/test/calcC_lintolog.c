@@ -1379,9 +1379,9 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
   int LepID[4]={ 13, -13, 11, -11 };
 
   TString cinput_main;
-  if (sqrts==13) cinput_main = "/scratch0/hep/usarical/CJLST/LHC_13TeV/4l/160225";
+  if (sqrts==13) cinput_main = "/work-zfs/lhc/usarica/CMS-related/CJLSTProduction/170222/"; /* /work-zfs/lhc/heshy/CJLSTtrees/170203 */
   else return;
-  const int nSamples = 33;
+  const int nSamples = 34;
   TString strSamples[nSamples]={
     "VBFH115/ZZ4lAnalysis.root",
     "VBFH120/ZZ4lAnalysis.root",
@@ -1391,7 +1391,6 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
     "VBFH130/ZZ4lAnalysis.root",
     "VBFH135/ZZ4lAnalysis.root",
     "VBFH140/ZZ4lAnalysis.root",
-    "VBFH145/ZZ4lAnalysis.root",
     "VBFH150/ZZ4lAnalysis.root",
     "VBFH155/ZZ4lAnalysis.root",
     "VBFH160/ZZ4lAnalysis.root",
@@ -1399,15 +1398,13 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
     "VBFH170/ZZ4lAnalysis.root",
     "VBFH175/ZZ4lAnalysis.root",
     "VBFH180/ZZ4lAnalysis.root",
-    "VBFH190/ZZ4lAnalysis.root",
-    "VBFH200/ZZ4lAnalysis.root",
+    "VBFH190/ZZ4lAnalysis.root", 
     "VBFH210/ZZ4lAnalysis.root",
     "VBFH230/ZZ4lAnalysis.root",
     "VBFH250/ZZ4lAnalysis.root",
     "VBFH270/ZZ4lAnalysis.root",
     "VBFH300/ZZ4lAnalysis.root",
-    "VBFH350/ZZ4lAnalysis.root",
-    "VBFH400/ZZ4lAnalysis.root",
+    "VBFH350/ZZ4lAnalysis.root", 
     "VBFH450/ZZ4lAnalysis.root",
     "VBFH500/ZZ4lAnalysis.root",
     "VBFH550/ZZ4lAnalysis.root",
@@ -1415,8 +1412,12 @@ void get_PAvgProfile_JHUGen_JJVBF_HSMHiggs_13TeV(int sqrts=13){
     "VBFH700/ZZ4lAnalysis.root",
     "VBFH750/ZZ4lAnalysis.root",
     "VBFH800/ZZ4lAnalysis.root",
-    "VBFH900/ZZ4lAnalysis.root"
-  };
+    "VBFH900/ZZ4lAnalysis.root",
+    "VBFH1000/ZZ4lAnalysis.root",
+    "VBFH2000/ZZ4lAnalysis.root",
+    "VBFH2500/ZZ4lAnalysis.root",
+    "VBFH3000/ZZ4lAnalysis.root",
+  }; 
 
   TChain* tree = new TChain(TREE_NAME, "");
   for (int is=0; is<nSamples; is++) tree->Add(Form("%s/%s", cinput_main.Data(), (strSamples[is]).Data()));
